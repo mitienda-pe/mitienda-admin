@@ -1,26 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cat:*)",
-      "Bash(npm create:*)",
-      "Bash(npm install)",
-      "Bash(npm run build:*)",
-      "Bash(tree:*)",
-      "Bash(npm run dev:*)",
-      "Bash(pkill:*)",
-      "Read(//Users/carlosvidal/www/mitienda/mitienda-api-ci4/**)",
-      "Bash(git add:*)",
-      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: Habilitar CORS para desarrollo local del backoffice Vue 3\n\n- Configurar orígenes permitidos (localhost:3000-3002 y 192.168.3.118:3000-3002)\n- Habilitar credenciales (Authorization headers)\n- Permitir headers: Content-Type, Authorization, X-Requested-With, Accept, Origin\n- Permitir métodos: GET, POST, PUT, DELETE, OPTIONS, PATCH\n- Habilitar filtro CORS globalmente en todas las peticiones\n\nEsto permite que el nuevo backoffice en Vue 3 pueda consumir la API\nsin problemas de CORS durante el desarrollo local.\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git push:*)",
-      "Bash(curl:*)",
-      "Bash(git commit -m \"$(cat <<''EOF''\nfix: Crear filtro CORS personalizado para manejar peticiones OPTIONS\n\nEl filtro CORS nativo de CI4 no manejaba correctamente las peticiones\nOPTIONS (preflight) causando errores 404 en el navegador.\n\nCambios:\n- Crear CorsFilter personalizado que maneja OPTIONS correctamente\n- Responder con 200 OK a peticiones OPTIONS\n- Agregar headers CORS en before y after\n- Reemplazar filtro nativo por personalizado en aliases\n\nEsto soluciona el error:\n\"Response to preflight request doesn 't pass access control check\"\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git commit:*)",
-      "Bash(git revert:*)",
-      "Bash(npm install:*)",
-      "Bash(git init:*)",
-      "Bash(git remote add:*)",
-      "Bash(git branch:*)",
-      "Read(//Users/carlosvidal/www/mitienda/**)"
+      "Bash(chmod:*)",
+      "Bash(./test-endpoints.sh:*)",
+      "Bash(python3:*)",
+      "Bash(pip3 install:*)",
+      "Bash(TOKEN=\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwaTIubWl0aWVuZGEucGUvIiwic3ViIjoiNDA4IiwiYXVkIjoibW9iaWxlIiwiaWF0IjoxNzU5NDYyMzM3LCJleHAiOjE3NjIwNTQzMzcsInVzZXJfaWQiOjQwOCwiZW1haWwiOiJHY2tsNkt2Q3VKeXA3VUxDLzhkZmtNemxYU3dQRGY2SXA1OTZxZ2FsLzVkU1JnPT0iLCJzdG9yZV9pZCI6NDA4LCJwZXJtaXNzaW9ucyI6WyJyZWFkX3Byb2R1Y3RzIiwicmVhZF9vcmRlcnMiLCJyZWFkX2N1c3RvbWVycyJdfQ.aVDR1RwR7JHubdAFcf8KWh9KjSuTvU6v8WNijU-WmSc\")"
     ],
     "deny": [],
     "ask": []
