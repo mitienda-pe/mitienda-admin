@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useToast } from 'primevue/usetoast'
 import { useOrdersStore } from '@/stores/orders.store'
 import SearchBar from '@/components/common/SearchBar.vue'
 import OrderCard from '@/components/orders/OrderCard.vue'
@@ -12,7 +11,6 @@ import type { Order } from '@/types/order.types'
 import type { OrderFiltersData } from '@/components/orders/OrderFilters.vue'
 
 const router = useRouter()
-const toast = useToast()
 const ordersStore = useOrdersStore()
 
 const filters = ref<OrderFiltersData>({
@@ -63,17 +61,7 @@ const handleClearFilters = () => {
 }
 
 const handleOrderClick = (order: Order) => {
-  // TODO: El endpoint /orders/{id} tiene un error en la API (tabla tiendasproductos no existe)
-  // Temporalmente deshabilitado hasta que se corrija en el backend
-  toast.add({
-    severity: 'info',
-    summary: 'Detalle de pedido',
-    detail: `Pedido #${order.order_number} - ${order.customer.name}`,
-    life: 3000
-  })
-
-  // Descomentar cuando la API esté corregida:
-  // router.push(`/orders/${order.id}`)
+  router.push(`/orders/${order.id}`)
 }
 
 const handleLoadMore = () => {
