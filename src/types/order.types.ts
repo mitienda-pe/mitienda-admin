@@ -7,12 +7,13 @@ export interface Order {
   subtotal: number
   discount: number
   shipping: number
+  shipping_cost?: number
   tax: number
   total: number
   status: OrderStatus
   payment_method: string
   payment_status: string
-  shipping_address?: Address
+  shipping_address?: Address | string
   billing_address?: Address
   notes?: string
   created_at: string
@@ -28,6 +29,11 @@ export interface OrderItem {
   quantity: number
   price: number
   subtotal: number
+  product?: {
+    id: number
+    sku: string
+    images?: Array<{ url: string }>
+  }
 }
 
 export interface Customer {

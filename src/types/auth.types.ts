@@ -6,19 +6,20 @@ export interface LoginCredentials {
 
 export interface LoginResponse {
   access_token: string
-  refresh_token: string
+  refresh_token?: string // Opcional porque la API puede no devolverlo
   token_type: string
   expires_in: number
   user: User
+  store_id?: number // La API devuelve store_id
 }
 
 export interface User {
   id: number
   name: string
   email: string
-  role: string
+  role?: string // Opcional
   avatar?: string
-  created_at: string
+  created_at?: string | null // La API puede no devolverlo
 }
 
 export interface Store {

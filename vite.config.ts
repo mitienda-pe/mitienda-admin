@@ -15,7 +15,7 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'https://api.mitienda.pe',
+        target: 'https://api2.mitienda.pe',
         changeOrigin: true,
         secure: false,
         ws: true

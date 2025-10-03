@@ -27,6 +27,16 @@ apiClient.interceptors.request.use(
 // Response interceptor - Manejo de errores y renovación de tokens
 apiClient.interceptors.response.use(
   response => {
+    // Normalizar respuesta de la API
+    // La API usa { error: 0, message: "...", data: {...} }
+    // Nosotros necesitamos { success: true, message: "...", data: {...} }
+    if (response.data && typeof response.data.error !== 'undefined') {
+      response.data = {
+        success: response.data.error === 0,
+        message: response.data.message,
+        data: response.data.data
+      }
+    }
     return response
   },
   async (error: AxiosError<ApiResponse>) => {

@@ -28,16 +28,22 @@ export const useAuthStore = defineStore('auth', () => {
       if (response.success && response.data) {
         // Guardar tokens
         accessToken.value = response.data.access_token
-        refreshToken.value = response.data.refresh_token
+        refreshToken.value = response.data.refresh_token || null
         user.value = response.data.user
 
         // Guardar en localStorage
         localStorage.setItem('access_token', response.data.access_token)
-        localStorage.setItem('refresh_token', response.data.refresh_token)
+        if (response.data.refresh_token) {
+          localStorage.setItem('refresh_token', response.data.refresh_token)
+        }
         localStorage.setItem('user', JSON.stringify(response.data.user))
 
-        // Obtener tiendas del usuario
-        await fetchStores()
+        // Si la API devuelve store_id, intentar obtener tiendas
+        // sino, redirigir directamente al dashboard
+        if (response.data.store_id) {
+          // Usuario tiene una tienda asociada
+          await fetchStores()
+        }
 
         return true
       } else {
