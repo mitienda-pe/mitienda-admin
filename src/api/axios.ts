@@ -19,8 +19,11 @@ apiClient.interceptors.request.use(
     }
 
     // Si estamos enviando FormData, eliminar Content-Type para que Axios lo configure automáticamente
+    // y aumentar timeout para uploads de archivos grandes
     if (config.data instanceof FormData && config.headers) {
       delete config.headers['Content-Type']
+      // 5 minutos para uploads de video (pueden ser archivos grandes)
+      config.timeout = 300000
     }
 
     return config
