@@ -8,12 +8,19 @@
         text
         @click="router.push('/products')"
       />
-      <Button
-        v-if="product"
-        label="Editar"
-        icon="pi pi-pencil"
-        @click="showEditDialog = true"
-      />
+      <div v-if="product" class="flex gap-2">
+        <Button
+          label="Añadir Video"
+          icon="pi pi-video"
+          severity="secondary"
+          @click="showVideoUploader = true"
+        />
+        <Button
+          label="Editar"
+          icon="pi pi-pencil"
+          @click="showEditDialog = true"
+        />
+      </div>
     </div>
 
     <!-- Loading -->
@@ -182,6 +189,15 @@
       :product="product"
       @save="handleSaveProduct"
     />
+
+    <!-- Modal de subida de video -->
+    <ProductVideoUploader
+      v-if="product"
+      v-model:visible="showVideoUploader"
+      :product-id="product.id"
+      @upload-success="handleVideoUploadSuccess"
+      @upload-error="handleVideoUploadError"
+    />
   </div>
 </template>
 
@@ -196,6 +212,7 @@ import Button from 'primevue/button'
 import Message from 'primevue/message'
 import Divider from 'primevue/divider'
 import ProductQuickEditDialog from '@/components/products/ProductQuickEditDialog.vue'
+import ProductVideoUploader from '@/components/products/ProductVideoUploader.vue'
 import type { ProductQuickEditData } from '@/components/products/ProductQuickEditDialog.vue'
 import placeholderImage from '@/assets/images/landscape-placeholder-svgrepo-com.svg'
 
@@ -207,6 +224,7 @@ const { formatCurrency, formatDate } = useFormatters()
 
 const product = computed(() => productsStore.currentProduct)
 const showEditDialog = ref(false)
+const showVideoUploader = ref(false)
 
 const stockLabel = computed(() => {
   if (!product.value) return ''
@@ -256,6 +274,30 @@ const handleSaveProduct = async (data: ProductQuickEditData) => {
       life: 3000
     })
   }
+}
+
+const handleVideoUploadSuccess = async (data: any) => {
+  toast.add({
+    severity: 'success',
+    summary: 'Video en proceso',
+    detail: 'El video se está procesando. Esto puede tomar unos minutos.',
+    life: 5000
+  })
+  showVideoUploader.value = false
+
+  // Refrescar producto para obtener el estado actualizado
+  if (product.value) {
+    await productsStore.fetchProduct(product.value.id)
+  }
+}
+
+const handleVideoUploadError = (error: any) => {
+  toast.add({
+    severity: 'error',
+    summary: 'Error al subir video',
+    detail: error.message || 'No se pudo subir el video. Por favor, intenta nuevamente.',
+    life: 5000
+  })
 }
 
 onMounted(() => {
