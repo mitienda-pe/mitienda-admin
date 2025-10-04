@@ -13,7 +13,11 @@
       "Bash(find:*)",
       "Bash(php spark db:query:*)",
       "Bash(php spark:*)",
-      "Bash(ssh:*)"
+      "Bash(ssh:*)",
+      "Bash(git pull:*)",
+      "Bash(git restore:*)",
+      "Bash(php:*)",
+      "Bash(openssl rand:*)"
     ],
     "deny": [],
     "ask": []

@@ -156,6 +156,14 @@ export const productsApi = {
         published: rawData.published || false,
         featured: rawData.featured || false,
         images,
+        video: rawData.video ? {
+          cloudflare_uid: rawData.video.cloudflare_uid || null,
+          stream_url: rawData.video.stream_url || null,
+          thumbnail_url: rawData.video.thumbnail_url || null,
+          duration: rawData.video.duration ? parseFloat(rawData.video.duration) : null,
+          status: rawData.video.status || null,
+          created_at: rawData.video.created_at || null
+        } : null,
         category: firstCategory ? {
           id: firstCategory.id,
           name: firstCategory.name,

@@ -59,6 +59,24 @@
         </template>
       </Card>
 
+      <!-- Video del producto -->
+      <Card v-if="product.video || product.video?.status">
+        <template #title>
+          <div class="flex items-center gap-2">
+            <i class="pi pi-video"></i>
+            Video del producto
+          </div>
+        </template>
+        <template #content>
+          <ProductVideoPlayer
+            :video="product.video"
+            :product-id="product.id"
+            @delete="handleVideoDelete"
+            @refresh="handleVideoRefresh"
+          />
+        </template>
+      </Card>
+
       <!-- Información del producto -->
       <div class="space-y-6">
         <!-- Header -->
@@ -213,6 +231,7 @@ import Message from 'primevue/message'
 import Divider from 'primevue/divider'
 import ProductQuickEditDialog from '@/components/products/ProductQuickEditDialog.vue'
 import ProductVideoUploader from '@/components/products/ProductVideoUploader.vue'
+import ProductVideoPlayer from '@/components/products/ProductVideoPlayer.vue'
 import type { ProductQuickEditData } from '@/components/products/ProductQuickEditDialog.vue'
 import placeholderImage from '@/assets/images/landscape-placeholder-svgrepo-com.svg'
 
@@ -298,6 +317,29 @@ const handleVideoUploadError = (error: any) => {
     detail: error.message || 'No se pudo subir el video. Por favor, intenta nuevamente.',
     life: 5000
   })
+}
+
+const handleVideoDelete = async () => {
+  toast.add({
+    severity: 'success',
+    summary: 'Video eliminado',
+    detail: 'El video ha sido eliminado correctamente',
+    life: 3000
+  })
+
+  // Refresh product to update video status
+  const productId = Number(route.params.id)
+  if (productId) {
+    await productsStore.fetchProduct(productId)
+  }
+}
+
+const handleVideoRefresh = async () => {
+  // Refresh product to check video processing status
+  const productId = Number(route.params.id)
+  if (productId) {
+    await productsStore.fetchProduct(productId)
+  }
 }
 
 onMounted(() => {
