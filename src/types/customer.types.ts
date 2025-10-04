@@ -6,21 +6,34 @@ export interface Customer {
   name: string
   email: string
   phone?: string
+  address?: string
   document_type?: string
   document_number?: string
-  address?: string
-  city?: string
-  state?: string
-  zip_code?: string
-  country?: string
+  birthdate?: string | null
+  created_at: string
+  verified: boolean
+  blocked: boolean
   total_orders?: number
   total_spent?: number
-  created_at: string
-  updated_at: string
 }
 
 export interface CustomerDetail extends Customer {
-  orders: Order[]
+  recent_orders?: Order[]
+  orders?: Order[]  // Alias para compatibilidad
+  stats?: {
+    total_orders: number
+    total_spent: number
+    average_order_value: number
+    last_order_date: string | null
+  }
+}
+
+export interface CustomerFilters {
+  search: string
+  verified: boolean | null
+  blocked: boolean | null
+  dateFrom: string | null
+  dateTo: string | null
 }
 
 export interface CustomersState {
@@ -34,7 +47,12 @@ export interface CustomersState {
     total: number
     hasMore: boolean
   }
-  filters: {
-    search: string
-  }
+  filters: CustomerFilters
+}
+
+export interface CustomerStats {
+  total: number
+  verified: number
+  blocked: number
+  new_this_month: number
 }

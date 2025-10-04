@@ -1,79 +1,75 @@
 <template>
-  <Card>
-    <template #title>
-      <div class="flex items-center justify-between">
-        <span class="text-lg">Filtros</span>
-        <Button label="Limpiar" text size="small" @click="clearFilters" />
+  <!-- Layout horizontal en desktop, vertical en móvil -->
+  <div class="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+    <div class="flex flex-col md:flex-row md:items-end gap-4">
+      <!-- Estado de Publicación -->
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-secondary-700 mb-2">Estado</label>
+        <Dropdown
+          v-model="localFilters.published"
+          :options="publishedOptions"
+          option-label="label"
+          option-value="value"
+          placeholder="Todos"
+          class="w-full"
+          @change="applyFilters"
+        />
       </div>
-    </template>
 
-    <template #content>
-      <div class="space-y-4">
-        <!-- Estado de Publicación -->
-        <div>
-          <label class="block text-sm font-medium text-secondary-700 mb-2">Estado</label>
-          <Dropdown
-            v-model="localFilters.published"
-            :options="publishedOptions"
-            option-label="label"
-            option-value="value"
-            placeholder="Todos"
-            class="w-full"
-            @change="applyFilters"
-          />
-        </div>
-
-        <!-- Estado de Stock -->
-        <div>
-          <label class="block text-sm font-medium text-secondary-700 mb-2">Stock</label>
-          <Dropdown
-            v-model="localFilters.stockStatus"
-            :options="stockOptions"
-            option-label="label"
-            option-value="value"
-            placeholder="Todos"
-            class="w-full"
-            @change="applyFilters"
-          />
-        </div>
-
-        <!-- Categoría -->
-        <div>
-          <label class="block text-sm font-medium text-secondary-700 mb-2">Categoría</label>
-          <Dropdown
-            v-model="localFilters.categoryId"
-            :options="catalogStore.categories"
-            option-label="name"
-            option-value="id"
-            placeholder="Todas"
-            class="w-full"
-            show-clear
-            @change="applyFilters"
-          />
-        </div>
-
-        <!-- Marca -->
-        <div>
-          <label class="block text-sm font-medium text-secondary-700 mb-2">Marca</label>
-          <Dropdown
-            v-model="localFilters.brandId"
-            :options="catalogStore.brands"
-            option-label="name"
-            option-value="id"
-            placeholder="Todas"
-            class="w-full"
-            show-clear
-            @change="applyFilters"
-          />
-        </div>
+      <!-- Estado de Stock -->
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-secondary-700 mb-2">Stock</label>
+        <Dropdown
+          v-model="localFilters.stockStatus"
+          :options="stockOptions"
+          option-label="label"
+          option-value="value"
+          placeholder="Todos"
+          class="w-full"
+          @change="applyFilters"
+        />
       </div>
-    </template>
-  </Card>
+
+      <!-- Categoría -->
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-secondary-700 mb-2">Categoría</label>
+        <Dropdown
+          v-model="localFilters.categoryId"
+          :options="catalogStore.categories"
+          option-label="name"
+          option-value="id"
+          placeholder="Todas"
+          class="w-full"
+          show-clear
+          @change="applyFilters"
+        />
+      </div>
+
+      <!-- Marca -->
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-secondary-700 mb-2">Marca</label>
+        <Dropdown
+          v-model="localFilters.brandId"
+          :options="catalogStore.brands"
+          option-label="name"
+          option-value="id"
+          placeholder="Todas"
+          class="w-full"
+          show-clear
+          @change="applyFilters"
+        />
+      </div>
+
+      <!-- Botón limpiar -->
+      <div>
+        <Button label="Limpiar" icon="pi pi-filter-slash" outlined @click="clearFilters" />
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import Card from 'primevue/card'
 import Dropdown from 'primevue/dropdown'
 import Button from 'primevue/button'
 import { useCatalogStore } from '@/stores/catalog.store'

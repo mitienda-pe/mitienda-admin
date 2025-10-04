@@ -5,7 +5,6 @@ import { useOrdersStore } from '@/stores/orders.store'
 import { useFormatters } from '@/composables/useFormatters'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
-import Tag from 'primevue/tag'
 import ProgressSpinner from 'primevue/progressspinner'
 import Timeline from 'primevue/timeline'
 import type { OrderStatus } from '@/types/order.types'
@@ -23,43 +22,52 @@ onMounted(() => {
 
 const order = computed(() => ordersStore.currentOrder)
 
+// Solo estados de PAGO (no estados de envío)
+// pending = 2 (pendiente), paid = 1 (confirmado), cancelled = 0 (rechazado)
 const statusConfig = computed(() => {
   if (!order.value) return null
 
-  const configs: Record<OrderStatus, { label: string; severity: 'warning' | 'info' | 'secondary' | 'success' | 'danger'; icon: string }> = {
+  const configs: Record<OrderStatus, { label: string; bgClass: string; textClass: string; iconClass: string }> = {
     pending: {
       label: 'Pendiente',
-      severity: 'warning',
-      icon: 'pi-clock'
-    },
-    processing: {
-      label: 'Procesando',
-      severity: 'info',
-      icon: 'pi-spin pi-spinner'
+      bgClass: 'bg-yellow-100',
+      textClass: 'text-yellow-800',
+      iconClass: 'pi-clock'
     },
     paid: {
       label: 'Pagado',
-      severity: 'info',
-      icon: 'pi-check-circle'
+      bgClass: 'bg-green-100',
+      textClass: 'text-green-800',
+      iconClass: 'pi-check-circle'
+    },
+    cancelled: {
+      label: 'Rechazado',
+      bgClass: 'bg-red-100',
+      textClass: 'text-red-800',
+      iconClass: 'pi-times-circle'
+    },
+    // Fallbacks (no deberían usarse con el backend actual)
+    processing: {
+      label: 'Procesando',
+      bgClass: 'bg-blue-100',
+      textClass: 'text-blue-800',
+      iconClass: 'pi-spin pi-spinner'
     },
     shipped: {
       label: 'Enviado',
-      severity: 'secondary',
-      icon: 'pi-truck'
+      bgClass: 'bg-purple-100',
+      textClass: 'text-purple-800',
+      iconClass: 'pi-truck'
     },
     delivered: {
       label: 'Entregado',
-      severity: 'success',
-      icon: 'pi-check'
-    },
-    cancelled: {
-      label: 'Cancelado',
-      severity: 'danger',
-      icon: 'pi-times-circle'
+      bgClass: 'bg-green-100',
+      textClass: 'text-green-800',
+      iconClass: 'pi-check'
     }
   }
 
-  return configs[order.value.status]
+  return configs[order.value.status] || configs.pending
 })
 
 const timelineEvents = computed(() => {
@@ -150,12 +158,17 @@ const goBack = () => {
           </p>
         </div>
       </div>
-      <Tag
+      <span
         v-if="statusConfig"
-        :value="statusConfig.label"
-        :severity="statusConfig.severity"
-        :icon="'pi ' + statusConfig.icon"
-      />
+        :class="[
+          'px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-2',
+          statusConfig.bgClass,
+          statusConfig.textClass
+        ]"
+      >
+        <i :class="['pi', statusConfig.iconClass]"></i>
+        {{ statusConfig.label }}
+      </span>
     </div>
 
     <!-- Loading -->
@@ -318,12 +331,18 @@ const goBack = () => {
                 <p class="text-sm text-gray-500">Teléfono</p>
                 <p class="font-semibold text-gray-900">{{ order.customer.phone }}</p>
               </div>
+              <div v-if="order.customer?.document_type && order.customer?.document_number">
+                <p class="text-sm text-gray-500">Documento</p>
+                <p class="font-semibold text-gray-900">
+                  {{ order.customer.document_type }} {{ order.customer.document_number }}
+                </p>
+              </div>
             </div>
           </template>
         </Card>
 
         <!-- Información de Envío -->
-        <Card v-if="order.shipping_address">
+        <Card v-if="order.shipping_details">
           <template #title>
             <div class="flex items-center gap-2">
               <i class="pi pi-map-marker text-primary"></i>
@@ -331,7 +350,39 @@ const goBack = () => {
             </div>
           </template>
           <template #content>
-            <p class="text-gray-900 whitespace-pre-line">{{ order.shipping_address }}</p>
+            <div class="space-y-3">
+              <div v-if="order.shipping_details.address">
+                <p class="text-sm text-gray-500">Dirección</p>
+                <p class="font-semibold text-gray-900">{{ order.shipping_details.address }}</p>
+                <p v-if="order.shipping_details.address_line2" class="text-gray-700 text-sm">
+                  {{ order.shipping_details.address_line2 }}
+                </p>
+              </div>
+              <div v-if="order.shipping_details.district || order.shipping_details.city">
+                <p class="text-sm text-gray-500">Ubicación</p>
+                <p class="text-gray-900">
+                  {{ [order.shipping_details.district, order.shipping_details.city, order.shipping_details.state].filter(Boolean).join(', ') }}
+                </p>
+              </div>
+              <div v-if="order.shipping_details.reference">
+                <p class="text-sm text-gray-500">Referencia</p>
+                <p class="text-gray-900">{{ order.shipping_details.reference }}</p>
+              </div>
+              <div v-if="order.shipping_details.latitude && order.shipping_details.longitude">
+                <p class="text-sm text-gray-500">Coordenadas</p>
+                <p class="text-gray-900 text-sm font-mono">
+                  {{ order.shipping_details.latitude }}, {{ order.shipping_details.longitude }}
+                </p>
+              </div>
+              <div v-if="order.shipping_details.cost">
+                <p class="text-sm text-gray-500">Costo de envío</p>
+                <p class="font-semibold text-gray-900">{{ formatCurrency(parseFloat(order.shipping_details.cost)) }}</p>
+              </div>
+              <div v-if="order.shipping_details.courier">
+                <p class="text-sm text-gray-500">Courier</p>
+                <p class="text-gray-900">{{ order.shipping_details.courier }}</p>
+              </div>
+            </div>
           </template>
         </Card>
 
@@ -345,9 +396,21 @@ const goBack = () => {
           </template>
           <template #content>
             <div class="space-y-3">
+              <div v-if="order.payment_gateway">
+                <p class="text-sm text-gray-500">Pasarela de pago</p>
+                <p class="font-semibold text-gray-900">{{ order.payment_gateway }}</p>
+              </div>
               <div v-if="order.payment_method">
                 <p class="text-sm text-gray-500">Método de pago</p>
                 <p class="font-semibold text-gray-900 capitalize">{{ order.payment_method }}</p>
+              </div>
+              <div v-if="order.gateway_code">
+                <p class="text-sm text-gray-500">Código de la pasarela</p>
+                <p class="font-mono text-sm text-gray-900">{{ order.gateway_code }}</p>
+              </div>
+              <div v-if="order.gateway_message">
+                <p class="text-sm text-gray-500">Mensaje de la pasarela</p>
+                <p class="text-gray-900">{{ order.gateway_message }}</p>
               </div>
               <div v-if="order.notes">
                 <p class="text-sm text-gray-500">Notas</p>

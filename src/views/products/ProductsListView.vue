@@ -8,25 +8,23 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-      <!-- Filtros (Sidebar) -->
-      <div class="lg:col-span-1">
-        <ProductFilters
-          :filters="productsStore.filters"
-          @update:filters="productsStore.setFilters"
-        />
-      </div>
+    <!-- Búsqueda -->
+    <div class="mb-4">
+      <SearchBar
+        v-model="productsStore.filters.search"
+        placeholder="Buscar productos por nombre o SKU..."
+        @search="productsStore.setSearch"
+      />
+    </div>
 
-      <!-- Lista de Productos -->
-      <div class="lg:col-span-3">
-        <!-- Búsqueda -->
-        <div class="mb-4">
-          <SearchBar
-            v-model="productsStore.filters.search"
-            placeholder="Buscar productos por nombre o SKU..."
-            @search="productsStore.setSearch"
-          />
-        </div>
+    <!-- Filtros horizontales -->
+    <ProductFilters
+      :filters="productsStore.filters"
+      @update:filters="productsStore.setFilters"
+    />
+
+    <!-- Lista de Productos -->
+    <div>
 
         <!-- Loading inicial -->
         <div v-if="productsStore.isLoading && !productsStore.hasProducts" class="flex justify-center py-20">
@@ -40,8 +38,8 @@
 
         <!-- Lista con productos -->
         <div v-else-if="productsStore.hasProducts">
-          <!-- Grid de productos -->
-          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
+          <!-- Grid de productos: 2 cols (sm), 3 cols (md), 4 cols (lg), 6 cols (xl) -->
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-6">
             <ProductCard
               v-for="product in productsStore.products"
               :key="product.id"
@@ -82,7 +80,6 @@
           <Button label="Limpiar filtros" outlined @click="productsStore.resetFilters" />
         </div>
       </div>
-    </div>
   </div>
 </template>
 

@@ -23,7 +23,16 @@
           <div class="flex-1">
             <div class="flex items-center gap-2 mb-1">
               <span class="font-medium text-secondary">#{{ order.order_number }}</span>
-              <Tag :value="getStatusLabel(order.status)" :severity="getStatusSeverity(order.status)" />
+              <span
+                :class="[
+                  'px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1',
+                  statusConfig(order.status).bgClass,
+                  statusConfig(order.status).textClass
+                ]"
+              >
+                <i :class="['pi', statusConfig(order.status).iconClass, 'text-xs']"></i>
+                {{ statusConfig(order.status).label }}
+              </span>
             </div>
             <p class="text-sm text-secondary-500">{{ order.customer.name }}</p>
             <p class="text-xs text-secondary-400">{{ formatDateTime(order.created_at) }}</p>
@@ -41,7 +50,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import Card from 'primevue/card'
-import Tag from 'primevue/tag'
 import type { Order, OrderStatus } from '@/types/order.types'
 import { useFormatters } from '@/composables/useFormatters'
 
@@ -54,28 +62,50 @@ defineProps<Props>()
 const router = useRouter()
 const { formatCurrency, formatDateTime } = useFormatters()
 
-const getStatusLabel = (status: OrderStatus): string => {
-  const labels: Record<OrderStatus, string> = {
-    pending: 'Pendiente',
-    paid: 'Pagado',
-    processing: 'En proceso',
-    shipped: 'Enviado',
-    delivered: 'Entregado',
-    cancelled: 'Cancelado'
+// Solo estados de PAGO (no estados de envío)
+// pending = 2 (pendiente), paid = 1 (confirmado), cancelled = 0 (rechazado)
+const statusConfig = (status: OrderStatus) => {
+  const configs: Record<OrderStatus, { label: string; bgClass: string; textClass: string; iconClass: string }> = {
+    pending: {
+      label: 'Pendiente',
+      bgClass: 'bg-yellow-100',
+      textClass: 'text-yellow-800',
+      iconClass: 'pi-clock'
+    },
+    paid: {
+      label: 'Pagado',
+      bgClass: 'bg-green-100',
+      textClass: 'text-green-800',
+      iconClass: 'pi-check-circle'
+    },
+    cancelled: {
+      label: 'Rechazado',
+      bgClass: 'bg-red-100',
+      textClass: 'text-red-800',
+      iconClass: 'pi-times-circle'
+    },
+    // Fallbacks (no deberían usarse con el backend actual)
+    processing: {
+      label: 'Procesando',
+      bgClass: 'bg-blue-100',
+      textClass: 'text-blue-800',
+      iconClass: 'pi-spin pi-spinner'
+    },
+    shipped: {
+      label: 'Enviado',
+      bgClass: 'bg-purple-100',
+      textClass: 'text-purple-800',
+      iconClass: 'pi-truck'
+    },
+    delivered: {
+      label: 'Entregado',
+      bgClass: 'bg-green-100',
+      textClass: 'text-green-800',
+      iconClass: 'pi-check'
+    }
   }
-  return labels[status]
-}
 
-const getStatusSeverity = (status: OrderStatus): 'success' | 'info' | 'warning' | 'danger' | 'secondary' => {
-  const severities: Record<OrderStatus, 'success' | 'info' | 'warning' | 'danger' | 'secondary'> = {
-    pending: 'warning',
-    paid: 'success',
-    processing: 'info',
-    shipped: 'info',
-    delivered: 'success',
-    cancelled: 'danger'
-  }
-  return severities[status]
+  return configs[status] || configs.pending
 }
 
 const goToOrder = (id: number) => {

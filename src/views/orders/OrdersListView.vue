@@ -107,20 +107,16 @@ const totalOrders = computed(() => ordersStore.pagination.total)
       @search="handleSearch"
     />
 
-    <!-- Grid: Filtros + Lista -->
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-      <!-- Sidebar: Filtros -->
-      <aside class="lg:col-span-1">
-        <OrderFilters
-          v-model="filters"
-          @update:model-value="handleFiltersChange"
-          @clear="handleClearFilters"
-        />
-      </aside>
+    <!-- Filtros horizontales -->
+    <OrderFilters
+      v-model="filters"
+      @update:model-value="handleFiltersChange"
+      @clear="handleClearFilters"
+    />
 
-      <!-- Lista de Pedidos -->
-      <div class="lg:col-span-3">
-        <!-- Loading inicial -->
+    <!-- Lista de Pedidos -->
+    <div>
+      <!-- Loading inicial -->
         <div
           v-if="ordersStore.isLoading && !ordersStore.hasOrders"
           class="flex justify-center items-center py-12"
@@ -204,5 +200,4 @@ const totalOrders = computed(() => ordersStore.pagination.total)
         </div>
       </div>
     </div>
-  </div>
 </template>

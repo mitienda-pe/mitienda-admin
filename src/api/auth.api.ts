@@ -59,8 +59,8 @@ export const authApi = {
     return response.data
   },
 
-  // Seleccionar tienda activa
-  async selectStore(storeId: number): Promise<ApiResponse> {
+  // Seleccionar tienda activa - devuelve un nuevo token con permisos de tienda
+  async selectStore(storeId: number): Promise<ApiResponse<{ access_token: string; expires_in: number; store_id: number }>> {
     const response = await apiClient.post('/user/store/select', { store_id: storeId })
     return response.data
   }

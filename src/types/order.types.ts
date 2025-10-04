@@ -13,11 +13,30 @@ export interface Order {
   status: OrderStatus
   payment_method: string
   payment_status: string
+  payment_gateway?: string
+  gateway_code?: string
+  gateway_message?: string
   shipping_address?: Address | string
+  shipping_details?: ShippingDetails
   billing_address?: Address
   notes?: string
   created_at: string
   updated_at: string
+}
+
+export interface ShippingDetails {
+  cost: string
+  address: string
+  address_line2?: string
+  city?: string
+  state?: string
+  district?: string
+  zip_code?: string
+  latitude?: string
+  longitude?: string
+  reference?: string
+  courier?: string
+  tracking_url?: string
 }
 
 export interface OrderItem {

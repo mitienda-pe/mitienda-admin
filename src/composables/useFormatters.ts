@@ -14,7 +14,7 @@ export function useFormatters() {
   }
 
   // Formatear porcentaje
-  const formatPercentage = (value: number, decimals: number = 1): string => {
+  const formatPercentage = (value: number, decimals: number = 2): string => {
     return `${value >= 0 ? '+' : ''}${value.toFixed(decimals)}%`
   }
 
@@ -36,16 +36,24 @@ export function useFormatters() {
   }
 
   // Formatear fecha (DD/MM/YYYY)
-  const formatDate = (date: string | Date): string => {
+  const formatDate = (date: string | Date | null | undefined): string => {
+    if (!date) return 'N/A'
+    const parsedDate = new Date(date)
+    if (isNaN(parsedDate.getTime())) return 'N/A'
+
     return new Intl.DateTimeFormat('es-PE', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
-    }).format(new Date(date))
+    }).format(parsedDate)
   }
 
   // Formatear fecha y hora (DD/MM/YYYY HH:mm)
-  const formatDateTime = (date: string | Date): string => {
+  const formatDateTime = (date: string | Date | null | undefined): string => {
+    if (!date) return 'N/A'
+    const parsedDate = new Date(date)
+    if (isNaN(parsedDate.getTime())) return 'N/A'
+
     return new Intl.DateTimeFormat('es-PE', {
       day: '2-digit',
       month: '2-digit',
@@ -53,16 +61,20 @@ export function useFormatters() {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true
-    }).format(new Date(date))
+    }).format(parsedDate)
   }
 
   // Formatear hora (HH:mm)
-  const formatTime = (date: string | Date): string => {
+  const formatTime = (date: string | Date | null | undefined): string => {
+    if (!date) return 'N/A'
+    const parsedDate = new Date(date)
+    if (isNaN(parsedDate.getTime())) return 'N/A'
+
     return new Intl.DateTimeFormat('es-PE', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true
-    }).format(new Date(date))
+    }).format(parsedDate)
   }
 
   // Obtener clase de color según el cambio (positivo/negativo)

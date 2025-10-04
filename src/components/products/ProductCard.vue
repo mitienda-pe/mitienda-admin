@@ -1,16 +1,12 @@
 <template>
   <Card class="hover:shadow-lg transition-shadow cursor-pointer" @click="goToDetail">
     <template #header>
-      <div class="relative">
+      <div class="relative aspect-square overflow-hidden bg-gray-100">
         <img
-          v-if="mainImage"
-          :src="mainImage.url"
+          :src="mainImage?.url || placeholderImage"
           :alt="product.name"
-          class="w-full h-48 object-cover"
+          class="w-full h-full object-cover"
         />
-        <div v-else class="w-full h-48 bg-gray-200 flex items-center justify-center">
-          <i class="pi pi-image text-4xl text-gray-400"></i>
-        </div>
 
         <!-- Badges -->
         <div class="absolute top-2 right-2 flex flex-col gap-2">
@@ -58,6 +54,7 @@ import Card from 'primevue/card'
 import Tag from 'primevue/tag'
 import type { Product } from '@/types/product.types'
 import { useFormatters } from '@/composables/useFormatters'
+import placeholderImage from '@/assets/images/landscape-placeholder-svgrepo-com.svg'
 
 interface Props {
   product: Product

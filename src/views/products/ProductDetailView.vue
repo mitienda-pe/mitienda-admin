@@ -1,12 +1,18 @@
 <template>
   <div>
     <!-- Breadcrumb -->
-    <div class="mb-4">
+    <div class="mb-4 flex items-center justify-between">
       <Button
         label="Volver a productos"
         icon="pi pi-arrow-left"
         text
         @click="router.push('/products')"
+      />
+      <Button
+        v-if="product"
+        label="Editar"
+        icon="pi pi-pencil"
+        @click="showEditDialog = true"
       />
     </div>
 
@@ -25,21 +31,23 @@
       <!-- Galería de imágenes -->
       <Card>
         <template #content>
-          <Galleria
-            v-if="product.images && product.images.length > 0"
-            :value="product.images"
-            :num-visible="5"
-            container-style="max-width: 100%"
-          >
-            <template #item="{ item }">
-              <img :src="item.url" :alt="product.name" class="w-full h-96 object-contain" />
-            </template>
-            <template #thumbnail="{ item }">
-              <img :src="item.thumbnail || item.url" :alt="product.name" class="w-20 h-20 object-cover" />
-            </template>
-          </Galleria>
-          <div v-else class="w-full h-96 bg-gray-200 flex items-center justify-center">
-            <i class="pi pi-image text-6xl text-gray-400"></i>
+          <!-- Grid de imágenes -->
+          <div v-if="product.images && product.images.length > 0" class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div
+              v-for="(image, index) in product.images"
+              :key="index"
+              class="aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 hover:border-primary transition-colors"
+            >
+              <img
+                :src="image.url"
+                :alt="`${product.name} - imagen ${index + 1}`"
+                class="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+          <!-- Sin imágenes -->
+          <div v-else class="w-full h-96 bg-gray-100 flex items-center justify-center rounded-lg">
+            <img :src="placeholderImage" alt="Sin imagen" class="w-full h-full object-contain opacity-50" />
           </div>
         </template>
       </Card>
@@ -57,9 +65,28 @@
 
               <!-- Badges -->
               <div class="flex gap-2">
-                <Tag :value="product.published ? 'Publicado' : 'No publicado'" :severity="product.published ? 'success' : 'secondary'" />
-                <Tag v-if="product.featured" value="Destacado" severity="info" />
-                <Tag :value="stockLabel" :severity="stockSeverity" />
+                <span
+                  :class="[
+                    'px-2.5 py-1 rounded-full text-xs font-medium',
+                    product.published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                  ]"
+                >
+                  {{ product.published ? 'Publicado' : 'No publicado' }}
+                </span>
+                <span
+                  v-if="product.featured"
+                  class="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                >
+                  Destacado
+                </span>
+                <span
+                  :class="[
+                    'px-2.5 py-1 rounded-full text-xs font-medium',
+                    stockBadgeClass
+                  ]"
+                >
+                  {{ stockLabel }}
+                </span>
               </div>
 
               <!-- Precio -->
@@ -76,9 +103,10 @@
               </div>
 
               <!-- Descripción -->
-              <div v-if="product.description">
+              <div v-if="product.description_html || product.description">
                 <h3 class="font-semibold text-secondary mb-2">Descripción</h3>
-                <p class="text-secondary-600">{{ product.description }}</p>
+                <div v-if="product.description_html" class="text-secondary-600 prose prose-sm max-w-none" v-html="product.description_html"></div>
+                <p v-else class="text-secondary-600">{{ product.description }}</p>
               </div>
             </div>
           </template>
@@ -147,27 +175,38 @@
       <h3 class="text-xl font-semibold text-secondary mb-2">Producto no encontrado</h3>
       <Button label="Volver a productos" @click="router.push('/products')" />
     </div>
+
+    <!-- Modal de edición rápida -->
+    <ProductQuickEditDialog
+      v-model:visible="showEditDialog"
+      :product="product"
+      @save="handleSaveProduct"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductsStore } from '@/stores/products.store'
 import { useFormatters } from '@/composables/useFormatters'
+import { useToast } from 'primevue/usetoast'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
-import Tag from 'primevue/tag'
 import Message from 'primevue/message'
 import Divider from 'primevue/divider'
-import Galleria from 'primevue/galleria'
+import ProductQuickEditDialog from '@/components/products/ProductQuickEditDialog.vue'
+import type { ProductQuickEditData } from '@/components/products/ProductQuickEditDialog.vue'
+import placeholderImage from '@/assets/images/landscape-placeholder-svgrepo-com.svg'
 
 const route = useRoute()
 const router = useRouter()
 const productsStore = useProductsStore()
+const toast = useToast()
 const { formatCurrency, formatDate } = useFormatters()
 
 const product = computed(() => productsStore.currentProduct)
+const showEditDialog = ref(false)
 
 const stockLabel = computed(() => {
   if (!product.value) return ''
@@ -178,13 +217,13 @@ const stockLabel = computed(() => {
   return 'En stock'
 })
 
-const stockSeverity = computed((): 'success' | 'warning' | 'danger' => {
-  if (!product.value) return 'danger'
-  if (product.value.stock === 0) return 'danger'
+const stockBadgeClass = computed(() => {
+  if (!product.value) return 'bg-red-100 text-red-800'
+  if (product.value.stock === 0) return 'bg-red-100 text-red-800'
   if (product.value.min_stock && product.value.stock <= product.value.min_stock) {
-    return 'warning'
+    return 'bg-yellow-100 text-yellow-800'
   }
-  return 'success'
+  return 'bg-green-100 text-green-800'
 })
 
 const stockColorClass = computed(() => {
@@ -195,6 +234,29 @@ const stockColorClass = computed(() => {
   }
   return 'text-green-600'
 })
+
+const handleSaveProduct = async (data: ProductQuickEditData) => {
+  if (!product.value) return
+
+  const result = await productsStore.updateProduct(product.value.id, data)
+
+  if (result.success) {
+    toast.add({
+      severity: 'success',
+      summary: 'Producto actualizado',
+      detail: 'Los cambios se guardaron correctamente',
+      life: 3000
+    })
+    showEditDialog.value = false
+  } else {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: productsStore.error || 'No se pudo actualizar el producto',
+      life: 3000
+    })
+  }
+}
 
 onMounted(() => {
   const productId = Number(route.params.id)

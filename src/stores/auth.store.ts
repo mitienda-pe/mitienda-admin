@@ -93,9 +93,19 @@ export const useAuthStore = defineStore('auth', () => {
 
       const response = await authApi.selectStore(store.id)
 
-      if (response.success) {
+      if (response.success && response.data) {
+        // IMPORTANTE: Guardar el NUEVO token de la tienda
+        // Este token tiene permisos específicos para products, orders, customers
+        const storeToken = response.data.access_token
+
+        accessToken.value = storeToken
+        localStorage.setItem('access_token', storeToken)
+
+        // Guardar la tienda seleccionada
         selectedStore.value = store
         localStorage.setItem('selected_store', JSON.stringify(store))
+
+        console.log('✅ Token de tienda actualizado con permisos completos para store_id:', store.id)
         return true
       } else {
         error.value = response.message || 'Error al seleccionar tienda'

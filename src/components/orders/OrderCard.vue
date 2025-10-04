@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import type { Order, OrderStatus } from '@/types/order.types'
 import { useFormatters } from '@/composables/useFormatters'
 
@@ -11,9 +10,11 @@ const emit = defineEmits<{
   (e: 'click', order: Order): void
 }>()
 
-const { formatCurrency, formatDate, formatTime } = useFormatters()
+const { formatCurrency, formatDateTime } = useFormatters()
 
-const statusConfig = computed(() => {
+// Solo estados de PAGO (no estados de envío)
+// pending = 2 (pendiente), paid = 1 (confirmado), cancelled = 0 (rechazado)
+const statusConfig = (status: OrderStatus) => {
   const configs: Record<OrderStatus, { label: string; bgClass: string; textClass: string; iconClass: string }> = {
     pending: {
       label: 'Pendiente',
@@ -21,17 +22,24 @@ const statusConfig = computed(() => {
       textClass: 'text-yellow-800',
       iconClass: 'pi-clock'
     },
+    paid: {
+      label: 'Pagado',
+      bgClass: 'bg-green-100',
+      textClass: 'text-green-800',
+      iconClass: 'pi-check-circle'
+    },
+    cancelled: {
+      label: 'Rechazado',
+      bgClass: 'bg-red-100',
+      textClass: 'text-red-800',
+      iconClass: 'pi-times-circle'
+    },
+    // Fallbacks (no deberían usarse con el backend actual)
     processing: {
       label: 'Procesando',
       bgClass: 'bg-blue-100',
       textClass: 'text-blue-800',
       iconClass: 'pi-spin pi-spinner'
-    },
-    paid: {
-      label: 'Pagado',
-      bgClass: 'bg-blue-100',
-      textClass: 'text-blue-800',
-      iconClass: 'pi-check-circle'
     },
     shipped: {
       label: 'Enviado',
@@ -44,21 +52,11 @@ const statusConfig = computed(() => {
       bgClass: 'bg-green-100',
       textClass: 'text-green-800',
       iconClass: 'pi-check'
-    },
-    cancelled: {
-      label: 'Cancelado',
-      bgClass: 'bg-red-100',
-      textClass: 'text-red-800',
-      iconClass: 'pi-times-circle'
     }
   }
 
-  return configs[props.order.status]
-})
-
-const itemsCount = computed(() => {
-  return props.order.items?.reduce((sum, item) => sum + item.quantity, 0) || 0
-})
+  return configs[status] || configs.pending
+}
 
 const handleClick = () => {
   emit('click', props.order)
@@ -67,51 +65,31 @@ const handleClick = () => {
 
 <template>
   <div
-    class="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+    class="bg-white border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
     @click="handleClick"
   >
-    <!-- Header: Número y Estado -->
-    <div class="flex items-start justify-between mb-3">
-      <div>
-        <h3 class="font-semibold text-gray-900">Pedido #{{ order.order_number }}</h3>
-        <p class="text-sm text-gray-500">{{ order.customer?.name || 'Cliente' }}</p>
-      </div>
-      <span
-        :class="[
-          'px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1',
-          statusConfig.bgClass,
-          statusConfig.textClass
-        ]"
-      >
-        <i :class="['pi', statusConfig.iconClass, 'text-xs']"></i>
-        {{ statusConfig.label }}
-      </span>
-    </div>
-
-    <!-- Fecha y Hora -->
-    <div class="flex items-center gap-2 text-sm text-gray-600 mb-3">
-      <i class="pi pi-calendar text-gray-400"></i>
-      <span>{{ formatDate(order.created_at) }}</span>
-      <span class="text-gray-400">•</span>
-      <i class="pi pi-clock text-gray-400"></i>
-      <span>{{ formatTime(order.created_at) }}</span>
-    </div>
-
-    <!-- Información de Items y Total -->
-    <div class="flex items-center justify-between pt-3 border-t border-gray-100">
-      <div class="flex items-center gap-2 text-sm text-gray-600">
-        <i class="pi pi-shopping-cart text-gray-400"></i>
-        <span>{{ itemsCount }} {{ itemsCount === 1 ? 'item' : 'items' }}</span>
+    <div class="flex items-center justify-between">
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="font-medium text-secondary">#{{ order.order_number }}</span>
+          <span
+            :class="[
+              'px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1',
+              statusConfig(order.status).bgClass,
+              statusConfig(order.status).textClass
+            ]"
+          >
+            <i :class="['pi', statusConfig(order.status).iconClass, 'text-xs']"></i>
+            {{ statusConfig(order.status).label }}
+          </span>
+        </div>
+        <p class="text-sm text-secondary-500">{{ order.customer?.name || 'Cliente' }}</p>
+        <p class="text-xs text-secondary-400">{{ formatDateTime(order.created_at) }}</p>
       </div>
       <div class="text-right">
-        <p class="text-lg font-bold text-primary">{{ formatCurrency(order.total) }}</p>
+        <p class="font-semibold text-secondary">{{ formatCurrency(order.total) }}</p>
+        <p class="text-xs text-secondary-400">{{ order.items?.length || 0 }} item(s)</p>
       </div>
-    </div>
-
-    <!-- Método de Pago (opcional) -->
-    <div v-if="order.payment_method" class="mt-2 flex items-center gap-2 text-xs text-gray-500">
-      <i class="pi pi-credit-card"></i>
-      <span class="capitalize">{{ order.payment_method }}</span>
     </div>
   </div>
 </template>

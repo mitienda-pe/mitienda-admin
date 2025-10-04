@@ -105,6 +105,23 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/catalog',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: 'categories',
+        name: 'Categories',
+        component: () => import('@/views/catalog/CategoriesListView.vue')
+      },
+      {
+        path: 'brands',
+        name: 'Brands',
+        component: () => import('@/views/catalog/BrandsListView.vue')
+      }
+    ]
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/dashboard'
   }

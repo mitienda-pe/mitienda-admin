@@ -124,6 +124,39 @@ export const useProductsStore = defineStore('products', () => {
     fetchProducts()
   }
 
+  async function updateProduct(id: number, data: { price?: number; stock?: number; published?: boolean }) {
+    try {
+      isLoading.value = true
+      error.value = null
+
+      const response = await productsApi.updateProduct(id, data)
+
+      if (response.success && response.data) {
+        // Actualizar el producto actual si es el que se está viendo
+        if (currentProduct.value?.id === id) {
+          currentProduct.value = response.data
+        }
+
+        // Actualizar en la lista de productos si existe
+        const index = products.value.findIndex(p => p.id === id)
+        if (index !== -1) {
+          products.value[index] = response.data
+        }
+
+        return { success: true, data: response.data }
+      } else {
+        error.value = 'Error al actualizar producto'
+        return { success: false, data: null }
+      }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Error al actualizar producto'
+      console.error('Error al actualizar producto:', err)
+      return { success: false, data: null }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     // State
     products,
@@ -140,6 +173,7 @@ export const useProductsStore = defineStore('products', () => {
     setSearch,
     setFilters,
     loadMore,
-    resetFilters
+    resetFilters,
+    updateProduct
   }
 })

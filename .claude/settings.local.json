@@ -6,7 +6,14 @@
       "Bash(python3:*)",
       "Bash(pip3 install:*)",
       "Bash(TOKEN=\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwaTIubWl0aWVuZGEucGUvIiwic3ViIjoiNDA4IiwiYXVkIjoibW9iaWxlIiwiaWF0IjoxNzU5NDYyMzM3LCJleHAiOjE3NjIwNTQzMzcsInVzZXJfaWQiOjQwOCwiZW1haWwiOiJHY2tsNkt2Q3VKeXA3VUxDLzhkZmtNemxYU3dQRGY2SXA1OTZxZ2FsLzVkU1JnPT0iLCJzdG9yZV9pZCI6NDA4LCJwZXJtaXNzaW9ucyI6WyJyZWFkX3Byb2R1Y3RzIiwicmVhZF9vcmRlcnMiLCJyZWFkX2N1c3RvbWVycyJdfQ.aVDR1RwR7JHubdAFcf8KWh9KjSuTvU6v8WNijU-WmSc\")",
-      "Read(//Users/carlosvidal/Developer/mitienda_app/**)"
+      "Read(//Users/carlosvidal/Developer/mitienda_app/**)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)",
+      "Bash(git log:*)",
+      "Bash(find:*)",
+      "Bash(php spark db:query:*)",
+      "Bash(php spark:*)",
+      "Bash(ssh:*)"
     ],
     "deny": [],
     "ask": []

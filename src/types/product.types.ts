@@ -4,6 +4,7 @@ export interface Product {
   sku: string
   name: string
   description?: string
+  description_html?: string
   price: number
   compare_price?: number
   cost?: number

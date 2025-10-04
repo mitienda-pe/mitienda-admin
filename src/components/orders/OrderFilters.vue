@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import Dropdown from 'primevue/dropdown'
 import Calendar from 'primevue/calendar'
 import Button from 'primevue/button'
@@ -22,30 +22,18 @@ const emit = defineEmits<{
 
 const localFilters = ref<OrderFiltersData>({ ...props.modelValue })
 
+// Solo estados de PAGO (no estados de envío)
+// 0 = rechazado, 1 = confirmado/pagado, 2 = pendiente
 const statusOptions = [
   { label: 'Todos los estados', value: 'all' },
   { label: 'Pendiente', value: 'pending' },
   { label: 'Pagado', value: 'paid' },
-  { label: 'Enviado', value: 'shipped' },
-  { label: 'Entregado', value: 'delivered' },
-  { label: 'Cancelado', value: 'cancelled' }
+  { label: 'Rechazado', value: 'cancelled' }
 ]
 
-watch(
-  localFilters,
-  (newValue) => {
-    emit('update:modelValue', newValue)
-  },
-  { deep: true }
-)
-
-watch(
-  () => props.modelValue,
-  (newValue) => {
-    localFilters.value = { ...newValue }
-  },
-  { deep: true }
-)
+const handleFilterChange = () => {
+  emit('update:modelValue', { ...localFilters.value })
+}
 
 const handleClear = () => {
   localFilters.value = {
@@ -66,57 +54,62 @@ const hasActiveFilters = () => {
 </script>
 
 <template>
-  <div class="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
-    <div class="flex items-center justify-between">
-      <h3 class="font-semibold text-gray-900">Filtros</h3>
-      <Button
-        v-if="hasActiveFilters()"
-        label="Limpiar"
-        icon="pi pi-filter-slash"
-        text
-        size="small"
-        @click="handleClear"
-      />
-    </div>
+  <!-- Layout horizontal en desktop, vertical en móvil -->
+  <div class="bg-white border border-gray-200 rounded-lg p-4">
+    <div class="flex flex-col md:flex-row md:items-end gap-4">
+      <!-- Estado -->
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Estado de Pago</label>
+        <Dropdown
+          v-model="localFilters.status"
+          :options="statusOptions"
+          option-label="label"
+          option-value="value"
+          placeholder="Seleccionar estado"
+          class="w-full"
+          @change="handleFilterChange"
+        />
+      </div>
 
-    <!-- Estado -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
-      <Dropdown
-        v-model="localFilters.status"
-        :options="statusOptions"
-        option-label="label"
-        option-value="value"
-        placeholder="Seleccionar estado"
-        class="w-full"
-      />
-    </div>
+      <!-- Fecha desde -->
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Fecha desde</label>
+        <Calendar
+          v-model="localFilters.dateFrom"
+          placeholder="Seleccionar fecha"
+          date-format="dd/mm/yy"
+          show-icon
+          :max-date="localFilters.dateTo || new Date()"
+          class="w-full"
+          @date-select="handleFilterChange"
+        />
+      </div>
 
-    <!-- Fecha desde -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">Fecha desde</label>
-      <Calendar
-        v-model="localFilters.dateFrom"
-        placeholder="Seleccionar fecha"
-        date-format="dd/mm/yy"
-        show-icon
-        :max-date="localFilters.dateTo || new Date()"
-        class="w-full"
-      />
-    </div>
+      <!-- Fecha hasta -->
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Fecha hasta</label>
+        <Calendar
+          v-model="localFilters.dateTo"
+          placeholder="Seleccionar fecha"
+          date-format="dd/mm/yy"
+          show-icon
+          :min-date="localFilters.dateFrom || undefined"
+          :max-date="new Date()"
+          class="w-full"
+          @date-select="handleFilterChange"
+        />
+      </div>
 
-    <!-- Fecha hasta -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 mb-2">Fecha hasta</label>
-      <Calendar
-        v-model="localFilters.dateTo"
-        placeholder="Seleccionar fecha"
-        date-format="dd/mm/yy"
-        show-icon
-        :min-date="localFilters.dateFrom || undefined"
-        :max-date="new Date()"
-        class="w-full"
-      />
+      <!-- Botón limpiar -->
+      <div>
+        <Button
+          v-if="hasActiveFilters()"
+          label="Limpiar"
+          icon="pi pi-filter-slash"
+          outlined
+          @click="handleClear"
+        />
+      </div>
     </div>
   </div>
 </template>
