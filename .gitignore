@@ -32,3 +32,10 @@ dist-ssr
 
 # Test coverage
 coverage
+
+# Videos de prueba
+*.mp4
+*.mov
+*.avi
+*.webm
+test-video.*
