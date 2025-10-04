@@ -17,6 +17,12 @@ apiClient.interceptors.request.use(
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
     }
+
+    // Si estamos enviando FormData, eliminar Content-Type para que Axios lo configure automáticamente
+    if (config.data instanceof FormData && config.headers) {
+      delete config.headers['Content-Type']
+    }
+
     return config
   },
   error => {
