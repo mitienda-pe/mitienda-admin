@@ -17,7 +17,8 @@
       "Bash(git pull:*)",
       "Bash(git restore:*)",
       "Bash(php:*)",
-      "Bash(openssl rand:*)"
+      "Bash(openssl rand:*)",
+      "Bash(scp:*)"
     ],
     "deny": [],
     "ask": []
