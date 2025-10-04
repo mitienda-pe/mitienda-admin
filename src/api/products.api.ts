@@ -244,11 +244,7 @@ export const productsApi = {
     const formData = new FormData()
     formData.append('video', videoFile)
 
-    const response = await apiClient.post(`/products/${id}/video`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    })
+    const response = await apiClient.post(`/products/${id}/video`, formData)
 
     return response.data
   },
