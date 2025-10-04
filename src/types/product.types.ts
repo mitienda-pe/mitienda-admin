@@ -1,4 +1,6 @@
 // Tipos de productos
+import type { ProductVideo } from './product-video.types'
+
 export interface Product {
   id: number
   sku: string
@@ -14,6 +16,7 @@ export interface Product {
   published: boolean
   featured: boolean
   images: ProductImage[]
+  video?: ProductVideo | null
   category?: Category
   brand?: Brand
   created_at: string

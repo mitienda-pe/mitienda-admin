@@ -237,5 +237,25 @@ export const productsApi = {
   async getStats(): Promise<ApiResponse<any>> {
     const response = await apiClient.get('/products/stats')
     return response.data
+  },
+
+  // Subir video de producto
+  async uploadVideo(id: number, videoFile: File): Promise<ApiResponse<any>> {
+    const formData = new FormData()
+    formData.append('video', videoFile)
+
+    const response = await apiClient.post(`/products/${id}/video`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
+    return response.data
+  },
+
+  // Eliminar video de producto
+  async deleteVideo(id: number): Promise<ApiResponse<any>> {
+    const response = await apiClient.delete(`/products/${id}/video`)
+    return response.data
   }
 }
