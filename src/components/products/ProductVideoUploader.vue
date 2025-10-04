@@ -28,6 +28,13 @@ const dialogVisible = computed({
   set: (value) => emit('update:visible', value)
 })
 
+const videoPreviewUrl = computed(() => {
+  if (selectedFile.value) {
+    return URL.createObjectURL(selectedFile.value)
+  }
+  return null
+})
+
 const acceptedFormats = '.mp4,.mov,.avi,.webm'
 const maxFileSize = 100 * 1024 * 1024 // 100MB
 
@@ -164,7 +171,8 @@ const formatFileSize = (bytes: number): string => {
         <!-- Video Preview -->
         <div v-if="selectedFile && !isUploading" class="mt-3">
           <video
-            :src="URL.createObjectURL(selectedFile)"
+            v-if="videoPreviewUrl"
+            :src="videoPreviewUrl"
             controls
             class="w-full rounded-lg max-h-48"
           />
