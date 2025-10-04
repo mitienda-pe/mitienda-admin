@@ -39,8 +39,15 @@ const acceptedFormats = '.mp4,.mov,.avi,.webm'
 const maxFileSize = 100 * 1024 * 1024 // 100MB
 
 const onFileSelect = (event: FileUploadSelectEvent) => {
+  console.log('FileUpload event:', event)
+  console.log('Files:', event.files)
+
   if (event.files && event.files.length > 0) {
     const file = event.files[0]
+    console.log('Selected file:', file)
+    console.log('File type:', file.type)
+    console.log('File size:', file.size)
+    console.log('Is File instance:', file instanceof File)
 
     // Validate file size
     if (file.size > maxFileSize) {
@@ -59,11 +66,20 @@ const onFileSelect = (event: FileUploadSelectEvent) => {
 
     selectedFile.value = file
     errorMessage.value = ''
+    console.log('File selected successfully:', selectedFile.value)
   }
 }
 
 const handleUpload = async () => {
-  if (!selectedFile.value) return
+  if (!selectedFile.value) {
+    console.error('No file selected!')
+    return
+  }
+
+  console.log('Starting upload...')
+  console.log('Product ID:', props.productId)
+  console.log('File to upload:', selectedFile.value)
+  console.log('File instanceof File:', selectedFile.value instanceof File)
 
   isUploading.value = true
   uploadProgress.value = 0
@@ -79,7 +95,9 @@ const handleUpload = async () => {
       }
     }, 200)
 
+    console.log('Calling API uploadVideo...')
     const response = await productsApi.uploadVideo(props.productId, selectedFile.value)
+    console.log('API response:', response)
 
     clearInterval(progressInterval)
     uploadProgress.value = 100
