@@ -5,6 +5,9 @@ export interface ProductVideo {
   stream_url: string | null
   thumbnail_url: string | null
   duration: number | null
+  width: number | null
+  height: number | null
+  aspect_ratio: number | null
   status: VideoStatus | null
   created_at: string | null
 }

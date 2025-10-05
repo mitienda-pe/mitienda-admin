@@ -48,6 +48,17 @@ const statusLabel = computed(() => {
   }
 })
 
+// Calculate padding-top for aspect ratio (default 16:9 = 56.25%)
+const aspectRatioPadding = computed(() => {
+  if (props.video?.aspect_ratio) {
+    // aspect_ratio = width / height
+    // padding-top = (height / width) * 100
+    return `${(1 / props.video.aspect_ratio) * 100}%`
+  }
+  // Default to 16:9
+  return '56.25%'
+})
+
 const handleDelete = async () => {
   isDeleting.value = true
   try {
@@ -147,8 +158,8 @@ watch(
     <!-- Ready State - Video Player -->
     <div v-else-if="isReady && video?.stream_url" class="video-ready">
       <div class="relative">
-        <!-- Cloudflare Stream Player - Using iframe embed -->
-        <div class="video-container" style="position: relative; padding-top: 56.25%;">
+        <!-- Cloudflare Stream Player - Using iframe embed with dynamic aspect ratio -->
+        <div class="video-container" :style="{ position: 'relative', paddingTop: aspectRatioPadding }">
           <iframe
             :src="`https://customer-1mnkfje3evk2durm.cloudflarestream.com/${video.cloudflare_uid}/iframe?poster=${encodeURIComponent(video.thumbnail_url || '')}`"
             loading="lazy"
