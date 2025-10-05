@@ -185,13 +185,20 @@ colors: {
 - **Fase 6**: Testing y refinamiento
 - **Fase 7**: Deployment
 
+## 📚 Documentación
+
+- [PRD del Proyecto](./docs/PRD_BACKOFFICE_VUE3.md)
+- [Guía de Deployment](./docs/DEPLOY_INSTRUCCIONES.md)
+- [Implementación de Videos](./docs/VIDEO_UPLOAD_IMPLEMENTATION.md)
+- [Feature de Videos - Resumen](./docs/RESUMEN_FEATURE_VIDEOS.md)
+- [Ver todas las docs](./docs/)
+
 ## 🔗 Enlaces Útiles
 
 - [Documentación Vue 3](https://vuejs.org/)
 - [Documentación Pinia](https://pinia.vuejs.org/)
 - [Documentación PrimeVue](https://primevue.org/)
 - [Documentación Vite](https://vitejs.dev/)
-- [PRD del Proyecto](./PRD_BACKOFFICE_VUE3.md)
 
 ## 📄 Licencia
 

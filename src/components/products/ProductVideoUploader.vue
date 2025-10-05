@@ -83,65 +83,25 @@ const handleUpload = async () => {
   try {
     const { productsApi } = await import('@/api/products.api')
 
-    // Step 1: Get upload link from API
+    console.log('Uploading video via backend...')
+    console.log('File:', selectedFile.value.name, selectedFile.value.size, 'bytes')
+
     uploadProgress.value = 10
-    const linkResponse = await productsApi.getVideoUploadLink(props.productId)
 
-    if (!linkResponse.success || !linkResponse.data?.uploadURL) {
-      throw new Error('Failed to get upload link')
-    }
-
-    const { uploadURL, uid } = linkResponse.data
-
-    // Step 2: Upload directly to Cloudflare (POST multipart/form-data)
-    // Following Cloudflare docs: https://developers.cloudflare.com/stream/uploading-videos/direct-creator-uploads/
-    uploadProgress.value = 20
-
-    const formData = new FormData()
-    formData.append('file', selectedFile.value)
-
-    const xhr = new XMLHttpRequest()
-
-    // Track upload progress
-    xhr.upload.addEventListener('progress', (e) => {
-      if (e.lengthComputable) {
-        // Map 0-100% upload to 20-80% total progress
-        const uploadPercent = (e.loaded / e.total) * 100
-        uploadProgress.value = 20 + (uploadPercent * 0.6)
-      }
-    })
-
-    // Upload promise
-    await new Promise((resolve, reject) => {
-      xhr.addEventListener('load', () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          resolve(xhr.response)
-        } else {
-          reject(new Error(`Upload failed with status ${xhr.status}`))
-        }
-      })
-
-      xhr.addEventListener('error', () => {
-        reject(new Error('Network error during upload'))
-      })
-
-      xhr.open('POST', uploadURL)
-      xhr.send(formData)
-    })
-
-    // Step 3: Confirm upload with API (validates duration)
-    uploadProgress.value = 90
-    const confirmResponse = await productsApi.confirmVideoUpload(props.productId)
+    // Use the existing uploadVideo API method
+    const response = await productsApi.uploadVideo(props.productId, selectedFile.value)
 
     uploadProgress.value = 100
 
-    if (confirmResponse.success) {
-      emit('upload-success', confirmResponse.data)
+    if (response.success) {
+      console.log('Upload successful:', response)
+      emit('upload-success', response.data)
+
       setTimeout(() => {
         handleClose()
       }, 500)
     } else {
-      throw new Error('Upload confirmation failed')
+      throw new Error(response.message || 'Upload failed')
     }
 
   } catch (error: any) {

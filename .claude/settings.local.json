@@ -18,7 +18,14 @@
       "Bash(git restore:*)",
       "Bash(php:*)",
       "Bash(openssl rand:*)",
-      "Bash(scp:*)"
+      "Bash(scp:*)",
+      "Bash(npm install:*)",
+      "Read(//Users/carlosvidal/www/mitienda/**)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Read(//Users/carlosvidal/**)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []
