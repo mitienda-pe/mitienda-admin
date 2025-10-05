@@ -93,39 +93,36 @@ const handleUpload = async () => {
 
     const { uploadURL, uid } = linkResponse.data
 
-    // Step 2: Upload directly to Cloudflare
+    // Step 2: Upload directly to Cloudflare using TUS protocol
     uploadProgress.value = 20
 
-    const formData = new FormData()
-    formData.append('file', selectedFile.value)
+    const { default: tus } = await import('tus-js-client')
 
-    const xhr = new XMLHttpRequest()
-
-    // Track upload progress
-    xhr.upload.addEventListener('progress', (e) => {
-      if (e.lengthComputable) {
-        // Map 0-100% upload to 20-80% total progress
-        const uploadPercent = (e.loaded / e.total) * 100
-        uploadProgress.value = 20 + (uploadPercent * 0.6)
-      }
-    })
-
-    // Upload promise
     await new Promise((resolve, reject) => {
-      xhr.addEventListener('load', () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          resolve(xhr.response)
-        } else {
-          reject(new Error(`Upload failed with status ${xhr.status}`))
+      const upload = new tus.Upload(selectedFile.value, {
+        endpoint: uploadURL,
+        chunkSize: 5 * 1024 * 1024, // 5MB chunks
+        retryDelays: [0, 1000, 3000, 5000],
+        metadata: {
+          filename: selectedFile.value.name,
+          filetype: selectedFile.value.type
+        },
+        onError: (error) => {
+          console.error('TUS upload error:', error)
+          reject(error)
+        },
+        onProgress: (bytesUploaded, bytesTotal) => {
+          // Map 0-100% upload to 20-80% total progress
+          const uploadPercent = (bytesUploaded / bytesTotal) * 100
+          uploadProgress.value = 20 + (uploadPercent * 0.6)
+        },
+        onSuccess: () => {
+          console.log('TUS upload complete')
+          resolve(true)
         }
       })
 
-      xhr.addEventListener('error', () => {
-        reject(new Error('Network error during upload'))
-      })
-
-      xhr.open('POST', uploadURL)
-      xhr.send(formData)
+      upload.start()
     })
 
     // Step 3: Confirm upload with API (validates duration)
