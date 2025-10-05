@@ -13,7 +13,7 @@ import Column from 'primevue/column'
 const route = useRoute()
 const router = useRouter()
 const customersStore = useCustomersStore()
-const { formatCurrency, formatDate, formatDateTime } = useFormatters()
+const { formatCurrency, formatDate } = useFormatters()
 
 const customerId = Number(route.params.id)
 

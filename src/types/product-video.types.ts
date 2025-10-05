@@ -9,6 +9,7 @@ export interface ProductVideo {
   height: number | null
   aspect_ratio: number | null
   status: VideoStatus | null
+  error: string | null
   created_at: string | null
 }
 

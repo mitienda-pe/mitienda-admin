@@ -161,7 +161,11 @@ export const productsApi = {
           stream_url: rawData.video.stream_url || null,
           thumbnail_url: rawData.video.thumbnail_url || null,
           duration: rawData.video.duration ? parseFloat(rawData.video.duration) : null,
+          width: rawData.video.width ? parseInt(rawData.video.width) : null,
+          height: rawData.video.height ? parseInt(rawData.video.height) : null,
+          aspect_ratio: rawData.video.aspect_ratio ? parseFloat(rawData.video.aspect_ratio) : null,
           status: rawData.video.status || null,
+          error: rawData.video.error || null,
           created_at: rawData.video.created_at || null
         } : null,
         category: firstCategory ? {
@@ -189,7 +193,7 @@ export const productsApi = {
 
     return {
       success: false,
-      data: null
+      data: undefined
     }
   },
 
@@ -237,7 +241,7 @@ export const productsApi = {
 
     return {
       success: false,
-      data: null
+      data: undefined
     }
   },
 

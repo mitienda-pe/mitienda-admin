@@ -69,7 +69,7 @@
         </template>
         <template #content>
           <ProductVideoPlayer
-            :video="product.video"
+            :video="product.video || null"
             :product-id="product.id"
             @delete="handleVideoDelete"
             @refresh="handleVideoRefresh"
@@ -300,7 +300,7 @@ const handleSaveProduct = async (data: ProductQuickEditData) => {
   }
 }
 
-const handleVideoUploadSuccess = async (data: any) => {
+const handleVideoUploadSuccess = async () => {
   toast.add({
     severity: 'success',
     summary: 'Video en proceso',

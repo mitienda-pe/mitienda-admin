@@ -117,7 +117,7 @@ export const customersApi = {
 
     return {
       success: false,
-      data: null
+      data: undefined
     }
   },
 

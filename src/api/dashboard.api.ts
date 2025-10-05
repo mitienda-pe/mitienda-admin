@@ -70,7 +70,7 @@ export const dashboardApi = {
 
     return {
       success: false,
-      data: null
+      data: undefined
     }
   }
 }

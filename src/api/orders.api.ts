@@ -245,7 +245,7 @@ export const ordersApi = {
 
     return {
       success: false,
-      data: null
+      data: undefined
     }
   },
 
