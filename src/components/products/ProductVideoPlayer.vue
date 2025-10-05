@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import type { ProductVideo } from '@/types/product-video.types'
 import Button from 'primevue/button'
 import ProgressSpinner from 'primevue/progressspinner'
@@ -61,6 +61,26 @@ const handleDelete = async () => {
     isDeleting.value = false
   }
 }
+
+// Load Cloudflare Stream Player script
+let streamScript: HTMLScriptElement | null = null
+
+onMounted(() => {
+  // Check if script already loaded
+  if (!document.querySelector('script[src*="embed.cloudflarestream.com"]')) {
+    streamScript = document.createElement('script')
+    streamScript.src = 'https://embed.cloudflarestream.com/embed/sdk.latest/stream.js'
+    streamScript.async = true
+    document.head.appendChild(streamScript)
+    console.log('✅ Cloudflare Stream SDK loaded')
+  }
+})
+
+onUnmounted(() => {
+  if (refreshInterval) {
+    clearInterval(refreshInterval)
+  }
+})
 
 // Auto-refresh when processing
 let refreshInterval: ReturnType<typeof setInterval> | null = null
@@ -127,15 +147,16 @@ watch(
     <!-- Ready State - Video Player -->
     <div v-else-if="isReady && video?.stream_url" class="video-ready">
       <div class="relative">
-        <!-- Cloudflare Stream Player -->
-        <div class="video-container">
-          <stream
-            :src="video.cloudflare_uid"
-            controls
-            preload="auto"
-            :poster="video.thumbnail_url || undefined"
-            class="w-full rounded-lg"
-          ></stream>
+        <!-- Cloudflare Stream Player - Using iframe embed -->
+        <div class="video-container" style="position: relative; padding-top: 56.25%;">
+          <iframe
+            :src="`https://customer-1mnkfje3evk2durm.cloudflarestream.com/${video.cloudflare_uid}/iframe?poster=${encodeURIComponent(video.thumbnail_url || '')}`"
+            loading="lazy"
+            style="border: none; position: absolute; top: 0; left: 0; height: 100%; width: 100%;"
+            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+            allowfullscreen="true"
+            class="rounded-lg"
+          ></iframe>
         </div>
 
         <!-- Video Info -->

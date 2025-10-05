@@ -60,7 +60,7 @@
       </Card>
 
       <!-- Video del producto -->
-      <Card v-if="product.video || product.video?.status">
+      <Card v-if="hasVideo">
         <template #title>
           <div class="flex items-center gap-2">
             <i class="pi pi-video"></i>
@@ -245,6 +245,11 @@ const product = computed(() => productsStore.currentProduct)
 const showEditDialog = ref(false)
 const showVideoUploader = ref(false)
 
+// Computed para forzar reactividad del video
+const hasVideo = computed(() => {
+  return !!(product.value?.video?.cloudflare_uid)
+})
+
 const stockLabel = computed(() => {
   if (!product.value) return ''
   if (product.value.stock === 0) return 'Agotado'
@@ -342,10 +347,10 @@ const handleVideoRefresh = async () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   const productId = Number(route.params.id)
   if (productId) {
-    productsStore.fetchProduct(productId)
+    await productsStore.fetchProduct(productId)
   }
 })
 </script>

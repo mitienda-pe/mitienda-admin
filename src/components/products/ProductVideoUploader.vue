@@ -76,11 +76,6 @@ const handleUpload = async () => {
     return
   }
 
-  console.log('Starting upload...')
-  console.log('Product ID:', props.productId)
-  console.log('File to upload:', selectedFile.value)
-  console.log('File instanceof File:', selectedFile.value instanceof File)
-
   isUploading.value = true
   uploadProgress.value = 0
   errorMessage.value = ''
@@ -88,32 +83,69 @@ const handleUpload = async () => {
   try {
     const { productsApi } = await import('@/api/products.api')
 
-    // Simulate progress (real progress would need xhr upload events)
-    const progressInterval = setInterval(() => {
-      if (uploadProgress.value < 90) {
-        uploadProgress.value += 10
+    // Step 1: Get upload link from API
+    uploadProgress.value = 10
+    const linkResponse = await productsApi.getVideoUploadLink(props.productId)
+
+    if (!linkResponse.success || !linkResponse.data?.uploadURL) {
+      throw new Error('Failed to get upload link')
+    }
+
+    const { uploadURL, uid } = linkResponse.data
+
+    // Step 2: Upload directly to Cloudflare
+    uploadProgress.value = 20
+
+    const formData = new FormData()
+    formData.append('file', selectedFile.value)
+
+    const xhr = new XMLHttpRequest()
+
+    // Track upload progress
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable) {
+        // Map 0-100% upload to 20-80% total progress
+        const uploadPercent = (e.loaded / e.total) * 100
+        uploadProgress.value = 20 + (uploadPercent * 0.6)
       }
-    }, 200)
+    })
 
-    console.log('Calling API uploadVideo...')
-    const response = await productsApi.uploadVideo(props.productId, selectedFile.value)
-    console.log('API response:', response)
+    // Upload promise
+    await new Promise((resolve, reject) => {
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(xhr.response)
+        } else {
+          reject(new Error(`Upload failed with status ${xhr.status}`))
+        }
+      })
 
-    clearInterval(progressInterval)
+      xhr.addEventListener('error', () => {
+        reject(new Error('Network error during upload'))
+      })
+
+      xhr.open('POST', uploadURL)
+      xhr.send(formData)
+    })
+
+    // Step 3: Confirm upload with API (validates duration)
+    uploadProgress.value = 90
+    const confirmResponse = await productsApi.confirmVideoUpload(props.productId)
+
     uploadProgress.value = 100
 
-    if (response.success) {
-      emit('upload-success', response.data)
+    if (confirmResponse.success) {
+      emit('upload-success', confirmResponse.data)
       setTimeout(() => {
         handleClose()
       }, 500)
     } else {
-      throw new Error('Upload failed')
+      throw new Error('Upload confirmation failed')
     }
 
   } catch (error: any) {
     console.error('Error uploading video:', error)
-    errorMessage.value = error.response?.data?.message || 'Error al subir el video. Intente nuevamente.'
+    errorMessage.value = error.response?.data?.message || error.message || 'Error al subir el video. Intente nuevamente.'
     emit('upload-error', errorMessage.value)
   } finally {
     isUploading.value = false

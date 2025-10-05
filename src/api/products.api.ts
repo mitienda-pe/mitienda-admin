@@ -247,7 +247,19 @@ export const productsApi = {
     return response.data
   },
 
-  // Subir video de producto
+  // Obtener link de upload directo a Cloudflare
+  async getVideoUploadLink(id: number): Promise<ApiResponse<any>> {
+    const response = await apiClient.post(`/products/${id}/video/upload-link`)
+    return response.data
+  },
+
+  // Confirmar video subido (valida duración)
+  async confirmVideoUpload(id: number): Promise<ApiResponse<any>> {
+    const response = await apiClient.post(`/products/${id}/video/confirm`)
+    return response.data
+  },
+
+  // Subir video de producto (método antiguo - deprecado)
   async uploadVideo(id: number, videoFile: File): Promise<ApiResponse<any>> {
     const formData = new FormData()
     formData.append('video', videoFile)
