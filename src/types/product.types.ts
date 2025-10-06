@@ -14,6 +14,12 @@ export interface Product {
   stock: number
   min_stock?: number
   weight?: number
+  weight_unit?: string
+  height?: number
+  width?: number
+  length?: number
+  dimensions_unit?: string
+  volumetric_weight?: number
   published: boolean
   featured: boolean
   images: ProductImage[]

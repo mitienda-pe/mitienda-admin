@@ -122,12 +122,6 @@
                 <span class="font-medium">{{ product.min_stock }} unidades</span>
               </div>
 
-              <!-- Peso -->
-              <div v-if="product.weight" class="flex justify-between">
-                <span class="text-secondary-600">Peso:</span>
-                <span class="font-medium">{{ product.weight }} kg</span>
-              </div>
-
               <Divider />
 
               <!-- Fechas -->
@@ -139,6 +133,58 @@
               <div class="flex justify-between">
                 <span class="text-secondary-600">Actualizado:</span>
                 <span class="font-medium">{{ formatDate(product.updated_at) }}</span>
+              </div>
+            </div>
+          </template>
+        </Card>
+
+        <!-- Dimensiones y Peso -->
+        <Card>
+          <template #title>
+            <span class="text-lg">Dimensiones y Peso</span>
+          </template>
+          <template #content>
+            <div class="space-y-3">
+              <!-- Dimensiones -->
+              <div v-if="product.height || product.width || product.length">
+                <h4 class="text-sm font-semibold text-secondary-700 mb-2">Dimensiones</h4>
+                <div class="grid grid-cols-3 gap-3">
+                  <div v-if="product.height" class="text-center p-3 bg-gray-50 rounded-lg">
+                    <div class="text-xs text-secondary-600 mb-1">Altura</div>
+                    <div class="font-medium">{{ product.height }} {{ product.dimensions_unit || 'cm' }}</div>
+                  </div>
+                  <div v-if="product.width" class="text-center p-3 bg-gray-50 rounded-lg">
+                    <div class="text-xs text-secondary-600 mb-1">Ancho</div>
+                    <div class="font-medium">{{ product.width }} {{ product.dimensions_unit || 'cm' }}</div>
+                  </div>
+                  <div v-if="product.length" class="text-center p-3 bg-gray-50 rounded-lg">
+                    <div class="text-xs text-secondary-600 mb-1">Largo</div>
+                    <div class="font-medium">{{ product.length }} {{ product.dimensions_unit || 'cm' }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <Divider v-if="(product.height || product.width || product.length) && (product.weight || product.volumetric_weight)" />
+
+              <!-- Peso -->
+              <div v-if="product.weight || product.volumetric_weight">
+                <h4 class="text-sm font-semibold text-secondary-700 mb-2">Peso</h4>
+                <div class="grid grid-cols-2 gap-3">
+                  <div v-if="product.weight" class="flex justify-between p-3 bg-gray-50 rounded-lg">
+                    <span class="text-secondary-600">Peso:</span>
+                    <span class="font-medium">{{ product.weight }} {{ product.weight_unit || 'kg' }}</span>
+                  </div>
+                  <div v-if="product.volumetric_weight" class="flex justify-between p-3 bg-gray-50 rounded-lg">
+                    <span class="text-secondary-600">Peso volumétrico:</span>
+                    <span class="font-medium">{{ product.volumetric_weight }} {{ product.weight_unit || 'kg' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Mensaje cuando no hay datos -->
+              <div v-if="!product.height && !product.width && !product.length && !product.weight && !product.volumetric_weight" class="text-center py-4 text-gray-500">
+                <i class="pi pi-box text-3xl mb-2 block"></i>
+                <p class="text-sm">No se han registrado dimensiones ni peso</p>
               </div>
             </div>
           </template>
