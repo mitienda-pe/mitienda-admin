@@ -1,94 +1,119 @@
 <template>
-  <div class="document-uploader">
-    <div class="uploader-header">
-      <h4>Agregar Documento</h4>
-      <span class="text-sm text-gray-600">Max 3 documentos PDF · Máx 5MB por archivo</span>
+  <Dialog
+    v-model:visible="isVisible"
+    modal
+    :header="isUploading ? 'Subiendo documento...' : 'Agregar Documento'"
+    :style="{ width: '500px' }"
+    :closable="!isUploading"
+    @hide="handleClose"
+  >
+    <div class="document-uploader-content">
+      <p class="text-sm text-gray-600 mb-4">Max 3 documentos PDF · Máx 5MB por archivo</p>
+
+      <div v-if="!isUploading" class="upload-form">
+        <!-- Nombre del documento -->
+        <div class="form-field">
+          <label for="document-name">Nombre del documento</label>
+          <InputText
+            id="document-name"
+            v-model="documentName"
+            placeholder="Ej: Ficha Técnica, Manual de Usuario, Certificado..."
+            :disabled="isUploading"
+          />
+        </div>
+
+        <!-- File input -->
+        <div class="form-field">
+          <label>Archivo PDF</label>
+          <FileUpload
+            mode="basic"
+            accept="application/pdf,.pdf"
+            :maxFileSize="5242880"
+            :auto="false"
+            chooseLabel="Seleccionar PDF"
+            :disabled="isUploading"
+            @select="onFileSelect"
+            @clear="onFileClear"
+          >
+            <template #empty>
+              <p>Arrastra un archivo PDF aquí o haz clic para seleccionar</p>
+            </template>
+          </FileUpload>
+
+          <div v-if="selectedFile" class="selected-file">
+            <i class="pi pi-file-pdf"></i>
+            <span>{{ selectedFile.name }}</span>
+            <span class="file-size">{{ formatFileSize(selectedFile.size) }}</span>
+          </div>
+
+          <div v-if="validationError" class="error-message">
+            <i class="pi pi-exclamation-circle"></i>
+            <span>{{ validationError }}</span>
+          </div>
+        </div>
+
+        <!-- Success message -->
+        <Message v-if="uploadSuccess" severity="success" :closable="false">
+          Documento subido exitosamente
+        </Message>
+
+        <!-- Error message -->
+        <Message v-if="uploadError" severity="error" :closable="true" @close="uploadError = null">
+          {{ uploadError }}
+        </Message>
+      </div>
+
+      <!-- Progress state -->
+      <div v-else class="upload-progress">
+        <div class="progress-header">
+          <i class="pi pi-spin pi-spinner"></i>
+          <span class="font-medium">Subiendo documento...</span>
+        </div>
+
+        <ProgressBar :value="uploadProgress" :showValue="true" />
+
+        <p class="text-xs text-gray-600 mt-2">
+          {{ selectedFile?.name }} · {{ formatFileSize(selectedFile?.size || 0) }}
+        </p>
+
+        <p class="text-xs text-gray-600 mt-2">
+          El documento se está subiendo. Puede cerrar este modal, el proceso continuará en segundo plano.
+        </p>
+      </div>
     </div>
 
-    <div v-if="!isUploading" class="upload-form">
-      <!-- Nombre del documento -->
-      <div class="form-field">
-        <label for="document-name">Nombre del documento</label>
-        <InputText
-          id="document-name"
-          v-model="documentName"
-          placeholder="Ej: Ficha Técnica, Manual de Usuario, Certificado..."
-          :disabled="isUploading"
+    <template #footer>
+      <div class="dialog-footer">
+        <Button
+          v-if="!isUploading"
+          label="Cancelar"
+          icon="pi pi-times"
+          text
+          @click="handleClose"
+        />
+        <Button
+          v-if="!isUploading"
+          label="Subir Documento"
+          icon="pi pi-upload"
+          :disabled="!selectedFile || !documentName"
+          class="upload-button"
+          @click="handleUpload"
+        />
+        <Button
+          v-else
+          label="Cerrar"
+          icon="pi pi-times"
+          text
+          @click="handleClose"
         />
       </div>
-
-      <!-- File input -->
-      <div class="form-field">
-        <label>Archivo PDF</label>
-        <FileUpload
-          mode="basic"
-          accept="application/pdf,.pdf"
-          :maxFileSize="5242880"
-          :auto="false"
-          chooseLabel="Seleccionar PDF"
-          :disabled="isUploading"
-          @select="onFileSelect"
-          @clear="onFileClear"
-        >
-          <template #empty>
-            <p>Arrastra un archivo PDF aquí o haz clic para seleccionar</p>
-          </template>
-        </FileUpload>
-
-        <div v-if="selectedFile" class="selected-file">
-          <i class="pi pi-file-pdf"></i>
-          <span>{{ selectedFile.name }}</span>
-          <span class="file-size">{{ formatFileSize(selectedFile.size) }}</span>
-        </div>
-
-        <div v-if="validationError" class="error-message">
-          <i class="pi pi-exclamation-circle"></i>
-          <span>{{ validationError }}</span>
-        </div>
-      </div>
-
-      <!-- Upload button -->
-      <Button
-        label="Subir Documento"
-        icon="pi pi-upload"
-        :disabled="!selectedFile || !documentName || isUploading"
-        class="upload-button"
-        @click="handleUpload"
-      />
-    </div>
-
-    <!-- Progress state -->
-    <div v-else class="upload-progress">
-      <div class="progress-header">
-        <i class="pi pi-spin pi-spinner"></i>
-        <span class="font-medium">Subiendo documento...</span>
-      </div>
-
-      <ProgressBar :value="uploadProgress" :showValue="true" />
-
-      <p class="text-xs text-gray-600 mt-2">
-        {{ selectedFile?.name }} · {{ formatFileSize(selectedFile?.size || 0) }}
-      </p>
-
-      <p class="text-xs text-gray-600 mt-2">
-        El documento se está subiendo. Puede continuar trabajando, el proceso continuará en segundo plano.
-      </p>
-    </div>
-
-    <!-- Success message -->
-    <Message v-if="uploadSuccess" severity="success" :closable="true" @close="uploadSuccess = false">
-      Documento subido exitosamente
-    </Message>
-
-    <!-- Error message -->
-    <Message v-if="uploadError" severity="error" :closable="true" @close="uploadError = null">
-      {{ uploadError }}
-    </Message>
-  </div>
+    </template>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import FileUpload from 'primevue/fileupload'
 import Button from 'primevue/button'
@@ -99,18 +124,22 @@ import { productsApi } from '@/api/products.api'
 interface Props {
   productId: number
   maxDocuments?: number
+  visible: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  maxDocuments: 3
+  maxDocuments: 3,
+  visible: false
 })
 
 const emit = defineEmits<{
+  'update:visible': [value: boolean]
   uploadSuccess: [documentId: number]
   uploadError: [error: string]
 }>()
 
 // State
+const isVisible = ref(props.visible)
 const documentName = ref('')
 const selectedFile = ref<File | null>(null)
 const isUploading = ref(false)
@@ -118,6 +147,19 @@ const uploadProgress = ref(0)
 const uploadSuccess = ref(false)
 const uploadError = ref<string | null>(null)
 const validationError = ref<string | null>(null)
+
+// Watch for prop changes
+watch(() => props.visible, (newVal) => {
+  isVisible.value = newVal
+  if (newVal) {
+    // Reset form when opening
+    resetForm()
+  }
+})
+
+watch(isVisible, (newVal) => {
+  emit('update:visible', newVal)
+})
 
 // File selection handlers
 const onFileSelect = (event: any) => {
@@ -180,16 +222,11 @@ const handleUpload = async () => {
     if (response.success && response.data) {
       uploadSuccess.value = true
 
-      // Reset form after 2 seconds
+      // Close modal and emit success after 1.5 seconds
       setTimeout(() => {
-        documentName.value = ''
-        selectedFile.value = null
-        uploadProgress.value = 0
-        isUploading.value = false
-        uploadSuccess.value = false
-      }, 2000)
-
-      emit('uploadSuccess', response.data.documento_id)
+        emit('uploadSuccess', response.data.documento_id)
+        isVisible.value = false
+      }, 1500)
     } else {
       throw new Error(response.message || 'Error al subir documento')
     }
@@ -223,6 +260,26 @@ const handleUpload = async () => {
   }
 }
 
+const handleClose = () => {
+  if (!isUploading.value) {
+    isVisible.value = false
+    resetForm()
+  } else {
+    // Allow closing during upload
+    isVisible.value = false
+  }
+}
+
+const resetForm = () => {
+  documentName.value = ''
+  selectedFile.value = null
+  uploadProgress.value = 0
+  uploadSuccess.value = false
+  uploadError.value = null
+  validationError.value = null
+  isUploading.value = false
+}
+
 // Helper function to format file size
 const formatFileSize = (bytes: number): string => {
   if (bytes >= 1048576) {
@@ -235,26 +292,8 @@ const formatFileSize = (bytes: number): string => {
 </script>
 
 <style scoped>
-.document-uploader {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-top: 1rem;
-}
-
-.uploader-header {
-  margin-bottom: 1.5rem;
-}
-
-.uploader-header h4 {
-  margin: 0 0 0.25rem 0;
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
-.uploader-header .text-sm {
-  font-size: 0.875rem;
+.document-uploader-content {
+  padding: 0.5rem 0;
 }
 
 .upload-form {
@@ -286,26 +325,6 @@ const formatFileSize = (bytes: number): string => {
 .form-field :deep(.p-inputtext:focus) {
   border-color: var(--primary-500);
   box-shadow: 0 0 0 1px var(--primary-500);
-}
-
-/* Estilo del botón de upload con color primario */
-.upload-button {
-  background-color: var(--primary-500);
-  border-color: var(--primary-500);
-  color: white;
-}
-
-.upload-button:hover:not(:disabled) {
-  background-color: var(--primary-600);
-  border-color: var(--primary-600);
-}
-
-.upload-button:disabled {
-  background-color: #e5e7eb;
-  border-color: #e5e7eb;
-  color: #9ca3af;
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 
 .selected-file {
@@ -355,16 +374,50 @@ const formatFileSize = (bytes: number): string => {
   color: #2563eb;
 }
 
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* Estilo del botón de upload con color primario */
+.upload-button {
+  background-color: var(--primary-500);
+  border-color: var(--primary-500);
+  color: white;
+}
+
+.upload-button:hover:not(:disabled) {
+  background-color: var(--primary-600);
+  border-color: var(--primary-600);
+}
+
+.upload-button:disabled {
+  background-color: #e5e7eb;
+  border-color: #e5e7eb;
+  color: #9ca3af;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .text-gray-600 {
   color: #6b7280;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.text-xs {
+  font-size: 0.75rem;
 }
 
 .mt-2 {
   margin-top: 0.5rem;
 }
 
-.text-xs {
-  font-size: 0.75rem;
+.mb-4 {
+  margin-bottom: 1rem;
 }
 
 .font-medium {

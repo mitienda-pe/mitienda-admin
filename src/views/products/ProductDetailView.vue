@@ -88,6 +88,13 @@
                 ({{ product.documents?.length || 0 }}/3)
               </span>
             </div>
+            <Button
+              v-if="(product.documents?.length || 0) < 3"
+              label="Agregar Documento"
+              icon="pi pi-plus"
+              size="small"
+              @click="showDocumentUploader = true"
+            />
           </div>
         </template>
         <template #content>
@@ -97,15 +104,17 @@
             @delete-success="handleDocumentDelete"
             @delete-error="handleDocumentError"
           />
-
-          <ProductDocumentUploader
-            v-if="(product.documents?.length || 0) < 3"
-            :product-id="product.id"
-            @upload-success="handleDocumentUpload"
-            @upload-error="handleDocumentError"
-          />
         </template>
       </Card>
+
+      <!-- Modal de uploader de documentos -->
+      <ProductDocumentUploader
+        v-if="product"
+        v-model:visible="showDocumentUploader"
+        :product-id="product.id"
+        @upload-success="handleDocumentUpload"
+        @upload-error="handleDocumentError"
+      />
 
       <!-- Información del producto -->
       <div class="space-y-6">
@@ -276,6 +285,7 @@ const { formatCurrency, formatDate } = useFormatters()
 const product = computed(() => productsStore.currentProduct)
 const showEditDialog = ref(false)
 const showVideoUploader = ref(false)
+const showDocumentUploader = ref(false)
 
 // Computed para forzar reactividad del video
 const hasVideo = computed(() => {
