@@ -146,31 +146,31 @@
           <template #content>
             <div class="space-y-3">
               <!-- Dimensiones -->
-              <div v-if="product.height || product.width || product.length">
+              <div v-if="product.height != null || product.width != null || product.length != null">
                 <h4 class="text-sm font-semibold text-secondary-700 mb-2">Dimensiones</h4>
                 <div class="grid grid-cols-3 gap-3">
-                  <div v-if="product.height" class="text-center p-3 bg-gray-50 rounded-lg">
+                  <div v-if="product.height != null" class="text-center p-3 bg-gray-50 rounded-lg">
                     <div class="text-xs text-secondary-600 mb-1">Altura</div>
                     <div class="font-medium">{{ product.height }} {{ product.dimensions_unit || 'cm' }}</div>
                   </div>
-                  <div v-if="product.width" class="text-center p-3 bg-gray-50 rounded-lg">
+                  <div v-if="product.width != null" class="text-center p-3 bg-gray-50 rounded-lg">
                     <div class="text-xs text-secondary-600 mb-1">Ancho</div>
                     <div class="font-medium">{{ product.width }} {{ product.dimensions_unit || 'cm' }}</div>
                   </div>
-                  <div v-if="product.length" class="text-center p-3 bg-gray-50 rounded-lg">
+                  <div v-if="product.length != null" class="text-center p-3 bg-gray-50 rounded-lg">
                     <div class="text-xs text-secondary-600 mb-1">Largo</div>
                     <div class="font-medium">{{ product.length }} {{ product.dimensions_unit || 'cm' }}</div>
                   </div>
                 </div>
               </div>
 
-              <Divider v-if="(product.height || product.width || product.length) && (product.weight || displayVolumetricWeight)" />
+              <Divider v-if="(product.height != null || product.width != null || product.length != null) && (product.weight != null || displayVolumetricWeight)" />
 
               <!-- Peso -->
-              <div v-if="product.weight || displayVolumetricWeight">
+              <div v-if="product.weight != null || displayVolumetricWeight">
                 <h4 class="text-sm font-semibold text-secondary-700 mb-2">Peso</h4>
                 <div class="grid grid-cols-2 gap-3">
-                  <div v-if="product.weight" class="flex justify-between p-3 bg-gray-50 rounded-lg">
+                  <div v-if="product.weight != null" class="flex justify-between p-3 bg-gray-50 rounded-lg">
                     <span class="text-secondary-600">Peso:</span>
                     <span class="font-medium">{{ product.weight }} {{ product.weight_unit || 'kg' }}</span>
                   </div>
@@ -182,7 +182,7 @@
               </div>
 
               <!-- Mensaje cuando no hay datos -->
-              <div v-if="!product.height && !product.width && !product.length && !product.weight && !product.volumetric_weight" class="text-center py-4 text-gray-500">
+              <div v-if="product.height == null && product.width == null && product.length == null && product.weight == null && !product.volumetric_weight" class="text-center py-4 text-gray-500">
                 <i class="pi pi-box text-3xl mb-2 block"></i>
                 <p class="text-sm">No se han registrado dimensiones ni peso</p>
               </div>
