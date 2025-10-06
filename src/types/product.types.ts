@@ -2,6 +2,13 @@
 import type { ProductVideo } from './product-video.types'
 import type { ProductDocument } from './product-document.types'
 
+export interface ProductSEO {
+  meta_title?: string
+  meta_description?: string
+  meta_image?: string | null
+  slug?: string
+}
+
 export interface Product {
   id: number
   sku: string
@@ -27,6 +34,7 @@ export interface Product {
   documents?: ProductDocument[]
   category?: Category
   brand?: Brand
+  seo?: ProductSEO
   created_at: string
   updated_at: string
 }

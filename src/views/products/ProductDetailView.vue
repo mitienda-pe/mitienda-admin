@@ -138,6 +138,46 @@
           </template>
         </Card>
 
+        <!-- SEO -->
+        <Card>
+          <template #title>
+            <span class="text-lg">SEO</span>
+          </template>
+          <template #content>
+            <div class="space-y-3">
+              <!-- Meta Title -->
+              <div v-if="product.seo?.meta_title">
+                <label class="text-sm font-medium text-secondary-700">Meta Title</label>
+                <p class="text-secondary-600 mt-1">{{ product.seo.meta_title }}</p>
+              </div>
+
+              <!-- Meta Description -->
+              <div v-if="product.seo?.meta_description">
+                <label class="text-sm font-medium text-secondary-700">Meta Description</label>
+                <p class="text-secondary-600 mt-1">{{ product.seo.meta_description }}</p>
+              </div>
+
+              <!-- Slug -->
+              <div v-if="product.seo?.slug">
+                <label class="text-sm font-medium text-secondary-700">Slug (URL)</label>
+                <p class="text-secondary-600 mt-1 font-mono text-sm bg-gray-50 p-2 rounded">{{ product.seo.slug }}</p>
+              </div>
+
+              <!-- Meta Image -->
+              <div v-if="product.seo?.meta_image">
+                <label class="text-sm font-medium text-secondary-700">Meta Image</label>
+                <img :src="product.seo.meta_image" alt="Meta Image" class="mt-2 max-w-xs rounded border" />
+              </div>
+
+              <!-- Mensaje cuando no hay datos SEO -->
+              <div v-if="!product.seo || (!product.seo.meta_title && !product.seo.meta_description && !product.seo.slug)" class="text-center py-4 text-gray-500">
+                <i class="pi pi-search text-3xl mb-2 block"></i>
+                <p class="text-sm">No se ha configurado información SEO</p>
+              </div>
+            </div>
+          </template>
+        </Card>
+
         <!-- Dimensiones y Peso -->
         <Card>
           <template #title>

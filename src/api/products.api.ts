@@ -188,6 +188,12 @@ export const productsApi = {
           slug: rawData.brand.slug || rawData.brand.name.toLowerCase(),
           logo: rawData.brand.logo
         } : undefined,
+        seo: rawData.seo ? {
+          meta_title: rawData.seo.meta_title || undefined,
+          meta_description: rawData.seo.meta_description || undefined,
+          meta_image: rawData.seo.meta_image || undefined,
+          slug: rawData.seo.slug || undefined
+        } : undefined,
         created_at: rawData.created_at || new Date().toISOString(),
         updated_at: rawData.updated_at || new Date().toISOString()
       }
