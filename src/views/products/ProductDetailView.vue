@@ -77,6 +77,36 @@
         </template>
       </Card>
 
+      <!-- Documentos del producto -->
+      <Card>
+        <template #title>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-file-pdf"></i>
+              Documentos
+              <span class="text-sm text-gray-600 font-normal">
+                ({{ product.documents?.length || 0 }}/3)
+              </span>
+            </div>
+          </div>
+        </template>
+        <template #content>
+          <ProductDocumentList
+            :product-id="product.id"
+            :documents="product.documents || []"
+            @delete-success="handleDocumentDelete"
+            @delete-error="handleDocumentError"
+          />
+
+          <ProductDocumentUploader
+            v-if="(product.documents?.length || 0) < 3"
+            :product-id="product.id"
+            @upload-success="handleDocumentUpload"
+            @upload-error="handleDocumentError"
+          />
+        </template>
+      </Card>
+
       <!-- Información del producto -->
       <div class="space-y-6">
         <!-- Header -->
@@ -232,6 +262,8 @@ import Divider from 'primevue/divider'
 import ProductQuickEditDialog from '@/components/products/ProductQuickEditDialog.vue'
 import ProductVideoUploader from '@/components/products/ProductVideoUploader.vue'
 import ProductVideoPlayer from '@/components/products/ProductVideoPlayer.vue'
+import ProductDocumentUploader from '@/components/products/ProductDocumentUploader.vue'
+import ProductDocumentList from '@/components/products/ProductDocumentList.vue'
 import type { ProductQuickEditData } from '@/components/products/ProductQuickEditDialog.vue'
 import placeholderImage from '@/assets/images/landscape-placeholder-svgrepo-com.svg'
 
@@ -345,6 +377,43 @@ const handleVideoRefresh = async () => {
   if (productId) {
     await productsStore.fetchProduct(productId)
   }
+}
+
+const handleDocumentUpload = async () => {
+  toast.add({
+    severity: 'success',
+    summary: 'Documento subido',
+    detail: 'El documento se ha subido correctamente',
+    life: 3000
+  })
+
+  // Refresh product to update documents list
+  if (product.value) {
+    await productsStore.fetchProduct(product.value.id)
+  }
+}
+
+const handleDocumentDelete = async () => {
+  toast.add({
+    severity: 'success',
+    summary: 'Documento eliminado',
+    detail: 'El documento ha sido eliminado correctamente',
+    life: 3000
+  })
+
+  // Refresh product to update documents list
+  if (product.value) {
+    await productsStore.fetchProduct(product.value.id)
+  }
+}
+
+const handleDocumentError = (error: string) => {
+  toast.add({
+    severity: 'error',
+    summary: 'Error',
+    detail: error || 'Ocurrió un error con el documento',
+    life: 5000
+  })
 }
 
 onMounted(async () => {

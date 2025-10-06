@@ -168,6 +168,7 @@ export const productsApi = {
           error: rawData.video.error || null,
           created_at: rawData.video.created_at || null
         } : null,
+        documents: rawData.documents || [],
         category: firstCategory ? {
           id: firstCategory.id,
           name: firstCategory.name,
@@ -276,6 +277,35 @@ export const productsApi = {
   // Eliminar video de producto
   async deleteVideo(id: number): Promise<ApiResponse<any>> {
     const response = await apiClient.delete(`/products/${id}/video`)
+    return response.data
+  },
+
+  // Obtener documentos de un producto
+  async getDocuments(id: number): Promise<ApiResponse<any>> {
+    const response = await apiClient.get(`/products/${id}/documents`)
+    return response.data
+  },
+
+  // Subir documento PDF
+  async uploadDocument(id: number, file: File, name?: string): Promise<ApiResponse<any>> {
+    const formData = new FormData()
+    formData.append('document', file)
+    if (name) {
+      formData.append('nombre', name)
+    }
+
+    const response = await apiClient.post(`/products/${id}/documents`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
+    return response.data
+  },
+
+  // Eliminar documento
+  async deleteDocument(productId: number, documentId: number): Promise<ApiResponse<any>> {
+    const response = await apiClient.delete(`/products/${productId}/documents/${documentId}`)
     return response.data
   }
 }

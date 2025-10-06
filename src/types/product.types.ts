@@ -1,5 +1,6 @@
 // Tipos de productos
 import type { ProductVideo } from './product-video.types'
+import type { ProductDocument } from './product-document.types'
 
 export interface Product {
   id: number
@@ -17,6 +18,7 @@ export interface Product {
   featured: boolean
   images: ProductImage[]
   video?: ProductVideo | null
+  documents?: ProductDocument[]
   category?: Category
   brand?: Brand
   created_at: string
