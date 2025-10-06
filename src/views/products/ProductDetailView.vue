@@ -8,13 +8,7 @@
         text
         @click="router.push('/products')"
       />
-      <div v-if="product" class="flex gap-2">
-        <Button
-          label="Añadir Video"
-          icon="pi pi-video"
-          severity="secondary"
-          @click="showVideoUploader = true"
-        />
+      <div v-if="product">
         <Button
           label="Editar"
           icon="pi pi-pencil"
@@ -155,6 +149,12 @@
       <div class="space-y-6">
         <!-- Galería de imágenes -->
         <Card>
+          <template #title>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-images"></i>
+              Imágenes
+            </div>
+          </template>
           <template #content>
             <!-- Grid de imágenes -->
             <div v-if="product.images && product.images.length > 0" class="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -178,20 +178,34 @@
         </Card>
 
         <!-- Video del producto -->
-        <Card v-if="hasVideo">
+        <Card>
           <template #title>
-            <div class="flex items-center gap-2">
-              <i class="pi pi-video"></i>
-              Video del producto
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-video"></i>
+                Video
+              </div>
+              <Button
+                v-if="!hasVideo"
+                label="Añadir Video"
+                icon="pi pi-plus"
+                size="small"
+                @click="showVideoUploader = true"
+              />
             </div>
           </template>
           <template #content>
             <ProductVideoPlayer
+              v-if="hasVideo"
               :video="product.video || null"
               :product-id="product.id"
               @delete="handleVideoDelete"
               @refresh="handleVideoRefresh"
             />
+            <div v-else class="text-center py-8 text-gray-500">
+              <i class="pi pi-video text-4xl mb-3 block"></i>
+              <p>No hay video disponible</p>
+            </div>
           </template>
         </Card>
 
