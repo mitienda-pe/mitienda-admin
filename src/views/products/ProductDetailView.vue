@@ -34,89 +34,8 @@
     </Message>
 
     <!-- Detalle del producto -->
-    <div v-else-if="product" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Galería de imágenes -->
-      <Card>
-        <template #content>
-          <!-- Grid de imágenes -->
-          <div v-if="product.images && product.images.length > 0" class="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div
-              v-for="(image, index) in product.images"
-              :key="index"
-              class="aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 hover:border-primary transition-colors"
-            >
-              <img
-                :src="image.url"
-                :alt="`${product.name} - imagen ${index + 1}`"
-                class="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-          <!-- Sin imágenes -->
-          <div v-else class="w-full h-96 bg-gray-100 flex items-center justify-center rounded-lg">
-            <img :src="placeholderImage" alt="Sin imagen" class="w-full h-full object-contain opacity-50" />
-          </div>
-        </template>
-      </Card>
-
-      <!-- Video del producto -->
-      <Card v-if="hasVideo">
-        <template #title>
-          <div class="flex items-center gap-2">
-            <i class="pi pi-video"></i>
-            Video del producto
-          </div>
-        </template>
-        <template #content>
-          <ProductVideoPlayer
-            :video="product.video || null"
-            :product-id="product.id"
-            @delete="handleVideoDelete"
-            @refresh="handleVideoRefresh"
-          />
-        </template>
-      </Card>
-
-      <!-- Documentos del producto -->
-      <Card>
-        <template #title>
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <i class="pi pi-file-pdf"></i>
-              Documentos
-              <span class="text-sm text-gray-600 font-normal">
-                ({{ product.documents?.length || 0 }}/3)
-              </span>
-            </div>
-            <Button
-              v-if="(product.documents?.length || 0) < 3"
-              label="Agregar Documento"
-              icon="pi pi-plus"
-              size="small"
-              @click="showDocumentUploader = true"
-            />
-          </div>
-        </template>
-        <template #content>
-          <ProductDocumentList
-            :product-id="product.id"
-            :documents="product.documents || []"
-            @delete-success="handleDocumentDelete"
-            @delete-error="handleDocumentError"
-          />
-        </template>
-      </Card>
-
-      <!-- Modal de uploader de documentos -->
-      <ProductDocumentUploader
-        v-if="product"
-        v-model:visible="showDocumentUploader"
-        :product-id="product.id"
-        @upload-success="handleDocumentUpload"
-        @upload-error="handleDocumentError"
-      />
-
-      <!-- Información del producto -->
+    <div v-else-if="product" class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+      <!-- Columna Izquierda: Información del producto -->
       <div class="space-y-6">
         <!-- Header -->
         <Card>
@@ -231,6 +150,81 @@
           </template>
         </Card>
       </div>
+
+      <!-- Columna Derecha: Fotos, Video y Documentos -->
+      <div class="space-y-6">
+        <!-- Galería de imágenes -->
+        <Card>
+          <template #content>
+            <!-- Grid de imágenes -->
+            <div v-if="product.images && product.images.length > 0" class="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div
+                v-for="(image, index) in product.images"
+                :key="index"
+                class="aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 hover:border-primary transition-colors"
+              >
+                <img
+                  :src="image.url"
+                  :alt="`${product.name} - imagen ${index + 1}`"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+            <!-- Sin imágenes -->
+            <div v-else class="w-full h-96 bg-gray-100 flex items-center justify-center rounded-lg">
+              <img :src="placeholderImage" alt="Sin imagen" class="w-full h-full object-contain opacity-50" />
+            </div>
+          </template>
+        </Card>
+
+        <!-- Video del producto -->
+        <Card v-if="hasVideo">
+          <template #title>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-video"></i>
+              Video del producto
+            </div>
+          </template>
+          <template #content>
+            <ProductVideoPlayer
+              :video="product.video || null"
+              :product-id="product.id"
+              @delete="handleVideoDelete"
+              @refresh="handleVideoRefresh"
+            />
+          </template>
+        </Card>
+
+        <!-- Documentos del producto -->
+        <Card>
+          <template #title>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-file-pdf"></i>
+                Documentos
+                <span class="text-sm text-gray-600 font-normal">
+                  ({{ product.documents?.length || 0 }}/3)
+                </span>
+              </div>
+              <Button
+                v-if="(product.documents?.length || 0) < 3"
+                label="Agregar Documento"
+                icon="pi pi-plus"
+                size="small"
+                @click="showDocumentUploader = true"
+              />
+            </div>
+          </template>
+          <template #content>
+            <ProductDocumentList
+              :product-id="product.id"
+              :documents="product.documents || []"
+              @delete-success="handleDocumentDelete"
+              @delete-error="handleDocumentError"
+            />
+          </template>
+        </Card>
+      </div>
     </div>
 
     <!-- Empty state -->
@@ -254,6 +248,15 @@
       :product-id="product.id"
       @upload-success="handleVideoUploadSuccess"
       @upload-error="handleVideoUploadError"
+    />
+
+    <!-- Modal de subida de documentos -->
+    <ProductDocumentUploader
+      v-if="product"
+      v-model:visible="showDocumentUploader"
+      :product-id="product.id"
+      @upload-success="handleDocumentUpload"
+      @upload-error="handleDocumentError"
     />
   </div>
 </template>
