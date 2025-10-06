@@ -52,6 +52,7 @@
         label="Subir Documento"
         icon="pi pi-upload"
         :disabled="!selectedFile || !documentName || isUploading"
+        class="upload-button"
         @click="handleUpload"
       />
     </div>
@@ -272,6 +273,39 @@ const formatFileSize = (bytes: number): string => {
   font-weight: 500;
   font-size: 0.875rem;
   color: #374151;
+}
+
+/* Asegurar que InputText tenga borde visible */
+.form-field :deep(.p-inputtext) {
+  border: 1px solid #d1d5db;
+  padding: 0.75rem;
+  border-radius: 6px;
+  width: 100%;
+}
+
+.form-field :deep(.p-inputtext:focus) {
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 1px var(--primary-500);
+}
+
+/* Estilo del botón de upload con color primario */
+.upload-button {
+  background-color: var(--primary-500);
+  border-color: var(--primary-500);
+  color: white;
+}
+
+.upload-button:hover:not(:disabled) {
+  background-color: var(--primary-600);
+  border-color: var(--primary-600);
+}
+
+.upload-button:disabled {
+  background-color: #e5e7eb;
+  border-color: #e5e7eb;
+  color: #9ca3af;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .selected-file {
