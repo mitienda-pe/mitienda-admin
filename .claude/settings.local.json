@@ -25,7 +25,9 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Read(//Users/carlosvidal/**)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(for id in 130921 129074 126946 126493)",
+      "Bash(do echo \"=== Product ID: $id ===\" curl -s -H \"Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwaTIubWl0aWVuZGEucGUvIiwic3ViIjoiNDA4IiwiYXVkIjoibW9iaWxlIiwiaWF0IjoxNzU5NDYyMzM3LCJleHAiOjE3NjIwNTQzMzcsInVzZXJfaWQiOjQwOCwiZW1haWwiOiJHY2tsNkt2Q3VKeXA3VUxDLzhkZmtNemxYU3dQRGY2SXA1OTZxZ2FsLzVkU1JnPT0iLCJzdG9yZV9pZCI6NDA4LCJwZXJtaXNzaW9ucyI6WyJyZWFkX3Byb2R1Y3RzIiwicmVhZF9vcmRlcnMiLCJyZWFkX2N1c3RvbWVycyJdfQ.aVDR1RwR7JHubdAFcf8KWh9KjSuTvU6v8WNijU-WmSc\" \"https://api2.mitienda.pe/api/v1/products/$id\")"
     ],
     "deny": [],
     "ask": []

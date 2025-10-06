@@ -532,6 +532,17 @@ onMounted(async () => {
   const productId = Number(route.params.id)
   if (productId) {
     await productsStore.fetchProduct(productId)
+
+    // DEBUG: Log dimensions data
+    console.log('🔍 PRODUCT DEBUG:', {
+      height: product.value?.height,
+      width: product.value?.width,
+      length: product.value?.length,
+      weight: product.value?.weight,
+      dimensions_unit: product.value?.dimensions_unit,
+      weight_unit: product.value?.weight_unit,
+      full_product: product.value
+    })
   }
 })
 </script>
