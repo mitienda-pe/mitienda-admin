@@ -164,19 +164,19 @@
                 </div>
               </div>
 
-              <Divider v-if="(product.height || product.width || product.length) && (product.weight || product.volumetric_weight)" />
+              <Divider v-if="(product.height || product.width || product.length) && (product.weight || displayVolumetricWeight)" />
 
               <!-- Peso -->
-              <div v-if="product.weight || product.volumetric_weight">
+              <div v-if="product.weight || displayVolumetricWeight">
                 <h4 class="text-sm font-semibold text-secondary-700 mb-2">Peso</h4>
                 <div class="grid grid-cols-2 gap-3">
                   <div v-if="product.weight" class="flex justify-between p-3 bg-gray-50 rounded-lg">
                     <span class="text-secondary-600">Peso:</span>
                     <span class="font-medium">{{ product.weight }} {{ product.weight_unit || 'kg' }}</span>
                   </div>
-                  <div v-if="product.volumetric_weight" class="flex justify-between p-3 bg-gray-50 rounded-lg">
+                  <div v-if="displayVolumetricWeight" class="flex justify-between p-3 bg-gray-50 rounded-lg">
                     <span class="text-secondary-600">Peso volumétrico:</span>
-                    <span class="font-medium">{{ product.volumetric_weight }} {{ product.weight_unit || 'kg' }}</span>
+                    <span class="font-medium">{{ displayVolumetricWeight.toFixed(2) }} {{ product.weight_unit || 'kg' }}</span>
                   </div>
                 </div>
               </div>
@@ -380,6 +380,45 @@ const stockColorClass = computed(() => {
     return 'text-orange-600'
   }
   return 'text-green-600'
+})
+
+// Calcular peso volumétrico si no está disponible
+// Fórmula: (Alto x Ancho x Largo) / 5000 (factor de conversión estándar)
+const calculatedVolumetricWeight = computed(() => {
+  if (!product.value) return null
+
+  const { height, width, length, dimensions_unit } = product.value
+
+  // Necesitamos las 3 dimensiones para calcular
+  if (!height || !width || !length) return null
+
+  // Convertir a cm si es necesario
+  let h = height
+  let w = width
+  let l = length
+
+  if (dimensions_unit === 'm') {
+    h *= 100
+    w *= 100
+    l *= 100
+  }
+
+  // Calcular peso volumétrico: (alto x ancho x largo) / 5000
+  const volumetricWeight = (h * w * l) / 5000
+
+  return volumetricWeight
+})
+
+const displayVolumetricWeight = computed(() => {
+  if (!product.value) return null
+
+  // Si ya tiene peso volumétrico guardado, usar ese
+  if (product.value.volumetric_weight) {
+    return product.value.volumetric_weight
+  }
+
+  // Si no, usar el calculado
+  return calculatedVolumetricWeight.value
 })
 
 const handleSaveProduct = async (data: ProductQuickEditData) => {
