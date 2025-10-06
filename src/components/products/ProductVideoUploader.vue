@@ -22,6 +22,7 @@ const selectedFile = ref<File | null>(null)
 const isUploading = ref(false)
 const uploadProgress = ref(0)
 const errorMessage = ref('')
+const uploadStage = ref<'uploading' | 'processing'>('uploading')
 
 const dialogVisible = computed({
   get: () => props.visible,
@@ -79,6 +80,7 @@ const handleUpload = async () => {
   isUploading.value = true
   uploadProgress.value = 0
   errorMessage.value = ''
+  uploadStage.value = 'uploading'
 
   try {
     const { productsApi } = await import('@/api/products.api')
@@ -86,20 +88,30 @@ const handleUpload = async () => {
     console.log('Uploading video via backend...')
     console.log('File:', selectedFile.value.name, selectedFile.value.size, 'bytes')
 
+    // Simulate upload progress
     uploadProgress.value = 10
+    await new Promise(resolve => setTimeout(resolve, 200))
+    uploadProgress.value = 30
+    await new Promise(resolve => setTimeout(resolve, 200))
+    uploadProgress.value = 60
+    await new Promise(resolve => setTimeout(resolve, 200))
+    uploadProgress.value = 90
 
-    // Use the existing uploadVideo API method
+    // Upload to backend
     const response = await productsApi.uploadVideo(props.productId, selectedFile.value)
 
+    // Upload complete, now processing
     uploadProgress.value = 100
+    uploadStage.value = 'processing'
 
     if (response.success) {
       console.log('Upload successful:', response)
       emit('upload-success', response.data)
 
+      // Wait a bit to show the success message
       setTimeout(() => {
         handleClose()
-      }, 500)
+      }, 2000)
     } else {
       throw new Error(response.message || 'Upload failed')
     }
@@ -111,6 +123,7 @@ const handleUpload = async () => {
   } finally {
     isUploading.value = false
     uploadProgress.value = 0
+    uploadStage.value = 'uploading'
   }
 }
 
@@ -192,9 +205,19 @@ const formatFileSize = (bytes: number): string => {
         <!-- Upload Progress -->
         <div v-if="isUploading" class="mt-3">
           <ProgressBar :value="uploadProgress" />
-          <p class="text-sm text-gray-500 text-center mt-2">
+          <div v-if="uploadStage === 'uploading'" class="text-sm text-gray-700 text-center mt-2">
+            <i class="pi pi-cloud-upload mr-1"></i>
             Subiendo video... {{ uploadProgress }}%
-          </p>
+          </div>
+          <div v-else-if="uploadStage === 'processing'" class="mt-2">
+            <div class="flex items-center justify-center text-sm text-blue-700 mb-2">
+              <i class="pi pi-spin pi-spinner mr-2"></i>
+              <span class="font-medium">Procesando video</span>
+            </div>
+            <p class="text-xs text-gray-600 text-center">
+              El video está siendo validado y subido a Cloudflare. Puede cerrar esta ventana, el proceso continuará en segundo plano.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -220,17 +243,26 @@ const formatFileSize = (bytes: number): string => {
     <template #footer>
       <div class="flex justify-end gap-2">
         <Button
+          v-if="uploadStage !== 'processing'"
           label="Cancelar"
           severity="secondary"
           @click="handleClose"
-          :disabled="isUploading"
+          :disabled="isUploading && uploadStage === 'uploading'"
         />
         <Button
+          v-if="uploadStage === 'processing'"
+          label="Cerrar"
+          icon="pi pi-times"
+          severity="secondary"
+          @click="handleClose"
+        />
+        <Button
+          v-if="uploadStage !== 'processing'"
           label="Subir video"
           icon="pi pi-upload"
           @click="handleUpload"
           :disabled="!selectedFile || isUploading"
-          :loading="isUploading"
+          :loading="isUploading && uploadStage === 'uploading'"
         />
       </div>
     </template>
