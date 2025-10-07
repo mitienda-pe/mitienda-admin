@@ -84,6 +84,36 @@
           </template>
           <template #content>
             <div class="space-y-3">
+              <!-- Creado -->
+              <div>
+                <span class="text-secondary-600">Creado: </span>
+                <span class="font-medium">{{ formatDate(product.created_at) }}</span>
+              </div>
+
+              <!-- Actualizado -->
+              <div>
+                <span class="text-secondary-600">Actualizado: </span>
+                <span class="font-medium">{{ formatDate(product.updated_at) }}</span>
+              </div>
+
+              <!-- Stock -->
+              <div>
+                <span class="text-secondary-600">Stock: </span>
+                <span class="font-medium" :class="stockColorClass">{{ product.stock }} unidades</span>
+              </div>
+
+              <!-- Stock mínimo -->
+              <div v-if="product.min_stock">
+                <span class="text-secondary-600">Stock mínimo: </span>
+                <span class="font-medium">{{ product.min_stock }} unidades</span>
+              </div>
+
+              <!-- Orden en catálogo -->
+              <div v-if="product.order != null">
+                <span class="text-secondary-600">Orden: </span>
+                <span class="font-medium">{{ product.order }}</span>
+              </div>
+
               <!-- Marca -->
               <div v-if="product.brand">
                 <span class="text-secondary-600">Marca: </span>
@@ -104,24 +134,6 @@
                     {{ category.name }}
                   </span>
                 </div>
-              </div>
-
-              <!-- Stock -->
-              <div>
-                <span class="text-secondary-600">Stock: </span>
-                <span class="font-medium" :class="stockColorClass">{{ product.stock }} unidades</span>
-              </div>
-
-              <!-- Stock mínimo -->
-              <div v-if="product.min_stock">
-                <span class="text-secondary-600">Stock mínimo: </span>
-                <span class="font-medium">{{ product.min_stock }} unidades</span>
-              </div>
-
-              <!-- Orden en catálogo -->
-              <div v-if="product.order != null">
-                <span class="text-secondary-600">Orden en catálogo: </span>
-                <span class="font-medium">{{ product.order }}</span>
               </div>
 
               <!-- Categorías Externas -->
@@ -148,17 +160,6 @@
                     <span class="font-semibold">MercadoLibre: </span>{{ product.external_categories.mercadolibre.id }} > {{ product.external_categories.mercadolibre.name }}
                   </span>
                 </div>
-              </div>
-
-              <!-- Fechas -->
-              <div>
-                <span class="text-secondary-600">Creado: </span>
-                <span class="font-medium">{{ formatDate(product.created_at) }}</span>
-              </div>
-
-              <div>
-                <span class="text-secondary-600">Actualizado: </span>
-                <span class="font-medium">{{ formatDate(product.updated_at) }}</span>
               </div>
             </div>
           </template>
