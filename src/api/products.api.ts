@@ -138,8 +138,16 @@ export const productsApi = {
           }
         })
 
-      // API puede devolver 'category' (singular) o 'categories' (array)
-      const firstCategory = rawData.category || (rawData.categories && rawData.categories[0])
+      // Map categories array
+      const categories = rawData.categories && Array.isArray(rawData.categories)
+        ? rawData.categories.map((cat: any) => ({
+            id: cat.id,
+            name: cat.name,
+            slug: cat.slug || cat.name?.toLowerCase() || '',
+            parent_id: cat.parent_id,
+            image: cat.image
+          }))
+        : undefined
 
       const product: Product = {
         id: rawData.id,
@@ -175,13 +183,7 @@ export const productsApi = {
           created_at: rawData.video.created_at || null
         } : null,
         documents: rawData.documents || [],
-        category: firstCategory ? {
-          id: firstCategory.id,
-          name: firstCategory.name,
-          slug: firstCategory.slug || firstCategory.name?.toLowerCase() || '',
-          parent_id: firstCategory.parent_id,
-          image: firstCategory.image
-        } : undefined,
+        categories: categories,
         brand: rawData.brand ? {
           id: rawData.brand.id,
           name: rawData.brand.name,
@@ -246,7 +248,7 @@ export const productsApi = {
         published: rawData.published || false,
         featured: rawData.featured || false,
         images: rawData.images || [],
-        category: rawData.category,
+        categories: rawData.categories,
         brand: rawData.brand,
         created_at: rawData.created_at || new Date().toISOString(),
         updated_at: rawData.updated_at || new Date().toISOString()

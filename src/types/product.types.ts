@@ -43,7 +43,7 @@ export interface Product {
   images: ProductImage[]
   video?: ProductVideo | null
   documents?: ProductDocument[]
-  category?: Category
+  categories?: Category[]
   brand?: Brand
   seo?: ProductSEO
   external_categories?: ProductExternalCategories

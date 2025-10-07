@@ -90,10 +90,20 @@
                 <span class="font-medium">{{ product.brand.name }}</span>
               </div>
 
-              <!-- Categoría -->
-              <div v-if="product.category" class="flex justify-between">
-                <span class="text-secondary-600">Categoría:</span>
-                <span class="font-medium">{{ product.category.name }}</span>
+              <!-- Categorías -->
+              <div v-if="product.categories && product.categories.length > 0">
+                <div class="flex justify-between mb-1">
+                  <span class="text-secondary-600">{{ product.categories.length > 1 ? 'Categorías:' : 'Categoría:' }}</span>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <span
+                    v-for="category in product.categories"
+                    :key="category.id"
+                    class="inline-flex items-center px-2 py-1 bg-primary-50 text-primary-700 text-sm rounded"
+                  >
+                    {{ category.name }}
+                  </span>
+                </div>
               </div>
 
               <!-- Stock -->
