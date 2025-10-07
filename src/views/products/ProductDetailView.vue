@@ -2,26 +2,11 @@
   <div>
     <!-- Breadcrumb -->
     <div class="mb-4 flex items-center justify-between">
-      <Button
-        label="Volver a productos"
-        icon="pi pi-arrow-left"
-        text
-        @click="router.push('/products')"
-      />
+      <Button label="Volver a productos" icon="pi pi-arrow-left" text @click="router.push('/products')" />
       <div v-if="product" class="flex gap-2">
-        <Button
-          v-if="storeUrl && product.seo?.slug"
-          label="Ver en tienda"
-          icon="pi pi-external-link"
-          severity="secondary"
-          outlined
-          @click="openProductInStore"
-        />
-        <Button
-          label="Editar"
-          icon="pi pi-pencil"
-          @click="showEditDialog = true"
-        />
+        <Button v-if="storeUrl && product.seo?.slug" label="Ver en tienda" icon="pi pi-external-link"
+          severity="secondary" outlined @click="openProductInStore" />
+        <Button label="Editar" icon="pi pi-pencil" @click="showEditDialog = true" />
       </div>
     </div>
 
@@ -50,26 +35,20 @@
 
               <!-- Badges -->
               <div class="flex gap-2">
-                <span
-                  :class="[
-                    'px-2.5 py-1 rounded-full text-xs font-medium',
-                    product.published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                  ]"
-                >
+                <span :class="[
+                  'px-2.5 py-1 rounded-full text-xs font-medium',
+                  product.published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                ]">
                   {{ product.published ? 'Publicado' : 'No publicado' }}
                 </span>
-                <span
-                  v-if="product.featured"
-                  class="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                >
+                <span v-if="product.featured"
+                  class="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                   Destacado
                 </span>
-                <span
-                  :class="[
-                    'px-2.5 py-1 rounded-full text-xs font-medium',
-                    stockBadgeClass
-                  ]"
-                >
+                <span :class="[
+                  'px-2.5 py-1 rounded-full text-xs font-medium',
+                  stockBadgeClass
+                ]">
                   {{ stockLabel }}
                 </span>
               </div>
@@ -90,7 +69,8 @@
               <!-- Descripción -->
               <div v-if="product.description_html || product.description">
                 <h3 class="font-semibold text-secondary mb-2">Descripción</h3>
-                <div v-if="product.description_html" class="text-secondary-600 prose prose-sm max-w-none" v-html="product.description_html"></div>
+                <div v-if="product.description_html" class="text-secondary-600 prose prose-sm max-w-none"
+                  v-html="product.description_html"></div>
                 <p v-else class="text-secondary-600">{{ product.description }}</p>
               </div>
             </div>
@@ -141,28 +121,25 @@
                 <Divider />
                 <h4 class="text-sm font-semibold text-secondary-700 mb-2">Categorías Externas</h4>
 
-                <div v-if="product.external_categories.facebook" class="mb-3">
-                  <div class="flex items-center gap-2 mb-1">
-                    <i class="pi pi-facebook text-blue-600"></i>
-                    <span class="text-sm font-semibold text-secondary-700">Facebook</span>
-                  </div>
-                  <p class="text-sm text-secondary-600 ml-6">{{ product.external_categories.facebook.name }}</p>
+                <div v-if="product.external_categories.facebook" class="flex items-start gap-2 mb-2">
+                  <i class="pi pi-facebook text-blue-600 mt-0.5"></i>
+                  <span class="text-sm text-secondary-600">
+                    <span class="font-semibold">Facebook:</span> {{ product.external_categories.facebook.id }} > {{ product.external_categories.facebook.name }}
+                  </span>
                 </div>
 
-                <div v-if="product.external_categories.google" class="mb-3">
-                  <div class="flex items-center gap-2 mb-1">
-                    <i class="pi pi-google text-red-600"></i>
-                    <span class="text-sm font-semibold text-secondary-700">Google</span>
-                  </div>
-                  <p class="text-sm text-secondary-600 ml-6">{{ product.external_categories.google.name }}</p>
+                <div v-if="product.external_categories.google" class="flex items-start gap-2 mb-2">
+                  <i class="pi pi-google text-red-600 mt-0.5"></i>
+                  <span class="text-sm text-secondary-600">
+                    <span class="font-semibold">Google:</span> {{ product.external_categories.google.id }} > {{ product.external_categories.google.name }}
+                  </span>
                 </div>
 
-                <div v-if="product.external_categories.mercadolibre">
-                  <div class="flex items-center gap-2 mb-1">
-                    <i class="pi pi-shopping-cart text-yellow-500"></i>
-                    <span class="text-sm font-semibold text-secondary-700">MercadoLibre</span>
-                  </div>
-                  <p class="text-sm text-secondary-600 ml-6">{{ product.external_categories.mercadolibre.name }}</p>
+                <div v-if="product.external_categories.mercadolibre" class="flex items-start gap-2">
+                  <i class="pi pi-shopping-cart text-yellow-500 mt-0.5"></i>
+                  <span class="text-sm text-secondary-600">
+                    <span class="font-semibold">MercadoLibre:</span> {{ product.external_categories.mercadolibre.id }} > {{ product.external_categories.mercadolibre.name }}
+                  </span>
                 </div>
               </div>
 
@@ -214,7 +191,9 @@
               </div>
 
               <!-- Mensaje cuando no hay datos SEO -->
-              <div v-if="!product.seo || (!product.seo.meta_title && !product.seo.meta_description && !product.seo.slug)" class="text-center py-4 text-gray-500">
+              <div
+                v-if="!product.seo || (!product.seo.meta_title && !product.seo.meta_description && !product.seo.slug)"
+                class="text-center py-4 text-gray-500">
                 <i class="pi pi-search text-3xl mb-2 block"></i>
                 <p class="text-sm">No se ha configurado información SEO</p>
               </div>
@@ -248,7 +227,8 @@
                 </div>
               </div>
 
-              <Divider v-if="(product.height != null || product.width != null || product.length != null) && (product.weight != null || displayVolumetricWeight)" />
+              <Divider
+                v-if="(product.height != null || product.width != null || product.length != null) && (product.weight != null || displayVolumetricWeight)" />
 
               <!-- Peso -->
               <div v-if="product.weight != null || displayVolumetricWeight">
@@ -260,13 +240,16 @@
                   </div>
                   <div v-if="displayVolumetricWeight" class="flex justify-between p-3 bg-gray-50 rounded-lg">
                     <span class="text-secondary-600">Peso volumétrico:</span>
-                    <span class="font-medium">{{ displayVolumetricWeight.toFixed(2) }} {{ product.weight_unit || 'kg' }}</span>
+                    <span class="font-medium">{{ displayVolumetricWeight.toFixed(2) }}
+                      {{ product.weight_unit || 'kg' }}</span>
                   </div>
                 </div>
               </div>
 
               <!-- Mensaje cuando no hay datos -->
-              <div v-if="product.height == null && product.width == null && product.length == null && product.weight == null && !product.volumetric_weight" class="text-center py-4 text-gray-500">
+              <div
+                v-if="product.height == null && product.width == null && product.length == null && product.weight == null && !product.volumetric_weight"
+                class="text-center py-4 text-gray-500">
                 <i class="pi pi-box text-3xl mb-2 block"></i>
                 <p class="text-sm">No se han registrado dimensiones ni peso</p>
               </div>
@@ -288,16 +271,10 @@
           <template #content>
             <!-- Grid de imágenes -->
             <div v-if="product.images && product.images.length > 0" class="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <div
-                v-for="(image, index) in product.images"
-                :key="index"
-                class="aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 hover:border-primary transition-colors"
-              >
-                <img
-                  :src="image.url"
-                  :alt="`${product.name} - imagen ${index + 1}`"
-                  class="w-full h-full object-cover"
-                />
+              <div v-for="(image, index) in product.images" :key="index"
+                class="aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 hover:border-primary transition-colors">
+                <img :src="image.url" :alt="`${product.name} - imagen ${index + 1}`"
+                  class="w-full h-full object-contain" />
               </div>
             </div>
             <!-- Sin imágenes -->
@@ -315,23 +292,13 @@
                 <i class="pi pi-video"></i>
                 Video
               </div>
-              <Button
-                v-if="!hasVideo"
-                label="Añadir Video"
-                icon="pi pi-plus"
-                size="small"
-                @click="showVideoUploader = true"
-              />
+              <Button v-if="!hasVideo" label="Añadir Video" icon="pi pi-plus" size="small"
+                @click="showVideoUploader = true" />
             </div>
           </template>
           <template #content>
-            <ProductVideoPlayer
-              v-if="hasVideo"
-              :video="product.video || null"
-              :product-id="product.id"
-              @delete="handleVideoDelete"
-              @refresh="handleVideoRefresh"
-            />
+            <ProductVideoPlayer v-if="hasVideo" :video="product.video || null" :product-id="product.id"
+              @delete="handleVideoDelete" @refresh="handleVideoRefresh" />
             <div v-else class="text-center py-8 text-gray-500">
               <i class="pi pi-video text-4xl mb-3 block"></i>
               <p>No hay video disponible</p>
@@ -350,22 +317,13 @@
                   ({{ product.documents?.length || 0 }}/3)
                 </span>
               </div>
-              <Button
-                v-if="(product.documents?.length || 0) < 3"
-                label="Agregar Documento"
-                icon="pi pi-plus"
-                size="small"
-                @click="showDocumentUploader = true"
-              />
+              <Button v-if="(product.documents?.length || 0) < 3" label="Agregar Documento" icon="pi pi-plus"
+                size="small" @click="showDocumentUploader = true" />
             </div>
           </template>
           <template #content>
-            <ProductDocumentList
-              :product-id="product.id"
-              :documents="product.documents || []"
-              @delete-success="handleDocumentDelete"
-              @delete-error="handleDocumentError"
-            />
+            <ProductDocumentList :product-id="product.id" :documents="product.documents || []"
+              @delete-success="handleDocumentDelete" @delete-error="handleDocumentError" />
           </template>
         </Card>
       </div>
@@ -379,29 +337,15 @@
     </div>
 
     <!-- Modal de edición rápida -->
-    <ProductQuickEditDialog
-      v-model:visible="showEditDialog"
-      :product="product"
-      @save="handleSaveProduct"
-    />
+    <ProductQuickEditDialog v-model:visible="showEditDialog" :product="product" @save="handleSaveProduct" />
 
     <!-- Modal de subida de video -->
-    <ProductVideoUploader
-      v-if="product"
-      v-model:visible="showVideoUploader"
-      :product-id="product.id"
-      @upload-success="handleVideoUploadSuccess"
-      @upload-error="handleVideoUploadError"
-    />
+    <ProductVideoUploader v-if="product" v-model:visible="showVideoUploader" :product-id="product.id"
+      @upload-success="handleVideoUploadSuccess" @upload-error="handleVideoUploadError" />
 
     <!-- Modal de subida de documentos -->
-    <ProductDocumentUploader
-      v-if="product"
-      v-model:visible="showDocumentUploader"
-      :product-id="product.id"
-      @upload-success="handleDocumentUpload"
-      @upload-error="handleDocumentError"
-    />
+    <ProductDocumentUploader v-if="product" v-model:visible="showDocumentUploader" :product-id="product.id"
+      @upload-success="handleDocumentUpload" @upload-error="handleDocumentError" />
   </div>
 </template>
 
