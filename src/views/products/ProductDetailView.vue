@@ -141,19 +141,28 @@
                 <Divider />
                 <h4 class="text-sm font-semibold text-secondary-700 mb-2">Categorías Externas</h4>
 
-                <div v-if="product.external_categories.facebook" class="flex justify-between mb-2">
-                  <span class="text-secondary-600">Facebook:</span>
-                  <span class="font-medium text-sm">{{ product.external_categories.facebook }}</span>
+                <div v-if="product.external_categories.facebook" class="mb-3">
+                  <div class="flex items-center gap-2 mb-1">
+                    <i class="pi pi-facebook text-blue-600"></i>
+                    <span class="text-sm font-semibold text-secondary-700">Facebook</span>
+                  </div>
+                  <p class="text-sm text-secondary-600 ml-6">{{ product.external_categories.facebook.name }}</p>
                 </div>
 
-                <div v-if="product.external_categories.google" class="flex justify-between mb-2">
-                  <span class="text-secondary-600">Google:</span>
-                  <span class="font-medium text-sm">{{ product.external_categories.google }}</span>
+                <div v-if="product.external_categories.google" class="mb-3">
+                  <div class="flex items-center gap-2 mb-1">
+                    <i class="pi pi-google text-red-600"></i>
+                    <span class="text-sm font-semibold text-secondary-700">Google</span>
+                  </div>
+                  <p class="text-sm text-secondary-600 ml-6">{{ product.external_categories.google.name }}</p>
                 </div>
 
-                <div v-if="product.external_categories.mercadolibre" class="flex justify-between">
-                  <span class="text-secondary-600">MercadoLibre:</span>
-                  <span class="font-medium text-sm">{{ product.external_categories.mercadolibre }}</span>
+                <div v-if="product.external_categories.mercadolibre">
+                  <div class="flex items-center gap-2 mb-1">
+                    <i class="pi pi-shopping-cart text-yellow-500"></i>
+                    <span class="text-sm font-semibold text-secondary-700">MercadoLibre</span>
+                  </div>
+                  <p class="text-sm text-secondary-600 ml-6">{{ product.external_categories.mercadolibre.name }}</p>
                 </div>
               </div>
 

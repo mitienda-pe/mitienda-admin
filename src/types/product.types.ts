@@ -9,10 +9,15 @@ export interface ProductSEO {
   slug?: string
 }
 
+export interface ProductExternalCategory {
+  id: string
+  name: string
+}
+
 export interface ProductExternalCategories {
-  facebook?: string | null
-  google?: string | null
-  mercadolibre?: string | null
+  facebook?: ProductExternalCategory | null
+  google?: ProductExternalCategory | null
+  mercadolibre?: ProductExternalCategory | null
 }
 
 export interface Product {
