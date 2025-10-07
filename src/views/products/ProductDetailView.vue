@@ -8,7 +8,15 @@
         text
         @click="router.push('/products')"
       />
-      <div v-if="product">
+      <div v-if="product" class="flex gap-2">
+        <Button
+          v-if="storeUrl && product.seo?.slug"
+          label="Ver en tienda"
+          icon="pi pi-external-link"
+          severity="secondary"
+          outlined
+          @click="openProductInStore"
+        />
         <Button
           label="Editar"
           icon="pi pi-pencil"
@@ -120,6 +128,12 @@
               <div v-if="product.min_stock" class="flex justify-between">
                 <span class="text-secondary-600">Stock mínimo:</span>
                 <span class="font-medium">{{ product.min_stock }} unidades</span>
+              </div>
+
+              <!-- Orden en catálogo -->
+              <div v-if="product.order != null" class="flex justify-between">
+                <span class="text-secondary-600">Orden en catálogo:</span>
+                <span class="font-medium">{{ product.order }}</span>
               </div>
 
               <Divider />
@@ -365,6 +379,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductsStore } from '@/stores/products.store'
+import { useAuthStore } from '@/stores/auth.store'
 import { useFormatters } from '@/composables/useFormatters'
 import { useToast } from 'primevue/usetoast'
 import Card from 'primevue/card'
@@ -382,6 +397,7 @@ import placeholderImage from '@/assets/images/landscape-placeholder-svgrepo-com.
 const route = useRoute()
 const router = useRouter()
 const productsStore = useProductsStore()
+const authStore = useAuthStore()
 const toast = useToast()
 const { formatCurrency, formatDate } = useFormatters()
 
@@ -460,6 +476,21 @@ const displayVolumetricWeight = computed(() => {
   // Si no, usar el calculado
   return calculatedVolumetricWeight.value
 })
+
+// URL de la tienda para el link "Ver en tienda"
+const storeUrl = computed(() => {
+  return authStore.selectedStore?.url || null
+})
+
+// Función para abrir el producto en la tienda virtual
+const openProductInStore = () => {
+  if (storeUrl.value && product.value?.seo?.slug) {
+    // Asegurar que storeUrl termine con slash
+    const baseUrl = storeUrl.value.endsWith('/') ? storeUrl.value : `${storeUrl.value}/`
+    const productUrl = `${baseUrl}producto/${product.value.seo.slug}`
+    window.open(productUrl, '_blank')
+  }
+}
 
 const handleSaveProduct = async (data: ProductQuickEditData) => {
   if (!product.value) return

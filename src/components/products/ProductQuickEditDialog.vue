@@ -20,6 +20,7 @@ export interface ProductQuickEditData {
   price: number
   stock: number
   published: boolean
+  order?: number
 }
 
 const props = defineProps<Props>()
@@ -28,7 +29,8 @@ const emit = defineEmits<Emits>()
 const formData = ref<ProductQuickEditData>({
   price: 0,
   stock: 0,
-  published: false
+  published: false,
+  order: undefined
 })
 
 const errors = ref({
@@ -42,7 +44,8 @@ watch(() => props.product, (newProduct) => {
     formData.value = {
       price: newProduct.price,
       stock: newProduct.stock,
-      published: newProduct.published
+      published: newProduct.published,
+      order: newProduct.order
     }
     errors.value = { price: '', stock: '' }
   }
@@ -128,6 +131,22 @@ const handleClose = () => {
           :class="{ 'p-invalid': errors.stock }"
         />
         <small v-if="errors.stock" class="text-red-500">{{ errors.stock }}</small>
+      </div>
+
+      <!-- Orden en catálogo -->
+      <div>
+        <label for="order" class="block text-sm font-medium text-gray-700 mb-2">
+          Orden en catálogo
+        </label>
+        <InputNumber
+          id="order"
+          v-model="formData.order"
+          :min="0"
+          :use-grouping="false"
+          class="w-full"
+          placeholder="Dejar vacío para orden automático"
+        />
+        <small class="text-gray-500">Número que define la posición del producto en el catálogo</small>
       </div>
 
       <!-- Estado de publicación -->

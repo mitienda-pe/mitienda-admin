@@ -194,6 +194,7 @@ export const productsApi = {
           meta_image: rawData.seo.meta_image || undefined,
           slug: rawData.seo.slug || undefined
         } : undefined,
+        order: rawData.order !== undefined && rawData.order !== null ? parseInt(rawData.order.toString()) : undefined,
         created_at: rawData.created_at || new Date().toISOString(),
         updated_at: rawData.updated_at || new Date().toISOString()
       }

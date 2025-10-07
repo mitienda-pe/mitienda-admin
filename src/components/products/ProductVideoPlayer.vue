@@ -48,15 +48,13 @@ const statusLabel = computed(() => {
   }
 })
 
-// Calculate padding-top for aspect ratio (default 16:9 = 56.25%)
-const aspectRatioPadding = computed(() => {
+// Calculate aspect ratio (default 16:9)
+const videoAspectRatio = computed(() => {
   if (props.video?.aspect_ratio) {
-    // aspect_ratio = width / height
-    // padding-top = (height / width) * 100
-    return `${(1 / props.video.aspect_ratio) * 100}%`
+    return props.video.aspect_ratio.toString()
   }
-  // Default to 16:9
-  return '56.25%'
+  // Default to 16:9 = 1.777...
+  return '16 / 9'
 })
 
 const handleDelete = async () => {
@@ -143,31 +141,20 @@ watch(
           </div>
         </template>
       </Message>
-      <Button
-        label="Eliminar e intentar de nuevo"
-        icon="pi pi-trash"
-        severity="danger"
-        size="small"
-        outlined
-        class="mt-3"
-        @click="handleDelete"
-        :loading="isDeleting"
-      />
+      <Button label="Eliminar e intentar de nuevo" icon="pi pi-trash" severity="danger" size="small" outlined
+        class="mt-3" @click="handleDelete" :loading="isDeleting" />
     </div>
 
     <!-- Ready State - Video Player -->
     <div v-else-if="isReady && video?.stream_url" class="video-ready">
       <div class="relative">
         <!-- Cloudflare Stream Player - Using iframe embed with dynamic aspect ratio -->
-        <div class="video-container" :style="{ position: 'relative', paddingTop: aspectRatioPadding }">
+        <div class="video-container" :style="{ aspectRatio: videoAspectRatio }">
           <iframe
             :src="`https://customer-1mnkfje3evk2durm.cloudflarestream.com/${video.cloudflare_uid}/iframe?poster=${encodeURIComponent(video.thumbnail_url || '')}`"
-            loading="lazy"
-            style="border: none; position: absolute; top: 0; left: 0; height: 100%; width: 100%;"
-            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
-            allowfullscreen="true"
-            class="rounded-lg"
-          ></iframe>
+            loading="lazy" style="border: none; width: 100%; height: 100%;"
+            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;" allowfullscreen="true"
+            class="rounded-lg"></iframe>
         </div>
 
         <!-- Video Info -->
@@ -176,39 +163,18 @@ watch(
             <i class="pi pi-clock mr-1"></i>
             Duración: {{ video.duration?.toFixed(1) }}s
           </div>
-          <Button
-            label="Eliminar"
-            icon="pi pi-trash"
-            severity="danger"
-            size="small"
-            outlined
-            @click="showDeleteConfirm = true"
-          />
+          <Button label="Eliminar" icon="pi pi-trash" severity="danger" size="small" outlined
+            @click="showDeleteConfirm = true" />
         </div>
 
         <!-- Delete Confirmation -->
-        <div
-          v-if="showDeleteConfirm"
-          class="mt-3 p-3 border border-red-300 rounded-lg bg-red-50 dark:bg-red-900/20"
-        >
+        <div v-if="showDeleteConfirm" class="mt-3 p-3 border border-red-300 rounded-lg bg-red-50 dark:bg-red-900/20">
           <p class="text-sm text-red-900 dark:text-red-100 mb-2">
             ¿Estás seguro de eliminar este video? Esta acción no se puede deshacer.
           </p>
           <div class="flex gap-2">
-            <Button
-              label="Sí, eliminar"
-              severity="danger"
-              size="small"
-              @click="handleDelete"
-              :loading="isDeleting"
-            />
-            <Button
-              label="Cancelar"
-              severity="secondary"
-              size="small"
-              outlined
-              @click="showDeleteConfirm = false"
-            />
+            <Button label="Sí, eliminar" severity="danger" size="small" @click="handleDelete" :loading="isDeleting" />
+            <Button label="Cancelar" severity="secondary" size="small" outlined @click="showDeleteConfirm = false" />
           </div>
         </div>
       </div>
@@ -227,12 +193,15 @@ watch(
 <style scoped>
 .product-video-player {
   width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
 }
 
 .video-container {
-  position: relative;
   width: 100%;
-  max-width: 640px;
+  background-color: #000;
+  border-radius: 0.5rem;
+  overflow: hidden;
 }
 
 stream {

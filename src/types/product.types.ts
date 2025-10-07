@@ -35,6 +35,7 @@ export interface Product {
   category?: Category
   brand?: Brand
   seo?: ProductSEO
+  order?: number
   created_at: string
   updated_at: string
 }
