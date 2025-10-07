@@ -85,15 +85,15 @@
           <template #content>
             <div class="space-y-3">
               <!-- Marca -->
-              <div v-if="product.brand" class="flex justify-between">
-                <span class="text-secondary-600">Marca:</span>
+              <div v-if="product.brand">
+                <span class="text-secondary-600">Marca: </span>
                 <span class="font-medium">{{ product.brand.name }}</span>
               </div>
 
               <!-- Categorías -->
               <div v-if="product.categories && product.categories.length > 0">
-                <div class="flex justify-between mb-1">
-                  <span class="text-secondary-600">{{ product.categories.length > 1 ? 'Categorías:' : 'Categoría:' }}</span>
+                <div class="mb-1">
+                  <span class="text-secondary-600">{{ product.categories.length > 1 ? 'Categorías: ' : 'Categoría: ' }}</span>
                 </div>
                 <div class="flex flex-wrap gap-2">
                   <span
@@ -107,20 +107,20 @@
               </div>
 
               <!-- Stock -->
-              <div class="flex justify-between">
-                <span class="text-secondary-600">Stock:</span>
+              <div>
+                <span class="text-secondary-600">Stock: </span>
                 <span class="font-medium" :class="stockColorClass">{{ product.stock }} unidades</span>
               </div>
 
               <!-- Stock mínimo -->
-              <div v-if="product.min_stock" class="flex justify-between">
-                <span class="text-secondary-600">Stock mínimo:</span>
+              <div v-if="product.min_stock">
+                <span class="text-secondary-600">Stock mínimo: </span>
                 <span class="font-medium">{{ product.min_stock }} unidades</span>
               </div>
 
               <!-- Orden en catálogo -->
-              <div v-if="product.order != null" class="flex justify-between">
-                <span class="text-secondary-600">Orden en catálogo:</span>
+              <div v-if="product.order != null">
+                <span class="text-secondary-600">Orden en catálogo: </span>
                 <span class="font-medium">{{ product.order }}</span>
               </div>
 
@@ -131,33 +131,33 @@
                 <div v-if="product.external_categories.facebook" class="flex items-start gap-2">
                   <i class="pi pi-facebook text-blue-600 mt-0.5"></i>
                   <span class="text-sm text-secondary-600">
-                    <span class="font-semibold">Facebook:</span> {{ product.external_categories.facebook.id }} > {{ product.external_categories.facebook.name }}
+                    <span class="font-semibold">Facebook: </span>{{ product.external_categories.facebook.id }} > {{ product.external_categories.facebook.name }}
                   </span>
                 </div>
 
                 <div v-if="product.external_categories.google" class="flex items-start gap-2">
                   <i class="pi pi-google text-red-600 mt-0.5"></i>
                   <span class="text-sm text-secondary-600">
-                    <span class="font-semibold">Google:</span> {{ product.external_categories.google.id }} > {{ product.external_categories.google.name }}
+                    <span class="font-semibold">Google: </span>{{ product.external_categories.google.id }} > {{ product.external_categories.google.name }}
                   </span>
                 </div>
 
                 <div v-if="product.external_categories.mercadolibre" class="flex items-start gap-2">
                   <i class="pi pi-shopping-cart text-yellow-500 mt-0.5"></i>
                   <span class="text-sm text-secondary-600">
-                    <span class="font-semibold">MercadoLibre:</span> {{ product.external_categories.mercadolibre.id }} > {{ product.external_categories.mercadolibre.name }}
+                    <span class="font-semibold">MercadoLibre: </span>{{ product.external_categories.mercadolibre.id }} > {{ product.external_categories.mercadolibre.name }}
                   </span>
                 </div>
               </div>
 
               <!-- Fechas -->
-              <div class="flex justify-between">
-                <span class="text-secondary-600">Creado:</span>
+              <div>
+                <span class="text-secondary-600">Creado: </span>
                 <span class="font-medium">{{ formatDate(product.created_at) }}</span>
               </div>
 
-              <div class="flex justify-between">
-                <span class="text-secondary-600">Actualizado:</span>
+              <div>
+                <span class="text-secondary-600">Actualizado: </span>
                 <span class="font-medium">{{ formatDate(product.updated_at) }}</span>
               </div>
             </div>
