@@ -157,7 +157,15 @@
         <!-- Descripción -->
         <Card v-if="product.description_html || product.description">
           <template #title>
-            <span class="text-lg">Descripción</span>
+            <div class="flex items-center justify-between w-full">
+              <span class="text-lg">Descripción</span>
+              <div class="flex gap-2">
+                <Button label="Editar Texto" icon="pi pi-file-edit" size="small" severity="secondary" outlined
+                  @click="openDescriptionEditor('wysiwyg')" />
+                <Button label="Editar Código" icon="pi pi-code" size="small" severity="secondary" outlined
+                  @click="openDescriptionEditor('code')" />
+              </div>
+            </div>
           </template>
           <template #content>
             <div v-if="product.description_html" class="text-secondary-600 prose prose-sm max-w-none"
@@ -353,6 +361,11 @@
     <!-- Modal de subida de documentos -->
     <ProductDocumentUploader v-if="product" v-model:visible="showDocumentUploader" :product-id="product.id"
       @upload-success="handleDocumentUpload" @upload-error="handleDocumentError" />
+
+    <!-- Modal de edición de descripción -->
+    <ProductDescriptionEditor v-if="product" v-model="showDescriptionEditor"
+      :content="product.description_html || product.description || ''" :mode="editorMode"
+      @save="handleSaveDescription" />
   </div>
 </template>
 
@@ -371,6 +384,7 @@ import ProductVideoUploader from '@/components/products/ProductVideoUploader.vue
 import ProductVideoPlayer from '@/components/products/ProductVideoPlayer.vue'
 import ProductDocumentUploader from '@/components/products/ProductDocumentUploader.vue'
 import ProductDocumentList from '@/components/products/ProductDocumentList.vue'
+import ProductDescriptionEditor from '@/components/products/ProductDescriptionEditor.vue'
 import type { ProductQuickEditData } from '@/components/products/ProductQuickEditDialog.vue'
 import placeholderImage from '@/assets/images/landscape-placeholder-svgrepo-com.svg'
 
@@ -385,6 +399,8 @@ const product = computed(() => productsStore.currentProduct)
 const showEditDialog = ref(false)
 const showVideoUploader = ref(false)
 const showDocumentUploader = ref(false)
+const showDescriptionEditor = ref(false)
+const editorMode = ref<'wysiwyg' | 'code'>('wysiwyg')
 
 // Computed para forzar reactividad del video
 const hasVideo = computed(() => {
@@ -584,6 +600,37 @@ const handleDocumentError = (error: string) => {
     detail: error || 'Ocurrió un error con el documento',
     life: 5000
   })
+}
+
+const openDescriptionEditor = (mode: 'wysiwyg' | 'code') => {
+  editorMode.value = mode
+  showDescriptionEditor.value = true
+}
+
+const handleSaveDescription = async (content: string) => {
+  if (!product.value) return
+
+  const result = await productsStore.updateProduct(product.value.id, {
+    description_html: content
+  })
+
+  if (result.success) {
+    toast.add({
+      severity: 'success',
+      summary: 'Descripción actualizada',
+      detail: 'Los cambios se han guardado correctamente',
+      life: 3000
+    })
+    // Refresh product data
+    await productsStore.fetchProduct(product.value.id)
+  } else {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: productsStore.error || 'No se pudo actualizar la descripción',
+      life: 3000
+    })
+  }
 }
 
 onMounted(async () => {

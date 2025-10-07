@@ -17,10 +17,11 @@ interface Emits {
 }
 
 export interface ProductQuickEditData {
-  price: number
-  stock: number
-  published: boolean
+  price?: number
+  stock?: number
+  published?: boolean
   order?: number
+  description_html?: string
 }
 
 const props = defineProps<Props>()
@@ -60,7 +61,7 @@ const validateForm = (): boolean => {
     isValid = false
   }
 
-  if (formData.value.stock < 0) {
+  if (formData.value.stock !== undefined && formData.value.stock < 0) {
     errors.value.stock = 'El stock no puede ser negativo'
     isValid = false
   }

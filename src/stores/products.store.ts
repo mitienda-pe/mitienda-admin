@@ -124,7 +124,7 @@ export const useProductsStore = defineStore('products', () => {
     fetchProducts()
   }
 
-  async function updateProduct(id: number, data: { price?: number; stock?: number; published?: boolean }) {
+  async function updateProduct(id: number, data: { price?: number; stock?: number; published?: boolean; order?: number; description_html?: string }) {
     try {
       isLoading.value = true
       error.value = null
