@@ -11,7 +11,8 @@
     "format": "prettier --write src/",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "postinstall": "node scripts/copy-tinymce.js"
   },
   "dependencies": {
     "@monaco-editor/loader": "^1.5.0",

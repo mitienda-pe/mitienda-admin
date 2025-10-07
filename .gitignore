@@ -39,3 +39,8 @@ coverage
 *.avi
 *.webm
 test-video.*
+
+# TinyMCE files (copied from node_modules)
+public/tinymce/*
+!public/tinymce/langs/
+!public/tinymce/README.md

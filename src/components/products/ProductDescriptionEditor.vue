@@ -57,6 +57,8 @@ const dialogTitle = computed(() => {
 
 // TinyMCE Configuration
 const tinyConfig = {
+  base_url: '/tinymce',
+  suffix: '.min',
   height: '100%',
   menubar: true,
   plugins: [
