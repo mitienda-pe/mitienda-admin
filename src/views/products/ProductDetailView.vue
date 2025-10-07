@@ -84,19 +84,17 @@
           </template>
           <template #content>
             <div class="space-y-3">
-              <!-- Categoría -->
-              <div v-if="product.category" class="flex justify-between">
-                <span class="text-secondary-600">Categoría:</span>
-                <span class="font-medium">{{ product.category.name }}</span>
-              </div>
-
               <!-- Marca -->
               <div v-if="product.brand" class="flex justify-between">
                 <span class="text-secondary-600">Marca:</span>
                 <span class="font-medium">{{ product.brand.name }}</span>
               </div>
 
-              <Divider />
+              <!-- Categoría -->
+              <div v-if="product.category" class="flex justify-between">
+                <span class="text-secondary-600">Categoría:</span>
+                <span class="font-medium">{{ product.category.name }}</span>
+              </div>
 
               <!-- Stock -->
               <div class="flex justify-between">
@@ -117,18 +115,17 @@
               </div>
 
               <!-- Categorías Externas -->
-              <div v-if="product.external_categories && hasExternalCategories">
-                <Divider />
-                <h4 class="text-sm font-semibold text-secondary-700 mb-2">Categorías Externas</h4>
+              <div v-if="product.external_categories && hasExternalCategories" class="space-y-2">
+                <h4 class="text-sm font-semibold text-secondary-700">Categorías Externas</h4>
 
-                <div v-if="product.external_categories.facebook" class="flex items-start gap-2 mb-2">
+                <div v-if="product.external_categories.facebook" class="flex items-start gap-2">
                   <i class="pi pi-facebook text-blue-600 mt-0.5"></i>
                   <span class="text-sm text-secondary-600">
                     <span class="font-semibold">Facebook:</span> {{ product.external_categories.facebook.id }} > {{ product.external_categories.facebook.name }}
                   </span>
                 </div>
 
-                <div v-if="product.external_categories.google" class="flex items-start gap-2 mb-2">
+                <div v-if="product.external_categories.google" class="flex items-start gap-2">
                   <i class="pi pi-google text-red-600 mt-0.5"></i>
                   <span class="text-sm text-secondary-600">
                     <span class="font-semibold">Google:</span> {{ product.external_categories.google.id }} > {{ product.external_categories.google.name }}
@@ -142,8 +139,6 @@
                   </span>
                 </div>
               </div>
-
-              <Divider />
 
               <!-- Fechas -->
               <div class="flex justify-between">
@@ -359,7 +354,6 @@ import { useToast } from 'primevue/usetoast'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
-import Divider from 'primevue/divider'
 import ProductQuickEditDialog from '@/components/products/ProductQuickEditDialog.vue'
 import ProductVideoUploader from '@/components/products/ProductVideoUploader.vue'
 import ProductVideoPlayer from '@/components/products/ProductVideoPlayer.vue'
