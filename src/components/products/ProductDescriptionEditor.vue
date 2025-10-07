@@ -26,6 +26,31 @@ import Editor from '@tinymce/tinymce-vue'
 import * as monaco from 'monaco-editor'
 import loader from '@monaco-editor/loader'
 
+// Import TinyMCE
+import 'tinymce/tinymce'
+// Import TinyMCE theme and plugins
+import 'tinymce/themes/silver'
+import 'tinymce/icons/default'
+import 'tinymce/models/dom'
+// Import plugins
+import 'tinymce/plugins/advlist'
+import 'tinymce/plugins/autolink'
+import 'tinymce/plugins/lists'
+import 'tinymce/plugins/link'
+import 'tinymce/plugins/image'
+import 'tinymce/plugins/charmap'
+import 'tinymce/plugins/preview'
+import 'tinymce/plugins/anchor'
+import 'tinymce/plugins/searchreplace'
+import 'tinymce/plugins/visualblocks'
+import 'tinymce/plugins/code'
+import 'tinymce/plugins/fullscreen'
+import 'tinymce/plugins/insertdatetime'
+import 'tinymce/plugins/media'
+import 'tinymce/plugins/table'
+import 'tinymce/plugins/help'
+import 'tinymce/plugins/wordcount'
+
 // Configure Monaco loader
 loader.config({ monaco })
 
@@ -57,8 +82,8 @@ const dialogTitle = computed(() => {
 
 // TinyMCE Configuration
 const tinyConfig = {
-  base_url: '/tinymce',
-  suffix: '.min',
+  skin_url: '/tinymce/skins/ui/oxide',
+  content_css: '/tinymce/skins/content/default/content.min.css',
   height: '100%',
   menubar: true,
   plugins: [
