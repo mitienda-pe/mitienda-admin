@@ -9,6 +9,12 @@ export interface ProductSEO {
   slug?: string
 }
 
+export interface ProductExternalCategories {
+  facebook?: string | null
+  google?: string | null
+  mercadolibre?: string | null
+}
+
 export interface Product {
   id: number
   sku: string
@@ -35,6 +41,7 @@ export interface Product {
   category?: Category
   brand?: Brand
   seo?: ProductSEO
+  external_categories?: ProductExternalCategories
   order?: number
   created_at: string
   updated_at: string

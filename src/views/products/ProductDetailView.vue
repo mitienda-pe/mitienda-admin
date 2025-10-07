@@ -136,6 +136,27 @@
                 <span class="font-medium">{{ product.order }}</span>
               </div>
 
+              <!-- Categorías Externas -->
+              <div v-if="product.external_categories && hasExternalCategories">
+                <Divider />
+                <h4 class="text-sm font-semibold text-secondary-700 mb-2">Categorías Externas</h4>
+
+                <div v-if="product.external_categories.facebook" class="flex justify-between mb-2">
+                  <span class="text-secondary-600">Facebook:</span>
+                  <span class="font-medium text-sm">{{ product.external_categories.facebook }}</span>
+                </div>
+
+                <div v-if="product.external_categories.google" class="flex justify-between mb-2">
+                  <span class="text-secondary-600">Google:</span>
+                  <span class="font-medium text-sm">{{ product.external_categories.google }}</span>
+                </div>
+
+                <div v-if="product.external_categories.mercadolibre" class="flex justify-between">
+                  <span class="text-secondary-600">MercadoLibre:</span>
+                  <span class="font-medium text-sm">{{ product.external_categories.mercadolibre }}</span>
+                </div>
+              </div>
+
               <Divider />
 
               <!-- Fechas -->
@@ -475,6 +496,13 @@ const displayVolumetricWeight = computed(() => {
 
   // Si no, usar el calculado
   return calculatedVolumetricWeight.value
+})
+
+// Check if product has any external categories
+const hasExternalCategories = computed(() => {
+  if (!product.value?.external_categories) return false
+  const { facebook, google, mercadolibre } = product.value.external_categories
+  return !!(facebook || google || mercadolibre)
 })
 
 // URL de la tienda para el link "Ver en tienda"
