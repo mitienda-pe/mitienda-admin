@@ -24,10 +24,14 @@
     <div v-else-if="product" class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
       <!-- Columna Izquierda: Información del producto -->
       <div class="space-y-6">
-        <!-- Header -->
+        <!-- Información Adicional -->
         <Card>
+          <template #title>
+            <span class="text-lg">Información Adicional</span>
+          </template>
           <template #content>
             <div class="space-y-4">
+              <!-- Nombre y SKU -->
               <div>
                 <h1 class="text-3xl font-bold text-secondary mb-2">{{ product.name }}</h1>
                 <p class="text-secondary-500">SKU: {{ product.sku }}</p>
@@ -66,24 +70,9 @@
                 </p>
               </div>
 
-              <!-- Descripción -->
-              <div v-if="product.description_html || product.description">
-                <h3 class="font-semibold text-secondary mb-2">Descripción</h3>
-                <div v-if="product.description_html" class="text-secondary-600 prose prose-sm max-w-none"
-                  v-html="product.description_html"></div>
-                <p v-else class="text-secondary-600">{{ product.description }}</p>
-              </div>
-            </div>
-          </template>
-        </Card>
+              <!-- Separador -->
+              <div class="border-t border-gray-200 my-4"></div>
 
-        <!-- Detalles adicionales -->
-        <Card>
-          <template #title>
-            <span class="text-lg">Información Adicional</span>
-          </template>
-          <template #content>
-            <div class="space-y-3">
               <!-- Creado -->
               <div>
                 <span class="text-secondary-600">Creado: </span>
@@ -162,6 +151,18 @@
                 </div>
               </div>
             </div>
+          </template>
+        </Card>
+
+        <!-- Descripción -->
+        <Card v-if="product.description_html || product.description">
+          <template #title>
+            <span class="text-lg">Descripción</span>
+          </template>
+          <template #content>
+            <div v-if="product.description_html" class="text-secondary-600 prose prose-sm max-w-none"
+              v-html="product.description_html"></div>
+            <p v-else class="text-secondary-600">{{ product.description }}</p>
           </template>
         </Card>
 
