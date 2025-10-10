@@ -327,5 +327,25 @@ export const productsApi = {
   async deleteDocument(productId: number, documentId: number): Promise<ApiResponse<any>> {
     const response = await apiClient.delete(`/products/${productId}/documents/${documentId}`)
     return response.data
+  },
+
+  // Subir imagen de producto
+  async uploadImage(id: number, imageFile: File): Promise<ApiResponse<any>> {
+    const formData = new FormData()
+    formData.append('image', imageFile)
+
+    const response = await apiClient.post(`/products/${id}/images`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
+    return response.data
+  },
+
+  // Eliminar imagen de producto
+  async deleteImage(productId: number, imageId: number): Promise<ApiResponse<any>> {
+    const response = await apiClient.delete(`/products/${productId}/images/${imageId}`)
+    return response.data
   }
 }

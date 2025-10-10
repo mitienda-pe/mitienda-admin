@@ -276,28 +276,14 @@
       <!-- Columna Derecha: Fotos, Video y Documentos -->
       <div class="space-y-6">
         <!-- Galería de imágenes -->
-        <Card>
-          <template #title>
-            <div class="flex items-center gap-2">
-              <i class="pi pi-images"></i>
-              Imágenes
-            </div>
-          </template>
-          <template #content>
-            <!-- Grid de imágenes -->
-            <div v-if="product.images && product.images.length > 0" class="grid grid-cols-2 md:grid-cols-3 gap-4">
-              <div v-for="(image, index) in product.images" :key="index"
-                class="aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200 hover:border-primary transition-colors">
-                <img :src="image.url" :alt="`${product.name} - imagen ${index + 1}`"
-                  class="w-full h-full object-contain" />
-              </div>
-            </div>
-            <!-- Sin imágenes -->
-            <div v-else class="w-full h-96 bg-gray-100 flex items-center justify-center rounded-lg">
-              <img :src="placeholderImage" alt="Sin imagen" class="w-full h-full object-contain opacity-50" />
-            </div>
-          </template>
-        </Card>
+        <ProductImageGallery
+          v-if="product"
+          :images="product.images"
+          :product-id="product.id"
+          :product-name="product.name"
+          @add-image="showImageUploader = true"
+          @delete-image="handleImageDelete"
+        />
 
         <!-- Video del producto -->
         <Card>
@@ -354,6 +340,10 @@
     <!-- Modal de edición rápida -->
     <ProductQuickEditDialog v-model:visible="showEditDialog" :product="product" @save="handleSaveProduct" />
 
+    <!-- Modal de subida de imagen -->
+    <ProductImageUploader v-if="product" v-model:visible="showImageUploader" :product-id="product.id"
+      @upload-success="handleImageUploadSuccess" @upload-error="handleImageUploadError" />
+
     <!-- Modal de subida de video -->
     <ProductVideoUploader v-if="product" v-model:visible="showVideoUploader" :product-id="product.id"
       @upload-success="handleVideoUploadSuccess" @upload-error="handleVideoUploadError" />
@@ -380,13 +370,14 @@ import Card from 'primevue/card'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
 import ProductQuickEditDialog from '@/components/products/ProductQuickEditDialog.vue'
+import ProductImageGallery from '@/components/products/ProductImageGallery.vue'
+import ProductImageUploader from '@/components/products/ProductImageUploader.vue'
 import ProductVideoUploader from '@/components/products/ProductVideoUploader.vue'
 import ProductVideoPlayer from '@/components/products/ProductVideoPlayer.vue'
 import ProductDocumentUploader from '@/components/products/ProductDocumentUploader.vue'
 import ProductDocumentList from '@/components/products/ProductDocumentList.vue'
 import ProductDescriptionEditor from '@/components/products/ProductDescriptionEditor.vue'
 import type { ProductQuickEditData } from '@/components/products/ProductQuickEditDialog.vue'
-import placeholderImage from '@/assets/images/landscape-placeholder-svgrepo-com.svg'
 
 const route = useRoute()
 const router = useRouter()
@@ -397,6 +388,7 @@ const { formatCurrency, formatDate } = useFormatters()
 
 const product = computed(() => productsStore.currentProduct)
 const showEditDialog = ref(false)
+const showImageUploader = ref(false)
 const showVideoUploader = ref(false)
 const showDocumentUploader = ref(false)
 const showDescriptionEditor = ref(false)
@@ -629,6 +621,60 @@ const handleSaveDescription = async (content: string) => {
       summary: 'Error',
       detail: productsStore.error || 'No se pudo actualizar la descripción',
       life: 3000
+    })
+  }
+}
+
+const handleImageUploadSuccess = async () => {
+  toast.add({
+    severity: 'success',
+    summary: 'Imagen subida',
+    detail: 'La imagen se ha subido correctamente',
+    life: 3000
+  })
+  showImageUploader.value = false
+
+  // Refresh product to update images list
+  if (product.value) {
+    await productsStore.fetchProduct(product.value.id)
+  }
+}
+
+const handleImageUploadError = (error: string) => {
+  toast.add({
+    severity: 'error',
+    summary: 'Error al subir imagen',
+    detail: error || 'No se pudo subir la imagen',
+    life: 5000
+  })
+}
+
+const handleImageDelete = async (imageId: number) => {
+  if (!product.value) return
+
+  try {
+    const { productsApi } = await import('@/api/products.api')
+    const response = await productsApi.deleteImage(product.value.id, imageId)
+
+    if (response.success) {
+      toast.add({
+        severity: 'success',
+        summary: 'Imagen eliminada',
+        detail: 'La imagen ha sido eliminada correctamente',
+        life: 3000
+      })
+
+      // Refresh product to update images list
+      await productsStore.fetchProduct(product.value.id)
+    } else {
+      throw new Error(response.message || 'Error al eliminar imagen')
+    }
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error.message || 'No se pudo eliminar la imagen',
+      life: 5000
     })
   }
 }

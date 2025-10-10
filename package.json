@@ -27,6 +27,7 @@
     "tinymce-i18n": "^25.10.6",
     "tus-js-client": "^4.3.1",
     "vue": "^3.4.21",
+    "vue-advanced-cropper": "^2.8.9",
     "vue-router": "^4.3.0"
   },
   "devDependencies": {

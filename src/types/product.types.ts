@@ -55,6 +55,8 @@ export interface Product {
 export interface ProductImage {
   id: number
   url: string
+  cloudflare_url?: string
+  cloudflare_id?: string
   thumbnail?: string
   position: number
   is_main: boolean
