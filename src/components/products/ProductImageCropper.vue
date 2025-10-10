@@ -86,17 +86,7 @@ const handleCancel = () => {
 
 // Stencil props for square cropping
 const stencilProps = {
-  aspectRatio: 1,
-  movable: true,
-  resizable: true
-}
-
-// Default size for cropper
-const defaultSize = ({ imageSize, visibleArea }: any) => {
-  return {
-    width: Math.min(imageSize.width, visibleArea.width),
-    height: Math.min(imageSize.height, visibleArea.height)
-  }
+  aspectRatio: 1
 }
 </script>
 
@@ -107,9 +97,7 @@ const defaultSize = ({ imageSize, visibleArea }: any) => {
         ref="cropper"
         :src="imageUrl"
         :stencil-props="stencilProps"
-        :default-size="defaultSize"
         class="cropper"
-        image-restriction="stencil"
       />
     </div>
 
