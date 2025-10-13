@@ -62,15 +62,19 @@
                 <label for="bar_bg_color" class="block text-sm font-medium text-secondary-700 mb-2">
                   Color de fondo <span class="text-red-500">*</span>
                 </label>
-                <ColorPicker v-model="formData.bar_bg_color" format="hex" class="w-full" />
-                <InputText v-model="formData.bar_bg_color" class="w-full mt-2" placeholder="#000000" />
+                <div class="flex gap-2 items-center">
+                  <input type="color" v-model="formData.bar_bg_color" class="h-10 w-14 border border-secondary-300 rounded cursor-pointer" />
+                  <InputText v-model="formData.bar_bg_color" class="flex-1" placeholder="#000000" />
+                </div>
               </div>
               <div>
                 <label for="bar_text_color" class="block text-sm font-medium text-secondary-700 mb-2">
                   Color de texto <span class="text-red-500">*</span>
                 </label>
-                <ColorPicker v-model="formData.bar_text_color" format="hex" class="w-full" />
-                <InputText v-model="formData.bar_text_color" class="w-full mt-2" placeholder="#FFFFFF" />
+                <div class="flex gap-2 items-center">
+                  <input type="color" v-model="formData.bar_text_color" class="h-10 w-14 border border-secondary-300 rounded cursor-pointer" />
+                  <InputText v-model="formData.bar_text_color" class="flex-1" placeholder="#FFFFFF" />
+                </div>
               </div>
             </div>
 
@@ -115,15 +119,19 @@
                     <label class="block text-sm font-medium text-secondary-700 mb-2">
                       Color fondo botón
                     </label>
-                    <ColorPicker v-model="formData.bar_boton_bg_color" format="hex" class="w-full" />
-                    <InputText v-model="formData.bar_boton_bg_color" class="w-full mt-2" placeholder="#FFFFFF" />
+                    <div class="flex gap-2 items-center">
+                      <input type="color" v-model="formData.bar_boton_bg_color" class="h-10 w-14 border border-secondary-300 rounded cursor-pointer" />
+                      <InputText v-model="formData.bar_boton_bg_color" class="flex-1" placeholder="#FFFFFF" />
+                    </div>
                   </div>
                   <div>
                     <label class="block text-sm font-medium text-secondary-700 mb-2">
                       Color texto botón
                     </label>
-                    <ColorPicker v-model="formData.bar_boton_text_color" format="hex" class="w-full" />
-                    <InputText v-model="formData.bar_boton_text_color" class="w-full mt-2" placeholder="#000000" />
+                    <div class="flex gap-2 items-center">
+                      <input type="color" v-model="formData.bar_boton_text_color" class="h-10 w-14 border border-secondary-300 rounded cursor-pointer" />
+                      <InputText v-model="formData.bar_boton_text_color" class="flex-1" placeholder="#000000" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -300,7 +308,6 @@ import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import SelectButton from 'primevue/selectbutton'
-import ColorPicker from 'primevue/colorpicker'
 import Checkbox from 'primevue/checkbox'
 import Calendar from 'primevue/calendar'
 import Divider from 'primevue/divider'
