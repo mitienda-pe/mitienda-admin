@@ -173,69 +173,21 @@
         <div class="lg:sticky lg:top-8 h-fit">
           <Card>
             <template #title>
-              <div class="flex items-center justify-between">
-                <span class="text-lg">Vista Previa</span>
-                <Tag :value="formData.activo ? 'Activo' : 'Inactivo'"
-                  :severity="formData.activo ? 'success' : 'secondary'" />
-              </div>
+              <span class="text-lg">Vista Previa</span>
             </template>
             <template #content>
-              <div class="space-y-4">
-                <!-- Preview del ribbon en imagen de producto -->
-                <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
-                  <p class="text-xs text-secondary-500 mb-3 text-center">
-                    Cómo se verá en la imagen del producto
-                  </p>
-                  <div class="aspect-square relative bg-white rounded-lg overflow-hidden shadow-sm">
-                    <img src="https://picsum.photos/400" alt="Producto de ejemplo"
-                      class="w-full h-full object-contain" />
+              <div class="aspect-square relative bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                <img src="https://picsum.photos/400" alt="Producto de ejemplo"
+                  class="w-full h-full object-cover" />
 
-                    <!-- Ribbon preview -->
-                    <div v-if="showPreview" :class="['ribbon-preview', ribbonPositionClass]"
-                      :style="ribbonStyles">
-                      <span v-if="formData.tipo === 'texto'">{{ formData.texto || 'TEXTO' }}</span>
-                      <img v-else-if="formData.imagen_url" :src="formData.imagen_url" alt="Preview"
-                        class="max-h-16 max-w-full" @error="imageError = true" />
-                      <span v-else class="text-xs text-gray-400">Sin imagen</span>
-                    </div>
-                  </div>
+                <!-- Ribbon preview -->
+                <div v-if="showPreview" :class="['ribbon-preview', ribbonPositionClass]"
+                  :style="ribbonStyles">
+                  <span v-if="formData.tipo === 'texto'">{{ formData.texto || 'TEXTO' }}</span>
+                  <img v-else-if="formData.imagen_url" :src="formData.imagen_url" alt="Preview"
+                    class="max-h-16 max-w-full" @error="imageError = true" />
+                  <span v-else class="text-xs text-gray-400">Sin imagen</span>
                 </div>
-
-                <!-- Info de la preview -->
-                <div class="text-sm space-y-2">
-                  <div class="flex justify-between">
-                    <span class="text-secondary-600">Posición:</span>
-                    <span class="font-medium">{{ getPositionLabel(formData.posicion) }}</span>
-                  </div>
-                  <div v-if="formData.tipo === 'texto'" class="flex justify-between">
-                    <span class="text-secondary-600">Colores:</span>
-                    <div class="flex gap-2">
-                      <div class="flex items-center gap-1">
-                        <div class="w-4 h-4 rounded border" :style="{ background: formData.color_fondo }"></div>
-                        <span class="text-xs">{{ formData.color_fondo }}</span>
-                      </div>
-                      <div class="flex items-center gap-1">
-                        <div class="w-4 h-4 rounded border" :style="{ background: formData.color_texto }"></div>
-                        <span class="text-xs">{{ formData.color_texto }}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="flex justify-between">
-                    <span class="text-secondary-600">Tipo:</span>
-                    <Tag :value="formData.tipo === 'texto' ? 'Texto' : 'Imagen'" severity="info" />
-                  </div>
-                </div>
-
-                <!-- Advertencias -->
-                <Message v-if="!formData.texto && formData.tipo === 'texto'" severity="warn" :closable="false">
-                  El texto del ribbon está vacío
-                </Message>
-                <Message v-if="!formData.imagen_url && formData.tipo === 'imagen'" severity="warn" :closable="false">
-                  No se ha especificado una URL de imagen
-                </Message>
-                <Message v-if="imageError" severity="error" :closable="false">
-                  Error al cargar la imagen. Verifica la URL
-                </Message>
               </div>
             </template>
           </Card>
