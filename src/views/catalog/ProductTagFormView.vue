@@ -449,4 +449,10 @@ onMounted(async () => {
   bottom: 10px;
   right: 10px;
 }
+
+/* Asegurar bordes en inputs */
+:deep(.p-inputtext),
+:deep(.p-inputnumber-input) {
+  border: 1px solid #d1d5db !important;
+}
 </style>
