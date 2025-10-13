@@ -132,6 +132,23 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/marketing',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: 'announcement-bars',
+        name: 'AnnouncementBars',
+        component: () => import('@/views/marketing/AnnouncementBarsListView.vue')
+      },
+      {
+        path: 'announcement-bars/:id',
+        name: 'AnnouncementBarForm',
+        component: () => import('@/views/marketing/AnnouncementBarFormView.vue')
+      }
+    ]
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/dashboard'
   }
