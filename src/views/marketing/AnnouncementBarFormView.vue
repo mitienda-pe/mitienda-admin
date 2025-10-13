@@ -83,7 +83,7 @@
             <!-- Botón opcional -->
             <div class="space-y-4">
               <div class="flex items-center gap-2">
-                <Checkbox v-model="hasButton" :binary="true" inputId="hasButton" class="cursor-pointer" />
+                <input type="checkbox" v-model="hasButton" id="hasButton" class="custom-checkbox cursor-pointer" />
                 <label for="hasButton" class="text-sm font-medium text-secondary-700 cursor-pointer">
                   Agregar botón de acción
                 </label>
@@ -142,14 +142,14 @@
             <!-- Configuración adicional -->
             <div class="space-y-4">
               <div class="flex items-center gap-2">
-                <Checkbox v-model="formData.bar_closeable" :binary="true" inputId="closeable" class="cursor-pointer" />
+                <input type="checkbox" v-model="formData.bar_closeable" id="closeable" class="custom-checkbox cursor-pointer" />
                 <label for="closeable" class="text-sm font-medium text-secondary-700 cursor-pointer">
                   Permitir cerrar la barra
                 </label>
               </div>
 
               <div class="flex items-center gap-2">
-                <Checkbox v-model="formData.activo" :binary="true" inputId="activo" class="cursor-pointer" />
+                <input type="checkbox" v-model="formData.activo" id="activo" class="custom-checkbox cursor-pointer" />
                 <label for="activo" class="text-sm font-medium text-secondary-700 cursor-pointer">
                   Barra activa
                 </label>
@@ -308,7 +308,6 @@ import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import SelectButton from 'primevue/selectbutton'
-import Checkbox from 'primevue/checkbox'
 import Calendar from 'primevue/calendar'
 import Divider from 'primevue/divider'
 import Message from 'primevue/message'
@@ -444,48 +443,48 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
-/* v3 - Checkboxes y estilos mejorados */
-:deep(.p-checkbox) {
-  display: inline-flex !important;
-  align-items: center !important;
+/* v4 - Checkboxes nativos personalizados */
+.custom-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid #d1d5db;
+  border-radius: 0.375rem;
+  background: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  position: relative;
+  flex-shrink: 0;
 }
 
-:deep(.p-checkbox-box) {
-  width: 1.25rem !important;
-  height: 1.25rem !important;
-  border: 2px solid #d1d5db !important;
-  border-radius: 0.375rem !important;
-  background: white !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  transition: all 0.2s !important;
+.custom-checkbox:hover {
+  border-color: #3b82f6;
 }
 
-:deep(.p-checkbox:not(.p-disabled):has(.p-checkbox-box:hover)) .p-checkbox-box {
-  border-color: #3b82f6 !important;
+.custom-checkbox:checked {
+  background: #3b82f6;
+  border-color: #3b82f6;
 }
 
-:deep(.p-checkbox-box.p-highlight) {
-  background: #3b82f6 !important;
-  border-color: #3b82f6 !important;
+.custom-checkbox:checked::after {
+  content: '✓';
+  color: white;
+  font-size: 1rem;
+  font-weight: bold;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  line-height: 1;
 }
 
-:deep(.p-checkbox-box .p-checkbox-icon),
-:deep(.p-checkbox-box svg) {
-  color: white !important;
-  fill: white !important;
-  width: 0.75rem !important;
-  height: 0.75rem !important;
-}
-
-/* Mostrar checkmark cuando está checked */
-:deep(.p-checkbox-box.p-highlight::before) {
-  content: '✓' !important;
-  color: white !important;
-  font-size: 1rem !important;
-  font-weight: bold !important;
-  line-height: 1 !important;
+.custom-checkbox:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
 }
 
 /* Asegurar bordes en inputs */
