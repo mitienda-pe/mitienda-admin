@@ -1,5 +1,5 @@
 import type { AnnouncementBar, AnnouncementBarFormData } from '@/types/announcement-bar.types'
-import { apiClient } from './client'
+import apiClient from './axios'
 
 export const announcementBarsApi = {
   // Obtener todas las barras
