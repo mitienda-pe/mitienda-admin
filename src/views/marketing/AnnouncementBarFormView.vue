@@ -64,7 +64,7 @@
                 </label>
                 <div class="flex gap-2 items-center">
                   <input type="color" v-model="formData.bar_bg_color" class="h-10 w-20 border border-secondary-300 rounded cursor-pointer" style="min-width: 5rem; padding: 2px;" />
-                  <InputText v-model="formData.bar_bg_color" class="flex-1" placeholder="#000000" />
+                  <InputText v-model="formData.bar_bg_color" class="flex-1 p-inputtext" placeholder="#000000" />
                 </div>
               </div>
               <div>
@@ -73,7 +73,7 @@
                 </label>
                 <div class="flex gap-2 items-center">
                   <input type="color" v-model="formData.bar_text_color" class="h-10 w-20 border border-secondary-300 rounded cursor-pointer" style="min-width: 5rem; padding: 2px;" />
-                  <InputText v-model="formData.bar_text_color" class="flex-1" placeholder="#FFFFFF" />
+                  <InputText v-model="formData.bar_text_color" class="flex-1 p-inputtext" placeholder="#FFFFFF" />
                 </div>
               </div>
             </div>
@@ -83,8 +83,8 @@
             <!-- Botón opcional -->
             <div class="space-y-4">
               <div class="flex items-center gap-2">
-                <Checkbox v-model="hasButton" :binary="true" inputId="hasButton" />
-                <label for="hasButton" class="text-sm font-medium text-secondary-700">
+                <Checkbox v-model="hasButton" :binary="true" inputId="hasButton" class="cursor-pointer" />
+                <label for="hasButton" class="text-sm font-medium text-secondary-700 cursor-pointer">
                   Agregar botón de acción
                 </label>
               </div>
@@ -121,7 +121,7 @@
                     </label>
                     <div class="flex gap-2 items-center">
                       <input type="color" v-model="formData.bar_boton_bg_color" class="h-10 w-20 border border-secondary-300 rounded cursor-pointer" style="min-width: 5rem; padding: 2px;" />
-                      <InputText v-model="formData.bar_boton_bg_color" class="flex-1" placeholder="#FFFFFF" />
+                      <InputText v-model="formData.bar_boton_bg_color" class="flex-1 p-inputtext" placeholder="#FFFFFF" />
                     </div>
                   </div>
                   <div>
@@ -130,7 +130,7 @@
                     </label>
                     <div class="flex gap-2 items-center">
                       <input type="color" v-model="formData.bar_boton_text_color" class="h-10 w-20 border border-secondary-300 rounded cursor-pointer" style="min-width: 5rem; padding: 2px;" />
-                      <InputText v-model="formData.bar_boton_text_color" class="flex-1" placeholder="#000000" />
+                      <InputText v-model="formData.bar_boton_text_color" class="flex-1 p-inputtext" placeholder="#000000" />
                     </div>
                   </div>
                 </div>
@@ -142,15 +142,15 @@
             <!-- Configuración adicional -->
             <div class="space-y-4">
               <div class="flex items-center gap-2">
-                <Checkbox v-model="formData.bar_closeable" :binary="true" inputId="closeable" />
-                <label for="closeable" class="text-sm font-medium text-secondary-700">
+                <Checkbox v-model="formData.bar_closeable" :binary="true" inputId="closeable" class="cursor-pointer" />
+                <label for="closeable" class="text-sm font-medium text-secondary-700 cursor-pointer">
                   Permitir cerrar la barra
                 </label>
               </div>
 
               <div class="flex items-center gap-2">
-                <Checkbox v-model="formData.activo" :binary="true" inputId="activo" />
-                <label for="activo" class="text-sm font-medium text-secondary-700">
+                <Checkbox v-model="formData.activo" :binary="true" inputId="activo" class="cursor-pointer" />
+                <label for="activo" class="text-sm font-medium text-secondary-700 cursor-pointer">
                   Barra activa
                 </label>
               </div>
@@ -442,3 +442,32 @@ async function handleSubmit() {
   }
 }
 </script>
+
+<style scoped>
+/* Asegurar que los checkboxes de PrimeVue sean visibles */
+:deep(.p-checkbox) {
+  display: inline-flex;
+  align-items: center;
+}
+
+:deep(.p-checkbox-box) {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid #d1d5db;
+  border-radius: 0.375rem;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+:deep(.p-checkbox-checked .p-checkbox-box) {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+:deep(.p-checkbox-box .p-checkbox-icon) {
+  color: white;
+  font-size: 0.875rem;
+}
+</style>
