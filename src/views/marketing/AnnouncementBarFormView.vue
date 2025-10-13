@@ -158,7 +158,7 @@
                 <label for="fecha_inicio" class="block text-sm font-medium text-secondary-700 mb-2">
                   Fecha de inicio
                 </label>
-                <DatePicker
+                <Calendar
                   v-model="formData.fecha_inicio"
                   showTime
                   hourFormat="24"
@@ -172,7 +172,7 @@
                 <label for="fecha_fin" class="block text-sm font-medium text-secondary-700 mb-2">
                   Fecha de fin
                 </label>
-                <DatePicker
+                <Calendar
                   v-model="formData.fecha_fin"
                   showTime
                   hourFormat="24"
@@ -302,7 +302,7 @@ import Textarea from 'primevue/textarea'
 import SelectButton from 'primevue/selectbutton'
 import ColorPicker from 'primevue/colorpicker'
 import Checkbox from 'primevue/checkbox'
-import DatePicker from 'primevue/datepicker'
+import Calendar from 'primevue/calendar'
 import Divider from 'primevue/divider'
 import Message from 'primevue/message'
 
