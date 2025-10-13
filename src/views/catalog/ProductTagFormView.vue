@@ -82,7 +82,7 @@
                     <Button label="Sup. Izq."
                       :severity="formData.posicion === 'top-left' ? 'primary' : 'secondary'"
                       :outlined="formData.posicion !== 'top-left'"
-                      @click="formData.posicion = 'top-left'"
+                      @click="() => formData.posicion = 'top-left'"
                       class="text-xs h-10" />
                     <Button label="Sup. Centro"
                       :severity="formData.posicion === 'top-center' ? 'primary' : 'secondary'"
@@ -427,12 +427,13 @@ onMounted(async () => {
         tipo: editingTag.value.tipo,
         texto: editingTag.value.texto || '',
         imagen_url: editingTag.value.imagen_url || '',
-        posicion: editingTag.value.posicion,
+        posicion: editingTag.value.posicion as TagPosition,
         color_fondo: editingTag.value.color_fondo,
         color_texto: editingTag.value.color_texto,
         activo: editingTag.value.activo,
         orden: editingTag.value.orden
       }
+      console.log('Loaded tag position:', editingTag.value.posicion, typeof editingTag.value.posicion)
     }
   }
 })
