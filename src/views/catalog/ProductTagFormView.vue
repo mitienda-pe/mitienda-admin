@@ -86,14 +86,14 @@
                 </div>
 
                 <!-- Colores (solo para tipo texto) -->
-                <div v-if="formData.tipo === 'texto'" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div v-if="formData.tipo === 'texto'" class="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-secondary-700 mb-2">
                       Color de fondo
                     </label>
                     <div class="flex gap-2 items-center">
                       <input type="color" v-model="formData.color_fondo" class="h-10 w-20 border border-secondary-300 rounded cursor-pointer" style="min-width: 5rem; padding: 2px;" />
-                      <InputText v-model="formData.color_fondo" class="flex-1" />
+                      <InputText v-model="formData.color_fondo" class="w-32" />
                     </div>
                   </div>
                   <div>
@@ -102,7 +102,7 @@
                     </label>
                     <div class="flex gap-2 items-center">
                       <input type="color" v-model="formData.color_texto" class="h-10 w-20 border border-secondary-300 rounded cursor-pointer" style="min-width: 5rem; padding: 2px;" />
-                      <InputText v-model="formData.color_texto" class="flex-1" />
+                      <InputText v-model="formData.color_texto" class="w-32" />
                     </div>
                   </div>
                 </div>
@@ -110,7 +110,7 @@
                 <Divider />
 
                 <!-- Orden y Estado -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-secondary-700 mb-2">
                       Orden
