@@ -422,18 +422,17 @@ onMounted(async () => {
     editingTag.value = tagsStore.getTagById(Number(tagId)) || null
 
     if (editingTag.value) {
-      formData.value = {
-        nombre: editingTag.value.nombre,
-        tipo: editingTag.value.tipo,
-        texto: editingTag.value.texto || '',
-        imagen_url: editingTag.value.imagen_url || '',
-        posicion: editingTag.value.posicion as TagPosition,
-        color_fondo: editingTag.value.color_fondo,
-        color_texto: editingTag.value.color_texto,
-        activo: editingTag.value.activo,
-        orden: editingTag.value.orden
-      }
-      console.log('Loaded tag position:', editingTag.value.posicion, typeof editingTag.value.posicion)
+      // Asignar propiedades individualmente para asegurar reactividad
+      formData.value.nombre = editingTag.value.nombre
+      formData.value.tipo = editingTag.value.tipo
+      formData.value.texto = editingTag.value.texto || ''
+      formData.value.imagen_url = editingTag.value.imagen_url || ''
+      formData.value.posicion = editingTag.value.posicion as TagPosition
+      formData.value.color_fondo = editingTag.value.color_fondo
+      formData.value.color_texto = editingTag.value.color_texto
+      formData.value.activo = editingTag.value.activo
+      formData.value.orden = editingTag.value.orden
+      console.log('Loaded tag - formData.posicion:', formData.value.posicion)
     }
   }
 })
