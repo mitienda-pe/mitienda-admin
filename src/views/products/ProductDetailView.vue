@@ -327,6 +327,9 @@
               @delete-success="handleDocumentDelete" @delete-error="handleDocumentError" />
           </template>
         </Card>
+
+        <!-- Etiquetas del producto -->
+        <ProductTagAssignment v-if="product" :product-id="product.id" />
       </div>
     </div>
 
@@ -378,6 +381,7 @@ import ProductVideoPlayer from '@/components/products/ProductVideoPlayer.vue'
 import ProductDocumentUploader from '@/components/products/ProductDocumentUploader.vue'
 import ProductDocumentList from '@/components/products/ProductDocumentList.vue'
 import ProductDescriptionEditor from '@/components/products/ProductDescriptionEditor.vue'
+import ProductTagAssignment from '@/components/ProductTagAssignment.vue'
 import type { ProductQuickEditData } from '@/components/products/ProductQuickEditDialog.vue'
 
 const route = useRoute()
