@@ -78,9 +78,53 @@
                     Posición <span class="text-red-500">*</span>
                   </label>
                   <div class="grid grid-cols-3 gap-2">
-                    <Button v-for="pos in posicionOptions" :key="pos.value" :label="pos.shortLabel"
-                      :severity="formData.posicion === pos.value ? 'primary' : 'secondary'"
-                      :outlined="formData.posicion !== pos.value" @click="formData.posicion = pos.value"
+                    <!-- Fila superior -->
+                    <Button label="Sup. Izq."
+                      :severity="formData.posicion === 'top-left' ? 'primary' : 'secondary'"
+                      :outlined="formData.posicion !== 'top-left'"
+                      @click="formData.posicion = 'top-left'"
+                      class="text-xs h-10" />
+                    <Button label="Sup. Centro"
+                      :severity="formData.posicion === 'top-center' ? 'primary' : 'secondary'"
+                      :outlined="formData.posicion !== 'top-center'"
+                      @click="formData.posicion = 'top-center'"
+                      class="text-xs h-10" />
+                    <Button label="Sup. Der."
+                      :severity="formData.posicion === 'top-right' ? 'primary' : 'secondary'"
+                      :outlined="formData.posicion !== 'top-right'"
+                      @click="formData.posicion = 'top-right'"
+                      class="text-xs h-10" />
+
+                    <!-- Fila media -->
+                    <Button label="Med. Izq."
+                      :severity="formData.posicion === 'center-left' ? 'primary' : 'secondary'"
+                      :outlined="formData.posicion !== 'center-left'"
+                      @click="formData.posicion = 'center-left'"
+                      class="text-xs h-10" />
+                    <div class="h-10 border-2 border-dashed border-secondary-300 rounded flex items-center justify-center text-xs text-secondary-400">
+                      Centro
+                    </div>
+                    <Button label="Med. Der."
+                      :severity="formData.posicion === 'center-right' ? 'primary' : 'secondary'"
+                      :outlined="formData.posicion !== 'center-right'"
+                      @click="formData.posicion = 'center-right'"
+                      class="text-xs h-10" />
+
+                    <!-- Fila inferior -->
+                    <Button label="Inf. Izq."
+                      :severity="formData.posicion === 'bottom-left' ? 'primary' : 'secondary'"
+                      :outlined="formData.posicion !== 'bottom-left'"
+                      @click="formData.posicion = 'bottom-left'"
+                      class="text-xs h-10" />
+                    <Button label="Inf. Centro"
+                      :severity="formData.posicion === 'bottom-center' ? 'primary' : 'secondary'"
+                      :outlined="formData.posicion !== 'bottom-center'"
+                      @click="formData.posicion = 'bottom-center'"
+                      class="text-xs h-10" />
+                    <Button label="Inf. Der."
+                      :severity="formData.posicion === 'bottom-right' ? 'primary' : 'secondary'"
+                      :outlined="formData.posicion !== 'bottom-right'"
+                      @click="formData.posicion = 'bottom-right'"
                       class="text-xs h-10" />
                   </div>
                 </div>
