@@ -8,7 +8,7 @@
           {{ tagsStore.tags.length }} etiquetas registradas
         </p>
       </div>
-      <Button label="Nueva Etiqueta" icon="pi pi-plus" @click="openCreateDialog" />
+      <Button label="Nueva Etiqueta" icon="pi pi-plus" @click="router.push('/catalog/product-tags/new')" />
     </div>
 
     <!-- Búsqueda -->
@@ -42,7 +42,7 @@
               </div>
               <div class="flex gap-2">
                 <Button icon="pi pi-pencil" text rounded size="small" severity="secondary"
-                  @click="editTag(tag)" />
+                  @click="router.push(`/catalog/product-tags/${tag.id}`)" />
                 <Button icon="pi pi-trash" text rounded size="small" severity="danger"
                   @click="confirmDelete(tag)" />
               </div>
@@ -86,112 +86,8 @@
       <p class="text-secondary-500 mb-4">
         {{ searchQuery ? 'No se encontraron etiquetas con ese criterio' : 'Comienza creando tu primera etiqueta' }}
       </p>
-      <Button v-if="!searchQuery" label="Nueva Etiqueta" icon="pi pi-plus" @click="openCreateDialog" />
+      <Button v-if="!searchQuery" label="Nueva Etiqueta" icon="pi pi-plus" @click="router.push('/catalog/product-tags/new')" />
     </div>
-
-    <!-- Dialog Crear/Editar -->
-    <Dialog v-model:visible="showDialog" :header="editingTag ? 'Editar Etiqueta' : 'Nueva Etiqueta'" :modal="true"
-      :style="{ width: '600px' }">
-      <div class="space-y-4">
-        <!-- Nombre -->
-        <div>
-          <label class="block text-sm font-medium text-secondary-700 mb-2">
-            Nombre <span class="text-red-500">*</span>
-          </label>
-          <InputText v-model="formData.nombre" placeholder="Ej: Oferta, Nuevo, Destacado" class="w-full" />
-        </div>
-
-        <!-- Tipo -->
-        <div>
-          <label class="block text-sm font-medium text-secondary-700 mb-2">
-            Tipo <span class="text-red-500">*</span>
-          </label>
-          <SelectButton v-model="formData.tipo" :options="tipoOptions" optionLabel="label" optionValue="value"
-            class="w-full" />
-        </div>
-
-        <!-- Texto (solo si tipo es texto) -->
-        <div v-if="formData.tipo === 'texto'">
-          <label class="block text-sm font-medium text-secondary-700 mb-2">
-            Texto del ribbon <span class="text-red-500">*</span>
-          </label>
-          <InputText v-model="formData.texto" placeholder="Ej: -50%, NUEVO, OFERTA" class="w-full"
-            maxlength="100" />
-        </div>
-
-        <!-- URL de imagen (solo si tipo es imagen) -->
-        <div v-if="formData.tipo === 'imagen'">
-          <label class="block text-sm font-medium text-secondary-700 mb-2">
-            URL de la imagen <span class="text-red-500">*</span>
-          </label>
-          <InputText v-model="formData.imagen_url" placeholder="https://ejemplo.com/imagen.png" class="w-full" />
-        </div>
-
-        <!-- Posición -->
-        <div>
-          <label class="block text-sm font-medium text-secondary-700 mb-2">
-            Posición <span class="text-red-500">*</span>
-          </label>
-          <Dropdown v-model="formData.posicion" :options="posicionOptions" optionLabel="label" optionValue="value"
-            placeholder="Seleccionar posición" class="w-full" />
-        </div>
-
-        <!-- Colores (solo para tipo texto) -->
-        <div v-if="formData.tipo === 'texto'" class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-secondary-700 mb-2">
-              Color de fondo
-            </label>
-            <ColorPicker v-model="formData.color_fondo" format="hex" class="w-full" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-secondary-700 mb-2">
-              Color del texto
-            </label>
-            <ColorPicker v-model="formData.color_texto" format="hex" class="w-full" />
-          </div>
-        </div>
-
-        <!-- Orden y Estado -->
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-secondary-700 mb-2">
-              Orden
-            </label>
-            <InputNumber v-model="formData.orden" :min="0" class="w-full" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-secondary-700 mb-2">
-              Estado
-            </label>
-            <div class="flex items-center h-full">
-              <InputSwitch v-model="formData.activo" />
-              <span class="ml-2">{{ formData.activo ? 'Activo' : 'Inactivo' }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Preview -->
-        <div v-if="formData.tipo === 'texto' && formData.texto">
-          <label class="block text-sm font-medium text-secondary-700 mb-2">
-            Vista previa
-          </label>
-          <div class="border rounded-lg p-4 bg-gray-50 flex items-center justify-center min-h-[80px]">
-            <div class="px-4 py-2 rounded font-semibold"
-              :style="{ backgroundColor: formData.color_fondo, color: formData.color_texto }">
-              {{ formData.texto }}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button label="Cancelar" severity="secondary" outlined @click="showDialog = false" />
-          <Button :label="editingTag ? 'Actualizar' : 'Crear'" :loading="tagsStore.isLoading" @click="saveTag" />
-        </div>
-      </template>
-    </Dialog>
 
     <!-- Dialog Confirmar Eliminación -->
     <Dialog v-model:visible="showDeleteDialog" header="Confirmar eliminación" :modal="true" :style="{ width: '450px' }">
@@ -219,17 +115,13 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useProductTagsStore } from '@/stores/product-tags.store'
-import type { ProductTag, ProductTagFormData, TagType, TagPosition } from '@/types/product-tag.types'
+import type { ProductTag, TagPosition } from '@/types/product-tag.types'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
-import InputNumber from 'primevue/inputnumber'
-import InputSwitch from 'primevue/inputswitch'
-import Dropdown from 'primevue/dropdown'
-import SelectButton from 'primevue/selectbutton'
-import ColorPicker from 'primevue/colorpicker'
 import Tag from 'primevue/tag'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
@@ -237,42 +129,24 @@ import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import { useToast } from 'primevue/usetoast'
 
+const router = useRouter()
 const tagsStore = useProductTagsStore()
 const toast = useToast()
 
 // State
 const searchQuery = ref('')
-const showDialog = ref(false)
 const showDeleteDialog = ref(false)
-const editingTag = ref<ProductTag | null>(null)
 const tagToDelete = ref<ProductTag | null>(null)
-
-const defaultFormData: ProductTagFormData = {
-  nombre: '',
-  tipo: 'texto',
-  texto: '',
-  imagen_url: '',
-  posicion: 'top-right',
-  color_fondo: '#ff0000',
-  color_texto: '#ffffff',
-  activo: true,
-  orden: 0
-}
-
-const formData = ref<ProductTagFormData>({ ...defaultFormData })
-
-// Options
-const tipoOptions = [
-  { label: 'Texto', value: 'texto' as TagType },
-  { label: 'Imagen', value: 'imagen' as TagType }
-]
 
 const posicionOptions = [
   { label: 'Superior Izquierda', value: 'top-left' as TagPosition },
+  { label: 'Centro Superior', value: 'top-center' as TagPosition },
   { label: 'Superior Derecha', value: 'top-right' as TagPosition },
+  { label: 'Medio Izquierdo', value: 'center-left' as TagPosition },
+  { label: 'Medio Derecho', value: 'center-right' as TagPosition },
   { label: 'Inferior Izquierda', value: 'bottom-left' as TagPosition },
-  { label: 'Inferior Derecha', value: 'bottom-right' as TagPosition },
-  { label: 'Centro', value: 'center' as TagPosition }
+  { label: 'Centro Inferior', value: 'bottom-center' as TagPosition },
+  { label: 'Inferior Derecha', value: 'bottom-right' as TagPosition }
 ]
 
 // Computed
@@ -290,86 +164,6 @@ const filteredTags = computed(() => {
 function getPositionLabel(position: TagPosition): string {
   const option = posicionOptions.find(opt => opt.value === position)
   return option?.label || position
-}
-
-function openCreateDialog() {
-  editingTag.value = null
-  formData.value = { ...defaultFormData }
-  showDialog.value = true
-}
-
-function editTag(tag: ProductTag) {
-  editingTag.value = tag
-  formData.value = {
-    nombre: tag.nombre,
-    tipo: tag.tipo,
-    texto: tag.texto || '',
-    imagen_url: tag.imagen_url || '',
-    posicion: tag.posicion,
-    color_fondo: tag.color_fondo,
-    color_texto: tag.color_texto,
-    activo: tag.activo,
-    orden: tag.orden
-  }
-  showDialog.value = true
-}
-
-async function saveTag() {
-  // Validaciones
-  if (!formData.value.nombre.trim()) {
-    toast.add({
-      severity: 'warn',
-      summary: 'Validación',
-      detail: 'El nombre es requerido',
-      life: 3000
-    })
-    return
-  }
-
-  if (formData.value.tipo === 'texto' && !formData.value.texto?.trim()) {
-    toast.add({
-      severity: 'warn',
-      summary: 'Validación',
-      detail: 'El texto del ribbon es requerido',
-      life: 3000
-    })
-    return
-  }
-
-  if (formData.value.tipo === 'imagen' && !formData.value.imagen_url?.trim()) {
-    toast.add({
-      severity: 'warn',
-      summary: 'Validación',
-      detail: 'La URL de la imagen es requerida',
-      life: 3000
-    })
-    return
-  }
-
-  let success = false
-
-  if (editingTag.value) {
-    success = await tagsStore.updateTag(editingTag.value.id, formData.value)
-  } else {
-    success = await tagsStore.createTag(formData.value)
-  }
-
-  if (success) {
-    toast.add({
-      severity: 'success',
-      summary: 'Éxito',
-      detail: editingTag.value ? 'Etiqueta actualizada' : 'Etiqueta creada',
-      life: 3000
-    })
-    showDialog.value = false
-  } else {
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: tagsStore.error || 'No se pudo guardar la etiqueta',
-      life: 3000
-    })
-  }
 }
 
 function confirmDelete(tag: ProductTag) {

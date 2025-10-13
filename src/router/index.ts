@@ -123,6 +123,11 @@ const routes: RouteRecordRaw[] = [
         path: 'product-tags',
         name: 'ProductTags',
         component: () => import('@/views/catalog/ProductTagsListView.vue')
+      },
+      {
+        path: 'product-tags/:id',
+        name: 'ProductTagForm',
+        component: () => import('@/views/catalog/ProductTagFormView.vue')
       }
     ]
   },

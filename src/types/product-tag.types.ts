@@ -1,5 +1,15 @@
 export type TagType = 'texto' | 'imagen'
-export type TagPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center'
+export type TagPosition =
+  | 'top-left'
+  | 'top-center'
+  | 'top-right'
+  | 'center-left'
+  | 'center-right'
+  | 'bottom-left'
+  | 'bottom-center'
+  | 'bottom-right'
+
+export const MAX_TAGS_PER_PRODUCT = 8
 
 export interface ProductTag {
   id: number
