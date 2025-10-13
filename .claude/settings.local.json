@@ -31,7 +31,10 @@
       "Bash(git branch:*)",
       "Bash(git reset:*)",
       "Bash(git checkout:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "Bash(md5sum:*)",
+      "Bash(cat:*)",
+      "Bash(git fetch:*)"
     ],
     "deny": [],
     "ask": []
