@@ -57,7 +57,7 @@
             </div>
 
             <!-- Colores de la barra -->
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label for="bar_bg_color" class="block text-sm font-medium text-secondary-700 mb-2">
                   Color de fondo <span class="text-red-500">*</span>
@@ -114,7 +114,7 @@
                   />
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-secondary-700 mb-2">
                       Color fondo botón
@@ -444,7 +444,7 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
-/* v2 - Asegurar que los checkboxes de PrimeVue sean visibles */
+/* v3 - Checkboxes y estilos mejorados */
 :deep(.p-checkbox) {
   display: inline-flex !important;
   align-items: center !important;
@@ -459,16 +459,33 @@ async function handleSubmit() {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  transition: all 0.2s !important;
 }
 
-:deep(.p-checkbox-checked .p-checkbox-box) {
+:deep(.p-checkbox:not(.p-disabled):has(.p-checkbox-box:hover)) .p-checkbox-box {
+  border-color: #3b82f6 !important;
+}
+
+:deep(.p-checkbox-box.p-highlight) {
   background: #3b82f6 !important;
   border-color: #3b82f6 !important;
 }
 
-:deep(.p-checkbox-box .p-checkbox-icon) {
+:deep(.p-checkbox-box .p-checkbox-icon),
+:deep(.p-checkbox-box svg) {
   color: white !important;
-  font-size: 0.875rem !important;
+  fill: white !important;
+  width: 0.75rem !important;
+  height: 0.75rem !important;
+}
+
+/* Mostrar checkmark cuando está checked */
+:deep(.p-checkbox-box.p-highlight::before) {
+  content: '✓' !important;
+  color: white !important;
+  font-size: 1rem !important;
+  font-weight: bold !important;
+  line-height: 1 !important;
 }
 
 /* Asegurar bordes en inputs */
