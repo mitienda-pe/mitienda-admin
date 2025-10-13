@@ -59,10 +59,18 @@
   <!-- Dialog de asignación -->
   <Dialog v-model:visible="showDialog" header="Asignar Etiquetas" :modal="true" :style="{ width: '700px' }">
     <div class="space-y-4">
+      <!-- Advertencia de límite -->
+      <Message v-if="assignedTags.length >= 8" severity="warn" :closable="false">
+        Ya has alcanzado el límite máximo de 8 etiquetas por producto
+      </Message>
+      <Message v-else-if="assignedTags.length + selectedTagIds.length > 8" severity="warn" :closable="false">
+        Solo puedes asignar {{ 8 - assignedTags.length }} etiqueta(s) más (máximo 8 por producto)
+      </Message>
+
       <!-- Lista de tags disponibles -->
       <div>
         <label class="block text-sm font-medium text-secondary-700 mb-2">
-          Etiquetas disponibles
+          Etiquetas disponibles ({{ assignedTags.length }}/8 asignadas)
         </label>
         <div class="space-y-2 max-h-96 overflow-y-auto">
           <div v-for="tag in availableTags" :key="tag.id"
@@ -85,7 +93,8 @@
             </div>
 
             <!-- Checkbox para seleccionar -->
-            <Checkbox v-model="selectedTagIds" :value="tag.id" :binary="false" />
+            <Checkbox v-model="selectedTagIds" :value="tag.id" :binary="false"
+              :disabled="assignedTags.length >= MAX_TAGS_PER_PRODUCT || (assignedTags.length + selectedTagIds.length >= MAX_TAGS_PER_PRODUCT && !selectedTagIds.includes(tag.id))" />
           </div>
 
           <!-- Empty state -->
@@ -164,6 +173,7 @@ import { useRouter } from 'vue-router'
 import { productTagsApi } from '@/api/product-tags.api'
 import { useProductTagsStore } from '@/stores/product-tags.store'
 import type { ProductTagAssignment, ProductTagAssignmentFormData, TagPosition } from '@/types/product-tag.types'
+import { MAX_TAGS_PER_PRODUCT } from '@/types/product-tag.types'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Dialog from 'primevue/dialog'
@@ -172,6 +182,7 @@ import Checkbox from 'primevue/checkbox'
 import InputNumber from 'primevue/inputnumber'
 import Calendar from 'primevue/calendar'
 import ProgressSpinner from 'primevue/progressspinner'
+import Message from 'primevue/message'
 import { useToast } from 'primevue/usetoast'
 
 interface Props {
@@ -208,10 +219,13 @@ const availableTags = computed(() => {
 function getPositionLabel(position: TagPosition): string {
   const labels: Record<TagPosition, string> = {
     'top-left': 'Superior Izq.',
+    'top-center': 'Centro Superior',
     'top-right': 'Superior Der.',
+    'center-left': 'Medio Izq.',
+    'center-right': 'Medio Der.',
     'bottom-left': 'Inferior Izq.',
-    'bottom-right': 'Inferior Der.',
-    'center': 'Centro'
+    'bottom-center': 'Centro Inferior',
+    'bottom-right': 'Inferior Der.'
   }
   return labels[position] || position
 }
@@ -247,6 +261,17 @@ async function loadAssignedTags() {
 
 async function assignTags() {
   if (selectedTagIds.value.length === 0) return
+
+  // Validate max tags limit
+  if (assignedTags.value.length + selectedTagIds.value.length > MAX_TAGS_PER_PRODUCT) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Límite alcanzado',
+      detail: `Solo puedes asignar ${MAX_TAGS_PER_PRODUCT - assignedTags.value.length} etiqueta(s) más`,
+      life: 3000
+    })
+    return
+  }
 
   isLoading.value = true
   try {
