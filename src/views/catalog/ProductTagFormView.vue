@@ -16,8 +16,8 @@
             </div>
           </div>
           <div class="flex gap-2">
-            <Button label="Cancelar" severity="secondary" outlined @click="handleBack" />
-            <Button label="Guardar" :loading="tagsStore.isLoading" @click="saveTag" />
+            <Button label="Cancelar" severity="secondary" outlined @click="handleBack" size="large" />
+            <Button label="Guardar" icon="pi pi-check" :loading="tagsStore.isLoading" @click="saveTag" size="large" />
           </div>
         </div>
       </div>
@@ -86,13 +86,13 @@
                 </div>
 
                 <!-- Colores (solo para tipo texto) -->
-                <div v-if="formData.tipo === 'texto'" class="grid grid-cols-2 gap-4">
+                <div v-if="formData.tipo === 'texto'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label class="block text-sm font-medium text-secondary-700 mb-2">
                       Color de fondo
                     </label>
-                    <div class="flex gap-2">
-                      <ColorPicker v-model="formData.color_fondo" format="hex" />
+                    <div class="flex gap-2 items-center">
+                      <input type="color" v-model="formData.color_fondo" class="h-10 w-20 border border-secondary-300 rounded cursor-pointer" style="min-width: 5rem; padding: 2px;" />
                       <InputText v-model="formData.color_fondo" class="flex-1" />
                     </div>
                   </div>
@@ -100,8 +100,8 @@
                     <label class="block text-sm font-medium text-secondary-700 mb-2">
                       Color del texto
                     </label>
-                    <div class="flex gap-2">
-                      <ColorPicker v-model="formData.color_texto" format="hex" />
+                    <div class="flex gap-2 items-center">
+                      <input type="color" v-model="formData.color_texto" class="h-10 w-20 border border-secondary-300 rounded cursor-pointer" style="min-width: 5rem; padding: 2px;" />
                       <InputText v-model="formData.color_texto" class="flex-1" />
                     </div>
                   </div>
@@ -220,7 +220,6 @@ import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import InputSwitch from 'primevue/inputswitch'
 import SelectButton from 'primevue/selectbutton'
-import ColorPicker from 'primevue/colorpicker'
 import Tag from 'primevue/tag'
 import Message from 'primevue/message'
 import Divider from 'primevue/divider'

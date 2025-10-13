@@ -198,6 +198,7 @@
                 :label="isEditMode ? 'Guardar cambios' : 'Crear barra'"
                 icon="pi pi-check"
                 :loading="barsStore.loading"
+                size="large"
               />
               <Button
                 type="button"
@@ -205,6 +206,7 @@
                 severity="secondary"
                 outlined
                 @click="router.push('/marketing/announcement-bars')"
+                size="large"
               />
             </div>
           </form>
