@@ -82,11 +82,14 @@
 
             <!-- Botón opcional -->
             <div class="space-y-4">
-              <div class="flex items-center gap-2">
-                <input type="checkbox" v-model="hasButton" id="hasButton" class="custom-checkbox cursor-pointer" />
-                <label for="hasButton" class="text-sm font-medium text-secondary-700 cursor-pointer">
+              <div>
+                <label class="block text-sm font-medium text-secondary-700 mb-2">
                   Agregar botón de acción
                 </label>
+                <div class="flex items-center gap-2">
+                  <InputSwitch v-model="hasButton" />
+                  <span>{{ hasButton ? 'Sí' : 'No' }}</span>
+                </div>
               </div>
 
               <div v-if="hasButton" class="space-y-4 pl-6 border-l-2 border-secondary-200">
@@ -141,18 +144,24 @@
 
             <!-- Configuración adicional -->
             <div class="space-y-4">
-              <div class="flex items-center gap-2">
-                <input type="checkbox" v-model="formData.bar_closeable" id="closeable" class="custom-checkbox cursor-pointer" />
-                <label for="closeable" class="text-sm font-medium text-secondary-700 cursor-pointer">
+              <div>
+                <label class="block text-sm font-medium text-secondary-700 mb-2">
                   Permitir cerrar la barra
                 </label>
+                <div class="flex items-center gap-2">
+                  <InputSwitch v-model="formData.bar_closeable" />
+                  <span>{{ formData.bar_closeable ? 'Sí' : 'No' }}</span>
+                </div>
               </div>
 
-              <div class="flex items-center gap-2">
-                <input type="checkbox" v-model="formData.activo" id="activo" class="custom-checkbox cursor-pointer" />
-                <label for="activo" class="text-sm font-medium text-secondary-700 cursor-pointer">
-                  Barra activa
+              <div>
+                <label class="block text-sm font-medium text-secondary-700 mb-2">
+                  Estado
                 </label>
+                <div class="flex items-center gap-2">
+                  <InputSwitch v-model="formData.activo" />
+                  <span>{{ formData.activo ? 'Activo' : 'Inactivo' }}</span>
+                </div>
               </div>
             </div>
 
@@ -310,6 +319,7 @@ import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import SelectButton from 'primevue/selectbutton'
+import InputSwitch from 'primevue/inputswitch'
 import Calendar from 'primevue/calendar'
 import Divider from 'primevue/divider'
 import Message from 'primevue/message'
@@ -445,50 +455,6 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
-/* v4 - Checkboxes nativos personalizados */
-.custom-checkbox {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  width: 1.25rem;
-  height: 1.25rem;
-  border: 2px solid #d1d5db;
-  border-radius: 0.375rem;
-  background: white;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.custom-checkbox:hover {
-  border-color: #3b82f6;
-}
-
-.custom-checkbox:checked {
-  background: #3b82f6;
-  border-color: #3b82f6;
-}
-
-.custom-checkbox:checked::after {
-  content: '✓';
-  color: white;
-  font-size: 1rem;
-  font-weight: bold;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  line-height: 1;
-}
-
-.custom-checkbox:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-}
-
 /* Asegurar bordes en inputs */
 :deep(.p-inputtext) {
   border: 1px solid #d1d5db !important;
