@@ -64,7 +64,7 @@
                 </label>
                 <div class="flex gap-2 items-center">
                   <input type="color" v-model="formData.bar_bg_color" class="h-10 w-20 border border-secondary-300 rounded cursor-pointer" style="min-width: 5rem; padding: 2px;" />
-                  <InputText v-model="formData.bar_bg_color" class="flex-1 p-inputtext" placeholder="#000000" />
+                  <InputText v-model="formData.bar_bg_color" class="flex-1" placeholder="#000000" />
                 </div>
               </div>
               <div>
@@ -73,7 +73,7 @@
                 </label>
                 <div class="flex gap-2 items-center">
                   <input type="color" v-model="formData.bar_text_color" class="h-10 w-20 border border-secondary-300 rounded cursor-pointer" style="min-width: 5rem; padding: 2px;" />
-                  <InputText v-model="formData.bar_text_color" class="flex-1 p-inputtext" placeholder="#FFFFFF" />
+                  <InputText v-model="formData.bar_text_color" class="flex-1" placeholder="#FFFFFF" />
                 </div>
               </div>
             </div>
@@ -121,7 +121,7 @@
                     </label>
                     <div class="flex gap-2 items-center">
                       <input type="color" v-model="formData.bar_boton_bg_color" class="h-10 w-20 border border-secondary-300 rounded cursor-pointer" style="min-width: 5rem; padding: 2px;" />
-                      <InputText v-model="formData.bar_boton_bg_color" class="flex-1 p-inputtext" placeholder="#FFFFFF" />
+                      <InputText v-model="formData.bar_boton_bg_color" class="flex-1" placeholder="#FFFFFF" />
                     </div>
                   </div>
                   <div>
@@ -130,7 +130,7 @@
                     </label>
                     <div class="flex gap-2 items-center">
                       <input type="color" v-model="formData.bar_boton_text_color" class="h-10 w-20 border border-secondary-300 rounded cursor-pointer" style="min-width: 5rem; padding: 2px;" />
-                      <InputText v-model="formData.bar_boton_text_color" class="flex-1 p-inputtext" placeholder="#000000" />
+                      <InputText v-model="formData.bar_boton_text_color" class="flex-1" placeholder="#000000" />
                     </div>
                   </div>
                 </div>
@@ -444,30 +444,35 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
-/* Asegurar que los checkboxes de PrimeVue sean visibles */
+/* v2 - Asegurar que los checkboxes de PrimeVue sean visibles */
 :deep(.p-checkbox) {
-  display: inline-flex;
-  align-items: center;
+  display: inline-flex !important;
+  align-items: center !important;
 }
 
 :deep(.p-checkbox-box) {
-  width: 1.25rem;
-  height: 1.25rem;
-  border: 2px solid #d1d5db;
-  border-radius: 0.375rem;
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  border: 2px solid #d1d5db !important;
+  border-radius: 0.375rem !important;
+  background: white !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 :deep(.p-checkbox-checked .p-checkbox-box) {
-  background: #3b82f6;
-  border-color: #3b82f6;
+  background: #3b82f6 !important;
+  border-color: #3b82f6 !important;
 }
 
 :deep(.p-checkbox-box .p-checkbox-icon) {
-  color: white;
-  font-size: 0.875rem;
+  color: white !important;
+  font-size: 0.875rem !important;
+}
+
+/* Asegurar bordes en inputs */
+:deep(.p-inputtext) {
+  border: 1px solid #d1d5db !important;
 }
 </style>
