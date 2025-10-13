@@ -254,7 +254,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductTagsStore } from '@/stores/product-tags.store'
 import type { ProductTag, ProductTagFormData, TagType, TagPosition } from '@/types/product-tag.types'
@@ -290,7 +290,7 @@ const defaultFormData: ProductTagFormData = {
   orden: 0
 }
 
-const formData = ref<ProductTagFormData>({ ...defaultFormData })
+const formData = reactive<ProductTagFormData>({ ...defaultFormData })
 
 // Options
 const tipoOptions = [
@@ -311,10 +311,10 @@ const posicionOptions = [
 
 // Computed
 const showPreview = computed(() => {
-  if (formData.value.tipo === 'texto') {
-    return formData.value.texto && formData.value.texto.trim().length > 0
+  if (formData.tipo === 'texto') {
+    return formData.texto && formData.texto.trim().length > 0
   }
-  return formData.value.imagen_url && formData.value.imagen_url.trim().length > 0 && !imageError.value
+  return formData.imagen_url && formData.imagen_url.trim().length > 0 && !imageError.value
 })
 
 const ribbonPositionClass = computed(() => {
@@ -328,14 +328,14 @@ const ribbonPositionClass = computed(() => {
     'bottom-center': 'ribbon-bottom-center',
     'bottom-right': 'ribbon-bottom-right'
   }
-  return positionMap[formData.value.posicion]
+  return positionMap[formData.posicion]
 })
 
 const ribbonStyles = computed(() => {
-  if (formData.value.tipo === 'texto') {
+  if (formData.tipo === 'texto') {
     return {
-      backgroundColor: formData.value.color_fondo,
-      color: formData.value.color_texto
+      backgroundColor: formData.color_fondo,
+      color: formData.color_texto
     }
   }
   return {}
@@ -353,7 +353,7 @@ function handleBack() {
 
 async function saveTag() {
   // Validaciones
-  if (!formData.value.nombre.trim()) {
+  if (!formData.nombre.trim()) {
     toast.add({
       severity: 'warn',
       summary: 'Validación',
@@ -363,7 +363,7 @@ async function saveTag() {
     return
   }
 
-  if (formData.value.tipo === 'texto' && !formData.value.texto?.trim()) {
+  if (formData.tipo === 'texto' && !formData.texto?.trim()) {
     toast.add({
       severity: 'warn',
       summary: 'Validación',
@@ -373,7 +373,7 @@ async function saveTag() {
     return
   }
 
-  if (formData.value.tipo === 'imagen' && !formData.value.imagen_url?.trim()) {
+  if (formData.tipo === 'imagen' && !formData.imagen_url?.trim()) {
     toast.add({
       severity: 'warn',
       summary: 'Validación',
@@ -386,9 +386,9 @@ async function saveTag() {
   let success = false
 
   if (editingTag.value) {
-    success = await tagsStore.updateTag(editingTag.value.id, formData.value)
+    success = await tagsStore.updateTag(editingTag.value.id, formData)
   } else {
-    success = await tagsStore.createTag(formData.value)
+    success = await tagsStore.createTag(formData)
   }
 
   if (success) {
@@ -410,7 +410,7 @@ async function saveTag() {
 }
 
 // Watch para resetear error de imagen
-watch(() => formData.value.imagen_url, () => {
+watch(() => formData.imagen_url, () => {
   imageError.value = false
 })
 
@@ -423,16 +423,16 @@ onMounted(async () => {
 
     if (editingTag.value) {
       // Asignar propiedades individualmente para asegurar reactividad
-      formData.value.nombre = editingTag.value.nombre
-      formData.value.tipo = editingTag.value.tipo
-      formData.value.texto = editingTag.value.texto || ''
-      formData.value.imagen_url = editingTag.value.imagen_url || ''
-      formData.value.posicion = editingTag.value.posicion as TagPosition
-      formData.value.color_fondo = editingTag.value.color_fondo
-      formData.value.color_texto = editingTag.value.color_texto
-      formData.value.activo = editingTag.value.activo
-      formData.value.orden = editingTag.value.orden
-      console.log('Loaded tag - formData.posicion:', formData.value.posicion)
+      formData.nombre = editingTag.value.nombre
+      formData.tipo = editingTag.value.tipo
+      formData.texto = editingTag.value.texto || ''
+      formData.imagen_url = editingTag.value.imagen_url || ''
+      formData.posicion = editingTag.value.posicion as TagPosition
+      formData.color_fondo = editingTag.value.color_fondo
+      formData.color_texto = editingTag.value.color_texto
+      formData.activo = editingTag.value.activo
+      formData.orden = editingTag.value.orden
+      console.log('Loaded tag - formData.posicion:', formData.posicion)
     }
   }
 })
