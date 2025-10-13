@@ -79,53 +79,45 @@
                   </label>
                   <div class="grid grid-cols-3 gap-2">
                     <!-- Fila superior -->
-                    <Button label="Sup. Izq."
-                      :severity="formData.posicion === 'top-left' ? 'primary' : 'secondary'"
-                      :outlined="formData.posicion !== 'top-left'"
-                      @click="() => formData.posicion = 'top-left'"
-                      class="text-xs h-10" />
-                    <Button label="Sup. Centro"
-                      :severity="formData.posicion === 'top-center' ? 'primary' : 'secondary'"
-                      :outlined="formData.posicion !== 'top-center'"
-                      @click="formData.posicion = 'top-center'"
-                      class="text-xs h-10" />
-                    <Button label="Sup. Der."
-                      :severity="formData.posicion === 'top-right' ? 'primary' : 'secondary'"
-                      :outlined="formData.posicion !== 'top-right'"
-                      @click="formData.posicion = 'top-right'"
-                      class="text-xs h-10" />
+                    <label class="position-option" :class="{ 'position-selected': formData.posicion === 'top-left' }">
+                      <input type="radio" v-model="formData.posicion" value="top-left" class="sr-only" />
+                      <span>Sup. Izq.</span>
+                    </label>
+                    <label class="position-option" :class="{ 'position-selected': formData.posicion === 'top-center' }">
+                      <input type="radio" v-model="formData.posicion" value="top-center" class="sr-only" />
+                      <span>Sup. Centro</span>
+                    </label>
+                    <label class="position-option" :class="{ 'position-selected': formData.posicion === 'top-right' }">
+                      <input type="radio" v-model="formData.posicion" value="top-right" class="sr-only" />
+                      <span>Sup. Der.</span>
+                    </label>
 
                     <!-- Fila media -->
-                    <Button label="Med. Izq."
-                      :severity="formData.posicion === 'center-left' ? 'primary' : 'secondary'"
-                      :outlined="formData.posicion !== 'center-left'"
-                      @click="formData.posicion = 'center-left'"
-                      class="text-xs h-10" />
+                    <label class="position-option" :class="{ 'position-selected': formData.posicion === 'center-left' }">
+                      <input type="radio" v-model="formData.posicion" value="center-left" class="sr-only" />
+                      <span>Med. Izq.</span>
+                    </label>
                     <div class="h-10 border-2 border-dashed border-secondary-300 rounded flex items-center justify-center text-xs text-secondary-400">
                       Centro
                     </div>
-                    <Button label="Med. Der."
-                      :severity="formData.posicion === 'center-right' ? 'primary' : 'secondary'"
-                      :outlined="formData.posicion !== 'center-right'"
-                      @click="formData.posicion = 'center-right'"
-                      class="text-xs h-10" />
+                    <label class="position-option" :class="{ 'position-selected': formData.posicion === 'center-right' }">
+                      <input type="radio" v-model="formData.posicion" value="center-right" class="sr-only" />
+                      <span>Med. Der.</span>
+                    </label>
 
                     <!-- Fila inferior -->
-                    <Button label="Inf. Izq."
-                      :severity="formData.posicion === 'bottom-left' ? 'primary' : 'secondary'"
-                      :outlined="formData.posicion !== 'bottom-left'"
-                      @click="formData.posicion = 'bottom-left'"
-                      class="text-xs h-10" />
-                    <Button label="Inf. Centro"
-                      :severity="formData.posicion === 'bottom-center' ? 'primary' : 'secondary'"
-                      :outlined="formData.posicion !== 'bottom-center'"
-                      @click="formData.posicion = 'bottom-center'"
-                      class="text-xs h-10" />
-                    <Button label="Inf. Der."
-                      :severity="formData.posicion === 'bottom-right' ? 'primary' : 'secondary'"
-                      :outlined="formData.posicion !== 'bottom-right'"
-                      @click="formData.posicion = 'bottom-right'"
-                      class="text-xs h-10" />
+                    <label class="position-option" :class="{ 'position-selected': formData.posicion === 'bottom-left' }">
+                      <input type="radio" v-model="formData.posicion" value="bottom-left" class="sr-only" />
+                      <span>Inf. Izq.</span>
+                    </label>
+                    <label class="position-option" :class="{ 'position-selected': formData.posicion === 'bottom-center' }">
+                      <input type="radio" v-model="formData.posicion" value="bottom-center" class="sr-only" />
+                      <span>Inf. Centro</span>
+                    </label>
+                    <label class="position-option" :class="{ 'position-selected': formData.posicion === 'bottom-right' }">
+                      <input type="radio" v-model="formData.posicion" value="bottom-right" class="sr-only" />
+                      <span>Inf. Der.</span>
+                    </label>
                   </div>
                 </div>
 
@@ -498,5 +490,45 @@ onMounted(async () => {
 :deep(.p-inputtext),
 :deep(.p-inputnumber-input) {
   border: 1px solid #d1d5db !important;
+}
+
+/* Radio buttons personalizados para posición */
+.position-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.5rem;
+  border: 2px solid #d1d5db;
+  border-radius: 0.375rem;
+  background: white;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.position-option:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.position-option.position-selected {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+  font-weight: 600;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 </style>
