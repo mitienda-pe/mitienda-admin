@@ -63,7 +63,7 @@
                   Color de fondo <span class="text-red-500">*</span>
                 </label>
                 <div class="flex gap-2 items-center">
-                  <input type="color" v-model="formData.bar_bg_color" class="h-10 w-14 border border-secondary-300 rounded cursor-pointer" />
+                  <input type="color" v-model="formData.bar_bg_color" class="h-10 w-20 border border-secondary-300 rounded cursor-pointer" style="min-width: 5rem; padding: 2px;" />
                   <InputText v-model="formData.bar_bg_color" class="flex-1" placeholder="#000000" />
                 </div>
               </div>
@@ -72,7 +72,7 @@
                   Color de texto <span class="text-red-500">*</span>
                 </label>
                 <div class="flex gap-2 items-center">
-                  <input type="color" v-model="formData.bar_text_color" class="h-10 w-14 border border-secondary-300 rounded cursor-pointer" />
+                  <input type="color" v-model="formData.bar_text_color" class="h-10 w-20 border border-secondary-300 rounded cursor-pointer" style="min-width: 5rem; padding: 2px;" />
                   <InputText v-model="formData.bar_text_color" class="flex-1" placeholder="#FFFFFF" />
                 </div>
               </div>
@@ -120,7 +120,7 @@
                       Color fondo botón
                     </label>
                     <div class="flex gap-2 items-center">
-                      <input type="color" v-model="formData.bar_boton_bg_color" class="h-10 w-14 border border-secondary-300 rounded cursor-pointer" />
+                      <input type="color" v-model="formData.bar_boton_bg_color" class="h-10 w-20 border border-secondary-300 rounded cursor-pointer" style="min-width: 5rem; padding: 2px;" />
                       <InputText v-model="formData.bar_boton_bg_color" class="flex-1" placeholder="#FFFFFF" />
                     </div>
                   </div>
@@ -129,7 +129,7 @@
                       Color texto botón
                     </label>
                     <div class="flex gap-2 items-center">
-                      <input type="color" v-model="formData.bar_boton_text_color" class="h-10 w-14 border border-secondary-300 rounded cursor-pointer" />
+                      <input type="color" v-model="formData.bar_boton_text_color" class="h-10 w-20 border border-secondary-300 rounded cursor-pointer" style="min-width: 5rem; padding: 2px;" />
                       <InputText v-model="formData.bar_boton_text_color" class="flex-1" placeholder="#000000" />
                     </div>
                   </div>
