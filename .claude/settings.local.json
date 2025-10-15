@@ -34,7 +34,9 @@
       "Bash(git merge:*)",
       "Bash(md5sum:*)",
       "Bash(cat:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(mysql:*)",
+      "Bash(/Users/carlosvidal/www/mitienda/mitienda-administrador/test-superadmin.sh)"
     ],
     "deny": [],
     "ask": []

@@ -128,16 +128,25 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function checkSuperAdmin() {
     try {
+      console.log('🔍 Verificando si usuario es superadmin...')
       const response = await adminApi.checkSuperAdmin()
+
+      console.log('📊 Respuesta checkSuperAdmin:', response)
 
       if (response.success && response.data) {
         superAdminInfo.value = response.data
         // Guardar en localStorage
         localStorage.setItem('superadmin_info', JSON.stringify(response.data))
+
+        if (response.data.is_superadmin) {
+          console.log('✅ Usuario ES superadmin:', response.data)
+        } else {
+          console.log('❌ Usuario NO es superadmin')
+        }
       }
-    } catch (err) {
+    } catch (err: any) {
       // Si falla, simplemente no es superadmin
-      console.log('Usuario no es superadmin')
+      console.log('❌ Error verificando superadmin:', err.response?.data || err.message)
       superAdminInfo.value = { is_superadmin: false }
     }
   }
