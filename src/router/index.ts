@@ -149,6 +149,18 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/admin',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresSuperAdmin: true },
+    children: [
+      {
+        path: 'stores',
+        name: 'AdminStores',
+        component: () => import('@/views/admin/StoresListView.vue')
+      }
+    ]
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/dashboard'
   }
@@ -170,6 +182,7 @@ router.beforeEach((to, _from, next) => {
 
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth !== false)
   const requiresStore = to.matched.some(record => record.meta.requiresStore === true)
+  const requiresSuperAdmin = to.matched.some(record => record.meta.requiresSuperAdmin === true)
 
   // Si la ruta requiere autenticación y no está autenticado
   if (requiresAuth && !authStore.isAuthenticated) {
@@ -185,8 +198,15 @@ router.beforeEach((to, _from, next) => {
     return
   }
 
-  // Si la ruta requiere tienda seleccionada
-  if (requiresStore && !authStore.selectedStore) {
+  // Si la ruta requiere superadmin
+  if (requiresSuperAdmin && !authStore.isSuperAdmin) {
+    console.warn('Acceso denegado: Se requiere ser superadministrador')
+    next('/dashboard')
+    return
+  }
+
+  // Si la ruta requiere tienda seleccionada (no aplica para rutas de admin)
+  if (requiresStore && !requiresSuperAdmin && !authStore.selectedStore) {
     if (to.path !== '/store-selection') {
       next('/store-selection')
       return

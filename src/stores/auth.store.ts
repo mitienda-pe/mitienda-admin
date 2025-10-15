@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authApi } from '@/api/auth.api'
+import { adminApi } from '@/api/admin.api'
 import type { User, Store, LoginCredentials } from '@/types/auth.types'
+import type { SuperAdminInfo } from '@/types/admin.types'
 
 export const useAuthStore = defineStore('auth', () => {
   // State
@@ -10,12 +12,14 @@ export const useAuthStore = defineStore('auth', () => {
   const selectedStore = ref<Store | null>(null)
   const accessToken = ref<string | null>(null)
   const refreshToken = ref<string | null>(null)
+  const superAdminInfo = ref<SuperAdminInfo | null>(null)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
   // Getters
   const isAuthenticated = computed(() => !!accessToken.value && !!user.value)
   const hasMultipleStores = computed(() => stores.value.length > 1)
+  const isSuperAdmin = computed(() => superAdminInfo.value?.is_superadmin || false)
 
   // Actions
   async function login(credentials: LoginCredentials) {
@@ -44,6 +48,9 @@ export const useAuthStore = defineStore('auth', () => {
           // Usuario tiene una tienda asociada
           await fetchStores()
         }
+
+        // Verificar si es superadmin
+        await checkSuperAdmin()
 
         return true
       } else {
@@ -119,6 +126,22 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function checkSuperAdmin() {
+    try {
+      const response = await adminApi.checkSuperAdmin()
+
+      if (response.success && response.data) {
+        superAdminInfo.value = response.data
+        // Guardar en localStorage
+        localStorage.setItem('superadmin_info', JSON.stringify(response.data))
+      }
+    } catch (err) {
+      // Si falla, simplemente no es superadmin
+      console.log('Usuario no es superadmin')
+      superAdminInfo.value = { is_superadmin: false }
+    }
+  }
+
   async function logout() {
     try {
       await authApi.logout()
@@ -131,6 +154,7 @@ export const useAuthStore = defineStore('auth', () => {
       selectedStore.value = null
       accessToken.value = null
       refreshToken.value = null
+      superAdminInfo.value = null
       error.value = null
 
       // Limpiar localStorage
@@ -138,6 +162,8 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.removeItem('refresh_token')
       localStorage.removeItem('user')
       localStorage.removeItem('selected_store')
+      localStorage.removeItem('superadmin_info')
+      localStorage.removeItem('impersonation_context')
     }
   }
 
@@ -147,6 +173,7 @@ export const useAuthStore = defineStore('auth', () => {
     const refresh = localStorage.getItem('refresh_token')
     const savedUser = localStorage.getItem('user')
     const savedStore = localStorage.getItem('selected_store')
+    const savedSuperAdminInfo = localStorage.getItem('superadmin_info')
 
     if (token && savedUser) {
       accessToken.value = token
@@ -155,6 +182,14 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (savedStore) {
         selectedStore.value = JSON.parse(savedStore)
+      }
+
+      if (savedSuperAdminInfo) {
+        try {
+          superAdminInfo.value = JSON.parse(savedSuperAdminInfo)
+        } catch (err) {
+          console.error('Error al parsear superadmin_info:', err)
+        }
       }
 
       // Obtener tiendas actualizadas
@@ -169,15 +204,18 @@ export const useAuthStore = defineStore('auth', () => {
     selectedStore,
     accessToken,
     refreshToken,
+    superAdminInfo,
     isLoading,
     error,
     // Getters
     isAuthenticated,
     hasMultipleStores,
+    isSuperAdmin,
     // Actions
     login,
     fetchStores,
     selectStore,
+    checkSuperAdmin,
     logout,
     restoreSession
   }

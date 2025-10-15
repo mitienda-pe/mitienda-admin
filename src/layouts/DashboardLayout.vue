@@ -1,7 +1,18 @@
 <template>
   <div class="min-h-screen bg-gray-50">
+    <!-- Banner de Impersonación -->
+    <ImpersonationBanner
+      :show="adminStore.isImpersonating"
+      :store-name="adminStore.impersonatedStore?.name"
+      :loading="exitingImpersonation"
+      @exit="handleExitImpersonation"
+    />
+
     <!-- Header -->
-    <header class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
+    <header
+      class="bg-white shadow-sm border-b border-gray-200 sticky z-40"
+      :class="adminStore.isImpersonating ? 'top-[52px]' : 'top-0'"
+    >
       <div class="px-4 py-3 flex items-center justify-between">
         <!-- Logo y menú móvil -->
         <div class="flex items-center gap-4">
@@ -79,6 +90,19 @@
                 </li>
               </ul>
             </li>
+
+            <!-- Menú Super-Admin (solo visible para superadmin) -->
+            <li v-if="authStore.isSuperAdmin">
+              <div class="border-t border-gray-200 my-4"></div>
+              <router-link
+                to="/admin/stores"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg text-purple-600 hover:bg-purple-50 hover:text-purple-700 transition-colors font-medium"
+                active-class="bg-purple-50 text-purple-700"
+              >
+                <i class="pi pi-shield"></i>
+                <span>Administración</span>
+              </router-link>
+            </li>
           </ul>
         </nav>
       </aside>
@@ -151,13 +175,18 @@
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
+import { useAdminStore } from '@/stores/admin.store'
 import Button from 'primevue/button'
 import Sidebar from 'primevue/sidebar'
 import Menu from 'primevue/menu'
+import ImpersonationBanner from '@/components/admin/ImpersonationBanner.vue'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+const adminStore = useAdminStore()
+
+const exitingImpersonation = ref(false)
 
 const sidebarVisible = ref(false)
 const userMenu = ref()
@@ -215,5 +244,18 @@ const userMenuItems = ref([
 
 const toggleUserMenu = (event: Event) => {
   userMenu.value.toggle(event)
+}
+
+async function handleExitImpersonation() {
+  exitingImpersonation.value = true
+
+  const success = await adminStore.exitImpersonation()
+
+  if (success) {
+    // Recargar la página para limpiar el estado
+    window.location.href = '/admin/stores'
+  } else {
+    exitingImpersonation.value = false
+  }
 }
 </script>
