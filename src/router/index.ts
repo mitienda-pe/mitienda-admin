@@ -161,16 +161,10 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
-    path: '/debug',
-    component: DashboardLayout,
-    meta: { requiresAuth: true },
-    children: [
-      {
-        path: 'superadmin',
-        name: 'SuperAdminDebug',
-        component: () => import('@/views/debug/SuperAdminDebug.vue')
-      }
-    ]
+    path: '/debug/superadmin',
+    name: 'SuperAdminDebug',
+    component: () => import('@/views/debug/SuperAdminDebug.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/:pathMatch(.*)*',

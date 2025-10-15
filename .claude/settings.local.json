@@ -36,7 +36,8 @@
       "Bash(cat:*)",
       "Bash(git fetch:*)",
       "Bash(mysql:*)",
-      "Bash(/Users/carlosvidal/www/mitienda/mitienda-administrador/test-superadmin.sh)"
+      "Bash(/Users/carlosvidal/www/mitienda/mitienda-administrador/test-superadmin.sh)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []
