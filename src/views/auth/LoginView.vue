@@ -131,12 +131,30 @@ const handleLogin = async () => {
       life: 3000
     })
 
-    // Redirigir según si tiene múltiples tiendas o no
-    if (authStore.hasMultipleStores && !authStore.selectedStore) {
-      router.push('/store-selection')
-    } else {
-      router.push('/dashboard')
+    // Caso 1: SuperAdmin sin tiendas propias → /admin/stores
+    if (authStore.isSuperAdmin && authStore.stores.length === 0) {
+      console.log('🛡️ SuperAdmin sin tiendas, redirigiendo a /admin/stores')
+      router.push('/admin/stores')
+      return
     }
+
+    // Caso 2: Usuario con 1 sola tienda → Seleccionarla automáticamente
+    if (authStore.stores.length === 1 && !authStore.selectedStore) {
+      console.log('🏪 Usuario con 1 tienda, seleccionando automáticamente...')
+      await authStore.selectStore(authStore.stores[0])
+      router.push('/dashboard')
+      return
+    }
+
+    // Caso 3: Usuario con múltiples tiendas sin seleccionar → /store-selection
+    if (authStore.hasMultipleStores && !authStore.selectedStore) {
+      console.log('🏪 Usuario con múltiples tiendas, redirigiendo a /store-selection')
+      router.push('/store-selection')
+      return
+    }
+
+    // Caso 4: Ya tiene tienda seleccionada → /dashboard
+    router.push('/dashboard')
   }
 }
 </script>
