@@ -178,7 +178,7 @@ const router = createRouter({
 })
 
 // Navigation Guard
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore()
 
   // Restaurar sesión si existe
@@ -186,9 +186,15 @@ router.beforeEach((to, _from, next) => {
     authStore.restoreSession()
   }
 
+  // Restaurar admin store también (para verificar impersonación)
+  const { useAdminStore } = await import('@/stores/admin.store')
+  const adminStore = useAdminStore()
+  adminStore.restoreSession()
+
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth !== false)
   const requiresStore = to.matched.some(record => record.meta.requiresStore === true)
   const requiresSuperAdmin = to.matched.some(record => record.meta.requiresSuperAdmin === true)
+  const isImpersonating = adminStore.isImpersonating
 
   // Si la ruta requiere autenticación y no está autenticado
   if (requiresAuth && !authStore.isAuthenticated) {
@@ -200,6 +206,11 @@ router.beforeEach((to, _from, next) => {
 
   // Si ya está autenticado e intenta ir al login
   if (to.path === '/login' && authStore.isAuthenticated) {
+    // Si es superadmin sin tienda, ir a admin/stores
+    if (authStore.isSuperAdmin && !authStore.selectedStore && !isImpersonating) {
+      next('/admin/stores')
+      return
+    }
     next('/dashboard')
     return
   }
@@ -211,11 +222,15 @@ router.beforeEach((to, _from, next) => {
     return
   }
 
-  // Si la ruta requiere tienda seleccionada (no aplica para rutas de admin)
-  if (requiresStore && !requiresSuperAdmin && !authStore.selectedStore) {
-    if (to.path !== '/store-selection') {
-      next('/store-selection')
-      return
+  // Si la ruta requiere tienda seleccionada
+  if (requiresStore && !requiresSuperAdmin) {
+    // Permitir acceso si está impersonando (tiene selectedStore por impersonación)
+    // O si tiene selectedStore normal
+    if (!authStore.selectedStore && !isImpersonating) {
+      if (to.path !== '/store-selection') {
+        next('/store-selection')
+        return
+      }
     }
   }
 

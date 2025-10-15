@@ -49,7 +49,42 @@
       <!-- Sidebar Desktop -->
       <aside class="hidden lg:block w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-60px)]">
         <nav class="p-4">
-          <ul class="space-y-1">
+          <!-- Sidebar para SuperAdmin SIN impersonación -->
+          <ul v-if="isSuperAdminWithoutImpersonation" class="space-y-1">
+            <li>
+              <router-link
+                to="/admin/stores"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg text-purple-600 hover:bg-purple-50 hover:text-purple-700 transition-colors font-medium"
+                active-class="bg-purple-50 text-purple-700"
+              >
+                <i class="pi pi-shield"></i>
+                <span>Gestión de Tiendas</span>
+              </router-link>
+            </li>
+
+            <li>
+              <router-link
+                to="/debug/superadmin"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
+                active-class="bg-gray-50 text-gray-900 font-medium"
+              >
+                <i class="pi pi-wrench"></i>
+                <span>Debug</span>
+              </router-link>
+            </li>
+
+            <li class="pt-4">
+              <div class="px-4 py-2 text-xs text-gray-500 uppercase font-semibold">
+                Modo Super-Admin
+              </div>
+              <div class="px-4 py-2 text-sm text-gray-600">
+                Selecciona una tienda para acceder a sus opciones
+              </div>
+            </li>
+          </ul>
+
+          <!-- Sidebar normal para StoreAdmin o SuperAdmin impersonando -->
+          <ul v-else class="space-y-1">
             <!-- Items simples -->
             <li v-for="item in simpleMenuItems" :key="item.to">
               <router-link
@@ -91,17 +126,16 @@
               </ul>
             </li>
 
-            <!-- Menú Super-Admin (solo visible para superadmin) -->
-            <li v-if="authStore.isSuperAdmin">
+            <!-- Volver a Administración (solo si está impersonando) -->
+            <li v-if="adminStore.isImpersonating">
               <div class="border-t border-gray-200 my-4"></div>
-              <router-link
-                to="/admin/stores"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg text-purple-600 hover:bg-purple-50 hover:text-purple-700 transition-colors font-medium"
-                active-class="bg-purple-50 text-purple-700"
+              <button
+                @click="handleExitImpersonation"
+                class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-purple-600 hover:bg-purple-50 hover:text-purple-700 transition-colors font-medium"
               >
-                <i class="pi pi-shield"></i>
-                <span>Administración</span>
-              </router-link>
+                <i class="pi pi-arrow-left"></i>
+                <span>Volver a Admin</span>
+              </button>
             </li>
           </ul>
         </nav>
@@ -211,6 +245,11 @@ const catalogMenuItems = [
 // Detectar si estamos en alguna ruta del catálogo
 const isCatalogActive = computed(() => {
   return route.path.startsWith('/products') || route.path.startsWith('/catalog')
+})
+
+// Detectar si es superadmin SIN estar impersonando (para mostrar sidebar especial)
+const isSuperAdminWithoutImpersonation = computed(() => {
+  return authStore.isSuperAdmin && !adminStore.isImpersonating
 })
 
 const userMenuItems = ref([

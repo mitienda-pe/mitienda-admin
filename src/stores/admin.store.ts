@@ -104,6 +104,29 @@ export const useAdminStore = defineStore('admin', () => {
         // Actualizar token actual
         localStorage.setItem('access_token', response.data.access_token)
 
+        // IMPORTANTE: Crear un objeto Store falso para que el router no redirija a store-selection
+        // Buscar la tienda en la lista
+        const targetStore = stores.value.find(s => s.id === storeId)
+        if (targetStore) {
+          const fakeStore = {
+            id: targetStore.id,
+            name: targetStore.name,
+            slug: targetStore.slug,
+            logo: null,
+            url: targetStore.url,
+            plan: targetStore.plan.name,
+            status: targetStore.plan.status
+          }
+
+          // Guardar en localStorage como si fuera una tienda seleccionada normalmente
+          localStorage.setItem('selected_store', JSON.stringify(fakeStore))
+
+          // También actualizar el authStore para que tenga selectedStore
+          const { useAuthStore } = await import('./auth.store')
+          const authStore = useAuthStore()
+          authStore.selectedStore = fakeStore
+        }
+
         console.log('✅ Impersonación iniciada para tienda:', storeId)
         return true
       }
