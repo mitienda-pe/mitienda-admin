@@ -271,9 +271,9 @@ const loadImages = async () => {
   error.value = null
 
   try {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('access_token')
     if (!token) {
-      throw new Error('No hay token de autenticación')
+      throw new Error('No hay token de autenticación. Por favor inicia sesión.')
     }
 
     const response = await fetch(
