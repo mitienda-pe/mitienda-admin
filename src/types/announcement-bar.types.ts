@@ -31,8 +31,8 @@ export interface AnnouncementBarFormData {
   bar_boton_bg_color?: string | null
   bar_boton_text_color?: string | null
   bar_closeable: boolean
-  fecha_inicio?: string | null
-  fecha_fin?: string | null
+  fecha_inicio?: Date | null
+  fecha_fin?: Date | null
   activo: boolean
 }
 

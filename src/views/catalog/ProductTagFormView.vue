@@ -208,8 +208,6 @@ import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import InputSwitch from 'primevue/inputswitch'
 import SelectButton from 'primevue/selectbutton'
-import Tag from 'primevue/tag'
-import Message from 'primevue/message'
 import Divider from 'primevue/divider'
 import { useToast } from 'primevue/usetoast'
 
@@ -286,11 +284,6 @@ const ribbonStyles = computed(() => {
 })
 
 // Methods
-function getPositionLabel(position: TagPosition): string {
-  const option = posicionOptions.find(opt => opt.value === position)
-  return option?.label || position
-}
-
 function handleBack() {
   router.push('/catalog/product-tags')
 }

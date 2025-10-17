@@ -374,8 +374,8 @@ onMounted(async () => {
         bar_boton_bg_color: bar.bar_boton_bg_color || '#FFFFFF',
         bar_boton_text_color: bar.bar_boton_text_color || '#000000',
         bar_closeable: bar.bar_closeable,
-        fecha_inicio: bar.fecha_inicio,
-        fecha_fin: bar.fecha_fin,
+        fecha_inicio: bar.fecha_inicio ? new Date(bar.fecha_inicio) : null,
+        fecha_fin: bar.fecha_fin ? new Date(bar.fecha_fin) : null,
         activo: bar.activo
       })
       hasButton.value = !!bar.bar_boton_texto
