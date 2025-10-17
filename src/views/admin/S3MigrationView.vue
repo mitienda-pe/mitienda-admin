@@ -20,6 +20,17 @@
             placeholder="Ej: 265"
             @keyup.enter="loadImages"
           />
+
+          <div class="checkbox-group">
+            <input
+              id="productsOnly"
+              v-model="productsOnly"
+              type="checkbox"
+              @change="loadImages"
+            />
+            <label for="productsOnly">Solo imágenes de productos</label>
+          </div>
+
           <button
             class="btn btn-primary"
             :disabled="!selectedStoreId || loading"
@@ -89,6 +100,26 @@
           </div>
         </div>
       </div>
+
+      <div class="stat-card">
+        <div class="stat-icon products">
+          <i class="pi pi-shopping-bag"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">De Productos</div>
+          <div class="stat-value">{{ stats.product_images }}</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon others">
+          <i class="pi pi-image"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">Otras</div>
+          <div class="stat-value">{{ stats.other_images }}</div>
+        </div>
+      </div>
     </div>
 
     <!-- Store Info -->
@@ -120,6 +151,8 @@
             <tr>
               <th>Preview</th>
               <th>ID</th>
+              <th>Tipo</th>
+              <th>SKU(s)</th>
               <th>Título</th>
               <th>Formato</th>
               <th>Fecha Subida</th>
@@ -140,6 +173,24 @@
               </td>
               <td>
                 <code>{{ image.id }}</code>
+              </td>
+              <td>
+                <span
+                  v-if="image.is_product_image"
+                  class="badge badge-product"
+                  :title="`Usada por ${image.product_count} producto(s)`"
+                >
+                  <i class="pi pi-shopping-bag"></i> Producto
+                </span>
+                <span v-else class="badge badge-other">
+                  <i class="pi pi-image"></i> Otra
+                </span>
+              </td>
+              <td>
+                <div v-if="image.product_skus" class="product-skus">
+                  {{ image.product_skus }}
+                </div>
+                <span v-else class="text-muted">-</span>
               </td>
               <td>{{ image.title || 'Sin título' }}</td>
               <td>
@@ -223,6 +274,9 @@ interface S3Image {
   cdn_url: string
   cloudflare_id: string | null
   is_migrated: boolean
+  is_product_image: boolean
+  product_count: number
+  product_skus: string | null
 }
 
 interface Store {
@@ -236,6 +290,8 @@ interface Stats {
   total_migrated: number
   total_pending: number
   migration_progress: number
+  product_images: number
+  other_images: number
 }
 
 interface Pagination {
@@ -248,6 +304,7 @@ interface Pagination {
 const toast = useToast()
 
 const selectedStoreId = ref<number | null>(null)
+const productsOnly = ref(false)
 const loading = ref(false)
 const error = ref<string | null>(null)
 
@@ -276,8 +333,9 @@ const loadImages = async () => {
       throw new Error('No hay token de autenticación. Por favor inicia sesión.')
     }
 
+    const productsOnlyParam = productsOnly.value ? '&products_only=1' : ''
     const response = await fetch(
-      `https://api2.mitienda.pe/api/v1/superadmin/s3-images?store_id=${selectedStoreId.value}&page=${pagination.value.page}&per_page=${pagination.value.per_page}`,
+      `https://api2.mitienda.pe/api/v1/superadmin/s3-images?store_id=${selectedStoreId.value}&page=${pagination.value.page}&per_page=${pagination.value.per_page}${productsOnlyParam}`,
       {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -525,6 +583,16 @@ const handleImageError = (event: Event) => {
   color: #7b1fa2;
 }
 
+.stat-icon.products {
+  background: #e1f5fe;
+  color: #0277bd;
+}
+
+.stat-icon.others {
+  background: #fce4ec;
+  color: #c2185b;
+}
+
 .stat-content {
   flex: 1;
 }
@@ -700,5 +768,47 @@ code {
 
 .empty-state p {
   margin: 0;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.checkbox-group label {
+  cursor: pointer;
+  margin: 0;
+}
+
+.badge-product {
+  background: #e1f5fe;
+  color: #0277bd;
+  border: 1px solid #b3e5fc;
+}
+
+.badge-other {
+  background: #fce4ec;
+  color: #c2185b;
+  border: 1px solid #f8bbd0;
+}
+
+.product-skus {
+  font-size: 0.875rem;
+  color: #495057;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.text-muted {
+  color: #6c757d;
 }
 </style>
