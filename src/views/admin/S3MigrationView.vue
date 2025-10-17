@@ -404,6 +404,14 @@ const migrateImage = async (image: S3Image) => {
       })
     })
 
+    // Verificar si la respuesta es HTML (error del servidor)
+    const contentType = response.headers.get('content-type')
+    if (contentType && contentType.includes('text/html')) {
+      const htmlText = await response.text()
+      console.error('Server returned HTML instead of JSON:', htmlText.substring(0, 500))
+      throw new Error('Error del servidor. Verifica los logs del API.')
+    }
+
     const data = await response.json()
 
     if (!response.ok || data.error !== 0) {
