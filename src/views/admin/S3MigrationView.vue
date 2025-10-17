@@ -185,9 +185,19 @@
                 </a>
               </td>
               <td>
-                <button class="btn btn-sm btn-success" disabled title="Próximamente: Migrar a Cloudflare">
-                  <i class="pi pi-upload"></i> Migrar
+                <button
+                  v-if="!image.is_migrated"
+                  class="btn btn-sm btn-success"
+                  :disabled="migratingImages[image.id]"
+                  @click="migrateImage(image)"
+                  :title="migratingImages[image.id] ? 'Migrando...' : 'Migrar a Cloudflare'"
+                >
+                  <i :class="migratingImages[image.id] ? 'pi pi-spin pi-spinner' : 'pi pi-upload'"></i>
+                  {{ migratingImages[image.id] ? 'Migrando...' : 'Migrar' }}
                 </button>
+                <span v-else class="badge badge-migrated" title="Ya migrada a Cloudflare">
+                  <i class="pi pi-check-circle"></i> Migrada
+                </span>
               </td>
             </tr>
           </tbody>
@@ -271,6 +281,7 @@ const selectedStoreId = ref<number | null>(null)
 const productsOnly = ref(false)
 const loading = ref(false)
 const error = ref<string | null>(null)
+const migratingImages = ref<Record<number, boolean>>({})
 
 const store = ref<Store | null>(null)
 const images = ref<S3Image[]>([])
@@ -367,6 +378,72 @@ const formatDate = (dateString: string) => {
 const handleImageError = (event: Event) => {
   const img = event.target as HTMLImageElement
   img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3ENo disponible%3C/text%3E%3C/svg%3E'
+}
+
+const migrateImage = async (image: S3Image) => {
+  if (migratingImages.value[image.id]) {
+    return // Ya está migrando
+  }
+
+  migratingImages.value[image.id] = true
+
+  try {
+    const token = localStorage.getItem('access_token')
+    if (!token) {
+      throw new Error('No hay token de autenticación')
+    }
+
+    const response = await fetch('https://api2.mitienda.pe/api/v1/superadmin/migrate-image', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        image_id: image.id
+      })
+    })
+
+    const data = await response.json()
+
+    if (!response.ok || data.error !== 0) {
+      throw new Error(data.message || 'Error al migrar imagen')
+    }
+
+    // Actualizar el estado de la imagen
+    const imageIndex = images.value.findIndex(img => img.id === image.id)
+    if (imageIndex !== -1) {
+      images.value[imageIndex].is_migrated = true
+      images.value[imageIndex].cloudflare_id = data.data.cloudflare_id
+    }
+
+    // Actualizar estadísticas
+    if (stats.value) {
+      stats.value.total_migrated++
+      stats.value.total_pending--
+      stats.value.migration_progress = stats.value.total_active > 0
+        ? Math.round((stats.value.total_migrated / stats.value.total_active) * 100 * 100) / 100
+        : 0
+    }
+
+    toast.add({
+      severity: 'success',
+      summary: 'Migración exitosa',
+      detail: `Imagen ${image.id} migrada correctamente a Cloudflare`,
+      life: 3000
+    })
+
+  } catch (err: any) {
+    console.error('Error migrando imagen:', err)
+    toast.add({
+      severity: 'error',
+      summary: 'Error en migración',
+      detail: err.message || 'No se pudo migrar la imagen',
+      life: 5000
+    })
+  } finally {
+    migratingImages.value[image.id] = false
+  }
 }
 </script>
 
@@ -684,6 +761,19 @@ code {
   font-size: 0.75rem;
   font-weight: 600;
   color: #495057;
+}
+
+.badge-migrated {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
 }
 
 .link-btn {
