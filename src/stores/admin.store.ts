@@ -112,7 +112,7 @@ export const useAdminStore = defineStore('admin', () => {
             id: targetStore.id,
             name: targetStore.name,
             slug: targetStore.slug,
-            logo: null,
+            logo: undefined,
             url: targetStore.url,
             plan: targetStore.plan.name,
             status: targetStore.plan.status

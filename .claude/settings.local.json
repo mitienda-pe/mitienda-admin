@@ -38,7 +38,9 @@
       "Bash(mysql:*)",
       "Bash(/Users/carlosvidal/www/mitienda/mitienda-administrador/test-superadmin.sh)",
       "Bash(npm run dev:*)",
-      "Bash(git tag:*)"
+      "Bash(git tag:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx vite:*)"
     ],
     "deny": [],
     "ask": []

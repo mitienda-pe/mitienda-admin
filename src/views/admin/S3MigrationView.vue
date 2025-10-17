@@ -13,29 +13,15 @@
       <div class="card-body">
         <div class="input-group">
           <label for="storeId">ID de la Tienda:</label>
-          <input
-            id="storeId"
-            v-model.number="selectedStoreId"
-            type="number"
-            placeholder="Ej: 265"
-            @keyup.enter="loadImages"
-          />
+          <input id="storeId" v-model.number="selectedStoreId" type="number" placeholder="Ej: 265"
+            @keyup.enter="loadImages" />
 
           <div class="checkbox-group">
-            <input
-              id="productsOnly"
-              v-model="productsOnly"
-              type="checkbox"
-              @change="loadImages"
-            />
+            <input id="productsOnly" v-model="productsOnly" type="checkbox" @change="loadImages" />
             <label for="productsOnly">Solo imágenes de productos</label>
           </div>
 
-          <button
-            class="btn btn-primary"
-            :disabled="!selectedStoreId || loading"
-            @click="loadImages"
-          >
+          <button class="btn btn-primary" :disabled="!selectedStoreId || loading" @click="loadImages">
             <span v-if="loading">
               <i class="pi pi-spin pi-spinner"></i> Cargando...
             </span>
@@ -93,10 +79,7 @@
           <div class="stat-label">Progreso</div>
           <div class="stat-value">{{ stats.migration_progress }}%</div>
           <div class="progress-bar">
-            <div
-              class="progress-fill"
-              :style="{ width: stats.migration_progress + '%' }"
-            ></div>
+            <div class="progress-fill" :style="{ width: stats.migration_progress + '%' }"></div>
           </div>
         </div>
       </div>
@@ -164,22 +147,15 @@
             <tr v-for="image in images" :key="image.id">
               <td>
                 <div class="image-preview">
-                  <img
-                    :src="image.cdn_url"
-                    :alt="image.title"
-                    @error="handleImageError"
-                  />
+                  <img :src="image.s3_url" :alt="image.title" @error="handleImageError" />
                 </div>
               </td>
               <td>
                 <code>{{ image.id }}</code>
               </td>
               <td>
-                <span
-                  v-if="image.is_product_image"
-                  class="badge badge-product"
-                  :title="`Usada por ${image.product_count} producto(s)`"
-                >
+                <span v-if="image.is_product_image" class="badge badge-product"
+                  :title="`Usada por ${image.product_count} producto(s)`">
                   <i class="pi pi-shopping-bag"></i> Producto
                 </span>
                 <span v-else class="badge badge-other">
@@ -200,21 +176,16 @@
                 <small>{{ formatDate(image.uploaded_at) }}</small>
               </td>
               <td>
-                <a
-                  :href="image.cdn_url"
-                  target="_blank"
-                  class="link-btn"
-                  title="Ver en CloudFront"
-                >
-                  <i class="pi pi-external-link"></i> Ver
+                <a :href="image.s3_url" target="_blank" class="link-btn" title="Ver en S3">
+                  <i class="pi pi-external-link"></i> Ver S3
+                </a>
+                <br />
+                <a :href="image.cdn_url" target="_blank" class="link-btn" title="Ver en CloudFront" style="font-size: 0.85em; margin-top: 4px;">
+                  <i class="pi pi-cloud"></i> CDN
                 </a>
               </td>
               <td>
-                <button
-                  class="btn btn-sm btn-success"
-                  disabled
-                  title="Próximamente: Migrar a Cloudflare"
-                >
+                <button class="btn btn-sm btn-success" disabled title="Próximamente: Migrar a Cloudflare">
                   <i class="pi pi-upload"></i> Migrar
                 </button>
               </td>
@@ -225,11 +196,7 @@
 
       <!-- Pagination -->
       <div v-if="pagination.total_pages > 1" class="pagination">
-        <button
-          class="btn btn-sm"
-          :disabled="pagination.page === 1"
-          @click="changePage(pagination.page - 1)"
-        >
+        <button class="btn btn-sm" :disabled="pagination.page === 1" @click="changePage(pagination.page - 1)">
           <i class="pi pi-chevron-left"></i> Anterior
         </button>
 
@@ -238,11 +205,8 @@
           ({{ pagination.total }} imágenes)
         </span>
 
-        <button
-          class="btn btn-sm"
-          :disabled="pagination.page === pagination.total_pages"
-          @click="changePage(pagination.page + 1)"
-        >
+        <button class="btn btn-sm" :disabled="pagination.page === pagination.total_pages"
+          @click="changePage(pagination.page + 1)">
           Siguiente <i class="pi pi-chevron-right"></i>
         </button>
       </div>
@@ -409,7 +373,6 @@ const handleImageError = (event: Event) => {
 <style scoped>
 .s3-migration-view {
   padding: 2rem;
-  max-width: 1400px;
   margin: 0 auto;
 }
 
