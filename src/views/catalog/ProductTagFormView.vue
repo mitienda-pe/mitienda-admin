@@ -240,16 +240,7 @@ const tipoOptions = [
   { label: 'Imagen', value: 'imagen' as TagType }
 ]
 
-const posicionOptions = [
-  { label: 'Superior Izquierda', shortLabel: 'Sup. Izq.', value: 'top-left' as TagPosition },
-  { label: 'Centro Superior', shortLabel: 'Sup. Centro', value: 'top-center' as TagPosition },
-  { label: 'Superior Derecha', shortLabel: 'Sup. Der.', value: 'top-right' as TagPosition },
-  { label: 'Medio Izquierdo', shortLabel: 'Med. Izq.', value: 'center-left' as TagPosition },
-  { label: 'Medio Derecho', shortLabel: 'Med. Der.', value: 'center-right' as TagPosition },
-  { label: 'Inferior Izquierda', shortLabel: 'Inf. Izq.', value: 'bottom-left' as TagPosition },
-  { label: 'Centro Inferior', shortLabel: 'Inf. Centro', value: 'bottom-center' as TagPosition },
-  { label: 'Inferior Derecha', shortLabel: 'Inf. Der.', value: 'bottom-right' as TagPosition }
-]
+// Eliminado posicionOptions - no se usa en el componente
 
 // Computed
 const showPreview = computed(() => {
