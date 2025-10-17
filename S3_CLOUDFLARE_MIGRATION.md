@@ -51,8 +51,8 @@ Migrar todas las imágenes de productos almacenadas en AWS S3 hacia Cloudflare I
         "title": "Producto ejemplo",
         "uploaded_at": "2024-01-15 10:30:00",
         "status": 1,
-        "s3_url": "https://s3.amazonaws.com/mitiendape/tienda_000265/tienda_000265_d6c2ba571d69f7e8bb48136beb49a81b638f2d83_extra-large.jpg",
-        "cdn_url": "https://d26lpennugtm8s.cloudfront.net/tienda_000265/tienda_000265_d6c2ba571d69f7e8bb48136beb49a81b638f2d83_extra-large.jpg",
+        "s3_url": "https://s3.amazonaws.com/mitiendape/uploads/tienda_000265/tienda_000265_d6c2ba571d69f7e8bb48136beb49a81b638f2d83_extra-large.jpg",
+        "cdn_url": "https://d20f60vzbd93dl.cloudfront.net/uploads/tienda_000265/tienda_000265_d6c2ba571d69f7e8bb48136beb49a81b638f2d83_extra-large.jpg",
         "cloudflare_id": null,
         "is_migrated": false
       }
@@ -185,10 +185,10 @@ Nombre: d6c2ba571d69f7e8bb48136beb49a81b638f2d83
 Extensión: jpg
 
 S3 URL:
-https://s3.amazonaws.com/mitiendape/tienda_000265/tienda_000265_d6c2ba571d69f7e8bb48136beb49a81b638f2d83_extra-large.jpg
+https://s3.amazonaws.com/mitiendape/uploads/tienda_000265/tienda_000265_d6c2ba571d69f7e8bb48136beb49a81b638f2d83_extra-large.jpg
 
 CloudFront URL:
-https://d26lpennugtm8s.cloudfront.net/tienda_000265/tienda_000265_d6c2ba571d69f7e8bb48136beb49a81b638f2d83_extra-large.jpg
+https://d20f60vzbd93dl.cloudfront.net/uploads/tienda_000265/tienda_000265_d6c2ba571d69f7e8bb48136beb49a81b638f2d83_extra-large.jpg
 ```
 
 **Tamaños disponibles:**
@@ -392,7 +392,7 @@ curl -X GET "https://api2.mitienda.pe/api/v1/superadmin/s3-images?store_id=265" 
 
 - [Cloudflare Images API Docs](https://developers.cloudflare.com/images/cloudflare-images/)
 - [AWS S3 Bucket: mitiendape](https://s3.console.aws.amazon.com/s3/buckets/mitiendape)
-- [CloudFront Distribution](https://d26lpennugtm8s.cloudfront.net)
+- [CloudFront Distribution](https://d20f60vzbd93dl.cloudfront.net)
 
 ---
 
