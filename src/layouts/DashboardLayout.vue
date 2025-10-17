@@ -64,6 +64,17 @@
 
             <li>
               <router-link
+                to="/admin/s3-migration"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors font-medium"
+                active-class="bg-blue-50 text-blue-700"
+              >
+                <i class="pi pi-cloud-upload"></i>
+                <span>Migración S3 → Cloudflare</span>
+              </router-link>
+            </li>
+
+            <li>
+              <router-link
                 to="/debug/superadmin"
                 class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-50 transition-colors"
                 active-class="bg-gray-50 text-gray-900 font-medium"

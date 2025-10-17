@@ -157,6 +157,11 @@ const routes: RouteRecordRaw[] = [
         path: 'stores',
         name: 'AdminStores',
         component: () => import('@/views/admin/StoresListView.vue')
+      },
+      {
+        path: 's3-migration',
+        name: 'AdminS3Migration',
+        component: () => import('@/views/admin/S3MigrationView.vue')
       }
     ]
   },
