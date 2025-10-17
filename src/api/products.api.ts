@@ -58,9 +58,13 @@ export const productsApi = {
               return {
                 id: img.id || index,
                 url: img.url || img,
+                cloudflare_url: img.cloudflare_url,
+                cloudflare_id: img.cloudflare_id,
+                cloudflare_imagen_id: img.cloudflare_imagen_id,  // NEW
                 thumbnail: img.thumbnail || img.url || img,
                 position: img.position || index,
-                is_main: img.is_main || index === 0
+                is_main: img.is_main || index === 0,
+                source: img.source  // NEW: 'cloudflare' or 'legacy'
               }
             })
 
@@ -132,9 +136,13 @@ export const productsApi = {
           return {
             id: img.id || index,
             url: img.url || img,
+            cloudflare_url: img.cloudflare_url,
+            cloudflare_id: img.cloudflare_id,
+            cloudflare_imagen_id: img.cloudflare_imagen_id,  // NEW
             thumbnail: img.thumbnail || img.url || img,
             position: img.position || index,
-            is_main: img.is_main || index === 0
+            is_main: img.is_main || index === 0,
+            source: img.source  // NEW: 'cloudflare' or 'legacy'
           }
         })
 

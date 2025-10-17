@@ -44,7 +44,14 @@ const imagePreviewUrl = computed(() => {
   return null
 })
 
-const acceptedFormats = validationRules.allowedFormats.map(f => f.replace('image/', '.')).join(',')
+const acceptedFormats = validationRules.allowedFormats
+  .map(f => {
+    const ext = f.replace('image/', '.')
+    // Add .jpg alias for .jpeg
+    if (ext === '.jpeg') return '.jpeg,.jpg'
+    return ext
+  })
+  .join(',')
 
 /**
  * Validate image file

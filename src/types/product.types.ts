@@ -57,9 +57,11 @@ export interface ProductImage {
   url: string
   cloudflare_url?: string
   cloudflare_id?: string
+  cloudflare_imagen_id?: number  // NEW: ID from cloudflare_images table
   thumbnail?: string
   position: number
   is_main: boolean
+  source?: 'cloudflare' | 'legacy'  // NEW: Track image source
 }
 
 export interface Category {
