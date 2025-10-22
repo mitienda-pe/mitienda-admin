@@ -23,6 +23,7 @@ export interface ProductExternalCategories {
 export interface Product {
   id: number
   sku: string
+  barcode?: string
   name: string
   description?: string
   description_html?: string

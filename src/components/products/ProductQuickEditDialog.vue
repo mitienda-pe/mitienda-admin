@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import Dialog from 'primevue/dialog'
 import InputNumber from 'primevue/inputnumber'
+import InputText from 'primevue/inputtext'
 import Checkbox from 'primevue/checkbox'
 import Button from 'primevue/button'
 import type { Product } from '@/types/product.types'
@@ -21,6 +22,7 @@ export interface ProductQuickEditData {
   stock?: number
   published?: boolean
   order?: number
+  barcode?: string
   description_html?: string
 }
 
@@ -31,7 +33,8 @@ const formData = ref<ProductQuickEditData>({
   price: 0,
   stock: 0,
   published: false,
-  order: undefined
+  order: undefined,
+  barcode: undefined
 })
 
 const errors = ref({
@@ -46,7 +49,8 @@ watch(() => props.product, (newProduct) => {
       price: newProduct.price,
       stock: newProduct.stock,
       published: newProduct.published,
-      order: newProduct.order
+      order: newProduct.order,
+      barcode: newProduct.barcode
     }
     errors.value = { price: '', stock: '' }
   }
@@ -132,6 +136,21 @@ const handleClose = () => {
           :class="{ 'p-invalid': errors.stock }"
         />
         <small v-if="errors.stock" class="text-red-500">{{ errors.stock }}</small>
+      </div>
+
+      <!-- Código de barras -->
+      <div>
+        <label for="barcode" class="block text-sm font-medium text-gray-700 mb-2">
+          Código de barras
+        </label>
+        <InputText
+          id="barcode"
+          v-model="formData.barcode"
+          class="w-full"
+          placeholder="Ej: 7501234567890"
+          maxlength="50"
+        />
+        <small class="text-gray-500">Código de barras del producto (EAN, UPC, etc.)</small>
       </div>
 
       <!-- Orden en catálogo -->

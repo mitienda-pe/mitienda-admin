@@ -35,6 +35,7 @@
               <div>
                 <h1 class="text-3xl font-bold text-secondary mb-2">{{ product.name }}</h1>
                 <p class="text-secondary-500">SKU: {{ product.sku }}</p>
+                <p v-if="product.barcode" class="text-secondary-500">Código de barras: {{ product.barcode }}</p>
               </div>
 
               <!-- Badges -->
