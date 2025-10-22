@@ -31,11 +31,18 @@
           </template>
           <template #content>
             <div class="space-y-4">
-              <!-- Nombre y SKU -->
+              <!-- Nombre, SKU y Barcode -->
               <div>
                 <h1 class="text-3xl font-bold text-secondary mb-2">{{ product.name }}</h1>
-                <p class="text-secondary-500">SKU: {{ product.sku }}</p>
-                <p v-if="product.barcode" class="text-secondary-500">Código de barras: {{ product.barcode }}</p>
+                <div class="space-y-1">
+                  <p class="text-secondary-500">
+                    <span class="font-medium">SKU:</span> {{ product.sku }}
+                  </p>
+                  <p v-if="product.barcode" class="text-secondary-500">
+                    <span class="font-medium">Código de barras:</span>
+                    <span class="font-mono bg-gray-50 px-2 py-0.5 rounded">{{ product.barcode }}</span>
+                  </p>
+                </div>
               </div>
 
               <!-- Badges -->

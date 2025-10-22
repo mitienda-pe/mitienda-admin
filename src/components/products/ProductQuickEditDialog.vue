@@ -146,9 +146,8 @@ const handleClose = () => {
         <InputText
           id="barcode"
           v-model="formData.barcode"
-          class="w-full"
           placeholder="Ej: 7501234567890"
-          maxlength="50"
+          :maxlength="50"
         />
         <small class="text-gray-500">Código de barras del producto (EAN, UPC, etc.)</small>
       </div>
