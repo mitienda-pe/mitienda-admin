@@ -116,7 +116,7 @@ const clearFilters = () => {
     search: '',
     categoryId: null,
     brandId: null,
-    published: null,
+    published: true,
     stockStatus: 'all'
   }
   applyFilters()
