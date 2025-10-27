@@ -149,6 +149,18 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/billing',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: 'nubefact',
+        name: 'BillingNubefact',
+        component: () => import('@/views/billing/NubefactConfigView.vue')
+      }
+    ]
+  },
+  {
     path: '/admin',
     component: DashboardLayout,
     meta: { requiresAuth: true, requiresSuperAdmin: true },
