@@ -242,7 +242,8 @@ const simpleMenuItems = [
   { label: 'Dashboard', icon: 'pi pi-home', to: '/dashboard' },
   { label: 'Pedidos', icon: 'pi pi-shopping-cart', to: '/orders' },
   { label: 'Clientes', icon: 'pi pi-users', to: '/customers' },
-  { label: 'Marketing', icon: 'pi pi-megaphone', to: '/marketing/announcement-bars' }
+  { label: 'Marketing', icon: 'pi pi-megaphone', to: '/marketing/announcement-bars' },
+  { label: 'Facturación', icon: 'pi pi-file-invoice', to: '/billing/nubefact' }
 ]
 
 // Items del grupo Catálogo
