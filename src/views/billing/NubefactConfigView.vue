@@ -39,98 +39,43 @@
             <form @submit.prevent="handleSubmit" class="space-y-6">
               <!-- Credenciales API -->
               <div>
-                <h3 class="text-lg font-semibold text-secondary-800 mb-4">Credenciales de API</h3>
+                <h3 class="text-lg font-semibold text-secondary-800 mb-4">Credenciales de Nubefact</h3>
 
                 <div class="space-y-4">
                   <div>
-                    <label for="api_token" class="block text-sm font-medium text-secondary-700 mb-2">
-                      Token de usuario <span class="text-red-500">*</span>
+                    <label for="nubefact_url" class="block text-sm font-medium text-secondary-700 mb-2">
+                      URL de Nubefact <span class="text-red-500">*</span>
                     </label>
                     <InputText
+                      id="nubefact_url"
+                      v-model="formData.nubefact_url"
+                      placeholder="https://api.nubefact.com/api/v1/..."
+                      class="w-full"
+                      :class="{ 'p-invalid': errors.nubefact_url }"
+                    />
+                    <small v-if="errors.nubefact_url" class="text-red-500">{{ errors.nubefact_url }}</small>
+                    <small class="text-secondary-600 mt-1 block">
+                      URL del endpoint de Nubefact para emitir comprobantes
+                    </small>
+                  </div>
+
+                  <div>
+                    <label for="api_token" class="block text-sm font-medium text-secondary-700 mb-2">
+                      Token de autenticación <span class="text-red-500">*</span>
+                    </label>
+                    <Password
                       id="api_token"
                       v-model="formData.api_token"
                       placeholder="Token de Nubefact"
                       class="w-full"
                       :class="{ 'p-invalid': errors.api_token }"
-                    />
-                    <small v-if="errors.api_token" class="text-red-500">{{ errors.api_token }}</small>
-                  </div>
-
-                  <div>
-                    <label for="api_secret" class="block text-sm font-medium text-secondary-700 mb-2">
-                      Clave secreta API
-                    </label>
-                    <Password
-                      id="api_secret"
-                      v-model="formData.api_secret"
-                      placeholder="Clave secreta (opcional)"
-                      class="w-full"
                       :feedback="false"
                       toggleMask
                     />
-                  </div>
-                </div>
-              </div>
-
-              <Divider />
-
-              <!-- Datos fiscales -->
-              <div>
-                <h3 class="text-lg font-semibold text-secondary-800 mb-4">Datos de la empresa</h3>
-
-                <div class="space-y-4">
-                  <div>
-                    <label for="numero_documento" class="block text-sm font-medium text-secondary-700 mb-2">
-                      RUC <span class="text-red-500">*</span>
-                    </label>
-                    <InputText
-                      id="numero_documento"
-                      v-model="formData.numero_documento"
-                      placeholder="20XXXXXXXXX"
-                      maxlength="11"
-                      class="w-full"
-                      :class="{ 'p-invalid': errors.numero_documento }"
-                    />
-                    <small v-if="errors.numero_documento" class="text-red-500">{{ errors.numero_documento }}</small>
-                  </div>
-
-                  <div>
-                    <label for="razon_social" class="block text-sm font-medium text-secondary-700 mb-2">
-                      Razón social <span class="text-red-500">*</span>
-                    </label>
-                    <InputText
-                      id="razon_social"
-                      v-model="formData.razon_social"
-                      placeholder="EMPRESA SAC"
-                      class="w-full"
-                      :class="{ 'p-invalid': errors.razon_social }"
-                    />
-                    <small v-if="errors.razon_social" class="text-red-500">{{ errors.razon_social }}</small>
-                  </div>
-
-                  <div>
-                    <label for="direccion_fiscal" class="block text-sm font-medium text-secondary-700 mb-2">
-                      Dirección fiscal
-                    </label>
-                    <Textarea
-                      id="direccion_fiscal"
-                      v-model="formData.direccion_fiscal"
-                      placeholder="Av. Principal 123"
-                      rows="2"
-                      class="w-full"
-                    />
-                  </div>
-
-                  <div>
-                    <label for="urbanizacion" class="block text-sm font-medium text-secondary-700 mb-2">
-                      Urbanización
-                    </label>
-                    <InputText
-                      id="urbanizacion"
-                      v-model="formData.urbanizacion"
-                      placeholder="Urb. Los Pinos"
-                      class="w-full"
-                    />
+                    <small v-if="errors.api_token" class="text-red-500">{{ errors.api_token }}</small>
+                    <small class="text-secondary-600 mt-1 block">
+                      Token proporcionado por Nubefact en tu panel de control
+                    </small>
                   </div>
                 </div>
               </div>
@@ -355,12 +300,8 @@ const billingStore = useBillingStore()
 const config = ref(billingStore.nubefactConfig)
 
 const formData = reactive<SaveNubefactCredentialsRequest>({
+  nubefact_url: '',
   api_token: '',
-  api_secret: '',
-  numero_documento: '',
-  razon_social: '',
-  direccion_fiscal: '',
-  urbanizacion: '',
   serie_factura: '',
   numero_factura: '',
   serie_boleta: '',
@@ -369,9 +310,8 @@ const formData = reactive<SaveNubefactCredentialsRequest>({
 })
 
 const errors = reactive({
-  api_token: '',
-  numero_documento: '',
-  razon_social: ''
+  nubefact_url: '',
+  api_token: ''
 })
 
 onMounted(async () => {
@@ -382,12 +322,8 @@ onMounted(async () => {
   // Llenar formulario si ya hay configuración
   if (config.value?.configured && config.value.credentials) {
     Object.assign(formData, {
+      nubefact_url: config.value.credentials.nubefact_url || '',
       api_token: config.value.credentials.api_token,
-      api_secret: config.value.credentials.api_secret || '',
-      numero_documento: config.value.credentials.numero_documento,
-      razon_social: config.value.credentials.razon_social,
-      direccion_fiscal: config.value.credentials.direccion_fiscal || '',
-      urbanizacion: config.value.credentials.urbanizacion || '',
       serie_factura: config.value.credentials.serie_factura || '',
       numero_factura: config.value.credentials.numero_factura || '',
       serie_boleta: config.value.credentials.serie_boleta || '',
@@ -398,27 +334,21 @@ onMounted(async () => {
 })
 
 function validateForm(): boolean {
+  errors.nubefact_url = ''
   errors.api_token = ''
-  errors.numero_documento = ''
-  errors.razon_social = ''
 
   let valid = true
 
+  if (!formData.nubefact_url?.trim()) {
+    errors.nubefact_url = 'La URL de Nubefact es requerida'
+    valid = false
+  } else if (!formData.nubefact_url.startsWith('http')) {
+    errors.nubefact_url = 'La URL debe comenzar con http:// o https://'
+    valid = false
+  }
+
   if (!formData.api_token?.trim()) {
     errors.api_token = 'El token es requerido'
-    valid = false
-  }
-
-  if (!formData.numero_documento?.trim()) {
-    errors.numero_documento = 'El RUC es requerido'
-    valid = false
-  } else if (formData.numero_documento.length !== 11) {
-    errors.numero_documento = 'El RUC debe tener 11 dígitos'
-    valid = false
-  }
-
-  if (!formData.razon_social?.trim()) {
-    errors.razon_social = 'La razón social es requerida'
     valid = false
   }
 
@@ -493,12 +423,8 @@ function handleDelete() {
         })
         config.value = null
         Object.assign(formData, {
+          nubefact_url: '',
           api_token: '',
-          api_secret: '',
-          numero_documento: '',
-          razon_social: '',
-          direccion_fiscal: '',
-          urbanizacion: '',
           serie_factura: '',
           numero_factura: '',
           serie_boleta: '',

@@ -12,15 +12,8 @@ export type BillingEnvironment = 'produccion' | 'prueba'
 // Nubefact Types
 
 export interface NubefactCredentials {
+  nubefact_url: string
   api_token: string
-  api_secret: string
-  clave_secreta?: string
-  emisor?: string
-  tipo_documento: string
-  numero_documento: string
-  razon_social: string
-  direccion_fiscal: string
-  urbanizacion?: string
   serie_factura?: string
   numero_factura?: string
   serie_boleta?: string
@@ -43,14 +36,8 @@ export interface NubefactConfigResponse {
 }
 
 export interface SaveNubefactCredentialsRequest {
+  nubefact_url: string
   api_token: string
-  api_secret?: string
-  clave_secreta?: string
-  emisor?: string
-  numero_documento: string
-  razon_social: string
-  direccion_fiscal: string
-  urbanizacion?: string
   serie_factura?: string
   numero_factura?: string
   serie_boleta?: string
