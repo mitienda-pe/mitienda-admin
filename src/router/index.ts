@@ -157,6 +157,16 @@ const routes: RouteRecordRaw[] = [
         path: 'nubefact',
         name: 'BillingNubefact',
         component: () => import('@/views/billing/NubefactConfigView.vue')
+      },
+      {
+        path: 'documents',
+        name: 'BillingDocuments',
+        component: () => import('@/views/billing/DocumentsListView.vue')
+      },
+      {
+        path: 'documents/:id',
+        name: 'BillingDocumentDetail',
+        component: () => import('@/views/billing/DocumentDetailView.vue')
       }
     ]
   },
