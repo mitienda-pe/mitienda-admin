@@ -1,20 +1,24 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useOrdersStore } from '@/stores/orders.store'
 import { useFormatters } from '@/composables/useFormatters'
+import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import ProgressSpinner from 'primevue/progressspinner'
 import Timeline from 'primevue/timeline'
+import EmitDocumentDialog from '@/components/billing/EmitDocumentDialog.vue'
 import type { OrderStatus } from '@/types/order.types'
 
 const route = useRoute()
 const router = useRouter()
 const ordersStore = useOrdersStore()
+const toast = useToast()
 const { formatCurrency, formatDate, formatTime, formatDateTime } = useFormatters()
 
 const orderId = Number(route.params.id)
+const showEmitDialog = ref(false)
 
 onMounted(() => {
   ordersStore.fetchOrder(orderId)
@@ -136,6 +140,22 @@ const subtotal = computed(() => {
 const goBack = () => {
   router.push('/orders')
 }
+
+const handleEmitSuccess = () => {
+  toast.add({
+    severity: 'success',
+    summary: 'Comprobante Emitido',
+    detail: 'El comprobante se ha emitido exitosamente',
+    life: 3000
+  })
+  // Optionally refresh the order to show updated billing status
+  ordersStore.fetchOrder(orderId)
+}
+
+const canEmitDocument = computed(() => {
+  // Can emit if order exists, is paid, and has customer info
+  return order.value && order.value.status === 'paid' && order.value.customer
+})
 </script>
 
 <template>
@@ -158,17 +178,26 @@ const goBack = () => {
           </p>
         </div>
       </div>
-      <span
-        v-if="statusConfig"
-        :class="[
-          'px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-2',
-          statusConfig.bgClass,
-          statusConfig.textClass
-        ]"
-      >
-        <i :class="['pi', statusConfig.iconClass]"></i>
-        {{ statusConfig.label }}
-      </span>
+      <div class="flex items-center gap-3">
+        <Button
+          v-if="canEmitDocument"
+          label="Emitir Comprobante"
+          icon="pi pi-file-pdf"
+          severity="success"
+          @click="showEmitDialog = true"
+        />
+        <span
+          v-if="statusConfig"
+          :class="[
+            'px-3 py-1.5 rounded-full text-sm font-medium flex items-center gap-2',
+            statusConfig.bgClass,
+            statusConfig.textClass
+          ]"
+        >
+          <i :class="['pi', statusConfig.iconClass]"></i>
+          {{ statusConfig.label }}
+        </span>
+      </div>
     </div>
 
     <!-- Loading -->
@@ -421,5 +450,15 @@ const goBack = () => {
         </Card>
       </div>
     </div>
+
+    <!-- Emit Document Dialog -->
+    <EmitDocumentDialog
+      v-if="order"
+      v-model:visible="showEmitDialog"
+      :order-id="order.id"
+      :order-number="order.order_number"
+      :order-total="order.total"
+      @success="handleEmitSuccess"
+    />
   </div>
 </template>
