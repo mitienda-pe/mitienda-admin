@@ -64,3 +64,47 @@ export interface TestConnectionResponse {
   environment: BillingEnvironment
   message?: string
 }
+
+// Document Types
+
+export type DocumentType = 1 | 2 // 1=Factura, 2=Boleta
+
+export interface BillingDocument {
+  id: number
+  order_code: string
+  document_type: string // 'Factura' | 'Boleta'
+  serie: string
+  correlative: string
+  customer_name: string
+  customer_document: string
+  total: number
+  emission_date: string
+  provider_id: number
+  files: BillingDocumentFiles
+}
+
+export interface BillingDocumentFiles {
+  pdf?: string
+  xml?: string
+  cdr?: string
+  qr?: string
+}
+
+export interface BillingDocumentDetail extends BillingDocument {
+  customer_document_type: number
+  hash: string | null
+  full_response: any
+}
+
+export interface EmitDocumentRequest {
+  order_id: number
+  document_type: DocumentType
+}
+
+export interface EmitDocumentResponse {
+  order_id: number
+  document_type: DocumentType
+  serie: string
+  correlative: string
+  files: BillingDocumentFiles
+}

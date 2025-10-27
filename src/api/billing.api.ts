@@ -3,7 +3,11 @@ import type { ApiResponse } from '@/types/api.types'
 import type {
   NubefactConfigResponse,
   SaveNubefactCredentialsRequest,
-  TestConnectionResponse
+  TestConnectionResponse,
+  BillingDocument,
+  BillingDocumentDetail,
+  EmitDocumentRequest,
+  EmitDocumentResponse
 } from '@/types/billing.types'
 
 export const billingApi = {
@@ -46,6 +50,39 @@ export const billingApi = {
    */
   async testNubefactConnection(): Promise<ApiResponse<TestConnectionResponse>> {
     const response = await apiClient.post('/billing/nubefact/test')
+    return response.data
+  },
+
+  // ========== Billing Documents API ==========
+
+  /**
+   * Get list of emitted billing documents
+   */
+  async getDocuments(limit?: number, offset?: number): Promise<ApiResponse<{
+    data: BillingDocument[]
+    pagination: { total: number; limit: number; offset: number }
+  }>> {
+    const params = new URLSearchParams()
+    if (limit) params.append('limit', limit.toString())
+    if (offset) params.append('offset', offset.toString())
+
+    const response = await apiClient.get(`/billing/documents?${params.toString()}`)
+    return response.data
+  },
+
+  /**
+   * Get billing document detail
+   */
+  async getDocumentDetail(id: number): Promise<ApiResponse<BillingDocumentDetail>> {
+    const response = await apiClient.get(`/billing/documents/${id}`)
+    return response.data
+  },
+
+  /**
+   * Emit billing document for an order
+   */
+  async emitDocument(data: EmitDocumentRequest): Promise<ApiResponse<EmitDocumentResponse>> {
+    const response = await apiClient.post('/billing/documents/emit', data)
     return response.data
   }
 }
