@@ -110,9 +110,8 @@
 
             <!-- Grupo Catálogo -->
             <li>
-              <button
-                @click="catalogExpanded = !catalogExpanded"
-                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+              <div
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isCatalogActive }"
               >
                 <div class="flex items-center gap-3">
@@ -120,7 +119,7 @@
                   <span>Catálogo</span>
                 </div>
                 <i :class="catalogExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
-              </button>
+              </div>
 
               <!-- Submenú -->
               <ul v-show="catalogExpanded" class="ml-4 mt-1 space-y-1">
@@ -139,9 +138,8 @@
 
             <!-- Grupo Facturación -->
             <li>
-              <button
-                @click="billingExpanded = !billingExpanded"
-                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+              <div
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isBillingActive }"
               >
                 <div class="flex items-center gap-3">
@@ -149,7 +147,7 @@
                   <span>Facturación</span>
                 </div>
                 <i :class="billingExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
-              </button>
+              </div>
 
               <!-- Submenú -->
               <ul v-show="billingExpanded" class="ml-4 mt-1 space-y-1">
@@ -168,9 +166,8 @@
 
             <!-- Grupo: API -->
             <li>
-              <button
-                @click="apiExpanded = !apiExpanded"
-                class="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-primary-50 hover:text-primary transition-colors"
+              <div
+                class="w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isApiActive }"
               >
                 <div class="flex items-center gap-3">
@@ -178,7 +175,7 @@
                   <span>API</span>
                 </div>
                 <i :class="apiExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
-              </button>
+              </div>
 
               <!-- Submenú -->
               <ul v-show="apiExpanded" class="ml-4 mt-1 space-y-1">
@@ -235,9 +232,8 @@
 
             <!-- Grupo Catálogo -->
             <li>
-              <button
-                @click="catalogExpanded = !catalogExpanded"
-                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+              <div
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isCatalogActive }"
               >
                 <div class="flex items-center gap-3">
@@ -245,7 +241,7 @@
                   <span>Catálogo</span>
                 </div>
                 <i :class="catalogExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
-              </button>
+              </div>
 
               <!-- Submenú -->
               <ul v-show="catalogExpanded" class="ml-4 mt-1 space-y-1">
@@ -265,9 +261,8 @@
 
             <!-- Grupo Facturación -->
             <li>
-              <button
-                @click="billingExpanded = !billingExpanded"
-                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+              <div
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isBillingActive }"
               >
                 <div class="flex items-center gap-3">
@@ -275,7 +270,7 @@
                   <span>Facturación</span>
                 </div>
                 <i :class="billingExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
-              </button>
+              </div>
 
               <!-- Submenú -->
               <ul v-show="billingExpanded" class="ml-4 mt-1 space-y-1">
@@ -353,9 +348,19 @@ const exitingImpersonation = ref(false)
 
 const sidebarVisible = ref(false)
 const userMenu = ref()
-const catalogExpanded = ref(true)
-const billingExpanded = ref(false)
-const apiExpanded = ref(false)
+
+// Computar dinámicamente qué menú debe estar expandido según la ruta
+const catalogExpanded = computed(() => {
+  return route.path.startsWith('/products') || route.path.startsWith('/catalog')
+})
+
+const billingExpanded = computed(() => {
+  return route.path.startsWith('/billing')
+})
+
+const apiExpanded = computed(() => {
+  return route.path.startsWith('/api')
+})
 
 // Items simples del menú
 const simpleMenuItems = [
