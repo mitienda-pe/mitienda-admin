@@ -58,10 +58,9 @@ export const billingApi = {
   /**
    * Get list of emitted billing documents
    */
-  async getDocuments(limit?: number, offset?: number): Promise<ApiResponse<{
-    data: BillingDocument[]
-    pagination: { total: number; limit: number; offset: number }
-  }>> {
+  async getDocuments(limit?: number, offset?: number): Promise<ApiResponse<BillingDocument[]> & {
+    pagination?: { total: number; limit: number; offset: number }
+  }> {
     const params = new URLSearchParams()
     if (limit) params.append('limit', limit.toString())
     if (offset) params.append('offset', offset.toString())
