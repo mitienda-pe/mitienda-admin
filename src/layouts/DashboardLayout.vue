@@ -166,6 +166,35 @@
               </ul>
             </li>
 
+            <!-- Grupo: API -->
+            <li>
+              <button
+                @click="apiExpanded = !apiExpanded"
+                class="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isApiActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-cog"></i>
+                  <span>API</span>
+                </div>
+                <i :class="apiExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="apiExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in apiMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+
             <!-- Volver a Administración (solo si está impersonando) -->
             <li v-if="adminStore.isImpersonating">
               <div class="border-t border-gray-200 my-4"></div>
@@ -263,6 +292,36 @@
                 </li>
               </ul>
             </li>
+
+            <!-- Grupo API -->
+            <li>
+              <button
+                @click="apiExpanded = !apiExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isApiActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-cog"></i>
+                  <span>API</span>
+                </div>
+                <i :class="apiExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="apiExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in apiMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                    @click="sidebarVisible = false"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
           </ul>
         </nav>
       </Sidebar>
@@ -296,6 +355,7 @@ const sidebarVisible = ref(false)
 const userMenu = ref()
 const catalogExpanded = ref(true)
 const billingExpanded = ref(false)
+const apiExpanded = ref(false)
 
 // Items simples del menú
 const simpleMenuItems = [
@@ -319,6 +379,12 @@ const billingMenuItems = [
   { label: 'Documentos', icon: 'pi pi-file', to: '/billing/documents' }
 ]
 
+// Items del grupo API
+const apiMenuItems = [
+  { label: 'Credenciales', icon: 'pi pi-key', to: '/api/credentials' },
+  { label: 'Webhooks', icon: 'pi pi-link', to: '/api/webhooks' }
+]
+
 // Detectar si estamos en alguna ruta del catálogo
 const isCatalogActive = computed(() => {
   return route.path.startsWith('/products') || route.path.startsWith('/catalog')
@@ -327,6 +393,11 @@ const isCatalogActive = computed(() => {
 // Detectar si estamos en alguna ruta de facturación
 const isBillingActive = computed(() => {
   return route.path.startsWith('/billing')
+})
+
+// Detectar si estamos en alguna ruta de API
+const isApiActive = computed(() => {
+  return route.path.startsWith('/api')
 })
 
 // Detectar si es superadmin SIN estar impersonando (para mostrar sidebar especial)

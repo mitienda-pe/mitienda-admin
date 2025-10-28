@@ -176,6 +176,23 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/api',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: 'credentials',
+        name: 'ApiCredentials',
+        component: () => import('@/views/api/CredentialsView.vue')
+      },
+      {
+        path: 'webhooks',
+        name: 'ApiWebhooks',
+        component: () => import('@/views/api/WebhooksView.vue')
+      }
+    ]
+  },
+  {
     path: '/admin',
     component: DashboardLayout,
     meta: { requiresAuth: true, requiresSuperAdmin: true },
