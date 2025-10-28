@@ -23,7 +23,13 @@ export default defineConfig({
     port: 3000,
     host: true,
     proxy: {
-      '/api': {
+      '/api/v1': {
+        target: 'https://api2.mitienda.pe',
+        changeOrigin: true,
+        secure: false,
+        ws: true
+      },
+      '/auth': {
         target: 'https://api2.mitienda.pe',
         changeOrigin: true,
         secure: false,
