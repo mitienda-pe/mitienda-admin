@@ -8,6 +8,7 @@ export interface BillingProvider {
 }
 
 export type BillingEnvironment = 'produccion' | 'prueba'
+export type PdfFormat = 'A4' | 'TICKET' | '80MM'
 
 // Nubefact Types
 
@@ -15,10 +16,11 @@ export interface NubefactCredentials {
   nubefact_url: string
   api_token: string
   serie_factura?: string
-  numero_factura?: string
+  numero_factura?: string | number
   serie_boleta?: string
-  numero_boleta?: string
+  numero_boleta?: string | number
   environment: BillingEnvironment
+  pdf_format?: PdfFormat
 }
 
 export interface NubefactConfig {
@@ -39,10 +41,11 @@ export interface SaveNubefactCredentialsRequest {
   nubefact_url: string
   api_token: string
   serie_factura?: string
-  numero_factura?: string
+  numero_factura?: string | number
   serie_boleta?: string
-  numero_boleta?: string
+  numero_boleta?: string | number
   environment?: BillingEnvironment
+  pdf_format?: PdfFormat
   blocked?: boolean
 }
 

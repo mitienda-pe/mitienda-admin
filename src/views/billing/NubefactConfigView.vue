@@ -170,6 +170,35 @@
                 </small>
               </div>
 
+              <Divider />
+
+              <!-- Formato PDF -->
+              <div>
+                <h3 class="text-lg font-semibold text-secondary-800 mb-4">Formato de impresión</h3>
+
+                <div class="flex items-center gap-4">
+                  <div class="flex items-center gap-2">
+                    <RadioButton
+                      v-model="formData.pdf_format"
+                      inputId="format_a4"
+                      value="A4"
+                    />
+                    <label for="format_a4" class="cursor-pointer">A4 (Estándar)</label>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <RadioButton
+                      v-model="formData.pdf_format"
+                      inputId="format_ticket"
+                      value="TICKET"
+                    />
+                    <label for="format_ticket" class="cursor-pointer">Ticket (80mm)</label>
+                  </div>
+                </div>
+                <small class="text-secondary-600 mt-2 block">
+                  Formato predeterminado para generar el PDF del comprobante. Ticket es ideal para impresoras térmicas.
+                </small>
+              </div>
+
               <!-- Mensajes de error/éxito -->
               <Message v-if="billingStore.error" severity="error" :closable="false">
                 {{ billingStore.error }}
@@ -303,10 +332,11 @@ const formData = reactive<SaveNubefactCredentialsRequest>({
   nubefact_url: '',
   api_token: '',
   serie_factura: '',
-  numero_factura: '',
+  numero_factura: undefined,
   serie_boleta: '',
-  numero_boleta: '',
-  environment: 'prueba'
+  numero_boleta: undefined,
+  environment: 'prueba',
+  pdf_format: 'A4'
 })
 
 const errors = reactive({
@@ -325,10 +355,11 @@ onMounted(async () => {
       nubefact_url: config.value.credentials.nubefact_url || '',
       api_token: config.value.credentials.api_token,
       serie_factura: config.value.credentials.serie_factura || '',
-      numero_factura: config.value.credentials.numero_factura || '',
+      numero_factura: config.value.credentials.numero_factura ? parseInt(config.value.credentials.numero_factura) : undefined,
       serie_boleta: config.value.credentials.serie_boleta || '',
-      numero_boleta: config.value.credentials.numero_boleta || '',
-      environment: config.value.credentials.environment || 'prueba'
+      numero_boleta: config.value.credentials.numero_boleta ? parseInt(config.value.credentials.numero_boleta) : undefined,
+      environment: config.value.credentials.environment || 'prueba',
+      pdf_format: config.value.credentials.pdf_format || 'A4'
     })
   }
 })
@@ -426,10 +457,11 @@ function handleDelete() {
           nubefact_url: '',
           api_token: '',
           serie_factura: '',
-          numero_factura: '',
+          numero_factura: undefined,
           serie_boleta: '',
-          numero_boleta: '',
-          environment: 'prueba'
+          numero_boleta: undefined,
+          environment: 'prueba',
+          pdf_format: 'A4'
         })
       } else {
         toast.add({
