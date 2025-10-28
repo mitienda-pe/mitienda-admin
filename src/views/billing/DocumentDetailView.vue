@@ -66,7 +66,7 @@
               <div>
                 <label class="text-sm font-semibold text-gray-600">Total</label>
                 <p class="text-lg font-bold text-gray-900">
-                  S/ {{ parseFloat(document.total).toFixed(2) }}
+                  S/ {{ parseFloat(String(document.total)).toFixed(2) }}
                 </p>
               </div>
 
@@ -113,7 +113,7 @@
                 severity="danger"
                 outlined
                 class="w-full"
-                @click="downloadFile(document.files.pdf, `${document.serie}-${document.correlative}.pdf`)"
+                @click="downloadFile(document.files.pdf)"
               />
 
               <Button
@@ -123,7 +123,7 @@
                 severity="info"
                 outlined
                 class="w-full"
-                @click="downloadFile(document.files.xml, `${document.serie}-${document.correlative}.xml`)"
+                @click="downloadFile(document.files.xml)"
               />
 
               <Button
@@ -133,7 +133,7 @@
                 severity="success"
                 outlined
                 class="w-full"
-                @click="downloadFile(document.files.cdr, `${document.serie}-${document.correlative}-CDR.zip`)"
+                @click="downloadFile(document.files.cdr)"
               />
 
               <div v-if="!document.files?.pdf && !document.files?.xml && !document.files?.cdr" class="text-center text-gray-500 py-4">
@@ -209,7 +209,7 @@ const formatDate = (dateString: string) => {
   })
 }
 
-const downloadFile = (url: string, filename: string) => {
+const downloadFile = (url: string) => {
   window.open(url, '_blank')
 }
 

@@ -92,7 +92,7 @@
                 rounded
                 size="small"
                 v-tooltip.top="'Descargar PDF'"
-                @click="downloadFile(data.files.pdf, `${data.serie}-${data.correlative}.pdf`)"
+                @click="downloadFile(data.files.pdf)"
               />
               <Button
                 v-if="data.files?.xml"
@@ -102,7 +102,7 @@
                 rounded
                 size="small"
                 v-tooltip.top="'Descargar XML'"
-                @click="downloadFile(data.files.xml, `${data.serie}-${data.correlative}.xml`)"
+                @click="downloadFile(data.files.xml)"
               />
               <Button
                 v-if="data.files?.cdr"
@@ -112,7 +112,7 @@
                 rounded
                 size="small"
                 v-tooltip.top="'Descargar CDR'"
-                @click="downloadFile(data.files.cdr, `${data.serie}-${data.correlative}-CDR.zip`)"
+                @click="downloadFile(data.files.cdr)"
               />
               <span v-if="!data.files?.pdf && !data.files?.xml && !data.files?.cdr" class="text-gray-400 text-sm">
                 Sin archivos
@@ -173,7 +173,7 @@ const formatDate = (dateString: string) => {
   })
 }
 
-const downloadFile = (url: string, filename: string) => {
+const downloadFile = (url: string) => {
   window.open(url, '_blank')
 }
 

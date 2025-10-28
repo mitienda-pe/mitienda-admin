@@ -30,9 +30,9 @@ export const useBillingDocumentsStore = defineStore('billingDocuments', () => {
       const response = await billingApi.getDocuments(limit, offset)
 
       if (response.success && response.data) {
-        documents.value = response.data
-        if (response.pagination) {
-          pagination.value = response.pagination
+        documents.value = response.data.data
+        if (response.data.pagination) {
+          pagination.value = response.data.pagination
         }
       } else {
         error.value = 'Error al cargar documentos'

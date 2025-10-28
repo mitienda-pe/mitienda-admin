@@ -106,7 +106,7 @@
                     </label>
                     <InputNumber
                       id="numero_factura"
-                      v-model="formData.numero_factura"
+                      v-model="formData.numero_factura as number | null"
                       placeholder="1"
                       :min="1"
                       class="w-full"
@@ -132,7 +132,7 @@
                     </label>
                     <InputNumber
                       id="numero_boleta"
-                      v-model="formData.numero_boleta"
+                      v-model="formData.numero_boleta as number | null"
                       placeholder="1"
                       :min="1"
                       class="w-full"
@@ -314,7 +314,6 @@ import type { SaveNubefactCredentialsRequest } from '@/types/billing.types'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
-import Textarea from 'primevue/textarea'
 import Password from 'primevue/password'
 import InputNumber from 'primevue/inputnumber'
 import RadioButton from 'primevue/radiobutton'
@@ -332,9 +331,9 @@ const formData = reactive<SaveNubefactCredentialsRequest>({
   nubefact_url: '',
   api_token: '',
   serie_factura: '',
-  numero_factura: undefined,
+  numero_factura: null as any,
   serie_boleta: '',
-  numero_boleta: undefined,
+  numero_boleta: null as any,
   environment: 'prueba',
   pdf_format: 'A4'
 })
@@ -355,9 +354,9 @@ onMounted(async () => {
       nubefact_url: config.value.credentials.nubefact_url || '',
       api_token: config.value.credentials.api_token,
       serie_factura: config.value.credentials.serie_factura || '',
-      numero_factura: config.value.credentials.numero_factura ? parseInt(config.value.credentials.numero_factura) : undefined,
+      numero_factura: config.value.credentials.numero_factura ? parseInt(String(config.value.credentials.numero_factura)) : undefined,
       serie_boleta: config.value.credentials.serie_boleta || '',
-      numero_boleta: config.value.credentials.numero_boleta ? parseInt(config.value.credentials.numero_boleta) : undefined,
+      numero_boleta: config.value.credentials.numero_boleta ? parseInt(String(config.value.credentials.numero_boleta)) : undefined,
       environment: config.value.credentials.environment || 'prueba',
       pdf_format: config.value.credentials.pdf_format || 'A4'
     })
