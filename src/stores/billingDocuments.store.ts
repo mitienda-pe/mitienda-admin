@@ -30,8 +30,10 @@ export const useBillingDocumentsStore = defineStore('billingDocuments', () => {
       const response = await billingApi.getDocuments(limit, offset)
 
       if (response.success && response.data) {
-        documents.value = response.data.data
-        pagination.value = response.data.pagination
+        documents.value = response.data
+        if (response.pagination) {
+          pagination.value = response.pagination
+        }
       } else {
         error.value = 'Error al cargar documentos'
       }
@@ -81,9 +83,17 @@ export const useBillingDocumentsStore = defineStore('billingDocuments', () => {
         return { success: false, error: error.value }
       }
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Error al emitir comprobante'
       console.error('Error al emitir comprobante:', err)
-      return { success: false, error: error.value }
+      console.error('Response data:', err.response?.data)
+
+      // Try to extract more detailed error message
+      const errorMsg = err.response?.data?.message
+        || (typeof err.response?.data === 'string' ? err.response.data : null)
+        || JSON.stringify(err.response?.data)
+        || 'Error al emitir comprobante'
+
+      error.value = errorMsg
+      return { success: false, error: errorMsg }
     } finally {
       isEmitting.value = false
     }

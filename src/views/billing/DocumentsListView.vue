@@ -114,6 +114,9 @@
                 v-tooltip.top="'Descargar CDR'"
                 @click="downloadFile(data.files.cdr, `${data.serie}-${data.correlative}-CDR.zip`)"
               />
+              <span v-if="!data.files?.pdf && !data.files?.xml && !data.files?.cdr" class="text-gray-400 text-sm">
+                Sin archivos
+              </span>
             </div>
           </template>
         </Column>

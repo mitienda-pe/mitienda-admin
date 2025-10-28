@@ -137,7 +137,7 @@
               </ul>
             </li>
 
-            <!-- Grupo Proveedores de Facturación -->
+            <!-- Grupo Facturación -->
             <li>
               <button
                 @click="billingExpanded = !billingExpanded"
@@ -145,8 +145,8 @@
                 :class="{ 'bg-primary-50 text-primary font-medium': isBillingActive }"
               >
                 <div class="flex items-center gap-3">
-                  <i class="pi pi-building"></i>
-                  <span>Proveedores</span>
+                  <i class="pi pi-receipt"></i>
+                  <span>Facturación</span>
                 </div>
                 <i :class="billingExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
               </button>
@@ -234,7 +234,7 @@
               </ul>
             </li>
 
-            <!-- Grupo Proveedores de Facturación -->
+            <!-- Grupo Facturación -->
             <li>
               <button
                 @click="billingExpanded = !billingExpanded"
@@ -242,8 +242,8 @@
                 :class="{ 'bg-primary-50 text-primary font-medium': isBillingActive }"
               >
                 <div class="flex items-center gap-3">
-                  <i class="pi pi-building"></i>
-                  <span>Proveedores</span>
+                  <i class="pi pi-receipt"></i>
+                  <span>Facturación</span>
                 </div>
                 <i :class="billingExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
               </button>
@@ -313,7 +313,7 @@ const catalogMenuItems = [
   { label: 'Etiquetas', icon: 'pi pi-bookmark', to: '/catalog/product-tags' }
 ]
 
-// Items del grupo Proveedores
+// Items del grupo Facturación
 const billingMenuItems = [
   { label: 'Proveedores', icon: 'pi pi-building', to: '/billing/providers' },
   { label: 'Documentos', icon: 'pi pi-file', to: '/billing/documents' }

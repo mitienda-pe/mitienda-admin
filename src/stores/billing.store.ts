@@ -130,6 +130,7 @@ export const useBillingStore = defineStore('billing', () => {
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Error al probar conexión'
       console.error('Error al probar conexión de Nubefact:', err)
+      console.error('Response data:', err.response?.data)
       return { success: false, error: error.value }
     } finally {
       isTesting.value = false
