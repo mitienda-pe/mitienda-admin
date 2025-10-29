@@ -1,5 +1,7 @@
 // API Credentials Types
 
+// Note: StoreCredential is defined for potential future use
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface StoreCredential {
   tiendacredencial_id: number
   tienda_id: number
