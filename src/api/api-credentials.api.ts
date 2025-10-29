@@ -1,7 +1,6 @@
 import apiClient from './axios'
 import type { ApiResponse } from '@/types/api.types'
 import type {
-  StoreCredential,
   CreateTokenResponse,
   RenewTokenResponse,
   StoreWebhook,
