@@ -31,8 +31,12 @@ export const productsApi = {
 
     const response = await apiClient.get(`/products?${params.toString()}`)
 
-    // La API devuelve un array directo de productos
-    const rawData = response.data
+    // La API ahora devuelve { error, data, pagination }
+    const apiResponse = response.data
+
+    // Manejar ambos formatos: nuevo (con pagination) y legacy (array directo)
+    const rawData = apiResponse.data || apiResponse
+    const paginationData = apiResponse.pagination
 
     if (Array.isArray(rawData)) {
       return {
@@ -86,10 +90,10 @@ export const productsApi = {
             updated_at: product.updated_at || new Date().toISOString()
           }
         }),
-        meta: {
+        meta: paginationData || {
           page: filters.page || 1,
           limit: filters.limit || 20,
-          total: rawData.length, // La API no devuelve paginación
+          total: rawData.length,
           totalPages: 1,
           hasMore: rawData.length >= (filters.limit || 20)
         }

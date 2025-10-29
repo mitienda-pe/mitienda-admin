@@ -78,9 +78,10 @@ export const useProductsStore = defineStore('products', () => {
 
         if (response.meta) {
           pagination.value = {
-            ...pagination.value,
-            total: filteredProducts.length,
-            hasMore: response.meta.hasMore
+            page: response.meta.page || pagination.value.page,
+            limit: response.meta.limit || response.meta.perPage || pagination.value.limit,
+            total: response.meta.total || 0,
+            hasMore: response.meta.hasMore || false
           }
         }
       } else {

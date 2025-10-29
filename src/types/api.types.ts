@@ -8,7 +8,8 @@ export interface ApiResponse<T = any> {
 
 export interface PaginationMeta {
   page: number
-  limit: number
+  limit?: number
+  perPage?: number  // Backend devuelve perPage en lugar de limit
   total: number
   totalPages: number
   hasMore: boolean
