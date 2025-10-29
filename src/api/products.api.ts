@@ -90,7 +90,13 @@ export const productsApi = {
             updated_at: product.updated_at || new Date().toISOString()
           }
         }),
-        meta: paginationData || {
+        meta: paginationData ? {
+          page: paginationData.page,
+          limit: paginationData.perPage || paginationData.limit || 20,
+          total: paginationData.total,
+          totalPages: paginationData.totalPages,
+          hasMore: paginationData.hasMore
+        } : {
           page: filters.page || 1,
           limit: filters.limit || 20,
           total: rawData.length,
