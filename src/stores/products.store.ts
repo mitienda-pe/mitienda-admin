@@ -52,16 +52,34 @@ export const useProductsStore = defineStore('products', () => {
       const response = await productsApi.getProducts(apiFilters)
 
       if (response.success && response.data) {
+        // Filtrar productos en el frontend según stock_status para manejar unlimited_stock correctamente
+        let filteredProducts = response.data
+
+        // Si se filtra por "agotados", excluir productos con stock ilimitado
+        if (filters.value.stockStatus === 'out_of_stock') {
+          filteredProducts = response.data.filter(product => !product.unlimited_stock)
+        }
+        // Si se filtra por "en stock", incluir productos con stock ilimitado
+        else if (filters.value.stockStatus === 'in_stock') {
+          filteredProducts = response.data.filter(product =>
+            product.unlimited_stock || product.stock > 0
+          )
+        }
+        // Si se filtra por "stock limitado", excluir productos con stock ilimitado
+        else if (filters.value.stockStatus === 'limited') {
+          filteredProducts = response.data.filter(product => !product.unlimited_stock)
+        }
+
         if (loadMore) {
-          products.value = [...products.value, ...response.data]
+          products.value = [...products.value, ...filteredProducts]
         } else {
-          products.value = response.data
+          products.value = filteredProducts
         }
 
         if (response.meta) {
           pagination.value = {
             ...pagination.value,
-            total: response.meta.total,
+            total: filteredProducts.length,
             hasMore: response.meta.hasMore
           }
         }
