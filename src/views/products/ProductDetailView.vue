@@ -96,7 +96,9 @@
               <!-- Stock -->
               <div>
                 <span class="text-secondary-600">Stock: </span>
-                <span class="font-medium" :class="stockColorClass">{{ product.stock }} unidades</span>
+                <span class="font-medium" :class="stockColorClass">
+                  {{ product.unlimited_stock ? 'Ilimitado' : `${product.stock} unidades` }}
+                </span>
               </div>
 
               <!-- Stock mínimo -->
@@ -414,6 +416,12 @@ const hasVideo = computed(() => {
 
 const stockLabel = computed(() => {
   if (!product.value) return ''
+
+  // Si tiene stock ilimitado
+  if (product.value.unlimited_stock) {
+    return 'Stock ilimitado'
+  }
+
   if (product.value.stock === 0) return 'Agotado'
   if (product.value.min_stock && product.value.stock <= product.value.min_stock) {
     return 'Stock bajo'
@@ -423,6 +431,12 @@ const stockLabel = computed(() => {
 
 const stockBadgeClass = computed(() => {
   if (!product.value) return 'bg-red-100 text-red-800'
+
+  // Si tiene stock ilimitado, mostrar en verde
+  if (product.value.unlimited_stock) {
+    return 'bg-green-100 text-green-800'
+  }
+
   if (product.value.stock === 0) return 'bg-red-100 text-red-800'
   if (product.value.min_stock && product.value.stock <= product.value.min_stock) {
     return 'bg-yellow-100 text-yellow-800'
@@ -432,6 +446,12 @@ const stockBadgeClass = computed(() => {
 
 const stockColorClass = computed(() => {
   if (!product.value) return 'text-red-600'
+
+  // Si tiene stock ilimitado, mostrar en verde
+  if (product.value.unlimited_stock) {
+    return 'text-green-600'
+  }
+
   if (product.value.stock === 0) return 'text-red-600'
   if (product.value.min_stock && product.value.stock <= product.value.min_stock) {
     return 'text-orange-600'

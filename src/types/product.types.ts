@@ -31,6 +31,7 @@ export interface Product {
   compare_price?: number
   cost?: number
   stock: number
+  unlimited_stock: boolean
   min_stock?: number
   weight?: number
   weight_unit?: string

@@ -40,7 +40,9 @@
         <!-- Stock -->
         <div class="flex items-center gap-2 text-sm">
           <i :class="['pi', stockIcon, stockColorClass]"></i>
-          <span :class="stockColorClass">Stock: {{ product.stock }}</span>
+          <span :class="stockColorClass">
+            Stock: {{ product.unlimited_stock ? 'Ilimitado' : product.stock }}
+          </span>
         </div>
       </div>
     </template>
@@ -69,6 +71,11 @@ const mainImage = computed(() => {
 })
 
 const stockBadge = computed(() => {
+  // Si tiene stock ilimitado, no mostrar badge
+  if (props.product.unlimited_stock) {
+    return null
+  }
+
   if (props.product.stock === 0) {
     return { label: 'Agotado', severity: 'danger' as const }
   }
@@ -79,6 +86,11 @@ const stockBadge = computed(() => {
 })
 
 const stockIcon = computed(() => {
+  // Si tiene stock ilimitado, mostrar icono de infinito o check
+  if (props.product.unlimited_stock) {
+    return 'pi-check-circle'
+  }
+
   if (props.product.stock === 0) return 'pi-times-circle'
   if (props.product.min_stock && props.product.stock <= props.product.min_stock) {
     return 'pi-exclamation-triangle'
@@ -87,6 +99,11 @@ const stockIcon = computed(() => {
 })
 
 const stockColorClass = computed(() => {
+  // Si tiene stock ilimitado, mostrar en verde
+  if (props.product.unlimited_stock) {
+    return 'text-green-600'
+  }
+
   if (props.product.stock === 0) return 'text-red-600'
   if (props.product.min_stock && props.product.stock <= props.product.min_stock) {
     return 'text-orange-600'
