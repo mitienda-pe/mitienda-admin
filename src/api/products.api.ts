@@ -33,10 +33,13 @@ export const productsApi = {
 
     // La API ahora devuelve { error, data, pagination }
     const apiResponse = response.data
+    console.log('🔍 API Response:', apiResponse)
 
     // Manejar ambos formatos: nuevo (con pagination) y legacy (array directo)
     const rawData = apiResponse.data || apiResponse
     const paginationData = apiResponse.pagination
+    console.log('🔍 Raw Data:', rawData)
+    console.log('🔍 Pagination Data:', paginationData)
 
     if (Array.isArray(rawData)) {
       return {

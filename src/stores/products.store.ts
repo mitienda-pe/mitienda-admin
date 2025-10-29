@@ -50,8 +50,10 @@ export const useProductsStore = defineStore('products', () => {
       }
 
       const response = await productsApi.getProducts(apiFilters)
+      console.log('🔍 Store - API Response:', response)
 
       if (response.success && response.data) {
+        console.log('🔍 Store - Response success, data length:', response.data.length)
         // Filtrar productos en el frontend según stock_status para manejar unlimited_stock correctamente
         let filteredProducts = response.data
 
@@ -75,6 +77,8 @@ export const useProductsStore = defineStore('products', () => {
         } else {
           products.value = filteredProducts
         }
+        console.log('🔍 Store - Filtered products length:', filteredProducts.length)
+        console.log('🔍 Store - Products value length:', products.value.length)
 
         if (response.meta) {
           pagination.value = {
@@ -83,6 +87,7 @@ export const useProductsStore = defineStore('products', () => {
             total: response.meta.total || 0,
             hasMore: response.meta.hasMore || false
           }
+          console.log('🔍 Store - Pagination:', pagination.value)
         }
       } else {
         error.value = 'Error al cargar productos'

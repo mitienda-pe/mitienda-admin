@@ -43,7 +43,9 @@
       "Bash(npx vite:*)",
       "Bash(__NEW_LINE__ curl -X POST https://api2.mitienda.pe/api/v1/billing/documents/emit )",
       "Bash(TOKEN='eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwaTIubWl0aWVuZGEucGUvIiwic3ViIjoiNDA4IiwiYXVkIjoibW9iaWxlIiwiaWF0IjoxNzYxNjE5NzY2LCJleHAiOjE3NjQyMTE3NjYsInVzZXJfaWQiOjQwOCwiZW1haWwiOiJHY2tsNkt2Q3VKeXA3VUxDLzhkZmtNemxYU3dQRGY2SXA1OTZxZ2FsLzVkU1JnPT0iLCJzdG9yZV9pZCI6MTIwOTcsInBlcm1pc3Npb25zIjpbInJlYWRfcHJvZHVjdHMiLCJ3cml0ZV9wcm9kdWN0cyIsInVwZGF0ZV9wcm9kdWN0cyIsImRlbGV0ZV9wcm9kdWN0cyIsInJlYWRfb3JkZXJzIiwid3JpdGVfb3JkZXJzIiwidXBkYXRlX29yZGVycyIsInJlYWRfY3VzdG9tZXJzIiwid3JpdGVfY3VzdG9tZXJzIiwidXBkYXRlX2N1c3RvbWVycyJdfQ.HW1nSui8VdOMuveBoF5NqTClSgo_3qdHJUDu40crBto')",
-      "Bash(__NEW_LINE__ curl -X POST https://api2.mitienda.pe/api/v1/billing/documents/debug )"
+      "Bash(__NEW_LINE__ curl -X POST https://api2.mitienda.pe/api/v1/billing/documents/debug )",
+      "Bash(npx vue-tsc:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []
