@@ -172,7 +172,7 @@
             <td class="whitespace-nowrap px-6 py-4">
               <div class="text-sm text-gray-900">
                 {{ promotion.num_productos || 0 }}
-                <span v-if="promotion.promocion_id === 7 && promotion.num_productos_bonificacion" class="text-gray-500">
+                <span v-if="Number(promotion.promocion_id) === 7 && promotion.num_productos_bonificacion" class="text-gray-500">
                   ({{ promotion.num_productos_bonificacion }} bonif.)
                 </span>
               </div>
@@ -181,7 +181,7 @@
               <div class="text-sm text-gray-500">
                 <div>{{ formatDate(promotion.tiendapromocion_fechainicio) }}</div>
                 <div>{{ formatDate(promotion.tiendapromocion_fechacaducidad) }}</div>
-                <div v-if="promotion.is_active_period === 1" class="mt-1 text-xs text-green-600">
+                <div v-if="Number(promotion.is_active_period) === 1" class="mt-1 text-xs text-green-600">
                   Vigente ({{ promotion.days_until_expiry }} días restantes)
                 </div>
                 <div v-else class="mt-1 text-xs text-red-600">Fuera de período</div>
@@ -189,7 +189,7 @@
             </td>
             <td class="whitespace-nowrap px-6 py-4">
               <span
-                v-if="promotion.tiendapromocion_estado === 1"
+                v-if="Number(promotion.tiendapromocion_estado) === 1"
                 class="inline-flex rounded-full bg-green-100 px-2 text-xs font-semibold leading-5 text-green-800"
               >
                 Activo
