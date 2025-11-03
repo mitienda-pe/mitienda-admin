@@ -224,7 +224,8 @@
                   </div>
                   <InputSwitch
                     id="status-toggle"
-                    v-model="isPromotionActive"
+                    :model-value="isPromotionActive"
+                    @update:model-value="handleToggleChange"
                     :disabled="isUpdatingStatus"
                   />
                 </div>
@@ -233,7 +234,7 @@
                 <div class="pt-3 border-t border-gray-200">
                   <span class="text-sm text-gray-500">Estado actual:</span>
                   <span
-                    v-if="currentPromotion.tiendapromocion_estado === 1"
+                    v-if="Number(currentPromotion.tiendapromocion_estado) === 1"
                     class="ml-2 inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800"
                   >
                     Activo
@@ -326,37 +327,64 @@ const showEditDialog = ref(false)
 
 // Status toggle
 const isUpdatingStatus = ref(false)
-const isPromotionActive = computed({
-  get() {
-    return currentPromotion.value?.tiendapromocion_estado === 1
-  },
-  async set(newValue: boolean) {
-    if (!currentPromotion.value || isUpdatingStatus.value) return
-
-    console.log('Toggle changed to:', newValue)
-    console.log('Current status:', currentPromotion.value.tiendapromocion_estado)
-
-    try {
-      isUpdatingStatus.value = true
-      const newStatus = newValue ? 1 : 0
-
-      console.log('Updating to status:', newStatus)
-
-      await promotionsStore.modifyPromotion(currentPromotion.value.tiendapromocion_id, {
-        tiendapromocion_estado: newStatus
-      })
-
-      // Refresh to get updated data
-      await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
-      console.log('Status updated successfully')
-    } catch (error) {
-      console.error('Error toggling status:', error)
-      alert('Error al cambiar el estado de la promoción')
-    } finally {
-      isUpdatingStatus.value = false
-    }
-  }
+const isPromotionActive = computed(() => {
+  // Convert to number because backend returns string
+  const estado = Number(currentPromotion.value?.tiendapromocion_estado)
+  const result = estado === 1
+  console.log('isPromotionActive computed:', {
+    estadoOriginal: currentPromotion.value?.tiendapromocion_estado,
+    estadoConvertido: estado,
+    result,
+    promotion: currentPromotion.value?.tiendapromocion_nombre
+  })
+  return result
 })
+
+async function handleToggleChange(newValue: boolean) {
+  if (!currentPromotion.value) {
+    console.log('Ignoring toggle - no promotion loaded')
+    return
+  }
+
+  if (isUpdatingStatus.value) {
+    console.log('Ignoring toggle - already updating')
+    return
+  }
+
+  // Convert to number for proper comparison
+  const currentStatus = Number(currentPromotion.value.tiendapromocion_estado)
+  const currentBoolValue = currentStatus === 1
+
+  // If the new value is the same as current, ignore
+  if (newValue === currentBoolValue) {
+    console.log('Ignoring toggle - same value as current', { newValue, currentStatus, currentBoolValue })
+    return
+  }
+
+  console.log('Toggle clicked! Changing from', currentBoolValue, 'to', newValue)
+
+  try {
+    isUpdatingStatus.value = true
+    const newStatus = newValue ? 1 : 0
+
+    console.log('Updating status from', currentStatus, 'to', newStatus)
+
+    const result = await promotionsStore.modifyPromotion(currentPromotion.value.tiendapromocion_id, {
+      tiendapromocion_estado: newStatus
+    })
+
+    console.log('API response:', result)
+
+    // Refresh to get updated data
+    await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
+    console.log('Promotion refreshed successfully')
+  } catch (error) {
+    console.error('Error toggling status:', error)
+    alert('Error al cambiar el estado de la promoción')
+  } finally {
+    isUpdatingStatus.value = false
+  }
+}
 
 // Get image URL
 function getImageUrl(imageName: string) {
