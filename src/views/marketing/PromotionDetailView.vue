@@ -306,7 +306,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePromotionsStore } from '@/stores/promotions.store'
 import { storeToRefs } from 'pinia'
@@ -326,22 +326,36 @@ const showEditDialog = ref(false)
 
 // Status toggle
 const isUpdatingStatus = ref(false)
-const isPromotionActive = ref(false)
+const isPromotionActive = computed({
+  get() {
+    return currentPromotion.value?.tiendapromocion_estado === 1
+  },
+  async set(newValue: boolean) {
+    if (!currentPromotion.value || isUpdatingStatus.value) return
 
-// Watch for promotion changes to update the toggle
-watch(currentPromotion, (promotion) => {
-  if (promotion) {
-    isPromotionActive.value = promotion.tiendapromocion_estado === 1
+    console.log('Toggle changed to:', newValue)
+    console.log('Current status:', currentPromotion.value.tiendapromocion_estado)
+
+    try {
+      isUpdatingStatus.value = true
+      const newStatus = newValue ? 1 : 0
+
+      console.log('Updating to status:', newStatus)
+
+      await promotionsStore.modifyPromotion(currentPromotion.value.tiendapromocion_id, {
+        tiendapromocion_estado: newStatus
+      })
+
+      // Refresh to get updated data
+      await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
+      console.log('Status updated successfully')
+    } catch (error) {
+      console.error('Error toggling status:', error)
+      alert('Error al cambiar el estado de la promoción')
+    } finally {
+      isUpdatingStatus.value = false
+    }
   }
-}, { immediate: true })
-
-// Watch for toggle changes to update the promotion
-watch(isPromotionActive, async (newValue, oldValue) => {
-  // Skip if this is the initial value or if we're already updating
-  if (oldValue === undefined || isUpdatingStatus.value) return
-
-  console.log('Toggle changed from', oldValue, 'to', newValue)
-  await toggleStatus(newValue)
 })
 
 // Get image URL
@@ -361,34 +375,6 @@ function formatDate(dateString: string) {
 function goToConfiguration() {
   if (!currentPromotion.value) return
   router.push(`/marketing/promotions/${currentPromotion.value.tiendapromocion_id}/configure`)
-}
-
-// Toggle promotion status
-async function toggleStatus(newValue: boolean) {
-  if (!currentPromotion.value) return
-
-  console.log('Toggle status called with value:', newValue)
-  console.log('Current status:', currentPromotion.value.tiendapromocion_estado)
-
-  try {
-    isUpdatingStatus.value = true
-    const newStatus = newValue ? 1 : 0
-
-    console.log('Updating to status:', newStatus)
-
-    await promotionsStore.modifyPromotion(currentPromotion.value.tiendapromocion_id, {
-      tiendapromocion_estado: newStatus
-    })
-
-    // Refresh to get updated data
-    await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
-    console.log('Status updated successfully')
-  } catch (error) {
-    console.error('Error toggling status:', error)
-    alert('Error al cambiar el estado de la promoción')
-  } finally {
-    isUpdatingStatus.value = false
-  }
 }
 
 // Open edit dialog
