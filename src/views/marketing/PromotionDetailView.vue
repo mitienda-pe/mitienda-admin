@@ -219,13 +219,12 @@
                       Activar/Desactivar Promoción
                     </label>
                     <p class="text-xs text-gray-500 mt-1">
-                      {{ currentPromotion.tiendapromocion_estado === 1 ? 'La promoción está activa' : 'La promoción está inactiva' }}
+                      {{ isPromotionActive ? 'La promoción está activa' : 'La promoción está inactiva' }}
                     </p>
                   </div>
                   <InputSwitch
                     id="status-toggle"
-                    :modelValue="currentPromotion.tiendapromocion_estado === 1"
-                    @update:modelValue="toggleStatus"
+                    v-model="isPromotionActive"
                     :disabled="isUpdatingStatus"
                   />
                 </div>
@@ -307,7 +306,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePromotionsStore } from '@/stores/promotions.store'
 import { storeToRefs } from 'pinia'
@@ -327,6 +326,23 @@ const showEditDialog = ref(false)
 
 // Status toggle
 const isUpdatingStatus = ref(false)
+const isPromotionActive = ref(false)
+
+// Watch for promotion changes to update the toggle
+watch(currentPromotion, (promotion) => {
+  if (promotion) {
+    isPromotionActive.value = promotion.tiendapromocion_estado === 1
+  }
+}, { immediate: true })
+
+// Watch for toggle changes to update the promotion
+watch(isPromotionActive, async (newValue, oldValue) => {
+  // Skip if this is the initial value or if we're already updating
+  if (oldValue === undefined || isUpdatingStatus.value) return
+
+  console.log('Toggle changed from', oldValue, 'to', newValue)
+  await toggleStatus(newValue)
+})
 
 // Get image URL
 function getImageUrl(imageName: string) {
@@ -348,12 +364,17 @@ function goToConfiguration() {
 }
 
 // Toggle promotion status
-async function toggleStatus() {
+async function toggleStatus(newValue: boolean) {
   if (!currentPromotion.value) return
+
+  console.log('Toggle status called with value:', newValue)
+  console.log('Current status:', currentPromotion.value.tiendapromocion_estado)
 
   try {
     isUpdatingStatus.value = true
-    const newStatus = currentPromotion.value.tiendapromocion_estado === 1 ? 0 : 1
+    const newStatus = newValue ? 1 : 0
+
+    console.log('Updating to status:', newStatus)
 
     await promotionsStore.modifyPromotion(currentPromotion.value.tiendapromocion_id, {
       tiendapromocion_estado: newStatus
@@ -361,6 +382,7 @@ async function toggleStatus() {
 
     // Refresh to get updated data
     await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
+    console.log('Status updated successfully')
   } catch (error) {
     console.error('Error toggling status:', error)
     alert('Error al cambiar el estado de la promoción')
