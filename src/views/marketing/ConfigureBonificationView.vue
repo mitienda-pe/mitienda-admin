@@ -31,30 +31,30 @@
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Cantidad de productos a comprar <span class="text-red-500">*</span>
+                Cantidad mínima de productos activadores <span class="text-red-500">*</span>
               </label>
               <input
                 v-model.number="quantityToBuy"
                 type="number"
                 min="1"
                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                placeholder="Ej: 2 (para 2x1)"
+                placeholder="Ej: 12"
               />
-              <p class="mt-1 text-xs text-gray-500">Para un 2x1, ingresa 2. Para un 3x2, ingresa 3.</p>
+              <p class="mt-1 text-xs text-gray-500">Cantidad que el cliente debe comprar. Ej: 12 paquetes de galletas.</p>
             </div>
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Cantidad de productos a bonificar <span class="text-red-500">*</span>
+                Cantidad de productos premio <span class="text-red-500">*</span>
               </label>
               <input
                 v-model.number="quantityToGift"
                 type="number"
                 min="1"
                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                placeholder="Ej: 1 (para 2x1)"
+                placeholder="Ej: 1"
               />
-              <p class="mt-1 text-xs text-gray-500">Para un 2x1, ingresa 1. Para un 3x2, ingresa 2.</p>
+              <p class="mt-1 text-xs text-gray-500">Cantidad que se regala. Ej: 1 caramelo de regalo.</p>
             </div>
           </div>
         </div>
@@ -135,32 +135,32 @@
 
             <!-- Center: Transfer Buttons -->
             <div class="flex flex-col items-center justify-center gap-4 w-40 flex-shrink-0">
-              <!-- Move to Base Products -->
+              <!-- Move to Activator Products -->
               <div class="text-center">
                 <button
                   @click="moveToBase"
                   :disabled="selectedAvailable.length === 0"
                   class="inline-flex flex-col items-center justify-center w-32 h-20 rounded-lg bg-indigo-600 text-white shadow hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  title="Agregar a productos base (que el cliente compra)"
+                  title="Agregar a productos activadores (que el cliente compra)"
                 >
                   <i class="pi pi-arrow-right text-xl mb-1"></i>
-                  <span class="text-xs">Productos Base</span>
+                  <span class="text-xs">Activadores</span>
                 </button>
                 <p class="mt-1 text-xs text-gray-600">Cliente compra</p>
               </div>
 
-              <!-- Move to Bonification Products -->
+              <!-- Move to Prize Products -->
               <div class="text-center">
                 <button
                   @click="moveToBonification"
                   :disabled="selectedAvailable.length === 0"
                   class="inline-flex flex-col items-center justify-center w-32 h-20 rounded-lg bg-green-600 text-white shadow hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  title="Agregar a productos bonificados (regalos)"
+                  title="Agregar a productos premio (regalos)"
                 >
                   <i class="pi pi-arrow-right text-xl mb-1"></i>
-                  <span class="text-xs">Bonificación</span>
+                  <span class="text-xs">Premios</span>
                 </button>
-                <p class="mt-1 text-xs text-gray-600">Regalo</p>
+                <p class="mt-1 text-xs text-gray-600">Regalos</p>
               </div>
 
               <div class="border-t w-full my-2"></div>
@@ -196,11 +196,11 @@
             <div class="flex-1">
               <h3 class="text-sm font-semibold text-gray-900 mb-3">Productos Seleccionados</h3>
 
-              <!-- Base Products -->
+              <!-- Activator Products -->
               <div class="mb-4">
                 <h4 class="text-xs font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <i class="pi pi-shopping-cart text-indigo-600"></i>
-                  Productos Base (cliente compra)
+                  Productos Activadores
                 </h4>
                 <div class="border rounded-lg h-44 overflow-y-auto bg-indigo-50">
                   <div v-if="baseProducts.length === 0" class="flex items-center justify-center h-full">
@@ -238,11 +238,11 @@
                 <p class="mt-1 text-xs text-gray-600">{{ baseProducts.length }} producto(s)</p>
               </div>
 
-              <!-- Bonification Products -->
+              <!-- Prize Products -->
               <div>
                 <h4 class="text-xs font-medium text-gray-700 mb-2 flex items-center gap-2">
                   <i class="pi pi-gift text-green-600"></i>
-                  Productos Bonificados (regalos)
+                  Productos Premio
                 </h4>
                 <div class="border rounded-lg h-44 overflow-y-auto bg-green-50">
                   <div v-if="bonificationProducts.length === 0" class="flex items-center justify-center h-full">
@@ -311,10 +311,10 @@
           <div>
             <h4 class="text-sm font-semibold text-blue-900 mb-1">¿Cómo funciona?</h4>
             <ul class="text-sm text-blue-800 space-y-1">
-              <li><strong>Productos Base:</strong> Son los productos que el cliente debe comprar para recibir la bonificación.</li>
-              <li><strong>Productos Bonificados:</strong> Son los productos que se regalan como bonificación.</li>
-              <li><strong>Ejemplo 2x1:</strong> Cantidad a comprar = 2, Cantidad a bonificar = 1. El cliente compra 2 productos y recibe 1 gratis.</li>
-              <li><strong>Ejemplo 3x2:</strong> Cantidad a comprar = 3, Cantidad a bonificar = 2. El cliente compra 3 productos y recibe 2 gratis.</li>
+              <li><strong>Productos Activadores:</strong> Los productos que el cliente debe comprar para activar la bonificación.</li>
+              <li><strong>Productos Premio:</strong> Los productos que se regalan como bonificación.</li>
+              <li><strong>Ejemplo:</strong> Lleva 12 paquetes de galletas (activadores) y recibe 1 caramelo de regalo (premio).</li>
+              <li><strong>Cantidades:</strong> Especifica cuántos productos activadores debe comprar y cuántos productos premio se regalan.</li>
             </ul>
           </div>
         </div>
@@ -339,8 +339,8 @@ const promotionsStore = usePromotionsStore()
 const { currentPromotion, isLoading } = storeToRefs(promotionsStore)
 
 // Configuration
-const quantityToBuy = ref(2) // Default for 2x1
-const quantityToGift = ref(1) // Default for 2x1
+const quantityToBuy = ref(12) // Default: compra 12 productos
+const quantityToGift = ref(1) // Default: recibe 1 de regalo
 
 // Products
 const baseProducts = ref<Product[]>([])
