@@ -38,7 +38,9 @@ async function searchProducts() {
     const response = await productsApi.getProducts({
       search: searchQuery.value,
       limit: 50,
-      page: 1
+      page: 1,
+      published: true,
+      stock_status: 'in_stock'
     })
 
     if (response.success && response.data) {
@@ -124,13 +126,13 @@ watch(() => props.visible, (isVisible) => {
             <template #body="slotProps">
               <div class="flex items-center gap-3">
                 <img
-                  v-if="slotProps.data.main_image"
-                  :src="`https://cdn.mitienda.pe/images/${slotProps.data.main_image}`"
-                  :alt="slotProps.data.title"
+                  v-if="slotProps.data.images && slotProps.data.images.length > 0"
+                  :src="slotProps.data.images[0].cloudflare_url || slotProps.data.images[0].url"
+                  :alt="slotProps.data.name"
                   class="w-10 h-10 rounded object-cover"
                 />
                 <div>
-                  <div class="font-medium">{{ slotProps.data.title }}</div>
+                  <div class="font-medium">{{ slotProps.data.name }}</div>
                   <div class="text-gray-500 text-xs">SKU: {{ slotProps.data.sku }}</div>
                 </div>
               </div>
