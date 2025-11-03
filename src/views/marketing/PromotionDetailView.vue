@@ -100,7 +100,7 @@
                   </p>
                 </div>
                 <button
-                  v-if="currentPromotion.promocion_id === 7"
+                  v-if="Number(currentPromotion.promocion_id) === 7"
                   @click="goToConfiguration"
                   class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
                 >
@@ -161,7 +161,7 @@
           </div>
 
           <!-- Bonification Products (for type 7) -->
-          <div v-if="currentPromotion.promocion_id === 7" class="overflow-hidden rounded-lg bg-white shadow">
+          <div v-if="Number(currentPromotion.promocion_id) === 7" class="overflow-hidden rounded-lg bg-white shadow">
             <div class="px-4 py-5 sm:p-6">
               <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Productos de Bonificación</h3>
               <p class="text-sm text-gray-500 mb-4">
