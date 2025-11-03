@@ -61,9 +61,9 @@
 
         <!-- Product Selection -->
         <div class="px-6 py-4">
-          <div class="grid grid-cols-[2fr_auto_2fr] gap-6">
+          <div class="flex gap-6">
             <!-- Left Panel: Available Products -->
-            <div>
+            <div class="flex-1">
               <h3 class="text-sm font-semibold text-gray-900 mb-3">
                 Productos Disponibles
               </h3>
@@ -134,7 +134,7 @@
             </div>
 
             <!-- Center: Transfer Buttons -->
-            <div class="flex flex-col items-center justify-center gap-4">
+            <div class="flex flex-col items-center justify-center gap-4 w-40 flex-shrink-0">
               <!-- Move to Base Products -->
               <div class="text-center">
                 <button
@@ -193,7 +193,7 @@
             </div>
 
             <!-- Right Panel: Selected Products -->
-            <div>
+            <div class="flex-1">
               <h3 class="text-sm font-semibold text-gray-900 mb-3">Productos Seleccionados</h3>
 
               <!-- Base Products -->
@@ -381,7 +381,9 @@ async function searchProducts() {
     const response = await productsApi.getProducts({
       search: searchQuery.value,
       limit: 50,
-      page: 1
+      page: 1,
+      published: true, // Solo productos publicados
+      stock_status: 'in_stock' // Solo productos con stock
     })
 
     if (response.success && response.data) {
