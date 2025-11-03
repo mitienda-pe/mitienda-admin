@@ -211,8 +211,27 @@
           <div class="overflow-hidden rounded-lg bg-white shadow mb-6">
             <div class="px-4 py-5 sm:p-6">
               <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Estado</h3>
-              <div class="space-y-3">
-                <div>
+              <div class="space-y-4">
+                <!-- Activation Toggle -->
+                <div class="flex items-center justify-between">
+                  <div>
+                    <label for="status-toggle" class="text-sm font-medium text-gray-700">
+                      Activar/Desactivar Promoción
+                    </label>
+                    <p class="text-xs text-gray-500 mt-1">
+                      {{ currentPromotion.tiendapromocion_estado === 1 ? 'La promoción está activa' : 'La promoción está inactiva' }}
+                    </p>
+                  </div>
+                  <InputSwitch
+                    id="status-toggle"
+                    :modelValue="currentPromotion.tiendapromocion_estado === 1"
+                    @update:modelValue="toggleStatus"
+                    :disabled="isUpdatingStatus"
+                  />
+                </div>
+
+                <!-- Status Display -->
+                <div class="pt-3 border-t border-gray-200">
                   <span class="text-sm text-gray-500">Estado actual:</span>
                   <span
                     v-if="currentPromotion.tiendapromocion_estado === 1"
@@ -227,6 +246,7 @@
                     Inactivo
                   </span>
                 </div>
+
                 <div v-if="currentPromotion.is_active_period !== undefined">
                   <span class="text-sm text-gray-500">Período:</span>
                   <span
@@ -252,6 +272,7 @@
               <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Acciones</h3>
               <div class="space-y-3">
                 <button
+                  @click="handleEdit"
                   class="w-full inline-flex justify-center items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
                 >
                   Editar Promoción
@@ -275,6 +296,13 @@
       :promotion-id="currentPromotion?.tiendapromocion_id || null"
       @linked="handleProductsLinked"
     />
+
+    <!-- Edit Promotion Dialog -->
+    <EditPromotionDialog
+      v-model:visible="showEditDialog"
+      :promotion="currentPromotion"
+      @updated="handlePromotionEdited"
+    />
   </div>
 </template>
 
@@ -283,7 +311,9 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePromotionsStore } from '@/stores/promotions.store'
 import { storeToRefs } from 'pinia'
+import InputSwitch from 'primevue/inputswitch'
 import LinkProductsDialog from '@/components/promotions/LinkProductsDialog.vue'
+import EditPromotionDialog from '@/components/promotions/EditPromotionDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -293,6 +323,10 @@ const { currentPromotion, promotionProducts, bonificationProducts, isLoading, er
 
 // Dialogs
 const showLinkProductsDialog = ref(false)
+const showEditDialog = ref(false)
+
+// Status toggle
+const isUpdatingStatus = ref(false)
 
 // Get image URL
 function getImageUrl(imageName: string) {
@@ -311,6 +345,39 @@ function formatDate(dateString: string) {
 function goToConfiguration() {
   if (!currentPromotion.value) return
   router.push(`/marketing/promotions/${currentPromotion.value.tiendapromocion_id}/configure`)
+}
+
+// Toggle promotion status
+async function toggleStatus() {
+  if (!currentPromotion.value) return
+
+  try {
+    isUpdatingStatus.value = true
+    const newStatus = currentPromotion.value.tiendapromocion_estado === 1 ? 0 : 1
+
+    await promotionsStore.modifyPromotion(currentPromotion.value.tiendapromocion_id, {
+      tiendapromocion_estado: newStatus
+    })
+
+    // Refresh to get updated data
+    await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
+  } catch (error) {
+    console.error('Error toggling status:', error)
+    alert('Error al cambiar el estado de la promoción')
+  } finally {
+    isUpdatingStatus.value = false
+  }
+}
+
+// Open edit dialog
+function handleEdit() {
+  showEditDialog.value = true
+}
+
+// Handle promotion edited
+async function handlePromotionEdited() {
+  if (!currentPromotion.value) return
+  await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
 }
 
 // Confirm delete
