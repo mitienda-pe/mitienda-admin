@@ -123,14 +123,26 @@
 
         <Column header="Acciones">
           <template #body="{ data }">
-            <Button
-              icon="pi pi-eye"
-              severity="info"
-              text
-              rounded
-              v-tooltip.top="'Ver Detalle'"
-              @click="viewDetail(data.id)"
-            />
+            <div class="flex gap-2">
+              <Button
+                v-if="data.customer_email"
+                icon="pi pi-envelope"
+                severity="info"
+                text
+                rounded
+                :loading="sendingEmailForOrder === data.id"
+                v-tooltip.top="'Enviar por Email'"
+                @click="handleSendEmail(data)"
+              />
+              <Button
+                icon="pi pi-eye"
+                severity="info"
+                text
+                rounded
+                v-tooltip.top="'Ver Detalle'"
+                @click="viewDetail(data.id)"
+              />
+            </div>
           </template>
         </Column>
       </DataTable>
@@ -139,9 +151,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBillingDocumentsStore } from '@/stores/billingDocuments.store'
+import { useOrdersStore } from '@/stores/orders.store'
+import { useToast } from 'primevue/usetoast'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
@@ -150,6 +164,9 @@ import Tag from 'primevue/tag'
 
 const router = useRouter()
 const documentsStore = useBillingDocumentsStore()
+const ordersStore = useOrdersStore()
+const toast = useToast()
+const sendingEmailForOrder = ref<number | null>(null)
 
 onMounted(() => {
   documentsStore.fetchDocuments()
@@ -179,5 +196,38 @@ const downloadFile = (url: string) => {
 
 const viewDetail = (id: number) => {
   router.push(`/billing/documents/${id}`)
+}
+
+const handleSendEmail = async (document: any) => {
+  if (!document.customer_email) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Sin Email',
+      detail: 'Este documento no tiene un email de cliente asociado',
+      life: 3000
+    })
+    return
+  }
+
+  try {
+    sendingEmailForOrder.value = document.id
+    await ordersStore.resendInvoiceEmail(document.id)
+
+    toast.add({
+      severity: 'success',
+      summary: 'Email Enviado',
+      detail: `Factura enviada a ${document.customer_email}`,
+      life: 3000
+    })
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error al Enviar',
+      detail: error.response?.data?.message || 'No se pudo enviar el email',
+      life: 5000
+    })
+  } finally {
+    sendingEmailForOrder.value = null
+  }
 }
 </script>

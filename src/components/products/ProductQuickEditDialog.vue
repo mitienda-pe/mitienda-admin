@@ -148,6 +148,7 @@ const handleClose = () => {
           v-model="formData.barcode"
           placeholder="Ej: 7501234567890"
           :maxlength="50"
+          class="w-full"
         />
         <small class="text-gray-500">Código de barras del producto (EAN, UPC, etc.)</small>
       </div>
@@ -182,18 +183,56 @@ const handleClose = () => {
     </div>
 
     <template #footer>
-      <div class="flex justify-end gap-2">
+      <div class="flex justify-end gap-3">
         <Button
           label="Cancelar"
           severity="secondary"
-          outlined
           @click="handleClose"
         />
         <Button
           label="Guardar Cambios"
+          severity="primary"
           @click="handleSave"
         />
       </div>
     </template>
   </Dialog>
 </template>
+
+<style scoped>
+/* Mejorar visibilidad de los botones del footer */
+:deep(.p-dialog-footer .p-button) {
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+/* Botón Cancelar */
+:deep(.p-dialog-footer .p-button-secondary) {
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+
+:deep(.p-dialog-footer .p-button-secondary:hover) {
+  background-color: #e5e7eb;
+  border-color: #9ca3af;
+  color: #1f2937;
+}
+
+/* Botón Guardar Cambios */
+:deep(.p-dialog-footer .p-button-primary) {
+  background-color: var(--primary-500);
+  border-color: var(--primary-500);
+  color: white;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+:deep(.p-dialog-footer .p-button-primary:hover) {
+  background-color: var(--primary-600);
+  border-color: var(--primary-600);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+</style>

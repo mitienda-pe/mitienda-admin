@@ -85,13 +85,13 @@
                 >
                   <div class="flex items-center gap-3">
                     <img
-                      v-if="product.main_image"
-                      :src="`https://cdn.mitienda.pe/images/${product.main_image}`"
-                      :alt="product.title"
+                      v-if="product.images && product.images.length > 0"
+                      :src="product.images[0].cloudflare_url || product.images[0].url"
+                      :alt="product.name"
                       class="w-12 h-12 rounded object-cover"
                     />
                     <div>
-                      <p class="font-medium text-sm">{{ product.title }}</p>
+                      <p class="font-medium text-sm">{{ product.name }}</p>
                       <p class="text-xs text-gray-500">SKU: {{ product.sku }} | S/ {{ product.price }}</p>
                     </div>
                   </div>
@@ -126,13 +126,13 @@
               >
                 <div class="flex items-center gap-3">
                   <img
-                    v-if="product.main_image"
-                    :src="`https://cdn.mitienda.pe/images/${product.main_image}`"
-                    :alt="product.title"
+                    v-if="product.images && product.images.length > 0"
+                    :src="product.images[0].cloudflare_url || product.images[0].url"
+                    :alt="product.name"
                     class="w-16 h-16 rounded object-cover"
                   />
                   <div>
-                    <p class="font-medium">{{ product.title }}</p>
+                    <p class="font-medium">{{ product.name }}</p>
                     <p class="text-sm text-gray-500">SKU: {{ product.sku }}</p>
                     <p class="text-sm text-gray-900">S/ {{ product.price }}</p>
                   </div>
@@ -198,13 +198,13 @@
                 >
                   <div class="flex items-center gap-3">
                     <img
-                      v-if="product.main_image"
-                      :src="`https://cdn.mitienda.pe/images/${product.main_image}`"
-                      :alt="product.title"
+                      v-if="product.images && product.images.length > 0"
+                      :src="product.images[0].cloudflare_url || product.images[0].url"
+                      :alt="product.name"
                       class="w-12 h-12 rounded object-cover"
                     />
                     <div>
-                      <p class="font-medium text-sm">{{ product.title }}</p>
+                      <p class="font-medium text-sm">{{ product.name }}</p>
                       <p class="text-xs text-gray-500">SKU: {{ product.sku }} | S/ {{ product.price }}</p>
                     </div>
                   </div>
@@ -238,13 +238,13 @@
               >
                 <div class="flex items-center gap-3">
                   <img
-                    v-if="product.main_image"
-                    :src="`https://cdn.mitienda.pe/images/${product.main_image}`"
-                    :alt="product.title"
+                    v-if="product.images && product.images.length > 0"
+                    :src="product.images[0].cloudflare_url || product.images[0].url"
+                    :alt="product.name"
                     class="w-16 h-16 rounded object-cover"
                   />
                   <div>
-                    <p class="font-medium">{{ product.title }}</p>
+                    <p class="font-medium">{{ product.name }}</p>
                     <p class="text-sm text-gray-500">SKU: {{ product.sku }}</p>
                     <p class="text-sm text-gray-900">S/ {{ product.price }}</p>
                   </div>

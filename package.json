@@ -17,6 +17,7 @@
   "dependencies": {
     "@monaco-editor/loader": "^1.5.0",
     "@tinymce/tinymce-vue": "^5.1.1",
+    "@vueuse/core": "^14.0.0",
     "axios": "^1.6.8",
     "date-fns": "^3.6.0",
     "monaco-editor": "^0.45.0",

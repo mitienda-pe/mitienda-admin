@@ -19,6 +19,7 @@ const { formatCurrency, formatDate, formatTime, formatDateTime } = useFormatters
 
 const orderId = Number(route.params.id)
 const showEmitDialog = ref(false)
+const isSendingEmail = ref(false)
 
 onMounted(() => {
   ordersStore.fetchOrder(orderId)
@@ -156,6 +157,39 @@ const canEmitDocument = computed(() => {
   // Can emit if order exists, is paid, and has customer info
   return order.value && order.value.status === 'paid' && order.value.customer
 })
+
+const canSendEmail = computed(() => {
+  // Can send email if order is paid and has a valid customer email
+  return order.value &&
+         order.value.status === 'paid' &&
+         order.value.customer?.email &&
+         order.value.customer.email.includes('@')
+})
+
+const handleSendInvoiceEmail = async () => {
+  if (!order.value) return
+
+  try {
+    isSendingEmail.value = true
+    await ordersStore.resendInvoiceEmail(orderId)
+
+    toast.add({
+      severity: 'success',
+      summary: 'Email Enviado',
+      detail: `Se ha enviado la factura a ${order.value.customer.email}`,
+      life: 3000
+    })
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error al Enviar',
+      detail: error.response?.data?.message || 'No se pudo enviar el email',
+      life: 5000
+    })
+  } finally {
+    isSendingEmail.value = false
+  }
+}
 </script>
 
 <template>
@@ -179,6 +213,15 @@ const canEmitDocument = computed(() => {
         </div>
       </div>
       <div class="flex items-center gap-3">
+        <Button
+          v-if="canSendEmail"
+          label="Enviar Email"
+          icon="pi pi-envelope"
+          severity="info"
+          :loading="isSendingEmail"
+          @click="handleSendInvoiceEmail"
+          v-tooltip.left="'Enviar factura por email al cliente'"
+        />
         <Button
           v-if="canEmitDocument"
           label="Emitir Comprobante"

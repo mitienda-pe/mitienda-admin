@@ -279,5 +279,17 @@ export const ordersApi = {
   async getStats(): Promise<ApiResponse<OrderStats>> {
     const response = await apiClient.get('/orders/stats')
     return response.data
+  },
+
+  /**
+   * Reenviar email de factura al cliente
+   */
+  async resendInvoiceEmail(orderId: number): Promise<ApiResponse<{
+    order_id: number
+    email_sent_to: string
+    document: string
+  }>> {
+    const response = await apiClient.post(`/orders/${orderId}/resend-invoice-email`)
+    return response.data
   }
 }

@@ -24,6 +24,8 @@ export interface Promotion {
   days_until_expiry?: number
   num_productos?: number
   num_productos_bonificacion?: number
+  productos?: any[]
+  productos_bonificacion?: any[]
 }
 
 export interface PromotionType {

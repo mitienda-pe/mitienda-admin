@@ -198,6 +198,21 @@ export const useOrdersStore = defineStore('orders', () => {
     currentOrder.value = null
   }
 
+  async function resendInvoiceEmail(orderId: number) {
+    try {
+      const response = await ordersApi.resendInvoiceEmail(orderId)
+
+      if (!response.success) {
+        throw new Error(response.message || 'Error al enviar el email')
+      }
+
+      return response.data
+    } catch (err) {
+      console.error('Error resending invoice email:', err)
+      throw err
+    }
+  }
+
   return {
     // State
     orders,
@@ -224,6 +239,7 @@ export const useOrdersStore = defineStore('orders', () => {
     setDateRange,
     resetFilters,
     loadMore,
-    clearCurrentOrder
+    clearCurrentOrder,
+    resendInvoiceEmail
   }
 })

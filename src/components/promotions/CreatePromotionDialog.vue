@@ -2,13 +2,12 @@
 import { ref, computed, watch } from 'vue'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
-import InputNumber from 'primevue/inputnumber'
 import Dropdown from 'primevue/dropdown'
 import Calendar from 'primevue/calendar'
 import Checkbox from 'primevue/checkbox'
 import Button from 'primevue/button'
 import { usePromotionsStore } from '@/stores/promotions.store'
-import type { CreatePromotionData, PromotionType } from '@/api/promotions.api'
+import type { CreatePromotionData } from '@/api/promotions.api'
 
 interface Props {
   visible: boolean
@@ -67,19 +66,10 @@ const isCouponType = computed(() => {
   return id === 5 || id === 6
 })
 
-const isBonificationType = computed(() => {
-  return Number(formData.value.promocion_id) === 7
-})
-
 const isComingSoon = computed(() => {
   // Solo Bonificaciones está disponible por ahora
   return Number(formData.value.promocion_id) !== 7
 })
-
-const discountTypes = [
-  { label: 'Porcentaje (%)', value: 1 },
-  { label: 'Monto fijo (S/)', value: 2 }
-]
 
 // Watch for date changes
 watch([startDate, endDate], ([start, end]) => {
