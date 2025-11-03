@@ -145,6 +145,21 @@ const routes: RouteRecordRaw[] = [
         path: 'announcement-bars/:id',
         name: 'AnnouncementBarForm',
         component: () => import('@/views/marketing/AnnouncementBarFormView.vue')
+      },
+      {
+        path: 'promotions',
+        name: 'Promotions',
+        component: () => import('@/views/marketing/PromotionsListView.vue')
+      },
+      {
+        path: 'promotions/:id',
+        name: 'PromotionDetail',
+        component: () => import('@/views/marketing/PromotionDetailView.vue')
+      },
+      {
+        path: 'promotions/:id/configure',
+        name: 'ConfigureBonification',
+        component: () => import('@/views/marketing/ConfigureBonificationView.vue')
       }
     ]
   },

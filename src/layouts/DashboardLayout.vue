@@ -137,6 +137,35 @@
               </ul>
             </li>
 
+            <!-- Grupo Marketing -->
+            <li>
+              <button
+                @click="marketingExpanded = !marketingExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isMarketingActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-megaphone"></i>
+                  <span>Marketing</span>
+                </div>
+                <i :class="marketingExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="marketingExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in marketingMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+
             <!-- Grupo Facturación -->
             <li>
               <button
@@ -263,6 +292,36 @@
               </ul>
             </li>
 
+            <!-- Grupo Marketing -->
+            <li>
+              <button
+                @click="marketingExpanded = !marketingExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isMarketingActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-megaphone"></i>
+                  <span>Marketing</span>
+                </div>
+                <i :class="marketingExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="marketingExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in marketingMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                    @click="sidebarVisible = false"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+
             <!-- Grupo Facturación -->
             <li>
               <button
@@ -356,6 +415,7 @@ const userMenu = ref()
 
 // Estados de expansión de los menús con refs
 const catalogExpandedRef = ref(false)
+const marketingExpandedRef = ref(false)
 const billingExpandedRef = ref(false)
 const apiExpandedRef = ref(false)
 
@@ -363,6 +423,11 @@ const apiExpandedRef = ref(false)
 const catalogExpanded = computed({
   get: () => catalogExpandedRef.value || route.path.startsWith('/products') || route.path.startsWith('/catalog'),
   set: (val) => { catalogExpandedRef.value = val }
+})
+
+const marketingExpanded = computed({
+  get: () => marketingExpandedRef.value || route.path.startsWith('/marketing'),
+  set: (val) => { marketingExpandedRef.value = val }
 })
 
 const billingExpanded = computed({
@@ -379,8 +444,7 @@ const apiExpanded = computed({
 const simpleMenuItems = [
   { label: 'Dashboard', icon: 'pi pi-home', to: '/dashboard' },
   { label: 'Pedidos', icon: 'pi pi-shopping-cart', to: '/orders' },
-  { label: 'Clientes', icon: 'pi pi-users', to: '/customers' },
-  { label: 'Marketing', icon: 'pi pi-megaphone', to: '/marketing/announcement-bars' }
+  { label: 'Clientes', icon: 'pi pi-users', to: '/customers' }
 ]
 
 // Items del grupo Catálogo
@@ -389,6 +453,12 @@ const catalogMenuItems = [
   { label: 'Categorías', icon: 'pi pi-folder', to: '/catalog/categories' },
   { label: 'Marcas', icon: 'pi pi-tag', to: '/catalog/brands' },
   { label: 'Etiquetas', icon: 'pi pi-bookmark', to: '/catalog/product-tags' }
+]
+
+// Items del grupo Marketing
+const marketingMenuItems = [
+  { label: 'Promociones', icon: 'pi pi-percentage', to: '/marketing/promotions' },
+  { label: 'Barras de Anuncios', icon: 'pi pi-megaphone', to: '/marketing/announcement-bars' }
 ]
 
 // Items del grupo Facturación
@@ -406,6 +476,11 @@ const apiMenuItems = [
 // Detectar si estamos en alguna ruta del catálogo
 const isCatalogActive = computed(() => {
   return route.path.startsWith('/products') || route.path.startsWith('/catalog')
+})
+
+// Detectar si estamos en alguna ruta de marketing
+const isMarketingActive = computed(() => {
+  return route.path.startsWith('/marketing')
 })
 
 // Detectar si estamos en alguna ruta de facturación
