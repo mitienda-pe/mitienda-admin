@@ -75,7 +75,7 @@
           </template>
         </Column>
 
-        <Column field="emission_date" header="Fecha Emisión" :sortable="true">
+        <Column field="emission_date" header="Fecha" :sortable="true">
           <template #body="{ data }">
             {{ formatDate(data.emission_date) }}
           </template>
@@ -180,6 +180,18 @@ const onPage = (event: any) => {
 
 const formatDate = (dateString: string) => {
   if (!dateString) return '-'
+
+  // Parse date string directly to avoid timezone issues
+  // Backend returns dates in format "YYYY-MM-DD" (DATE type, no time)
+  const parts = dateString.split('-')
+  if (parts.length === 3) {
+    const year = parts[0]
+    const month = parts[1]
+    const day = parts[2]
+    return `${day}/${month}/${year}`
+  }
+
+  // Fallback for dates with time (DATETIME format)
   const date = new Date(dateString)
   return date.toLocaleDateString('es-PE', {
     year: 'numeric',

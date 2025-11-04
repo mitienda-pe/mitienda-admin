@@ -199,6 +199,25 @@ onUnmounted(() => {
 
 const formatDate = (dateString: string) => {
   if (!dateString) return '-'
+
+  // Parse date string directly to avoid timezone issues
+  // Backend returns dates in format "YYYY-MM-DD" (DATE type, no time)
+  const parts = dateString.split('-')
+  if (parts.length === 3) {
+    const year = parseInt(parts[0])
+    const month = parseInt(parts[1])
+    const day = parseInt(parts[2])
+
+    // Create a date without time to avoid timezone issues
+    const date = new Date(year, month - 1, day)
+    return date.toLocaleDateString('es-PE', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  }
+
+  // Fallback for dates with time (DATETIME format)
   const date = new Date(dateString)
   return date.toLocaleDateString('es-PE', {
     year: 'numeric',
