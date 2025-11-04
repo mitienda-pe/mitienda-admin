@@ -205,19 +205,20 @@ watch(() => props.tiendaId, async (tiendaId) => {
   console.log('[NetsuiteSeriesMap] Unmapped series:', unmappedSeries)
 
   // Combine both lists, avoiding duplicates
-  const allSeriesMap = new Map<number, any>()
+  // Use tiendaserieerp_codigo as key since empfacturacionserie_id can be null
+  const allSeriesMap = new Map<string, any>()
 
   // Add mapped series first
   mappedSeries.forEach((s: any) => {
     s._saving = false
-    allSeriesMap.set(s.empfacturacionserie_id, s)
+    allSeriesMap.set(s.tiendaserieerp_codigo, s)
   })
 
   // Add unmapped series (won't overwrite if already mapped)
   unmappedSeries.forEach((s: any) => {
-    if (!allSeriesMap.has(s.empfacturacionserie_id)) {
+    if (!allSeriesMap.has(s.tiendaserieerp_codigo)) {
       s._saving = false
-      allSeriesMap.set(s.empfacturacionserie_id, s)
+      allSeriesMap.set(s.tiendaserieerp_codigo, s)
     }
   })
 
