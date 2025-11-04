@@ -224,6 +224,35 @@
               </ul>
             </li>
 
+            <!-- Grupo: Configuración -->
+            <li>
+              <button
+                @click="configExpanded = !configExpanded"
+                class="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isConfigActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-sliders-h"></i>
+                  <span>Configuración</span>
+                </div>
+                <i :class="configExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="configExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in configMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+
             <!-- Volver a Administración (solo si está impersonando) -->
             <li v-if="adminStore.isImpersonating">
               <div class="border-t border-gray-200 my-4"></div>
@@ -381,6 +410,36 @@
                 </li>
               </ul>
             </li>
+
+            <!-- Grupo Configuración -->
+            <li>
+              <button
+                @click="configExpanded = !configExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isConfigActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-sliders-h"></i>
+                  <span>Configuración</span>
+                </div>
+                <i :class="configExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="configExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in configMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                    @click="sidebarVisible = false"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
           </ul>
         </nav>
       </Sidebar>
@@ -418,6 +477,7 @@ const catalogExpandedRef = ref(false)
 const marketingExpandedRef = ref(false)
 const billingExpandedRef = ref(false)
 const apiExpandedRef = ref(false)
+const configExpandedRef = ref(false)
 
 // Computar dinámicamente qué menú debe estar expandido según la ruta
 const catalogExpanded = computed({
@@ -438,6 +498,11 @@ const billingExpanded = computed({
 const apiExpanded = computed({
   get: () => apiExpandedRef.value || route.path.startsWith('/api'),
   set: (val) => { apiExpandedRef.value = val }
+})
+
+const configExpanded = computed({
+  get: () => configExpandedRef.value || route.path.startsWith('/configuracion'),
+  set: (val) => { configExpandedRef.value = val }
 })
 
 // Items simples del menú
@@ -473,6 +538,11 @@ const apiMenuItems = [
   { label: 'Webhooks', icon: 'pi pi-link', to: '/api/webhooks' }
 ]
 
+// Items del grupo Configuración
+const configMenuItems = [
+  { label: 'NetSuite', icon: 'pi pi-cloud', to: '/configuracion/netsuite' }
+]
+
 // Detectar si estamos en alguna ruta del catálogo
 const isCatalogActive = computed(() => {
   return route.path.startsWith('/products') || route.path.startsWith('/catalog')
@@ -491,6 +561,11 @@ const isBillingActive = computed(() => {
 // Detectar si estamos en alguna ruta de API
 const isApiActive = computed(() => {
   return route.path.startsWith('/api')
+})
+
+// Detectar si estamos en alguna ruta de configuración
+const isConfigActive = computed(() => {
+  return route.path.startsWith('/configuracion')
 })
 
 // Detectar si es superadmin SIN estar impersonando (para mostrar sidebar especial)

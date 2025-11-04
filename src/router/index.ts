@@ -208,6 +208,18 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/configuracion',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: 'netsuite',
+        name: 'NetsuiteConfig',
+        component: () => import('@/views/configuracion/NetsuiteConfigView.vue')
+      }
+    ]
+  },
+  {
     path: '/admin',
     component: DashboardLayout,
     meta: { requiresAuth: true, requiresSuperAdmin: true },

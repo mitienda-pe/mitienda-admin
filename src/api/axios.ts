@@ -26,6 +26,15 @@ apiClient.interceptors.request.use(
       config.timeout = 300000
     }
 
+    // Log para debugging NetSuite
+    if (config.url?.includes('netsuite-credentials')) {
+      console.log('[axios interceptor] NetSuite request:', {
+        method: config.method,
+        url: config.url,
+        data: config.data
+      })
+    }
+
     return config
   },
   error => {
