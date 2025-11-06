@@ -20,8 +20,22 @@ export interface Order {
   shipping_details?: ShippingDetails
   billing_address?: Address
   notes?: string
+  tiendaventa_estado_notif_erp?: number // 0 = success, 1 = error
+  tiendaventa_mensaje_notif_erp?: string
+  billing_document?: BillingDocument
   created_at: string
   updated_at: string
+}
+
+export interface BillingDocument {
+  id: number
+  status: number // 0 = no emitido, 1 = emitido
+  billing_date: string | null
+  serie: string
+  correlative: string
+  document_type?: string // factura, boleta
+  pdf_url?: string
+  xml_url?: string
 }
 
 export interface ShippingDetails {
