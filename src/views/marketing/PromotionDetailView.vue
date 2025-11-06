@@ -100,18 +100,6 @@
                   </p>
                 </div>
                 <button
-                  v-if="Number(currentPromotion.promocion_id) === 7"
-                  @click="goToConfiguration"
-                  class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-                >
-                  <svg class="-ml-0.5 mr-1.5 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Configurar Bonificación
-                </button>
-                <button
-                  v-else
                   @click="showLinkProductsDialog = true"
                   class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
                 >
@@ -129,8 +117,8 @@
                     <tr>
                       <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto</th>
                       <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
-                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Precio</th>
-                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
+                      <th v-if="Number(currentPromotion.promocion_id) === 7" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-32">Cantidad</th>
+                      <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-24">Acciones</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-gray-200 bg-white">
@@ -146,9 +134,27 @@
                         </div>
                       </td>
                       <td class="whitespace-nowrap px-4 py-4 text-sm text-gray-500">{{ product.producto_sku }}</td>
-                      <td class="whitespace-nowrap px-4 py-4 text-sm text-gray-500">S/ {{ product.producto_precio }}</td>
-                      <td class="whitespace-nowrap px-4 py-4 text-sm text-gray-500">
-                        {{ product.producto_stockilimitado ? 'Ilimitado' : product.producto_stock }}
+                      <td v-if="Number(currentPromotion.promocion_id) === 7" class="px-4 py-4">
+                        <InputNumber
+                          v-model="product.productopromocion_cantidadproducto"
+                          :min="1"
+                          :maxFractionDigits="0"
+                          :useGrouping="false"
+                          @blur="validateAndUpdateProductQuantity(product)"
+                          inputClass="w-full text-center"
+                          class="w-20"
+                        />
+                      </td>
+                      <td class="px-4 py-4 text-center">
+                        <button
+                          @click="unlinkProduct(product.producto_id)"
+                          class="text-red-600 hover:text-red-900"
+                          title="Eliminar producto"
+                        >
+                          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
                       </td>
                     </tr>
                   </tbody>
@@ -163,10 +169,23 @@
           <!-- Bonification Products (for type 7) -->
           <div v-if="Number(currentPromotion.promocion_id) === 7" class="overflow-hidden rounded-lg bg-white shadow">
             <div class="px-4 py-5 sm:p-6">
-              <h3 class="text-lg font-medium leading-6 text-gray-900 mb-4">Productos de Bonificación</h3>
-              <p class="text-sm text-gray-500 mb-4">
-                {{ bonificationProducts.length }} producto(s) que se bonifican en esta promoción
-              </p>
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="text-lg font-medium leading-6 text-gray-900">Productos de Bonificación</h3>
+                  <p class="text-sm text-gray-500 mt-1">
+                    {{ bonificationProducts.length }} producto(s) que se bonifican en esta promoción
+                  </p>
+                </div>
+                <button
+                  @click="showLinkBonificationsDialog = true"
+                  class="inline-flex items-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500"
+                >
+                  <svg class="-ml-0.5 mr-1.5 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                  Vincular Bonificaciones
+                </button>
+              </div>
 
               <!-- Bonification Products List -->
               <div v-if="bonificationProducts.length > 0" class="overflow-x-auto">
@@ -175,11 +194,12 @@
                     <tr>
                       <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto</th>
                       <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
-                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Atributo</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-32">Cantidad</th>
+                      <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-24">Acciones</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-gray-200 bg-white">
-                    <tr v-for="product in bonificationProducts" :key="`${product.producto_id}-${product.productoatributo_id}`">
+                    <tr v-for="product in bonificationProducts" :key="`${product.producto_id}-${product.productoatributo_id || 0}`">
                       <td class="whitespace-nowrap px-4 py-4">
                         <div class="flex items-center">
                           <div v-if="product.producto_imagen" class="h-10 w-10 flex-shrink-0">
@@ -191,8 +211,27 @@
                         </div>
                       </td>
                       <td class="whitespace-nowrap px-4 py-4 text-sm text-gray-500">{{ product.producto_sku }}</td>
-                      <td class="whitespace-nowrap px-4 py-4 text-sm text-gray-500">
-                        {{ product.producto_atributo_nombre || 'Sin atributo' }}
+                      <td class="px-4 py-4">
+                        <InputNumber
+                          v-model="product.productopromobonificacion_cantidad"
+                          :min="1"
+                          :maxFractionDigits="0"
+                          :useGrouping="false"
+                          @blur="validateAndUpdateBonificationQuantity(product)"
+                          inputClass="w-full text-center"
+                          class="w-20"
+                        />
+                      </td>
+                      <td class="px-4 py-4 text-center">
+                        <button
+                          @click="unlinkBonification(product.producto_id, product.productoatributo_id)"
+                          class="text-red-600 hover:text-red-900"
+                          title="Eliminar producto"
+                        >
+                          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
                       </td>
                     </tr>
                   </tbody>
@@ -250,7 +289,7 @@
                 <div v-if="currentPromotion.is_active_period !== undefined">
                   <span class="text-sm text-gray-500">Período:</span>
                   <span
-                    v-if="currentPromotion.is_active_period === 1"
+                    v-if="Number(currentPromotion.is_active_period) === 1"
                     class="ml-2 inline-flex rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800"
                   >
                     Vigente ({{ currentPromotion.days_until_expiry }} días)
@@ -297,6 +336,14 @@
       @linked="handleProductsLinked"
     />
 
+    <!-- Link Bonifications Dialog -->
+    <LinkBonificationsDialog
+      v-if="Number(currentPromotion?.promocion_id) === 7"
+      v-model:visible="showLinkBonificationsDialog"
+      :promotion-id="currentPromotion?.tiendapromocion_id || null"
+      @linked="handleBonificationsLinked"
+    />
+
     <!-- Edit Promotion Dialog -->
     <EditPromotionDialog
       v-model:visible="showEditDialog"
@@ -312,17 +359,23 @@ import { useRoute, useRouter } from 'vue-router'
 import { usePromotionsStore } from '@/stores/promotions.store'
 import { storeToRefs } from 'pinia'
 import InputSwitch from 'primevue/inputswitch'
+import InputNumber from 'primevue/inputnumber'
 import LinkProductsDialog from '@/components/promotions/LinkProductsDialog.vue'
+import LinkBonificationsDialog from '@/components/promotions/LinkBonificationsDialog.vue'
 import EditPromotionDialog from '@/components/promotions/EditPromotionDialog.vue'
+import { useToast } from 'primevue/usetoast'
+import apiClient from '@/api/axios'
 
 const route = useRoute()
 const router = useRouter()
 const promotionsStore = usePromotionsStore()
+const toast = useToast()
 
 const { currentPromotion, promotionProducts, bonificationProducts, isLoading, error } = storeToRefs(promotionsStore)
 
 // Dialogs
 const showLinkProductsDialog = ref(false)
+const showLinkBonificationsDialog = ref(false)
 const showEditDialog = ref(false)
 
 // Status toggle
@@ -388,7 +441,6 @@ async function handleToggleChange(newValue: boolean) {
 
 // Get image URL
 function getImageUrl(imageName: string) {
-  // TODO: Use CDN_AMAZON from config
   return `https://cdn.mitienda.pe/images/${imageName}`
 }
 
@@ -397,12 +449,6 @@ function formatDate(dateString: string) {
   if (!dateString) return '-'
   const date = new Date(dateString)
   return date.toLocaleDateString('es-PE', { year: 'numeric', month: 'long', day: 'numeric' })
-}
-
-// Go to configuration page (for bonifications)
-function goToConfiguration() {
-  if (!currentPromotion.value) return
-  router.push(`/marketing/promotions/${currentPromotion.value.tiendapromocion_id}/configure`)
 }
 
 // Open edit dialog
@@ -431,15 +477,206 @@ async function confirmDelete() {
 }
 
 // Handle products linked
-async function handleProductsLinked(products: Array<{ producto_id: number }>) {
+async function handleProductsLinked() {
+  if (!currentPromotion.value) return
+  await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
+  toast.add({
+    severity: 'success',
+    summary: 'Productos Vinculados',
+    detail: 'Los productos se vincularon correctamente',
+    life: 2000
+  })
+}
+
+// Handle bonifications linked
+async function handleBonificationsLinked() {
+  if (!currentPromotion.value) return
+  await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
+  toast.add({
+    severity: 'success',
+    summary: 'Bonificaciones Vinculadas',
+    detail: 'Las bonificaciones se vincularon correctamente',
+    life: 2000
+  })
+}
+
+// Validate and update product quantity (triggered on blur)
+async function validateAndUpdateProductQuantity(product: any) {
   if (!currentPromotion.value) return
 
-  try {
-    await promotionsStore.linkProducts(currentPromotion.value.tiendapromocion_id, products)
-  } catch (error) {
-    console.error('Error linking products:', error)
-    alert('Error al vincular productos')
+  // Validación: cantidad no puede estar vacía o ser menor a 1
+  const quantity = product.productopromocion_cantidadproducto
+
+  if (!quantity || quantity < 1) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Cantidad Inválida',
+      detail: 'La cantidad debe ser mayor o igual a 1',
+      life: 3000
+    })
+    // Restaurar valor original
+    await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
+    return
   }
+
+  // Check si la cantidad cambió realmente
+  const originalProduct = promotionProducts.value.find(p => p.producto_id === product.producto_id)
+  if (originalProduct && originalProduct.productopromocion_cantidadproducto === quantity) {
+    return // No cambió, no hacer nada
+  }
+
+  try {
+    await apiClient.put(`/promotions/${currentPromotion.value.tiendapromocion_id}/products/${product.producto_id}`, {
+      cantidad: quantity
+    })
+
+    toast.add({
+      severity: 'success',
+      summary: 'Cantidad Actualizada',
+      detail: 'La cantidad del producto se actualizó correctamente',
+      life: 2000
+    })
+
+    // Refrescar para obtener datos actualizados
+    await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
+  } catch (error: any) {
+    console.error('Error updating product quantity:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error.response?.data?.message || 'Error al actualizar la cantidad',
+      life: 3000
+    })
+    // Reload to revert the change
+    await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
+  }
+}
+
+// Validate and update bonification quantity (triggered on blur)
+async function validateAndUpdateBonificationQuantity(product: any) {
+  if (!currentPromotion.value) return
+
+  // Validación: cantidad no puede estar vacía o ser menor a 1
+  const quantity = product.productopromobonificacion_cantidad
+
+  if (!quantity || quantity < 1) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Cantidad Inválida',
+      detail: 'La cantidad debe ser mayor o igual a 1',
+      life: 3000
+    })
+    // Restaurar valor original
+    await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
+    return
+  }
+
+  // Check si la cantidad cambió realmente
+  const originalProduct = bonificationProducts.value.find(
+    p => p.producto_id === product.producto_id &&
+         (p.productoatributo_id || 0) === (product.productoatributo_id || 0)
+  )
+  if (originalProduct && originalProduct.productopromobonificacion_cantidad === quantity) {
+    return // No cambió, no hacer nada
+  }
+
+  try {
+    await apiClient.put(`/promotions/${currentPromotion.value.tiendapromocion_id}/bonifications/${product.producto_id}`, {
+      cantidad: quantity,
+      atributo_id: product.productoatributo_id || null
+    })
+
+    toast.add({
+      severity: 'success',
+      summary: 'Cantidad Actualizada',
+      detail: 'La cantidad del producto de bonificación se actualizó correctamente',
+      life: 2000
+    })
+
+    // Refrescar para obtener datos actualizados
+    await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
+  } catch (error: any) {
+    console.error('Error updating bonification quantity:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error.response?.data?.message || 'Error al actualizar la cantidad',
+      life: 3000
+    })
+    // Reload to revert the change
+    await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
+  }
+}
+
+// Unlink product
+async function unlinkProduct(productId: number) {
+  if (!currentPromotion.value) return
+  if (!confirm('¿Estás seguro de que deseas eliminar este producto?')) return
+
+  try {
+    await apiClient.delete(`/promotions/${currentPromotion.value.tiendapromocion_id}/products/${productId}`)
+    await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
+
+    toast.add({
+      severity: 'success',
+      summary: 'Producto Eliminado',
+      detail: 'El producto se eliminó correctamente',
+      life: 2000
+    })
+  } catch (error: any) {
+    console.error('Error unlinking product:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error.response?.data?.message || 'Error al eliminar el producto',
+      life: 3000
+    })
+  }
+}
+
+// Unlink bonification
+async function unlinkBonification(productId: number, attributeId: number | undefined) {
+  if (!currentPromotion.value) return
+  if (!confirm('¿Estás seguro de que deseas eliminar este producto de bonificación?')) return
+
+  try {
+    await apiClient.delete(`/promotions/${currentPromotion.value.tiendapromocion_id}/bonifications/${productId}`, {
+      data: { atributo_id: attributeId || null }
+    })
+    await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
+
+    toast.add({
+      severity: 'success',
+      summary: 'Producto Eliminado',
+      detail: 'El producto de bonificación se eliminó correctamente',
+      life: 2000
+    })
+  } catch (error: any) {
+    console.error('Error unlinking bonification:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error.response?.data?.message || 'Error al eliminar el producto',
+      life: 3000
+    })
+  }
+}
+
+// Ensure quantities are set correctly when loading products
+function ensureQuantitiesAreSet() {
+  // Ensure product quantities are at least 1
+  promotionProducts.value.forEach(product => {
+    if (!product.productopromocion_cantidadproducto || product.productopromocion_cantidadproducto < 1) {
+      product.productopromocion_cantidadproducto = 1
+    }
+  })
+
+  // Ensure bonification quantities are at least 1
+  bonificationProducts.value.forEach(product => {
+    if (!product.productopromobonificacion_cantidad || product.productopromobonificacion_cantidad < 1) {
+      product.productopromobonificacion_cantidad = 1
+    }
+  })
 }
 
 // Initialize
@@ -447,10 +684,19 @@ onMounted(async () => {
   const promotionId = parseInt(route.params.id as string)
   if (promotionId) {
     await promotionsStore.fetchPromotion(promotionId)
+    ensureQuantitiesAreSet()
   }
 })
 </script>
 
 <style scoped>
-/* Add any custom styles here */
+/* Customize InputNumber */
+:deep(.p-inputnumber) {
+  width: 5rem;
+}
+
+:deep(.p-inputnumber-input) {
+  text-align: center;
+  padding: 0.5rem;
+}
 </style>

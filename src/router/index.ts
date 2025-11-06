@@ -155,11 +155,6 @@ const routes: RouteRecordRaw[] = [
         path: 'promotions/:id',
         name: 'PromotionDetail',
         component: () => import('@/views/marketing/PromotionDetailView.vue')
-      },
-      {
-        path: 'promotions/:id/configure',
-        name: 'ConfigureBonification',
-        component: () => import('@/views/marketing/ConfigureBonificationView.vue')
       }
     ]
   },
@@ -216,6 +211,11 @@ const routes: RouteRecordRaw[] = [
         path: 'netsuite',
         name: 'NetsuiteConfig',
         component: () => import('@/views/configuracion/NetsuiteConfigView.vue')
+      },
+      {
+        path: 'netsuite/inventario',
+        name: 'NetsuiteInventoryMap',
+        component: () => import('@/views/configuracion/NetsuiteInventoryMapView.vue')
       }
     ]
   },

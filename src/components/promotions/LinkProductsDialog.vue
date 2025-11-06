@@ -7,6 +7,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import { productsApi } from '@/api/products.api'
 import type { Product } from '@/types/product.types'
+import { usePromotionsStore } from '@/stores/promotions.store'
 
 interface Props {
   visible: boolean
@@ -15,13 +16,16 @@ interface Props {
 
 interface Emits {
   (e: 'update:visible', value: boolean): void
-  (e: 'linked', products: Array<{ producto_id: number }>): void
+  (e: 'linked'): void
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
+const promotionsStore = usePromotionsStore()
+
 const isLoading = ref(false)
+const isLinking = ref(false)
 const searchQuery = ref('')
 const products = ref<Product[]>([])
 const selectedProducts = ref<Product[]>([])
@@ -53,17 +57,27 @@ async function searchProducts() {
   }
 }
 
-function handleLinkProducts() {
-  if (selectedProducts.value.length === 0) {
+async function handleLinkProducts() {
+  if (selectedProducts.value.length === 0 || !props.promotionId) {
     return
   }
 
-  const productIds = selectedProducts.value.map(p => ({
-    producto_id: p.id
-  }))
+  try {
+    isLinking.value = true
 
-  emit('linked', productIds)
-  handleClose()
+    const productIds = selectedProducts.value.map(p => ({
+      producto_id: p.id
+    }))
+
+    await promotionsStore.linkProducts(props.promotionId, productIds)
+
+    emit('linked')
+    handleClose()
+  } catch (error) {
+    console.error('Error linking products:', error)
+  } finally {
+    isLinking.value = false
+  }
 }
 
 function handleClose() {
@@ -176,11 +190,13 @@ watch(() => props.visible, (isVisible) => {
           label="Cancelar"
           severity="secondary"
           @click="handleClose"
+          :disabled="isLinking"
         />
         <Button
           label="Vincular Productos"
           @click="handleLinkProducts"
           :disabled="selectedProducts.length === 0"
+          :loading="isLinking"
         />
       </div>
     </template>

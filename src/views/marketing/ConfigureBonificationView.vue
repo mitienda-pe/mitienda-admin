@@ -1,8 +1,11 @@
 <template>
-  <div class="configure-bonification-view p-6">
+  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
     <!-- Header -->
     <div class="mb-6">
-      <router-link to="/marketing/promotions" class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-2">
+      <router-link
+        :to="`/marketing/promotions/${promotionId}`"
+        class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-2"
+      >
         <i class="pi pi-arrow-left"></i>
         Volver a promociones
       </router-link>
@@ -12,7 +15,7 @@
       </p>
     </div>
 
-    <!-- Loading -->
+    <!-- Loading State -->
     <div v-if="isLoading" class="flex justify-center items-center h-64">
       <div class="text-center">
         <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
@@ -22,285 +25,155 @@
 
     <!-- Content -->
     <div v-else-if="currentPromotion" class="space-y-6">
-      <!-- Configuration Card -->
-      <div class="bg-white rounded-lg shadow">
-        <!-- Header with quantities -->
-        <div class="border-b border-gray-200 px-6 py-4">
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">Configuración de Bonificación</h2>
-
-          <div class="grid grid-cols-2 gap-4">
+      <!-- Productos Base Card -->
+      <div class="bg-white shadow overflow-hidden rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <div class="flex items-center justify-between mb-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Cantidad mínima de productos activadores <span class="text-red-500">*</span>
-              </label>
-              <input
-                v-model.number="quantityToBuy"
-                type="number"
-                min="1"
-                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                placeholder="Ej: 12"
-              />
-              <p class="mt-1 text-xs text-gray-500">Cantidad que el cliente debe comprar. Ej: 12 paquetes de galletas.</p>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Cantidad de productos premio <span class="text-red-500">*</span>
-              </label>
-              <input
-                v-model.number="quantityToGift"
-                type="number"
-                min="1"
-                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                placeholder="Ej: 1"
-              />
-              <p class="mt-1 text-xs text-gray-500">Cantidad que se regala. Ej: 1 caramelo de regalo.</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Product Selection -->
-        <div class="px-6 py-4">
-          <div class="flex gap-6">
-            <!-- Left Panel: Available Products -->
-            <div class="flex-1">
-              <h3 class="text-sm font-semibold text-gray-900 mb-3">
-                Productos Disponibles
-              </h3>
-
-              <!-- Search -->
-              <div class="mb-3">
-                <div class="relative">
-                  <input
-                    v-model="searchQuery"
-                    type="text"
-                    placeholder="Buscar por nombre, SKU o código..."
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 pl-10"
-                    @input="debouncedSearch"
-                  />
-                  <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                </div>
-              </div>
-
-              <!-- Available Products List -->
-              <div class="border rounded-lg h-96 overflow-y-auto bg-gray-50">
-                <div v-if="isSearching" class="flex items-center justify-center h-full">
-                  <div class="text-center">
-                    <div class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-indigo-600 border-r-transparent"></div>
-                    <p class="mt-2 text-xs text-gray-500">Buscando...</p>
-                  </div>
-                </div>
-
-                <div v-else-if="availableProducts.length === 0" class="flex items-center justify-center h-full">
-                  <p class="text-sm text-gray-500">
-                    {{ searchQuery ? 'No se encontraron productos' : 'Escribe para buscar productos' }}
-                  </p>
-                </div>
-
-                <div v-else>
-                  <div
-                    v-for="product in availableProducts"
-                    :key="product.id"
-                    class="p-3 border-b hover:bg-white cursor-pointer transition-colors"
-                    :class="{ 'bg-indigo-50': selectedAvailable.includes(product.id) }"
-                    @click="toggleAvailableSelection(product.id)"
-                  >
-                    <div class="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        :checked="selectedAvailable.includes(product.id)"
-                        class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                        @click.stop="toggleAvailableSelection(product.id)"
-                      />
-                      <img
-                        v-if="product.images && product.images.length > 0"
-                        :src="product.images[0].cloudflare_url || product.images[0].url"
-                        :alt="product.name"
-                        class="w-10 h-10 rounded object-cover flex-shrink-0"
-                      />
-                      <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-gray-900 truncate">{{ product.name }}</p>
-                        <p class="text-xs text-gray-500">SKU: {{ product.sku }}</p>
-                        <p class="text-xs text-gray-900 font-medium">S/ {{ product.price }}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <p class="mt-2 text-xs text-gray-500">
-                {{ selectedAvailable.length }} producto(s) seleccionado(s)
+              <h3 class="text-lg font-medium leading-6 text-gray-900">Productos Base</h3>
+              <p class="text-sm text-gray-500 mt-1">
+                {{ baseProducts.length }} producto(s) vinculado(s) a esta bonificación
               </p>
             </div>
+            <Button
+              label="Vincular Productos"
+              icon="pi pi-plus"
+              @click="showLinkProductsDialog = true"
+              severity="primary"
+            />
+          </div>
 
-            <!-- Center: Transfer Buttons -->
-            <div class="flex flex-col items-center justify-center gap-4 w-40 flex-shrink-0">
-              <!-- Move to Activator Products -->
-              <div class="text-center">
-                <button
-                  @click="moveToBase"
-                  :disabled="selectedAvailable.length === 0"
-                  class="inline-flex flex-col items-center justify-center w-32 h-20 rounded-lg bg-indigo-600 text-white shadow hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  title="Agregar a productos activadores (que el cliente compra)"
-                >
-                  <i class="pi pi-arrow-right text-xl mb-1"></i>
-                  <span class="text-xs">Activadores</span>
-                </button>
-                <p class="mt-1 text-xs text-gray-600">Cliente compra</p>
-              </div>
-
-              <!-- Move to Prize Products -->
-              <div class="text-center">
-                <button
-                  @click="moveToBonification"
-                  :disabled="selectedAvailable.length === 0"
-                  class="inline-flex flex-col items-center justify-center w-32 h-20 rounded-lg bg-green-600 text-white shadow hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  title="Agregar a productos premio (regalos)"
-                >
-                  <i class="pi pi-arrow-right text-xl mb-1"></i>
-                  <span class="text-xs">Premios</span>
-                </button>
-                <p class="mt-1 text-xs text-gray-600">Regalos</p>
-              </div>
-
-              <div class="border-t w-full my-2"></div>
-
-              <!-- Remove from Base -->
-              <div class="text-center">
-                <button
-                  @click="removeFromBase"
-                  :disabled="selectedBase.length === 0"
-                  class="inline-flex flex-col items-center justify-center w-32 h-20 rounded-lg bg-gray-600 text-white shadow hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  title="Quitar de productos base"
-                >
-                  <i class="pi pi-arrow-left text-xl mb-1"></i>
-                  <span class="text-xs">Quitar</span>
-                </button>
-              </div>
-
-              <!-- Remove from Bonification -->
-              <div class="text-center">
-                <button
-                  @click="removeFromBonification"
-                  :disabled="selectedBonification.length === 0"
-                  class="inline-flex flex-col items-center justify-center w-32 h-20 rounded-lg bg-gray-600 text-white shadow hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  title="Quitar de productos bonificados"
-                >
-                  <i class="pi pi-arrow-left text-xl mb-1"></i>
-                  <span class="text-xs">Quitar</span>
-                </button>
-              </div>
-            </div>
-
-            <!-- Right Panel: Selected Products -->
-            <div class="flex-1">
-              <h3 class="text-sm font-semibold text-gray-900 mb-3">Productos Seleccionados</h3>
-
-              <!-- Activator Products -->
-              <div class="mb-4">
-                <h4 class="text-xs font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <i class="pi pi-shopping-cart text-indigo-600"></i>
-                  Productos Activadores
-                </h4>
-                <div class="border rounded-lg h-44 overflow-y-auto bg-indigo-50">
-                  <div v-if="baseProducts.length === 0" class="flex items-center justify-center h-full">
-                    <p class="text-xs text-gray-500">Ningún producto agregado</p>
-                  </div>
-                  <div v-else>
-                    <div
-                      v-for="product in baseProducts"
-                      :key="'base-' + product.id"
-                      class="p-2 border-b hover:bg-white cursor-pointer transition-colors"
-                      :class="{ 'bg-indigo-100': selectedBase.includes(product.id) }"
-                      @click="toggleBaseSelection(product.id)"
-                    >
-                      <div class="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          :checked="selectedBase.includes(product.id)"
-                          class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                          @click.stop="toggleBaseSelection(product.id)"
-                        />
+          <!-- Products List -->
+          <div v-if="baseProducts.length > 0" class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-32">Cantidad</th>
+                  <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-24">Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 bg-white">
+                <tr v-for="product in baseProducts" :key="product.producto_id">
+                  <td class="px-4 py-4">
+                    <div class="flex items-center">
+                      <div v-if="product.producto_imagen" class="h-10 w-10 flex-shrink-0">
                         <img
-                          v-if="product.images && product.images.length > 0"
-                          :src="product.images[0].cloudflare_url || product.images[0].url"
-                          :alt="product.name"
-                          class="w-8 h-8 rounded object-cover flex-shrink-0"
+                          class="h-10 w-10 rounded object-cover"
+                          :src="getImageUrl(product.producto_imagen)"
+                          :alt="product.producto_titulo"
                         />
-                        <div class="flex-1 min-w-0">
-                          <p class="text-xs font-medium text-gray-900 truncate">{{ product.name }}</p>
-                          <p class="text-xs text-gray-500">{{ product.sku }}</p>
-                        </div>
+                      </div>
+                      <div :class="product.producto_imagen ? 'ml-4' : ''">
+                        <div class="text-sm font-medium text-gray-900">{{ product.producto_titulo }}</div>
                       </div>
                     </div>
-                  </div>
-                </div>
-                <p class="mt-1 text-xs text-gray-600">{{ baseProducts.length }} producto(s)</p>
-              </div>
-
-              <!-- Prize Products -->
-              <div>
-                <h4 class="text-xs font-medium text-gray-700 mb-2 flex items-center gap-2">
-                  <i class="pi pi-gift text-green-600"></i>
-                  Productos Premio
-                </h4>
-                <div class="border rounded-lg h-44 overflow-y-auto bg-green-50">
-                  <div v-if="bonificationProducts.length === 0" class="flex items-center justify-center h-full">
-                    <p class="text-xs text-gray-500">Ningún producto agregado</p>
-                  </div>
-                  <div v-else>
-                    <div
-                      v-for="product in bonificationProducts"
-                      :key="'bonif-' + product.id"
-                      class="p-2 border-b hover:bg-white cursor-pointer transition-colors"
-                      :class="{ 'bg-green-100': selectedBonification.includes(product.id) }"
-                      @click="toggleBonificationSelection(product.id)"
-                    >
-                      <div class="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          :checked="selectedBonification.includes(product.id)"
-                          class="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                          @click.stop="toggleBonificationSelection(product.id)"
-                        />
-                        <img
-                          v-if="product.images && product.images.length > 0"
-                          :src="product.images[0].cloudflare_url || product.images[0].url"
-                          :alt="product.name"
-                          class="w-8 h-8 rounded object-cover flex-shrink-0"
-                        />
-                        <div class="flex-1 min-w-0">
-                          <p class="text-xs font-medium text-gray-900 truncate">{{ product.name }}</p>
-                          <p class="text-xs text-gray-500">{{ product.sku }}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <p class="mt-1 text-xs text-gray-600">{{ bonificationProducts.length }} producto(s)</p>
-              </div>
-            </div>
+                  </td>
+                  <td class="px-4 py-4 text-sm text-gray-500">{{ product.producto_sku }}</td>
+                  <td class="px-4 py-4">
+                    <InputNumber
+                      v-model="product.productopromocion_cantidadproducto"
+                      :min="1"
+                      :maxFractionDigits="0"
+                      @update:modelValue="updateProductQuantity(product.producto_id, $event)"
+                      class="w-20"
+                      inputClass="w-full"
+                    />
+                  </td>
+                  <td class="px-4 py-4 text-center">
+                    <Button
+                      icon="pi pi-trash"
+                      severity="danger"
+                      text
+                      rounded
+                      @click="unlinkProduct(product.producto_id)"
+                      v-tooltip.left="'Eliminar producto'"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-else class="text-center py-6 text-gray-500">
+            No hay productos base vinculados
           </div>
         </div>
+      </div>
 
-        <!-- Footer Actions -->
-        <div class="border-t border-gray-200 px-6 py-4 bg-gray-50 flex justify-between items-center">
-          <router-link
-            to="/marketing/promotions"
-            class="inline-flex items-center rounded-md bg-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-300"
-          >
-            <i class="pi pi-times mr-2"></i>
-            Cancelar
-          </router-link>
+      <!-- Productos de Bonificación Card -->
+      <div class="bg-white shadow overflow-hidden rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-lg font-medium leading-6 text-gray-900">Productos de Bonificación</h3>
+              <p class="text-sm text-gray-500 mt-1">
+                {{ bonificationProducts.length }} producto(s) que se bonifican en esta promoción
+              </p>
+            </div>
+            <Button
+              label="Vincular Bonificaciones"
+              icon="pi pi-plus"
+              @click="showLinkBonificationsDialog = true"
+              severity="success"
+            />
+          </div>
 
-          <button
-            @click="saveConfiguration"
-            :disabled="!canSave || isSaving"
-            class="inline-flex items-center rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <i class="pi pi-check mr-2"></i>
-            {{ isSaving ? 'Guardando...' : 'Guardar Configuración' }}
-          </button>
+          <!-- Bonification Products List -->
+          <div v-if="bonificationProducts.length > 0" class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Producto</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
+                  <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-32">Cantidad</th>
+                  <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase w-24">Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 bg-white">
+                <tr v-for="product in bonificationProducts" :key="`${product.producto_id}-${product.productoatributo_id || 0}`">
+                  <td class="px-4 py-4">
+                    <div class="flex items-center">
+                      <div v-if="product.producto_imagen" class="h-10 w-10 flex-shrink-0">
+                        <img
+                          class="h-10 w-10 rounded object-cover"
+                          :src="getImageUrl(product.producto_imagen)"
+                          :alt="product.producto_titulo"
+                        />
+                      </div>
+                      <div :class="product.producto_imagen ? 'ml-4' : ''">
+                        <div class="text-sm font-medium text-gray-900">{{ product.producto_titulo }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-4 py-4 text-sm text-gray-500">{{ product.producto_sku }}</td>
+                  <td class="px-4 py-4">
+                    <InputNumber
+                      v-model="product.productopromobonificacion_cantidad"
+                      :min="1"
+                      :maxFractionDigits="0"
+                      @update:modelValue="updateBonificationQuantity(product.producto_id, product.productoatributo_id, $event)"
+                      class="w-20"
+                      inputClass="w-full"
+                    />
+                  </td>
+                  <td class="px-4 py-4 text-center">
+                    <Button
+                      icon="pi pi-trash"
+                      severity="danger"
+                      text
+                      rounded
+                      @click="unlinkBonification(product.producto_id, product.productoatributo_id)"
+                      v-tooltip.left="'Eliminar producto'"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-else class="text-center py-6 text-gray-500">
+            No hay productos de bonificación
+          </div>
         </div>
       </div>
 
@@ -311,260 +184,249 @@
           <div>
             <h4 class="text-sm font-semibold text-blue-900 mb-1">¿Cómo funciona?</h4>
             <ul class="text-sm text-blue-800 space-y-1">
-              <li><strong>Productos Activadores:</strong> Los productos que el cliente debe comprar para activar la bonificación.</li>
-              <li><strong>Productos Premio:</strong> Los productos que se regalan como bonificación.</li>
-              <li><strong>Ejemplo:</strong> Lleva 12 paquetes de galletas (activadores) y recibe 1 caramelo de regalo (premio).</li>
-              <li><strong>Cantidades:</strong> Especifica cuántos productos activadores debe comprar y cuántos productos premio se regalan.</li>
+              <li><strong>Productos Base:</strong> Los productos que el cliente debe comprar para activar la bonificación.</li>
+              <li><strong>Productos de Bonificación:</strong> Los productos que se regalan como bonificación.</li>
+              <li><strong>Cantidad:</strong> Edita la cantidad directamente en la tabla para cada producto.</li>
+              <li><strong>Ejemplo:</strong> Si el cliente compra 12 productos base, recibe 1 producto de bonificación gratis.</li>
             </ul>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- Link Products Dialog -->
+    <LinkProductsDialog
+      v-model:visible="showLinkProductsDialog"
+      :promotion-id="promotionId"
+      @linked="handleProductsLinked"
+    />
+
+    <!-- Link Bonifications Dialog -->
+    <LinkBonificationsDialog
+      v-model:visible="showLinkBonificationsDialog"
+      :promotion-id="promotionId"
+      @linked="handleBonificationsLinked"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { usePromotionsStore } from '@/stores/promotions.store'
-import { productsApi } from '@/api/products.api'
 import { storeToRefs } from 'pinia'
-import type { Product } from '@/types/product.types'
-import { useDebounceFn } from '@vueuse/core'
+import Button from 'primevue/button'
+import InputNumber from 'primevue/inputnumber'
+import LinkProductsDialog from '@/components/promotions/LinkProductsDialog.vue'
+import LinkBonificationsDialog from '@/components/promotions/LinkBonificationsDialog.vue'
+import { useToast } from 'primevue/usetoast'
+import apiClient from '@/api/axios'
 
 const route = useRoute()
-const router = useRouter()
+const toast = useToast()
 const promotionsStore = usePromotionsStore()
 
 const { currentPromotion, isLoading } = storeToRefs(promotionsStore)
 
-// Configuration
-const quantityToBuy = ref(12) // Default: compra 12 productos
-const quantityToGift = ref(1) // Default: recibe 1 de regalo
+const promotionId = computed(() => parseInt(route.params.id as string))
 
-// Products
-const baseProducts = ref<Product[]>([])
-const bonificationProducts = ref<Product[]>([])
-const availableProducts = ref<Product[]>([])
+// Local state for products with quantities
+const baseProducts = ref<any[]>([])
+const bonificationProducts = ref<any[]>([])
 
-// Selection states
-const selectedAvailable = ref<number[]>([])
-const selectedBase = ref<number[]>([])
-const selectedBonification = ref<number[]>([])
+// Dialog visibility
+const showLinkProductsDialog = ref(false)
+const showLinkBonificationsDialog = ref(false)
 
-// Search
-const searchQuery = ref('')
-const isSearching = ref(false)
-const isSaving = ref(false)
+// Get image URL
+function getImageUrl(imageName: string) {
+  return `https://cdn.mitienda.pe/images/${imageName}`
+}
 
-// Computed
-const canSave = computed(() => {
-  return quantityToBuy.value > 0 &&
-         quantityToGift.value > 0 &&
-         baseProducts.value.length > 0 &&
-         bonificationProducts.value.length > 0
-})
+// Fetch products from backend
+async function fetchProducts() {
+  try {
+    const [productsResponse, bonificationsResponse] = await Promise.all([
+      apiClient.get(`/promotions/${promotionId.value}/products`),
+      apiClient.get(`/promotions/${promotionId.value}/bonifications`)
+    ])
 
-// Search products with debounce
-const debouncedSearch = useDebounceFn(async () => {
-  await searchProducts()
-}, 500)
+    if (productsResponse.data.status === 'success') {
+      baseProducts.value = productsResponse.data.data.map((p: any) => ({
+        ...p,
+        productopromocion_cantidadproducto: p.productopromocion_cantidadproducto || 1
+      }))
+    }
 
-async function searchProducts() {
-  if (!searchQuery.value.trim()) {
-    availableProducts.value = []
-    return
+    if (bonificationsResponse.data.status === 'success') {
+      bonificationProducts.value = bonificationsResponse.data.data.map((p: any) => ({
+        ...p,
+        productopromobonificacion_cantidad: p.productopromobonificacion_cantidad || 1
+      }))
+    }
+  } catch (error: any) {
+    console.error('Error fetching products:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'Error al cargar los productos',
+      life: 3000
+    })
   }
+}
+
+// Update product quantity
+async function updateProductQuantity(productId: number, quantity: number | null) {
+  if (!quantity || quantity < 1) return
 
   try {
-    isSearching.value = true
-    const response = await productsApi.getProducts({
-      search: searchQuery.value,
-      limit: 50,
-      page: 1,
-      published: true, // Solo productos publicados
-      stock_status: 'in_stock' // Solo productos con stock
+    await apiClient.put(`/promotions/${promotionId.value}/products/${productId}`, {
+      cantidad: quantity
     })
 
-    if (response.success && response.data) {
-      // Filter out products already selected
-      const baseIds = new Set(baseProducts.value.map(p => p.id))
-      const bonifIds = new Set(bonificationProducts.value.map(p => p.id))
-
-      availableProducts.value = response.data.filter(p =>
-        !baseIds.has(p.id) && !bonifIds.has(p.id)
-      )
-    }
-  } catch (error) {
-    console.error('Error searching products:', error)
-  } finally {
-    isSearching.value = false
+    toast.add({
+      severity: 'success',
+      summary: 'Cantidad Actualizada',
+      detail: 'La cantidad del producto se actualizó correctamente',
+      life: 2000
+    })
+  } catch (error: any) {
+    console.error('Error updating product quantity:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error.response?.data?.message || 'Error al actualizar la cantidad',
+      life: 3000
+    })
+    // Reload to revert the change
+    await fetchProducts()
   }
 }
 
-// Selection toggles
-function toggleAvailableSelection(productId: number) {
-  const index = selectedAvailable.value.indexOf(productId)
-  if (index > -1) {
-    selectedAvailable.value.splice(index, 1)
-  } else {
-    selectedAvailable.value.push(productId)
-  }
-}
-
-function toggleBaseSelection(productId: number) {
-  const index = selectedBase.value.indexOf(productId)
-  if (index > -1) {
-    selectedBase.value.splice(index, 1)
-  } else {
-    selectedBase.value.push(productId)
-  }
-}
-
-function toggleBonificationSelection(productId: number) {
-  const index = selectedBonification.value.indexOf(productId)
-  if (index > -1) {
-    selectedBonification.value.splice(index, 1)
-  } else {
-    selectedBonification.value.push(productId)
-  }
-}
-
-// Transfer functions
-function moveToBase() {
-  const productsToMove = availableProducts.value.filter(p =>
-    selectedAvailable.value.includes(p.id)
-  )
-
-  baseProducts.value.push(...productsToMove)
-
-  // Remove from available
-  availableProducts.value = availableProducts.value.filter(p =>
-    !selectedAvailable.value.includes(p.id)
-  )
-
-  selectedAvailable.value = []
-}
-
-function moveToBonification() {
-  const productsToMove = availableProducts.value.filter(p =>
-    selectedAvailable.value.includes(p.id)
-  )
-
-  bonificationProducts.value.push(...productsToMove)
-
-  // Remove from available
-  availableProducts.value = availableProducts.value.filter(p =>
-    !selectedAvailable.value.includes(p.id)
-  )
-
-  selectedAvailable.value = []
-}
-
-function removeFromBase() {
-  const productsToRemove = baseProducts.value.filter(p =>
-    selectedBase.value.includes(p.id)
-  )
-
-  // Add back to available if they match search
-  productsToRemove.forEach(product => {
-    if (!searchQuery.value ||
-        product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-        product.sku.toLowerCase().includes(searchQuery.value.toLowerCase())) {
-      availableProducts.value.push(product)
-    }
-  })
-
-  // Remove from base
-  baseProducts.value = baseProducts.value.filter(p =>
-    !selectedBase.value.includes(p.id)
-  )
-
-  selectedBase.value = []
-}
-
-function removeFromBonification() {
-  const productsToRemove = bonificationProducts.value.filter(p =>
-    selectedBonification.value.includes(p.id)
-  )
-
-  // Add back to available if they match search
-  productsToRemove.forEach(product => {
-    if (!searchQuery.value ||
-        product.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-        product.sku.toLowerCase().includes(searchQuery.value.toLowerCase())) {
-      availableProducts.value.push(product)
-    }
-  })
-
-  // Remove from bonification
-  bonificationProducts.value = bonificationProducts.value.filter(p =>
-    !selectedBonification.value.includes(p.id)
-  )
-
-  selectedBonification.value = []
-}
-
-// Save configuration
-async function saveConfiguration() {
-  if (!canSave.value || !currentPromotion.value) return
+// Update bonification quantity
+async function updateBonificationQuantity(productId: number, attributeId: number | undefined, quantity: number | null) {
+  if (!quantity || quantity < 1) return
 
   try {
-    isSaving.value = true
-    const promotionId = currentPromotion.value.tiendapromocion_id
+    await apiClient.put(`/promotions/${promotionId.value}/bonifications/${productId}`, {
+      cantidad: quantity,
+      atributo_id: attributeId || null
+    })
 
-    // Link base products
-    if (baseProducts.value.length > 0) {
-      await promotionsStore.linkProducts(
-        promotionId,
-        baseProducts.value.map(p => ({ producto_id: p.id }))
-      )
-    }
-
-    // Link bonification products
-    if (bonificationProducts.value.length > 0) {
-      await promotionsStore.linkBonifications(
-        promotionId,
-        bonificationProducts.value.map(p => ({ producto_id: p.id }))
-      )
-    }
-
-    // Redirect back to list
-    router.push('/marketing/promotions')
-  } catch (error) {
-    console.error('Error saving configuration:', error)
-    alert('Error al guardar la configuración. Por favor intenta de nuevo.')
-  } finally {
-    isSaving.value = false
+    toast.add({
+      severity: 'success',
+      summary: 'Cantidad Actualizada',
+      detail: 'La cantidad del producto de bonificación se actualizó correctamente',
+      life: 2000
+    })
+  } catch (error: any) {
+    console.error('Error updating bonification quantity:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error.response?.data?.message || 'Error al actualizar la cantidad',
+      life: 3000
+    })
+    // Reload to revert the change
+    await fetchProducts()
   }
 }
 
-// Load promotion on mount
+// Unlink product
+async function unlinkProduct(productId: number) {
+  if (!confirm('¿Estás seguro de que deseas eliminar este producto?')) return
+
+  try {
+    await apiClient.delete(`/promotions/${promotionId.value}/products/${productId}`)
+
+    baseProducts.value = baseProducts.value.filter(p => p.producto_id !== productId)
+
+    toast.add({
+      severity: 'success',
+      summary: 'Producto Eliminado',
+      detail: 'El producto se eliminó correctamente',
+      life: 2000
+    })
+  } catch (error: any) {
+    console.error('Error unlinking product:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error.response?.data?.message || 'Error al eliminar el producto',
+      life: 3000
+    })
+  }
+}
+
+// Unlink bonification
+async function unlinkBonification(productId: number, attributeId: number | undefined) {
+  if (!confirm('¿Estás seguro de que deseas eliminar este producto de bonificación?')) return
+
+  try {
+    await apiClient.delete(`/promotions/${promotionId.value}/bonifications/${productId}`, {
+      data: { atributo_id: attributeId || null }
+    })
+
+    bonificationProducts.value = bonificationProducts.value.filter(p =>
+      !(p.producto_id === productId && p.productoatributo_id === attributeId)
+    )
+
+    toast.add({
+      severity: 'success',
+      summary: 'Producto Eliminado',
+      detail: 'El producto de bonificación se eliminó correctamente',
+      life: 2000
+    })
+  } catch (error: any) {
+    console.error('Error unlinking bonification:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error.response?.data?.message || 'Error al eliminar el producto',
+      life: 3000
+    })
+  }
+}
+
+// Handle products linked
+async function handleProductsLinked() {
+  await fetchProducts()
+  toast.add({
+    severity: 'success',
+    summary: 'Productos Vinculados',
+    detail: 'Los productos se vincularon correctamente',
+    life: 2000
+  })
+}
+
+// Handle bonifications linked
+async function handleBonificationsLinked() {
+  await fetchProducts()
+  toast.add({
+    severity: 'success',
+    summary: 'Bonificaciones Vinculadas',
+    detail: 'Las bonificaciones se vincularon correctamente',
+    life: 2000
+  })
+}
+
+// Initialize
 onMounted(async () => {
-  const promotionId = parseInt(route.params.id as string)
-  if (promotionId) {
-    await promotionsStore.fetchPromotion(promotionId)
+  if (promotionId.value) {
+    await promotionsStore.fetchPromotion(promotionId.value)
+    await fetchProducts()
   }
 })
 </script>
 
 <style scoped>
-/* Custom scrollbar */
-.overflow-y-auto::-webkit-scrollbar {
-  width: 6px;
+/* Customize InputNumber width */
+:deep(.p-inputnumber) {
+  width: 5rem;
 }
 
-.overflow-y-auto::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 3px;
-}
-
-.overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: #555;
+:deep(.p-inputnumber-input) {
+  width: 100%;
+  text-align: center;
 }
 </style>

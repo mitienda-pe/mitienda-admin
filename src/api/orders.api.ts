@@ -234,7 +234,26 @@ export const ordersApi = {
         },
         created_at: rawData.date_created || '',
         updated_at: rawData.date_created || '',
-        notes: receiverAddress.comment || undefined
+        notes: receiverAddress.comment || undefined,
+        // ERP Sync fields - intentar varios nombres posibles del backend
+        tiendaventa_estado_notif_erp: rawData.tiendaventa_estado_notif_erp ??
+                                       rawData.erp_sync_status ??
+                                       rawData.erp_status ??
+                                       undefined,
+        tiendaventa_mensaje_notif_erp: rawData.tiendaventa_mensaje_notif_erp ??
+                                        rawData.erp_sync_message ??
+                                        rawData.erp_message ??
+                                        undefined,
+        // Billing document info
+        billing_document: billingInfo['e-billing'] ? {
+          id: billingInfo['e-billing'].id || 0,
+          status: billingInfo['e-billing'].status || 0,
+          billing_date: billingInfo['e-billing'].billing_date || null,
+          serie: billingInfo['e-billing'].serie || '',
+          correlative: billingInfo['e-billing'].correlative || '',
+          pdf_url: billingInfo['e-billing'].url_pdf || undefined,
+          xml_url: billingInfo['e-billing'].url_xml || undefined
+        } : undefined
       }
 
       return {
