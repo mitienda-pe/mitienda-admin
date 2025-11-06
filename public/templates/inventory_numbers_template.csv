@@ -1,0 +1,3 @@
+producto_sku,lot_number,inventory_number_id,quantity_available
+SKU001,LOTE-001,12345,100
+SKU002,LOTE-002,12346,50
