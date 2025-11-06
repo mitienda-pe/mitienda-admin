@@ -7,7 +7,7 @@ interface Props {
   showRetry?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   title: 'Error',
   icon: 'pi-exclamation-circle',
   retryLabel: 'Reintentar',

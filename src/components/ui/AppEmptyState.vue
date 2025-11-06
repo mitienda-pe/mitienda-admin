@@ -7,7 +7,7 @@ interface Props {
   actionIcon?: string
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   icon: 'pi-inbox'
 })
 

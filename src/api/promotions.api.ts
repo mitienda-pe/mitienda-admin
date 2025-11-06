@@ -64,6 +64,7 @@ export interface BonificationProduct {
   producto_publicado: number
   producto_atributo_nombre?: string
   producto_imagen?: string
+  productopromobonificacion_cantidad?: number
 }
 
 export interface CreatePromotionData {
