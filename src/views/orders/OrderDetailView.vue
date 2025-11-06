@@ -9,7 +9,7 @@ import Card from 'primevue/card'
 import ProgressSpinner from 'primevue/progressspinner'
 import Timeline from 'primevue/timeline'
 import EmitDocumentDialog from '@/components/billing/EmitDocumentDialog.vue'
-import type { OrderStatus } from '@/types/order.types'
+import type { Order, OrderStatus } from '@/types/order.types'
 
 const route = useRoute()
 const router = useRouter()
@@ -25,7 +25,7 @@ onMounted(() => {
   ordersStore.fetchOrder(orderId)
 })
 
-const order = computed(() => ordersStore.currentOrder)
+const order = computed<Order | null>(() => ordersStore.currentOrder)
 
 // Solo estados de PAGO (no estados de envío)
 // pending = 2 (pendiente), paid = 1 (confirmado), cancelled = 0 (rechazado)
