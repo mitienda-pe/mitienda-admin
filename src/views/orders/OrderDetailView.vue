@@ -153,9 +153,17 @@ const handleEmitSuccess = () => {
   ordersStore.fetchOrder(orderId)
 }
 
+const hasEmittedDocument = computed(() => {
+  // Check if order has an emitted billing document
+  return order.value?.billing_document && order.value.billing_document.status === 1
+})
+
 const canEmitDocument = computed(() => {
-  // Can emit if order exists, is paid, and has customer info
-  return order.value && order.value.status === 'paid' && order.value.customer
+  // Can emit if order exists, is paid, has customer info, and NO document emitted yet
+  return order.value &&
+         order.value.status === 'paid' &&
+         order.value.customer &&
+         !hasEmittedDocument.value
 })
 
 const canSendEmail = computed(() => {
@@ -164,6 +172,45 @@ const canSendEmail = computed(() => {
          order.value.status === 'paid' &&
          order.value.customer?.email &&
          order.value.customer.email.includes('@')
+})
+
+const erpSyncData = computed(() => {
+  if (!order.value?.tiendaventa_mensaje_notif_erp) return null
+
+  try {
+    const parsed = JSON.parse(order.value.tiendaventa_mensaje_notif_erp)
+    return parsed
+  } catch (e) {
+    console.error('Error parsing ERP message:', e)
+    return null
+  }
+})
+
+const erpSyncStatus = computed(() => {
+  if (!order.value) return null
+
+  // tiendaventa_estado_notif_erp: 0 = success, 1 = error
+  const status = order.value.tiendaventa_estado_notif_erp
+
+  if (status === 0) {
+    return {
+      label: 'Exitoso',
+      severity: 'success',
+      icon: 'pi-check-circle',
+      bgClass: 'bg-green-100',
+      textClass: 'text-green-800'
+    }
+  } else if (status === 1) {
+    return {
+      label: 'Error',
+      severity: 'danger',
+      icon: 'pi-times-circle',
+      bgClass: 'bg-red-100',
+      textClass: 'text-red-800'
+    }
+  }
+
+  return null
 })
 
 const handleSendInvoiceEmail = async () => {
@@ -190,6 +237,27 @@ const handleSendInvoiceEmail = async () => {
     isSendingEmail.value = false
   }
 }
+
+const downloadDocument = (url: string, _filename: string) => {
+  if (!url) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'URL de descarga no disponible',
+      life: 3000
+    })
+    return
+  }
+
+  // Open in new tab
+  window.open(url, '_blank')
+}
+
+const billingDocumentNumber = computed(() => {
+  if (!order.value?.billing_document) return ''
+  const { serie, correlative } = order.value.billing_document
+  return `${serie}-${correlative}`
+})
 </script>
 
 <template>
@@ -377,6 +445,87 @@ const handleSendInvoiceEmail = async () => {
             </Timeline>
           </template>
         </Card>
+
+        <!-- Sincronización ERP -->
+        <Card v-if="erpSyncData || order.tiendaventa_mensaje_notif_erp">
+          <template #title>
+            <div class="flex items-center justify-between w-full">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-sync text-primary"></i>
+                Sincronización ERP
+              </div>
+              <span
+                v-if="erpSyncStatus"
+                :class="[
+                  'px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1.5',
+                  erpSyncStatus.bgClass,
+                  erpSyncStatus.textClass
+                ]"
+              >
+                <i :class="['pi', erpSyncStatus.icon]"></i>
+                {{ erpSyncStatus.label }}
+              </span>
+            </div>
+          </template>
+          <template #content>
+            <div class="space-y-4">
+              <!-- Success/Error Status -->
+              <div v-if="erpSyncData">
+                <div v-if="!erpSyncData.success && erpSyncData.error" class="mb-3">
+                  <p class="text-sm text-gray-500 mb-1">Error</p>
+                  <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <p class="text-sm text-red-800">{{ erpSyncData.error }}</p>
+                  </div>
+                </div>
+
+                <!-- Steps Timeline -->
+                <div v-if="erpSyncData.steps && erpSyncData.steps.length > 0">
+                  <p class="text-sm text-gray-500 mb-2">Pasos de sincronización</p>
+                  <div class="space-y-2">
+                    <div
+                      v-for="(step, index) in erpSyncData.steps"
+                      :key="index"
+                      class="flex items-start gap-2 text-sm"
+                    >
+                      <i
+                        :class="[
+                          'pi mt-0.5',
+                          step.status === 'success' ? 'pi-check-circle text-green-600' : 'pi-times-circle text-red-600'
+                        ]"
+                      ></i>
+                      <div class="flex-1">
+                        <p class="font-medium text-gray-900">{{ step.step }}</p>
+                        <p v-if="step.action" class="text-gray-600 text-xs">Acción: {{ step.action }}</p>
+                        <p v-if="step.customer_id" class="text-gray-600 text-xs">Customer ID: {{ step.customer_id }}</p>
+                        <p v-if="step.message" class="text-gray-600 text-xs">{{ step.message }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Failed At -->
+                <div v-if="erpSyncData.failed_at" class="mt-3">
+                  <p class="text-sm text-gray-500">Fecha de error</p>
+                  <p class="text-gray-900 text-sm">{{ erpSyncData.failed_at }}</p>
+                </div>
+
+                <!-- Success Data (if applicable) -->
+                <div v-if="erpSyncData.success && erpSyncData.invoice_id">
+                  <p class="text-sm text-gray-500">Invoice ID</p>
+                  <p class="font-mono text-sm text-gray-900">{{ erpSyncData.invoice_id }}</p>
+                </div>
+              </div>
+
+              <!-- Raw JSON (collapsible) -->
+              <details class="mt-3">
+                <summary class="text-sm text-gray-500 cursor-pointer hover:text-gray-700">
+                  Ver JSON completo
+                </summary>
+                <pre class="mt-2 text-xs bg-gray-50 border border-gray-200 rounded p-3 overflow-auto max-h-96">{{ JSON.stringify(erpSyncData || order.tiendaventa_mensaje_notif_erp, null, 2) }}</pre>
+              </details>
+            </div>
+          </template>
+        </Card>
       </div>
 
       <!-- Sidebar: Información del Cliente y Pedido -->
@@ -487,6 +636,62 @@ const handleSendInvoiceEmail = async () => {
               <div v-if="order.notes">
                 <p class="text-sm text-gray-500">Notas</p>
                 <p class="text-gray-900">{{ order.notes }}</p>
+              </div>
+            </div>
+          </template>
+        </Card>
+
+        <!-- Comprobante Emitido -->
+        <Card v-if="hasEmittedDocument">
+          <template #title>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-file-pdf text-primary"></i>
+              Comprobante Emitido
+            </div>
+          </template>
+          <template #content>
+            <div class="space-y-3">
+              <div>
+                <p class="text-sm text-gray-500">Número de comprobante</p>
+                <p class="font-semibold text-gray-900 font-mono">{{ billingDocumentNumber }}</p>
+              </div>
+              <div v-if="order.billing_document?.billing_date">
+                <p class="text-sm text-gray-500">Fecha de emisión</p>
+                <p class="text-gray-900">{{ formatDate(order.billing_document.billing_date) }}</p>
+              </div>
+
+              <!-- Download Buttons -->
+              <div class="flex flex-col gap-2 pt-2">
+                <Button
+                  v-if="order.billing_document?.pdf_url"
+                  label="Descargar PDF"
+                  icon="pi pi-file-pdf"
+                  severity="danger"
+                  outlined
+                  size="small"
+                  class="w-full"
+                  @click="downloadDocument(order.billing_document.pdf_url!, 'comprobante.pdf')"
+                />
+                <Button
+                  v-if="order.billing_document?.xml_url"
+                  label="Descargar XML"
+                  icon="pi pi-file"
+                  severity="info"
+                  outlined
+                  size="small"
+                  class="w-full"
+                  @click="downloadDocument(order.billing_document.xml_url!, 'comprobante.xml')"
+                />
+                <Button
+                  v-if="!order.billing_document?.pdf_url && !order.billing_document?.xml_url"
+                  label="Ver Comprobante"
+                  icon="pi pi-eye"
+                  severity="secondary"
+                  outlined
+                  size="small"
+                  class="w-full"
+                  @click="$router.push(`/billing/documents/${order.billing_document?.id}`)"
+                />
               </div>
             </div>
           </template>
