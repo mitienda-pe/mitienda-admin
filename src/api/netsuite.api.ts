@@ -5,7 +5,14 @@ import type {
   SaveNetsuiteCredentialsRequest,
   NetsuiteSerie,
   SaveNetsuiteSerieRequest,
-  TestNetsuiteConnectionResponse
+  TestNetsuiteConnectionResponse,
+  ProductInventoryMapping,
+  ProductInventoryListResponse,
+  ProductInventoryFilters,
+  SaveProductInventoryRequest,
+  NetsuiteInventoryNumber,
+  SaveInventoryNumberRequest,
+  CsvUploadResponse
 } from '@/types/netsuite.types'
 
 export const netsuiteApi = {
@@ -84,6 +91,104 @@ export const netsuiteApi = {
     console.log('[netsuiteApi] getUnmappedSeries - tiendaId:', tiendaId)
     const response = await apiClient.get(`/netsuite-credentials/${tiendaId}/series/unmapped`)
     console.log('[netsuiteApi] getUnmappedSeries - response:', response.data)
+    return response.data
+  },
+
+  // ========== Inventory Mapping API ==========
+
+  /**
+   * Get products with their inventory mapping
+   */
+  async getProductsInventory(tiendaId: number, filters?: ProductInventoryFilters): Promise<ApiResponse<ProductInventoryListResponse>> {
+    console.log('[netsuiteApi] getProductsInventory - tiendaId:', tiendaId, 'filters:', filters)
+    const params = new URLSearchParams()
+
+    if (filters?.search) params.append('search', filters.search)
+    if (filters?.has_mapping !== undefined && filters?.has_mapping !== null) {
+      params.append('has_mapping', filters.has_mapping ? '1' : '0')
+    }
+    if (filters?.page) params.append('page', filters.page.toString())
+    if (filters?.limit) params.append('limit', filters.limit.toString())
+
+    const response = await apiClient.get(`/netsuite-inventory/${tiendaId}/products?${params.toString()}`)
+    console.log('[netsuiteApi] getProductsInventory - response:', response.data)
+    return response.data
+  },
+
+  /**
+   * Get a single product with inventory mapping
+   */
+  async getProductInventory(tiendaId: number, productId: number): Promise<ApiResponse<ProductInventoryMapping>> {
+    console.log('[netsuiteApi] getProductInventory - tiendaId:', tiendaId, 'productId:', productId)
+    const response = await apiClient.get(`/netsuite-inventory/${tiendaId}/products/${productId}`)
+    console.log('[netsuiteApi] getProductInventory - response:', response.data)
+    return response.data
+  },
+
+  /**
+   * Save or update product NetSuite item ID mapping
+   */
+  async saveProductInventory(data: SaveProductInventoryRequest): Promise<ApiResponse<{ success: boolean }>> {
+    console.log('[netsuiteApi] saveProductInventory - request data:', data)
+    const response = await apiClient.post(`/netsuite-inventory/${data.tienda_id}/products/${data.producto_id}`, data)
+    console.log('[netsuiteApi] saveProductInventory - response:', response.data)
+    return response.data
+  },
+
+  /**
+   * Get inventory numbers for a specific NetSuite item
+   */
+  async getInventoryNumbers(tiendaId: number, itemId: number): Promise<ApiResponse<NetsuiteInventoryNumber[]>> {
+    console.log('[netsuiteApi] getInventoryNumbers - tiendaId:', tiendaId, 'itemId:', itemId)
+    const response = await apiClient.get(`/netsuite-inventory/${tiendaId}/items/${itemId}/numbers`)
+    console.log('[netsuiteApi] getInventoryNumbers - response:', response.data)
+    return response.data
+  },
+
+  /**
+   * Save or update an inventory number
+   */
+  async saveInventoryNumber(tiendaId: number, itemId: number, data: SaveInventoryNumberRequest): Promise<ApiResponse<{ id: number }>> {
+    console.log('[netsuiteApi] saveInventoryNumber - request data:', data)
+    const response = await apiClient.post(`/netsuite-inventory/${tiendaId}/items/${itemId}/numbers`, data)
+    console.log('[netsuiteApi] saveInventoryNumber - response:', response.data)
+    return response.data
+  },
+
+  /**
+   * Update an existing inventory number
+   */
+  async updateInventoryNumber(tiendaId: number, itemId: number, numberId: number, data: SaveInventoryNumberRequest): Promise<ApiResponse<{ success: boolean }>> {
+    console.log('[netsuiteApi] updateInventoryNumber - numberId:', numberId, 'data:', data)
+    const response = await apiClient.put(`/netsuite-inventory/${tiendaId}/items/${itemId}/numbers/${numberId}`, data)
+    console.log('[netsuiteApi] updateInventoryNumber - response:', response.data)
+    return response.data
+  },
+
+  /**
+   * Delete an inventory number
+   */
+  async deleteInventoryNumber(tiendaId: number, itemId: number, numberId: number): Promise<ApiResponse<any>> {
+    console.log('[netsuiteApi] deleteInventoryNumber - numberId:', numberId)
+    const response = await apiClient.delete(`/netsuite-inventory/${tiendaId}/items/${itemId}/numbers/${numberId}`)
+    console.log('[netsuiteApi] deleteInventoryNumber - response:', response.data)
+    return response.data
+  },
+
+  /**
+   * Upload CSV file to bulk import inventory numbers
+   */
+  async uploadInventoryCsv(tiendaId: number, file: File): Promise<ApiResponse<CsvUploadResponse>> {
+    console.log('[netsuiteApi] uploadInventoryCsv - tiendaId:', tiendaId, 'file:', file.name)
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await apiClient.post(`/netsuite-inventory/${tiendaId}/upload-csv`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+    console.log('[netsuiteApi] uploadInventoryCsv - response:', response.data)
     return response.data
   }
 }

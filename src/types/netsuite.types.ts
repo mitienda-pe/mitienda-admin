@@ -60,3 +60,72 @@ export interface SaveNetsuiteSerieRequest {
   empfacturacionserie_id?: number
   estado?: number
 }
+
+// NetSuite Inventory Mapping Types
+
+export interface NetsuiteInventoryNumber {
+  id?: number
+  item_id: number
+  lot_number: string
+  inventory_number_id: number
+  location_id: number
+  quantity_available?: number
+  created_at?: string
+  updated_at?: string
+}
+
+export interface ProductInventoryMapping {
+  tiendaproducto_id: number
+  tiendaproducto_sku: string
+  tiendaproducto_titulo: string
+  tiendaproducto_estado: number
+  tiendaproducto_imagen?: string
+  netsuite_item_id: string | null
+  inventory_numbers: NetsuiteInventoryNumber[]
+  has_mapping: boolean
+}
+
+export interface ProductInventoryListResponse {
+  products: ProductInventoryMapping[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    total_pages: number
+  }
+}
+
+export interface SaveProductInventoryRequest {
+  tienda_id: number
+  producto_id: number
+  netsuite_item_id: string
+}
+
+export interface SaveInventoryNumberRequest {
+  item_id: number
+  lot_number: string
+  inventory_number_id: number
+  location_id: number
+  quantity_available?: number
+}
+
+export interface ProductInventoryFilters {
+  search?: string
+  has_mapping?: boolean | null
+  page?: number
+  limit?: number
+}
+
+export interface CsvUploadError {
+  sku?: string
+  lot_number?: string
+  error: string
+}
+
+export interface CsvUploadResponse {
+  total_rows: number
+  products_updated: number
+  products_not_found: number
+  inventory_numbers_created: number
+  errors: CsvUploadError[]
+}
