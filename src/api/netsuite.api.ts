@@ -190,5 +190,54 @@ export const netsuiteApi = {
     })
     console.log('[netsuiteApi] uploadInventoryCsv - response:', response.data)
     return response.data
+  },
+
+  // ========== Stock Synchronization API ==========
+
+  /**
+   * Get NetSuite stock for a specific product
+   */
+  async getProductNetsuiteStock(productId: number): Promise<ApiResponse<{
+    product_id: number
+    sku: string
+    netsuite_stock: number
+    local_stock: number
+    inventory_number_id?: string
+  }>> {
+    console.log('[netsuiteApi] getProductNetsuiteStock - productId:', productId)
+    const response = await apiClient.get(`/products/${productId}/netsuite-stock`)
+    console.log('[netsuiteApi] getProductNetsuiteStock - response:', response.data)
+    return response.data
+  },
+
+  /**
+   * Sync product stock from NetSuite to local database
+   */
+  async syncProductStock(productId: number): Promise<ApiResponse<{
+    product_id: number
+    sku: string
+    previous_stock: number
+    current_stock: number
+    difference: number
+  }>> {
+    console.log('[netsuiteApi] syncProductStock - productId:', productId)
+    const response = await apiClient.post(`/products/${productId}/sync-stock`)
+    console.log('[netsuiteApi] syncProductStock - response:', response.data)
+    return response.data
+  },
+
+  /**
+   * Sync stock for multiple products in batch (max 50)
+   */
+  async syncStockBatch(productIds: number[]): Promise<ApiResponse<{
+    synced_count: number
+    stock_levels: Record<number, number>
+  }>> {
+    console.log('[netsuiteApi] syncStockBatch - productIds:', productIds)
+    const response = await apiClient.post('/products/sync-stock-batch', {
+      product_ids: productIds
+    })
+    console.log('[netsuiteApi] syncStockBatch - response:', response.data)
+    return response.data
   }
 }

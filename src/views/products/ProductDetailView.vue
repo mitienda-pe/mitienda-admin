@@ -95,10 +95,40 @@
 
               <!-- Stock -->
               <div>
-                <span class="text-secondary-600">Stock: </span>
-                <span class="font-medium" :class="stockColorClass">
-                  {{ product.unlimited_stock ? 'Ilimitado' : `${product.stock} unidades` }}
-                </span>
+                <div class="flex items-center justify-between gap-4">
+                  <div>
+                    <span class="text-secondary-600">Stock: </span>
+                    <span class="font-medium" :class="stockColorClass">
+                      {{ product.unlimited_stock ? 'Ilimitado' : `${product.stock} unidades` }}
+                    </span>
+                    <span v-if="netsuiteStock !== null" class="text-xs text-gray-500 ml-2">
+                      (NetSuite: {{ netsuiteStock }} unidades)
+                    </span>
+                  </div>
+                  <div class="flex gap-2">
+                    <Button
+                      icon="pi pi-search"
+                      label="Consultar"
+                      size="small"
+                      severity="info"
+                      outlined
+                      @click="queryNetsuiteStock"
+                      :disabled="product.unlimited_stock"
+                      v-tooltip.top="'Consultar stock en NetSuite'"
+                    />
+                    <Button
+                      icon="pi pi-sync"
+                      label="Sincronizar"
+                      size="small"
+                      severity="success"
+                      outlined
+                      :loading="isSyncingStock"
+                      @click="syncStockWithNetsuite"
+                      :disabled="product.unlimited_stock"
+                      v-tooltip.top="'Sincronizar stock desde NetSuite'"
+                    />
+                  </div>
+                </div>
               </div>
 
               <!-- Stock mínimo -->
@@ -408,6 +438,8 @@ const showVideoUploader = ref(false)
 const showDocumentUploader = ref(false)
 const showDescriptionEditor = ref(false)
 const editorMode = ref<'wysiwyg' | 'code'>('wysiwyg')
+const isSyncingStock = ref(false)
+const netsuiteStock = ref<number | null>(null)
 
 // Computed para forzar reactividad del video
 const hasVideo = computed(() => {
@@ -707,6 +739,81 @@ const handleImageDelete = async (imageId: number) => {
       severity: 'error',
       summary: 'Error',
       detail: error.message || 'No se pudo eliminar la imagen',
+      life: 5000
+    })
+  }
+}
+
+// NetSuite Stock Synchronization
+const syncStockWithNetsuite = async () => {
+  if (!product.value) return
+
+  isSyncingStock.value = true
+  try {
+    const { netsuiteApi } = await import('@/api/netsuite.api')
+    const response = await netsuiteApi.syncProductStock(product.value.id)
+
+    if (response.success && response.data) {
+      const { previous_stock, current_stock, difference } = response.data
+
+      // Update local product stock
+      if (product.value) {
+        product.value.stock = current_stock
+      }
+
+      // Update netsuiteStock for display
+      netsuiteStock.value = current_stock
+
+      toast.add({
+        severity: 'success',
+        summary: 'Stock sincronizado',
+        detail: `Stock actualizado de ${previous_stock} a ${current_stock} unidades (${difference >= 0 ? '+' : ''}${difference})`,
+        life: 5000
+      })
+
+      // Refresh product data
+      await productsStore.fetchProduct(product.value.id)
+    } else {
+      throw new Error(response.message || 'Error al sincronizar stock')
+    }
+  } catch (error: any) {
+    console.error('Error syncing stock:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Error al sincronizar',
+      detail: error.message || 'No se pudo sincronizar el stock con NetSuite',
+      life: 5000
+    })
+  } finally {
+    isSyncingStock.value = false
+  }
+}
+
+const queryNetsuiteStock = async () => {
+  if (!product.value) return
+
+  try {
+    const { netsuiteApi } = await import('@/api/netsuite.api')
+    const response = await netsuiteApi.getProductNetsuiteStock(product.value.id)
+
+    if (response.success && response.data) {
+      netsuiteStock.value = response.data.netsuite_stock
+
+      toast.add({
+        severity: 'info',
+        summary: 'Stock en NetSuite',
+        detail: `Stock disponible: ${response.data.netsuite_stock} unidades`,
+        life: 5000
+      })
+    } else {
+      throw new Error(response.message || 'Error al consultar stock')
+    }
+  } catch (error: any) {
+    console.error('Error querying NetSuite stock:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error.message || 'No se pudo consultar el stock en NetSuite',
       life: 5000
     })
   }
