@@ -390,9 +390,31 @@ async function handleSubmit() {
 
   billingStore.clearMessages()
 
+  // Clean formData: remove null/undefined/empty values for optional fields
+  const cleanedData: any = {
+    nubefact_url: formData.nubefact_url,
+    api_token: formData.api_token,
+    environment: formData.environment,
+    pdf_format: formData.pdf_format
+  }
+
+  // Only add optional fields if they have values
+  if (formData.serie_factura) {
+    cleanedData.serie_factura = formData.serie_factura
+  }
+  if (formData.numero_factura) {
+    cleanedData.numero_factura = formData.numero_factura
+  }
+  if (formData.serie_boleta) {
+    cleanedData.serie_boleta = formData.serie_boleta
+  }
+  if (formData.numero_boleta) {
+    cleanedData.numero_boleta = formData.numero_boleta
+  }
+
   const result = config.value?.configured
-    ? await billingStore.updateNubefactCredentials(formData)
-    : await billingStore.saveNubefactCredentials(formData)
+    ? await billingStore.updateNubefactCredentials(cleanedData)
+    : await billingStore.saveNubefactCredentials(cleanedData)
 
   if (result.success) {
     toast.add({
