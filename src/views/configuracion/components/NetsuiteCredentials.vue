@@ -130,7 +130,7 @@
       <div>
         <h3 class="text-lg font-semibold text-secondary-800 mb-4">Configuración de NetSuite</h3>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div>
             <label for="subsidiary_id" class="block text-sm font-medium text-secondary-700 mb-2">
               Subsidiary ID
@@ -145,19 +145,6 @@
           </div>
 
           <div>
-            <label for="location_id" class="block text-sm font-medium text-secondary-700 mb-2">
-              Location ID
-            </label>
-            <InputText
-              id="location_id"
-              v-model="formData.location_id"
-              placeholder="323"
-              class="w-full"
-            />
-            <small class="text-secondary-600 mt-1 block">ID de ubicación por defecto</small>
-          </div>
-
-          <div>
             <label for="ubicacion_serie_id" class="block text-sm font-medium text-secondary-700 mb-2">
               Ubicación Serie ID
             </label>
@@ -168,6 +155,71 @@
               class="w-full"
             />
             <small class="text-secondary-600 mt-1 block">Para custbody_pe_ubicacion_para_serie</small>
+          </div>
+        </div>
+
+        <!-- Locations Section -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h4 class="text-base font-semibold text-secondary-800">Locations</h4>
+              <p class="text-sm text-secondary-600">Ubicaciones de NetSuite</p>
+            </div>
+            <Button
+              type="button"
+              label="Agregar Location"
+              icon="pi pi-plus"
+              size="small"
+              outlined
+              @click="openLocationDialog()"
+            />
+          </div>
+
+          <!-- Locations Table -->
+          <div v-if="locations.length > 0" class="border border-secondary-200 rounded-lg overflow-hidden">
+            <table class="w-full">
+              <thead class="bg-secondary-50">
+                <tr>
+                  <th class="px-4 py-3 text-left text-sm font-semibold text-secondary-700">Location ID</th>
+                  <th class="px-4 py-3 text-left text-sm font-semibold text-secondary-700">Nombre</th>
+                  <th class="px-4 py-3 text-center text-sm font-semibold text-secondary-700">Por Defecto</th>
+                  <th class="px-4 py-3 text-center text-sm font-semibold text-secondary-700 w-20">Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-secondary-200">
+                <tr v-for="(location, index) in locations" :key="index" class="hover:bg-secondary-50">
+                  <td class="px-4 py-3 text-sm text-secondary-800">{{ location.location_id }}</td>
+                  <td class="px-4 py-3 text-sm text-secondary-800">{{ location.location_name }}</td>
+                  <td class="px-4 py-3 text-center">
+                    <i v-if="location.is_default" class="pi pi-check-circle text-green-600"></i>
+                  </td>
+                  <td class="px-4 py-3 text-center">
+                    <div class="flex items-center justify-center gap-2">
+                      <Button
+                        icon="pi pi-pencil"
+                        size="small"
+                        text
+                        severity="secondary"
+                        @click="openLocationDialog(index)"
+                      />
+                      <Button
+                        icon="pi pi-trash"
+                        size="small"
+                        text
+                        severity="danger"
+                        @click="deleteLocation(index)"
+                      />
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div v-else class="p-6 text-center border-2 border-dashed border-secondary-300 rounded-lg">
+            <i class="pi pi-map-marker text-3xl text-secondary-400 mb-2"></i>
+            <p class="text-secondary-600">No hay locations configuradas</p>
+            <p class="text-sm text-secondary-500 mt-1">Agrega al menos una location para NetSuite</p>
           </div>
         </div>
       </div>
@@ -248,6 +300,75 @@
         />
       </div>
     </form>
+
+    <!-- Location Dialog -->
+    <Dialog
+      v-model:visible="locationDialogVisible"
+      :header="editingLocationIndex !== null ? 'Editar Location' : 'Agregar Location'"
+      :modal="true"
+      :closable="true"
+      :style="{ width: '500px' }"
+    >
+      <div class="space-y-4 py-4">
+        <div>
+          <label for="dialog_location_id" class="block text-sm font-medium text-secondary-700 mb-2">
+            Location ID <span class="text-red-500">*</span>
+          </label>
+          <InputText
+            id="dialog_location_id"
+            v-model="locationForm.location_id"
+            placeholder="323"
+            class="w-full"
+            :class="{ 'p-invalid': locationErrors.location_id }"
+          />
+          <small v-if="locationErrors.location_id" class="text-red-500">{{ locationErrors.location_id }}</small>
+        </div>
+
+        <div>
+          <label for="dialog_location_name" class="block text-sm font-medium text-secondary-700 mb-2">
+            Nombre <span class="text-red-500">*</span>
+          </label>
+          <InputText
+            id="dialog_location_name"
+            v-model="locationForm.location_name"
+            placeholder="LAVICTORIA"
+            class="w-full"
+            :class="{ 'p-invalid': locationErrors.location_name }"
+          />
+          <small v-if="locationErrors.location_name" class="text-red-500">{{ locationErrors.location_name }}</small>
+        </div>
+
+        <div class="flex items-center justify-between p-4 bg-secondary-50 rounded-lg">
+          <div>
+            <label for="dialog_is_default" class="font-medium text-secondary-800 cursor-pointer">
+              Location por defecto
+            </label>
+            <p class="text-sm text-secondary-600 mt-1">
+              Usar esta location como predeterminada
+            </p>
+          </div>
+          <InputSwitch
+            id="dialog_is_default"
+            v-model="locationForm.is_default"
+          />
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex gap-2 justify-end">
+          <Button
+            label="Cancelar"
+            severity="secondary"
+            outlined
+            @click="closeLocationDialog"
+          />
+          <Button
+            :label="editingLocationIndex !== null ? 'Actualizar' : 'Agregar'"
+            @click="saveLocation"
+          />
+        </div>
+      </template>
+    </Dialog>
   </div>
 </template>
 
@@ -256,7 +377,7 @@ import { ref, reactive, watch, computed } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { useNetsuite } from '@/composables/useNetsuite'
-import type { SaveNetsuiteCredentialsRequest } from '@/types/netsuite.types'
+import type { SaveNetsuiteCredentialsRequest, NetsuiteLocation } from '@/types/netsuite.types'
 
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -264,6 +385,7 @@ import Password from 'primevue/password'
 import InputSwitch from 'primevue/inputswitch'
 import Divider from 'primevue/divider'
 import Message from 'primevue/message'
+import Dialog from 'primevue/dialog'
 
 const props = defineProps<{
   tiendaId: number | null
@@ -298,10 +420,26 @@ const formData = reactive<Partial<SaveNetsuiteCredentialsRequest>>({
   token_id: '',
   token_secret: '',
   subsidiary_id: '3',
-  location_id: '323',
+  location_id: '323', // Deprecated - kept for backward compatibility
   ubicacion_serie_id: '323',
   autosync_enabled: false,
   estado: 1
+})
+
+// Locations management
+const locations = ref<NetsuiteLocation[]>([])
+const locationDialogVisible = ref(false)
+const editingLocationIndex = ref<number | null>(null)
+
+const locationForm = reactive<NetsuiteLocation>({
+  location_id: '',
+  location_name: '',
+  is_default: false
+})
+
+const locationErrors = reactive({
+  location_id: '',
+  location_name: ''
 })
 
 const errors = reactive({
@@ -362,13 +500,29 @@ watch(() => props.tiendaId, async (tiendaId) => {
       estado: Number(creds.tiendacredencialerp_estado)
     })
 
+    // Load locations - if exists use them, otherwise create from legacy location_id
+    if (creds.locations && creds.locations.length > 0) {
+      locations.value = [...creds.locations]
+    } else if (creds.tiendacredencialerp_location_id) {
+      // Backward compatibility: convert legacy location_id to new format
+      locations.value = [{
+        location_id: creds.tiendacredencialerp_location_id,
+        location_name: 'LAVICTORIA',
+        is_default: true
+      }]
+    } else {
+      locations.value = []
+    }
+
     console.log('[NetsuiteCredentials] formData after assign:')
     console.log('  - estado:', formData.estado, typeof formData.estado)
     console.log('  - autosync_enabled:', formData.autosync_enabled, typeof formData.autosync_enabled)
     console.log('  - estadoBoolean computed:', estadoBoolean.value)
+    console.log('  - locations:', locations.value)
   } else {
     console.log('[NetsuiteCredentials] No credentials found, resetting form')
     isEdit.value = false
+    locations.value = []
     // Reset form
     Object.assign(formData, {
       tienda_id: tiendaId,
@@ -385,6 +539,113 @@ watch(() => props.tiendaId, async (tiendaId) => {
     })
   }
 }, { immediate: true })
+
+// Location dialog functions
+function openLocationDialog(index?: number) {
+  if (index !== undefined) {
+    // Edit mode
+    editingLocationIndex.value = index
+    const loc = locations.value[index]
+    Object.assign(locationForm, {
+      location_id: loc.location_id,
+      location_name: loc.location_name,
+      is_default: loc.is_default
+    })
+  } else {
+    // Add mode
+    editingLocationIndex.value = null
+    Object.assign(locationForm, {
+      location_id: '',
+      location_name: '',
+      is_default: locations.value.length === 0 // First location is default by default
+    })
+  }
+
+  // Clear errors
+  locationErrors.location_id = ''
+  locationErrors.location_name = ''
+
+  locationDialogVisible.value = true
+}
+
+function closeLocationDialog() {
+  locationDialogVisible.value = false
+  editingLocationIndex.value = null
+}
+
+function validateLocationForm(): boolean {
+  locationErrors.location_id = ''
+  locationErrors.location_name = ''
+
+  let valid = true
+
+  if (!locationForm.location_id.trim()) {
+    locationErrors.location_id = 'Location ID es obligatorio'
+    valid = false
+  }
+
+  if (!locationForm.location_name.trim()) {
+    locationErrors.location_name = 'Nombre es obligatorio'
+    valid = false
+  }
+
+  // Check for duplicate location_id (only if not editing the same location)
+  const duplicateIndex = locations.value.findIndex(loc => loc.location_id === locationForm.location_id)
+  if (duplicateIndex !== -1 && duplicateIndex !== editingLocationIndex.value) {
+    locationErrors.location_id = 'Este Location ID ya existe'
+    valid = false
+  }
+
+  return valid
+}
+
+function saveLocation() {
+  if (!validateLocationForm()) return
+
+  const newLocation: NetsuiteLocation = {
+    location_id: locationForm.location_id.trim(),
+    location_name: locationForm.location_name.trim(),
+    is_default: locationForm.is_default
+  }
+
+  // If this is set as default, unset others
+  if (newLocation.is_default) {
+    locations.value.forEach(loc => {
+      loc.is_default = false
+    })
+  }
+
+  if (editingLocationIndex.value !== null) {
+    // Update existing
+    locations.value[editingLocationIndex.value] = newLocation
+  } else {
+    // Add new
+    locations.value.push(newLocation)
+  }
+
+  closeLocationDialog()
+}
+
+function deleteLocation(index: number) {
+  const location = locations.value[index]
+
+  confirm.require({
+    message: `¿Eliminar la location "${location.location_name}"?`,
+    header: 'Confirmar eliminación',
+    icon: 'pi pi-exclamation-triangle',
+    acceptLabel: 'Sí, eliminar',
+    rejectLabel: 'Cancelar',
+    accept: () => {
+      const wasDefault = location.is_default
+      locations.value.splice(index, 1)
+
+      // If deleted location was default, set first remaining as default
+      if (wasDefault && locations.value.length > 0) {
+        locations.value[0].is_default = true
+      }
+    }
+  })
+}
 
 function validateForm(): boolean {
   // Clear previous errors
@@ -440,6 +701,10 @@ async function handleSubmit() {
   console.log('  - estado:', formData.estado, typeof formData.estado)
   console.log('  - autosync_enabled:', formData.autosync_enabled, typeof formData.autosync_enabled)
 
+  // Get default location_id for backward compatibility
+  const defaultLocation = locations.value.find(loc => loc.is_default)
+  const legacyLocationId = defaultLocation?.location_id || formData.location_id
+
   // Preparar payload
   const payload: SaveNetsuiteCredentialsRequest = {
     tienda_id: props.tiendaId,
@@ -447,10 +712,11 @@ async function handleSubmit() {
     consumer_key: formData.consumer_key!,
     token_id: formData.token_id!,
     subsidiary_id: formData.subsidiary_id,
-    location_id: formData.location_id,
+    location_id: legacyLocationId, // Deprecated - for backward compatibility
     ubicacion_serie_id: formData.ubicacion_serie_id,
     autosync_enabled: formData.autosync_enabled || false,
-    estado: formData.estado || 1
+    estado: formData.estado || 1,
+    locations: locations.value.length > 0 ? locations.value : undefined
   }
 
   // Solo incluir secrets si se proporcionaron
@@ -545,6 +811,7 @@ function handleDelete() {
           life: 3000
         })
         isEdit.value = false
+        locations.value = []
         // Reset form
         Object.assign(formData, {
           account_id: '',

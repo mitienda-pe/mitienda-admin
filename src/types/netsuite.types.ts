@@ -1,5 +1,12 @@
 // NetSuite Credentials Types
 
+export interface NetsuiteLocation {
+  id?: number
+  location_id: string
+  location_name: string
+  is_default: boolean
+}
+
 export interface NetsuiteCredential {
   tiendacredencialerp_id: number
   tienda_id: number
@@ -9,12 +16,13 @@ export interface NetsuiteCredential {
   tiendacredencialerp_token_id: string
   tiendacredencialerp_token_secret_masked: string
   tiendacredencialerp_subsidiary_id?: string
-  tiendacredencialerp_location_id?: string
+  tiendacredencialerp_location_id?: string // Deprecated - for backward compatibility
   tiendacredencialerp_ubicacion_serie_id?: string
   tiendacredencialerp_estado: number
   tiendacredencialerp_autosync_enabled: number
   tiendacredencialerp_fecha_creacion?: string
   tiendacredencialerp_fecha_actualizacion?: string
+  locations?: NetsuiteLocation[] // New field for multiple locations
 }
 
 export interface SaveNetsuiteCredentialsRequest {
@@ -25,10 +33,11 @@ export interface SaveNetsuiteCredentialsRequest {
   token_id: string
   token_secret?: string
   subsidiary_id?: string
-  location_id?: string
+  location_id?: string // Deprecated - for backward compatibility
   ubicacion_serie_id?: string
   autosync_enabled: boolean
   estado: number
+  locations?: NetsuiteLocation[] // New field for multiple locations
 }
 
 export interface TestNetsuiteConnectionResponse {
