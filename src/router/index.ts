@@ -216,6 +216,11 @@ const routes: RouteRecordRaw[] = [
         path: 'netsuite/inventario',
         name: 'NetsuiteInventoryMap',
         component: () => import('@/views/configuracion/NetsuiteInventoryMapView.vue')
+      },
+      {
+        path: 'netsuite/cola',
+        name: 'NetsuiteQueue',
+        component: () => import('@/views/configuracion/NetsuiteQueueView.vue')
       }
     ]
   },

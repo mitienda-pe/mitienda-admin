@@ -259,3 +259,35 @@ body {
   box-shadow: 0 0 0 3px rgba(0, 178, 166, 0.2);
   border-color: var(--primary-500);
 }
+
+/* PrimeVue Tag - mejorar padding y visualización */
+.p-tag {
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  white-space: nowrap;
+}
+
+.p-tag-value {
+  white-space: nowrap;
+}
+
+/* PrimeVue TabView - mejorar headers */
+.p-tabview .p-tabview-nav li .p-tabview-nav-link {
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.p-tabview .p-tabview-nav li .p-tabview-nav-link i {
+  margin: 0;
+}
+
+.p-tabview .p-tabview-nav li .p-tabview-nav-link .p-tag {
+  margin-left: 0.5rem;
+}

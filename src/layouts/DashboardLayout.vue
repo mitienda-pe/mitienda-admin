@@ -541,7 +541,8 @@ const apiMenuItems = [
 // Items del grupo Configuración
 const configMenuItems = [
   { label: 'NetSuite', icon: 'pi pi-cloud', to: '/configuracion/netsuite' },
-  { label: 'Mapeo de Inventario', icon: 'pi pi-box', to: '/configuracion/netsuite/inventario' }
+  { label: 'Mapeo de Inventario', icon: 'pi pi-box', to: '/configuracion/netsuite/inventario' },
+  { label: 'Cola de Sincronización', icon: 'pi pi-list', to: '/configuracion/netsuite/cola' }
 ]
 
 // Detectar si estamos en alguna ruta del catálogo
