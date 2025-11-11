@@ -28,7 +28,6 @@ const autoRefreshEnabled = ref(false)
 const refreshIntervalSeconds = ref(30)
 
 // Computed
-const showActiveJobs = computed(() => activeTab.value === 0)
 const showFailedJobs = computed(() => activeTab.value === 1)
 
 // Load initial data

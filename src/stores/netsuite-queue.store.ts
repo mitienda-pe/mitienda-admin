@@ -10,7 +10,6 @@ import type {
   QueueStats,
   QueueJob,
   FailedJob,
-  JobStatus,
   QueueFilters
 } from '@/types/netsuite-queue.types'
 
@@ -48,11 +47,11 @@ export const useNetsuiteQueueStore = defineStore('netsuite-queue', () => {
   const hasFailedJobs = computed(() => failedJobs.value.length > 0)
   const totalPendingJobs = computed(() => {
     if (!stats.value) return 0
-    return stats.value.pending_jobs.reduce((sum, item) => sum + item.count, 0)
+    return stats.value.pending_jobs.reduce((sum, item) => sum + Number(item.count), 0)
   })
   const totalReservedJobs = computed(() => {
     if (!stats.value) return 0
-    return stats.value.reserved_jobs.reduce((sum, item) => sum + item.count, 0)
+    return stats.value.reserved_jobs.reduce((sum, item) => sum + Number(item.count), 0)
   })
   const hasOldPendingJobs = computed(() => {
     if (!stats.value || !stats.value.oldest_pending_age_seconds) return false
