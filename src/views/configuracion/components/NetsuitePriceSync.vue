@@ -345,7 +345,7 @@ const previewChanges = async () => {
     } else {
       throw new Error(response.data.error || 'Error obteniendo vista previa')
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error previewing changes:', error)
     toast.add({
       severity: 'error',
@@ -401,7 +401,7 @@ const syncPrices = async () => {
     } else {
       throw new Error(response.data.error || 'Error en la sincronización')
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error syncing prices:', error)
 
     let errorMessage = 'No se pudo completar la sincronización'
