@@ -2,8 +2,10 @@
 
 export interface NetsuiteLocation {
   id?: number
+  tiendadireccion_id?: number
   location_id: string
   location_name: string
+  branch_address?: string
   is_default: boolean
 }
 
