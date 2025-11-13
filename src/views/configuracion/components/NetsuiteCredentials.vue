@@ -182,6 +182,7 @@
                 <tr>
                   <th class="px-4 py-3 text-left text-sm font-semibold text-secondary-700">Location ID</th>
                   <th class="px-4 py-3 text-left text-sm font-semibold text-secondary-700">Nombre</th>
+                  <th class="px-4 py-3 text-left text-sm font-semibold text-secondary-700">Sucursal</th>
                   <th class="px-4 py-3 text-center text-sm font-semibold text-secondary-700">Por Defecto</th>
                   <th class="px-4 py-3 text-center text-sm font-semibold text-secondary-700 w-20">Acciones</th>
                 </tr>
@@ -190,6 +191,7 @@
                 <tr v-for="(location, index) in locations" :key="index" class="hover:bg-secondary-50">
                   <td class="px-4 py-3 text-sm text-secondary-800">{{ location.location_id }}</td>
                   <td class="px-4 py-3 text-sm text-secondary-800">{{ location.location_name }}</td>
+                  <td class="px-4 py-3 text-sm text-secondary-600">{{ location.branch_address || '-' }}</td>
                   <td class="px-4 py-3 text-center">
                     <i v-if="location.is_default" class="pi pi-check-circle text-green-600"></i>
                   </td>
@@ -373,10 +375,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, computed } from 'vue'
+import { ref, reactive, watch, computed, onMounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { useNetsuite } from '@/composables/useNetsuite'
+import { netsuiteApi } from '@/api/netsuite.api'
 import type { SaveNetsuiteCredentialsRequest, NetsuiteLocation } from '@/types/netsuite.types'
 
 import Button from 'primevue/button'
@@ -500,29 +503,13 @@ watch(() => props.tiendaId, async (tiendaId) => {
       estado: Number(creds.tiendacredencialerp_estado)
     })
 
-    // Load locations - if exists use them, otherwise create from legacy location_id
-    if (creds.locations && creds.locations.length > 0) {
-      locations.value = [...creds.locations]
-    } else if (creds.tiendacredencialerp_location_id) {
-      // Backward compatibility: convert legacy location_id to new format
-      locations.value = [{
-        location_id: creds.tiendacredencialerp_location_id,
-        location_name: 'LAVICTORIA',
-        is_default: true
-      }]
-    } else {
-      locations.value = []
-    }
-
     console.log('[NetsuiteCredentials] formData after assign:')
     console.log('  - estado:', formData.estado, typeof formData.estado)
     console.log('  - autosync_enabled:', formData.autosync_enabled, typeof formData.autosync_enabled)
     console.log('  - estadoBoolean computed:', estadoBoolean.value)
-    console.log('  - locations:', locations.value)
   } else {
     console.log('[NetsuiteCredentials] No credentials found, resetting form')
     isEdit.value = false
-    locations.value = []
     // Reset form
     Object.assign(formData, {
       tienda_id: tiendaId,
@@ -538,7 +525,48 @@ watch(() => props.tiendaId, async (tiendaId) => {
       estado: 1
     })
   }
+
+  // Load locations from new API
+  await loadLocations(tiendaId)
 }, { immediate: true })
+
+// Load locations from new sj_netsuite_locations table
+const isLoadingLocations = ref(false)
+async function loadLocations(tiendaId: number) {
+  if (!tiendaId) return
+
+  try {
+    isLoadingLocations.value = true
+    console.log('[NetsuiteCredentials] Loading locations from API for tienda:', tiendaId)
+    const response = await netsuiteApi.getLocations(tiendaId)
+
+    if (response.success && response.data) {
+      // Transform API response to match component format
+      locations.value = response.data.map((loc: any) => ({
+        id: loc.id,
+        tiendadireccion_id: loc.tiendadireccion_id,
+        location_id: loc.netsuite_location_id,
+        location_name: loc.netsuite_location_name,
+        branch_address: loc.branch_address,
+        is_default: Boolean(loc.is_default)
+      }))
+      console.log('[NetsuiteCredentials] Loaded locations:', locations.value)
+    } else {
+      locations.value = []
+    }
+  } catch (error: any) {
+    console.error('[NetsuiteCredentials] Error loading locations:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'No se pudieron cargar las locations',
+      life: 3000
+    })
+    locations.value = []
+  } finally {
+    isLoadingLocations.value = false
+  }
+}
 
 // Location dialog functions
 function openLocationDialog(index?: number) {
