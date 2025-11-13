@@ -127,39 +127,47 @@ watch(() => props.visible, (isVisible) => {
       </div>
 
       <!-- Results -->
-      <div v-if="products.length > 0" class="border rounded-lg">
+      <div v-if="products.length > 0" class="border rounded-lg overflow-hidden">
         <DataTable
           v-model:selection="selectedProducts"
           :value="products"
           dataKey="id"
           :paginator="false"
+          showGridlines
+          stripedRows
           class="text-sm"
         >
-          <Column selectionMode="multiple" style="width: 3rem"></Column>
-          <Column header="Producto" style="min-width: 300px">
+          <Column selectionMode="multiple" headerStyle="width: 4rem; padding: 1rem" bodyStyle="padding: 1rem">
+            <template #header>
+              <span class="sr-only">Seleccionar</span>
+            </template>
+          </Column>
+          <Column header="Producto" headerStyle="min-width: 300px; padding: 1rem" bodyStyle="padding: 1rem">
             <template #body="slotProps">
               <div class="flex items-center gap-3">
                 <img
                   v-if="slotProps.data.images && slotProps.data.images.length > 0"
                   :src="slotProps.data.images[0].cloudflare_url || slotProps.data.images[0].url"
                   :alt="slotProps.data.name"
-                  class="w-10 h-10 rounded object-cover"
+                  class="w-12 h-12 rounded object-cover flex-shrink-0"
                 />
-                <div>
-                  <div class="font-medium">{{ slotProps.data.name }}</div>
-                  <div class="text-gray-500 text-xs">SKU: {{ slotProps.data.sku }}</div>
+                <div class="flex-1 min-w-0">
+                  <div class="font-medium text-gray-900 truncate">{{ slotProps.data.name }}</div>
+                  <div class="text-gray-500 text-xs mt-0.5">SKU: {{ slotProps.data.sku }}</div>
                 </div>
               </div>
             </template>
           </Column>
-          <Column field="price" header="Precio">
+          <Column field="price" header="Precio" headerStyle="width: 120px; padding: 1rem" bodyStyle="padding: 1rem">
             <template #body="slotProps">
-              S/ {{ slotProps.data.price }}
+              <span class="font-medium text-gray-900">S/ {{ Number(slotProps.data.price).toFixed(2) }}</span>
             </template>
           </Column>
-          <Column header="Stock">
+          <Column header="Stock" headerStyle="width: 120px; padding: 1rem" bodyStyle="padding: 1rem">
             <template #body="slotProps">
-              {{ slotProps.data.unlimited_stock ? 'Ilimitado' : slotProps.data.stock }}
+              <span :class="slotProps.data.unlimited_stock ? 'text-green-600' : 'text-gray-900'">
+                {{ slotProps.data.unlimited_stock ? 'Ilimitado' : slotProps.data.stock }}
+              </span>
             </template>
           </Column>
         </DataTable>
@@ -202,3 +210,41 @@ watch(() => props.visible, (isVisible) => {
     </template>
   </Dialog>
 </template>
+
+<style scoped>
+/* Mejorar la visualización de los checkboxes */
+:deep(.p-datatable .p-checkbox) {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+:deep(.p-datatable .p-checkbox .p-checkbox-box) {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid #d1d5db;
+  border-radius: 0.25rem;
+  background-color: white;
+}
+
+:deep(.p-datatable .p-checkbox .p-checkbox-box.p-highlight) {
+  border-color: #4f46e5;
+  background-color: #4f46e5;
+}
+
+:deep(.p-datatable .p-checkbox .p-checkbox-box .p-checkbox-icon) {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: white;
+}
+
+/* Mejorar el hover en las filas */
+:deep(.p-datatable .p-datatable-tbody > tr:hover) {
+  background-color: #f9fafb !important;
+}
+
+/* Asegurar que los checkboxes sean visibles */
+:deep(.p-datatable .p-selection-column) {
+  text-align: center;
+  vertical-align: middle;
+}
+</style>

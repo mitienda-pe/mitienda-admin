@@ -155,6 +155,16 @@ const routes: RouteRecordRaw[] = [
         path: 'promotions/:id',
         name: 'PromotionDetail',
         component: () => import('@/views/marketing/PromotionDetailView.vue')
+      },
+      {
+        path: 'promotions/:id/configure',
+        name: 'ConfigureBonification',
+        component: () => import('@/views/marketing/ConfigureBonificationView.vue')
+      },
+      {
+        path: 'promotions/:id/configure-discount',
+        name: 'ConfigureDiscountedPrice',
+        component: () => import('@/views/marketing/ConfigureDiscountedPriceView.vue')
       }
     ]
   },

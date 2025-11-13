@@ -370,6 +370,9 @@ function handlePromotionCreated(promotion: any) {
   if (promotion && promotion.promocion_id === 7) {
     // Redirigir a la página de configuración completa de bonificaciones
     router.push(`/marketing/promotions/${promotion.tiendapromocion_id}/configure`)
+  } else if (promotion && promotion.promocion_tipo === '2') {
+    // Redirigir a la página de configuración de Precio Rebajado
+    router.push(`/marketing/promotions/${promotion.tiendapromocion_id}/configure-discount`)
   } else {
     // Refresh the list
     promotionsStore.fetchPromotions()

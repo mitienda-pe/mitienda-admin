@@ -19,7 +19,7 @@ export interface Promotion {
   tiendapromocion_fechainicio: string
   tiendapromocion_fechacaducidad: string
   promocion_nombre?: string
-  promocion_tipo?: string
+  promocion_tipo?: string | number
   is_active_period?: number
   days_until_expiry?: number
   num_productos?: number
@@ -31,7 +31,7 @@ export interface Promotion {
 export interface PromotionType {
   promocion_id: number
   promocion_nombre: string
-  promocion_tipo: string
+  promocion_tipo: string | number
   promocion_denominacion: string
 }
 

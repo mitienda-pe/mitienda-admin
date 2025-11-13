@@ -57,6 +57,16 @@ const errors = ref({
 // Computed
 const promotionTypes = computed(() => promotionsStore.promotionTypes)
 
+// Filtrar solo los tipos disponibles (Bonificaciones y Precio Rebajado)
+const availablePromotionTypes = computed(() => {
+  return promotionTypes.value.filter(type => {
+    const id = Number(type.promocion_id)
+    const tipo = String(type.promocion_tipo)
+    // Incluir Bonificaciones (ID=7) y tipos con promocion_tipo=2 (Precio Rebajado)
+    return id === 7 || tipo === '2'
+  })
+})
+
 const selectedType = computed(() => {
   return promotionTypes.value.find(t => t.promocion_id === formData.value.promocion_id)
 })
@@ -66,9 +76,9 @@ const isCouponType = computed(() => {
   return id === 5 || id === 6
 })
 
-const isComingSoon = computed(() => {
-  // Solo Bonificaciones está disponible por ahora
-  return Number(formData.value.promocion_id) !== 7
+const isPrecioRebajadoType = computed(() => {
+  const type = selectedType.value
+  return type && type.promocion_tipo === '2'
 })
 
 // Watch for date changes
@@ -146,11 +156,13 @@ function validateStep1(): boolean {
     isValid = false
   }
 
-  // No validar valor para bonificaciones
-  // if (!formData.value.tiendapromocion_valor || formData.value.tiendapromocion_valor <= 0) {
-  //   errors.value.tiendapromocion_valor = 'El valor debe ser mayor a 0'
-  //   isValid = false
-  // }
+  // Validar valor para promociones de tipo "Precio Rebajado"
+  if (isPrecioRebajadoType.value) {
+    if (!formData.value.tiendapromocion_valor || formData.value.tiendapromocion_valor <= 0) {
+      errors.value.tiendapromocion_valor = 'El valor del descuento debe ser mayor a 0'
+      isValid = false
+    }
+  }
 
   if (!startDate.value) {
     errors.value.tiendapromocion_fechainicio = 'La fecha de inicio es requerida'
@@ -172,11 +184,6 @@ function validateStep1(): boolean {
 
 async function handleSave() {
   if (!validateStep1()) {
-    return
-  }
-
-  if (isComingSoon.value) {
-    alert('Este tipo de promoción estará disponible próximamente')
     return
   }
 
@@ -216,7 +223,7 @@ function handleClose() {
         </label>
         <Dropdown
           v-model="formData.promocion_id"
-          :options="promotionTypes"
+          :options="availablePromotionTypes"
           optionLabel="promocion_nombre"
           optionValue="promocion_id"
           placeholder="Selecciona un tipo"
@@ -245,19 +252,50 @@ function handleClose() {
         </small>
       </div>
 
-      <!-- Coming Soon Warning -->
-      <div v-if="isComingSoon" class="rounded-md bg-yellow-50 p-4">
-        <div class="flex">
-          <div class="flex-shrink-0">
-            <i class="pi pi-exclamation-triangle text-yellow-400"></i>
-          </div>
-          <div class="ml-3">
-            <h3 class="text-sm font-medium text-yellow-800">Próximamente disponible</h3>
-            <p class="mt-2 text-sm text-yellow-700">
-              Este tipo de promoción estará disponible en una próxima actualización.
-              Por ahora, solo está disponible el tipo "Bonificaciones".
-            </p>
-          </div>
+      <!-- Precio Rebajado Fields -->
+      <div v-if="isPrecioRebajadoType" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Tipo de Descuento -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Tipo de Descuento *
+          </label>
+          <Dropdown
+            v-model="formData.tiendapromocion_tipodescuento"
+            :options="[
+              { label: 'Porcentaje (%)', value: 1 },
+              { label: 'Monto Fijo', value: 2 }
+            ]"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Selecciona tipo"
+            class="w-full"
+            :disabled="isLoading"
+          />
+        </div>
+
+        <!-- Valor del Descuento -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Valor del Descuento *
+          </label>
+          <InputText
+            v-model.number="formData.tiendapromocion_valor"
+            type="number"
+            :placeholder="formData.tiendapromocion_tipodescuento === 1 ? 'Ej: 10 (para 10%)' : 'Ej: 50.00'"
+            class="w-full"
+            :class="{ 'p-invalid': errors.tiendapromocion_valor }"
+            :disabled="isLoading"
+            step="0.01"
+            min="0"
+          />
+          <small v-if="errors.tiendapromocion_valor" class="text-red-500">
+            {{ errors.tiendapromocion_valor }}
+          </small>
+          <small v-else class="text-gray-500">
+            {{ formData.tiendapromocion_tipodescuento === 1
+              ? 'Ingresa el porcentaje de descuento (sin el símbolo %)'
+              : 'Ingresa el monto fijo a descontar' }}
+          </small>
         </div>
       </div>
 
@@ -315,13 +353,17 @@ function handleClose() {
       </div>
 
       <!-- Nota informativa -->
-      <div v-if="!isComingSoon" class="rounded-md bg-blue-50 p-4">
+      <div class="rounded-md bg-blue-50 p-4">
         <div class="flex">
           <div class="flex-shrink-0">
             <i class="pi pi-info-circle text-blue-400"></i>
           </div>
           <div class="ml-3">
-            <p class="text-sm text-blue-700">
+            <p v-if="isPrecioRebajadoType" class="text-sm text-blue-700">
+              Después de crear la promoción básica, serás redirigido a una pantalla completa
+              donde podrás vincular los productos que tendrán este descuento.
+            </p>
+            <p v-else class="text-sm text-blue-700">
               Después de crear la promoción básica, serás redirigido a una pantalla completa
               donde podrás configurar los productos base, productos bonificados y las reglas de la promoción.
             </p>
