@@ -253,10 +253,30 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
-import { useAuthStore } from '@/stores/auth.store'
 import axios from 'axios'
+
+interface SyncStatus {
+  last_sync: string | null
+  last_updated_count: number
+  last_errors: any[]
+}
+
+interface SyncResult {
+  success: boolean
+  total_products_checked: number
+  updated_count: number
+  skipped_count: number
+  changes: any[]
+  errors: any[]
+  execution_time: number
+}
+
+interface PreviewData {
+  total_changes: number
+  price_changes: any[]
+}
 
 const props = defineProps({
   tiendaId: {
@@ -266,19 +286,18 @@ const props = defineProps({
 })
 
 const toast = useToast()
-const authStore = useAuthStore()
 
 // Estado
 const syncing = ref(false)
 const previewing = ref(false)
 const loadingStatus = ref(false)
-const syncStatus = ref(null)
-const lastSyncResult = ref(null)
+const syncStatus = ref<SyncStatus | null>(null)
+const lastSyncResult = ref<SyncResult | null>(null)
 const previewDialog = ref(false)
-const previewData = ref(null)
+const previewData = ref<PreviewData | null>(null)
 
 // Métodos
-const formatDate = (dateString) => {
+const formatDate = (dateString: string | null): string => {
   if (!dateString) return 'Nunca'
   const date = new Date(dateString)
   return date.toLocaleString('es-PE', {
