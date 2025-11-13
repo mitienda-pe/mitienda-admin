@@ -279,7 +279,8 @@ function handleClose() {
             Valor del Descuento *
           </label>
           <InputText
-            v-model.number="formData.tiendapromocion_valor"
+            :model-value="String(formData.tiendapromocion_valor || '')"
+            @update:model-value="formData.tiendapromocion_valor = $event ? Number($event) : 0"
             type="number"
             :placeholder="formData.tiendapromocion_tipodescuento === 1 ? 'Ej: 10 (para 10%)' : 'Ej: 50.00'"
             class="w-full"
