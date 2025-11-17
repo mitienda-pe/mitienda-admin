@@ -25,6 +25,48 @@
 
     <!-- Content -->
     <div v-else-if="currentPromotion" class="space-y-6">
+      <!-- Configuración de Activación -->
+      <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="px-4 py-5 sm:p-6">
+          <div class="mb-4">
+            <h3 class="text-lg font-medium leading-6 text-gray-900">Configuración de Activación</h3>
+            <p class="text-sm text-gray-500 mt-1">Define cómo se activa la bonificación</p>
+          </div>
+
+          <div class="flex flex-col gap-3">
+            <div class="flex items-start gap-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                 :class="{ 'border-blue-500 bg-blue-50': bonFormaGrupos === 0 }"
+                 @click="updateBonFormaGrupos(0)">
+              <input
+                type="radio"
+                :checked="bonFormaGrupos === 0"
+                class="mt-1 w-4 h-4 text-blue-600 focus:ring-blue-500"
+                @change="updateBonFormaGrupos(0)"
+              />
+              <div class="flex-1">
+                <div class="font-medium text-gray-900">Cualquier producto activador (OR)</div>
+                <div class="text-sm text-gray-600 mt-1">La bonificación se activa si el cliente compra <strong>al menos UNO</strong> de los productos activadores listados abajo</div>
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                 :class="{ 'border-blue-500 bg-blue-50': bonFormaGrupos === 1 }"
+                 @click="updateBonFormaGrupos(1)">
+              <input
+                type="radio"
+                :checked="bonFormaGrupos === 1"
+                class="mt-1 w-4 h-4 text-blue-600 focus:ring-blue-500"
+                @change="updateBonFormaGrupos(1)"
+              />
+              <div class="flex-1">
+                <div class="font-medium text-gray-900">Todos los productos activadores (AND)</div>
+                <div class="text-sm text-gray-600 mt-1">La bonificación se activa solo si el cliente compra <strong>TODOS</strong> los productos activadores listados abajo</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Productos Base Card -->
       <div class="bg-white shadow overflow-hidden rounded-lg">
         <div class="px-4 py-5 sm:p-6">
@@ -234,6 +276,9 @@ const promotionId = computed(() => parseInt(route.params.id as string))
 const baseProducts = ref<any[]>([])
 const bonificationProducts = ref<any[]>([])
 
+// Local state for bonFormaGrupos
+const bonFormaGrupos = ref<number>(0)
+
 // Dialog visibility
 const showLinkProductsDialog = ref(false)
 const showLinkBonificationsDialog = ref(false)
@@ -388,13 +433,43 @@ async function unlinkBonification(productId: number, attributeId: number | undef
   }
 }
 
+// Update bonFormaGrupos
+async function updateBonFormaGrupos(value: number) {
+  if (bonFormaGrupos.value === value) return
+
+  try {
+    await promotionsStore.modifyPromotion(promotionId.value, {
+      tiendapromocion_bon_formagrupos: value
+    })
+
+    bonFormaGrupos.value = value
+
+    toast.add({
+      severity: 'success',
+      summary: 'Configuración Actualizada',
+      detail: value === 0
+        ? 'La bonificación se activará con cualquier producto activador'
+        : 'La bonificación se activará solo con todos los productos activadores',
+      life: 3000
+    })
+  } catch (error: any) {
+    console.error('Error updating bonFormaGrupos:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error.response?.data?.message || 'Error al actualizar la configuración',
+      life: 3000
+    })
+  }
+}
+
 // Handle products linked
 async function handleProductsLinked() {
   await fetchProducts()
   toast.add({
     severity: 'success',
     summary: 'Productos Vinculados',
-    detail: 'Los productos se vincularon correctamente',
+    detail: 'Los productos se vinculados correctamente',
     life: 2000
   })
 }
@@ -415,6 +490,11 @@ onMounted(async () => {
   if (promotionId.value) {
     await promotionsStore.fetchPromotion(promotionId.value)
     await fetchProducts()
+
+    // Initialize bonFormaGrupos from current promotion
+    if (currentPromotion.value) {
+      bonFormaGrupos.value = currentPromotion.value.tiendapromocion_bon_formagrupos ?? 0
+    }
   }
 })
 </script>
