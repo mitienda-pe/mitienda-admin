@@ -10,6 +10,8 @@ export interface Order {
   shipping_cost?: number
   tax: number
   total: number
+  rounding_amount?: number // Monto del redondeo aplicado (puede ser positivo o negativo)
+  total_after_rounding?: number // Total después de aplicar el redondeo
   status: OrderStatus
   payment_method: string
   payment_status: string

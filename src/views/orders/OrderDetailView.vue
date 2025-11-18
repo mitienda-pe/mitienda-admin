@@ -138,6 +138,35 @@ const subtotal = computed(() => {
   return order.value.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
 })
 
+const roundingAmount = computed(() => {
+  if (!order.value) return 0
+
+  // Buscar rounding_amount en el objeto order
+  if (order.value.rounding_amount !== undefined && order.value.rounding_amount !== null) {
+    return order.value.rounding_amount
+  }
+
+  return 0
+})
+
+const totalAfterRounding = computed(() => {
+  if (!order.value) return 0
+
+  // Si existe total_after_rounding, usarlo directamente
+  if (order.value.total_after_rounding !== undefined && order.value.total_after_rounding !== null) {
+    return order.value.total_after_rounding
+  }
+
+  // Si hay redondeo pero no total_after_rounding, calcularlo
+  const rounding = roundingAmount.value
+  if (rounding !== 0) {
+    return order.value.total + rounding
+  }
+
+  // Si no hay redondeo, devolver el total normal
+  return order.value.total
+})
+
 const goBack = () => {
   router.push('/orders')
 }
@@ -410,7 +439,27 @@ const billingDocumentNumber = computed(() => {
                 <span>Descuento:</span>
                 <span>-{{ formatCurrency(order.discount) }}</span>
               </div>
-              <div class="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t">
+
+              <!-- Mostrar redondeo si existe -->
+              <template v-if="roundingAmount !== 0">
+                <div class="flex justify-between text-gray-600 pt-2 border-t">
+                  <span>Subtotal antes de redondeo:</span>
+                  <span>{{ formatCurrency(order.total) }}</span>
+                </div>
+                <div class="flex justify-between text-gray-600">
+                  <span>Redondeo:</span>
+                  <span :class="roundingAmount < 0 ? 'text-red-600' : 'text-green-600'">
+                    {{ formatCurrency(roundingAmount) }}
+                  </span>
+                </div>
+                <div class="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t">
+                  <span>Total:</span>
+                  <span class="text-primary">{{ formatCurrency(totalAfterRounding) }}</span>
+                </div>
+              </template>
+
+              <!-- Si no hay redondeo, mostrar total normal -->
+              <div v-else class="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t">
                 <span>Total:</span>
                 <span class="text-primary">{{ formatCurrency(order.total) }}</span>
               </div>
