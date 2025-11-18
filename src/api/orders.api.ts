@@ -211,6 +211,12 @@ export const ordersApi = {
         shipping: parseFloat(shipping.cost || '0'),
         tax: 0,
         total: parseFloat(rawData.total_amount || '0'),
+        rounding_amount: rawData.rounding_amount !== undefined && rawData.rounding_amount !== null
+          ? parseFloat(rawData.rounding_amount)
+          : undefined,
+        total_after_rounding: rawData.total_after_rounding !== undefined && rawData.total_after_rounding !== null
+          ? parseFloat(rawData.total_after_rounding)
+          : undefined,
         status: mapPaymentToOrderStatus(rawData.status), // Estado basado en el pago
         payment_method: rawData.payment_method || 'unknown',
         payment_gateway: rawData.payment_gateway || 'No especificado',
