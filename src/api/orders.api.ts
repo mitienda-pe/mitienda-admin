@@ -220,6 +220,7 @@ export const ordersApi = {
         status: mapPaymentToOrderStatus(rawData.status), // Estado basado en el pago
         payment_method: rawData.payment_method || 'unknown',
         payment_gateway: rawData.payment_gateway || 'No especificado',
+        payments: rawData.payments || [], // POS sales may have multiple payments
         gateway_code: rawData.gateway_code || undefined,
         gateway_message: rawData.gateway_message || undefined,
         payment_status: mapPaymentStatusText(rawData.status), // Texto del estado de pago

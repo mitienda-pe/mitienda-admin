@@ -16,6 +16,7 @@ export interface Order {
   payment_method: string
   payment_status: string
   payment_gateway?: string
+  payments?: OrderPayment[] // For POS sales with multiple payment methods
   gateway_code?: string
   gateway_message?: string
   shipping_address?: Address | string
@@ -27,6 +28,14 @@ export interface Order {
   billing_document?: BillingDocument
   created_at: string
   updated_at: string
+}
+
+export interface OrderPayment {
+  method: string
+  method_name: string
+  amount: string
+  reference?: string | null
+  authorization_number?: string | null
 }
 
 export interface BillingDocument {

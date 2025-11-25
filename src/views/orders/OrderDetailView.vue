@@ -670,10 +670,41 @@ const billingDocumentNumber = computed(() => {
                 <p class="text-sm text-gray-500">Pasarela de pago</p>
                 <p class="font-semibold text-gray-900">{{ order.payment_gateway }}</p>
               </div>
-              <div v-if="order.payment_method">
+
+              <!-- Multiple payments (POS sales) -->
+              <div v-if="order.payments && order.payments.length > 1" class="space-y-2">
+                <p class="text-sm text-gray-500 font-medium">Métodos de pago utilizados</p>
+                <div
+                  v-for="(payment, index) in order.payments"
+                  :key="index"
+                  class="flex justify-between items-start p-3 bg-gray-50 rounded-lg border border-gray-200"
+                >
+                  <div class="flex-1">
+                    <p class="font-semibold text-gray-900">{{ payment.method_name }}</p>
+                    <div v-if="payment.authorization_number" class="mt-1">
+                      <p class="text-xs text-gray-500">
+                        <i class="pi pi-check-circle mr-1"></i>
+                        Autorización: <span class="font-mono">{{ payment.authorization_number }}</span>
+                      </p>
+                    </div>
+                    <div v-if="payment.reference && !payment.authorization_number" class="mt-1">
+                      <p class="text-xs text-gray-500">
+                        Ref: {{ payment.reference }}
+                      </p>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <p class="font-bold text-gray-900">{{ formatCurrency(parseFloat(payment.amount)) }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Single payment (web sales) -->
+              <div v-else-if="order.payment_method">
                 <p class="text-sm text-gray-500">Método de pago</p>
                 <p class="font-semibold text-gray-900 capitalize">{{ order.payment_method }}</p>
               </div>
+
               <div v-if="order.gateway_code">
                 <p class="text-sm text-gray-500">Código de la pasarela</p>
                 <p class="font-mono text-sm text-gray-900">{{ order.gateway_code }}</p>
