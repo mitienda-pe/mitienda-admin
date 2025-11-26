@@ -1,12 +1,14 @@
 // NetSuite Credentials Types
 
 export interface NetsuiteLocation {
-  id?: number
-  tiendadireccion_id?: number
-  location_id: string
-  location_name: string
-  branch_address?: string
-  is_default: boolean
+  id?: number // Same as tiendadireccion_id for backward compatibility
+  tiendadireccion_id: number
+  tienda_id: number
+  netsuite_location_id: string | null
+  netsuite_location_name: string
+  branch_name: string
+  branch_address: string
+  is_default: boolean // Deprecated - kept for backward compatibility
 }
 
 export interface NetsuiteCredential {

@@ -244,71 +244,35 @@ export const netsuiteApi = {
   // ========== Locations API ==========
 
   /**
-   * Get all NetSuite locations for a store with branch information
+   * Get all branches with their NetSuite location IDs
+   * Now returns branches from tiendasdirecciones table
    */
   async getLocations(tiendaId: number): Promise<ApiResponse<any[]>> {
-    console.log('[netsuiteApi] getLocations - tiendaId:', tiendaId)
+    console.log('[netsuiteApi] getLocations (branches) - tiendaId:', tiendaId)
     const response = await apiClient.get('/netsuite-locations')
     console.log('[netsuiteApi] getLocations - response:', response.data)
     return response.data
   },
 
   /**
-   * Get available branches (without location mapping)
+   * Update NetSuite location ID for a branch
    */
-  async getAvailableBranches(tiendaId: number): Promise<ApiResponse<any[]>> {
-    console.log('[netsuiteApi] getAvailableBranches - tiendaId:', tiendaId)
-    const response = await apiClient.get('/netsuite-locations/branches/available')
-    console.log('[netsuiteApi] getAvailableBranches - response:', response.data)
-    return response.data
-  },
-
-  /**
-   * Create a new location mapping
-   */
-  async createLocation(data: {
-    tiendadireccion_id: number
+  async updateBranchLocation(branchId: number, data: {
     netsuite_location_id: string
-    netsuite_location_name: string
-    is_default: boolean
-  }): Promise<ApiResponse<{ id: number }>> {
-    console.log('[netsuiteApi] createLocation - request data:', data)
-    const response = await apiClient.post('/netsuite-locations', data)
-    console.log('[netsuiteApi] createLocation - response:', response.data)
-    return response.data
-  },
-
-  /**
-   * Update an existing location mapping
-   */
-  async updateLocation(id: number, data: {
-    netsuite_location_id: string
-    netsuite_location_name: string
-    is_default: boolean
   }): Promise<ApiResponse<{ success: boolean }>> {
-    console.log('[netsuiteApi] updateLocation - id:', id, 'data:', data)
-    const response = await apiClient.put(`/netsuite-locations/${id}`, data)
-    console.log('[netsuiteApi] updateLocation - response:', response.data)
+    console.log('[netsuiteApi] updateBranchLocation - branchId:', branchId, 'data:', data)
+    const response = await apiClient.put(`/netsuite-locations/${branchId}`, data)
+    console.log('[netsuiteApi] updateBranchLocation - response:', response.data)
     return response.data
   },
 
   /**
-   * Delete a location mapping
+   * Clear NetSuite location ID from a branch
    */
-  async deleteLocation(id: number): Promise<ApiResponse<any>> {
-    console.log('[netsuiteApi] deleteLocation - id:', id)
-    const response = await apiClient.delete(`/netsuite-locations/${id}`)
-    console.log('[netsuiteApi] deleteLocation - response:', response.data)
-    return response.data
-  },
-
-  /**
-   * Set a location as default
-   */
-  async setDefaultLocation(id: number): Promise<ApiResponse<{ success: boolean }>> {
-    console.log('[netsuiteApi] setDefaultLocation - id:', id)
-    const response = await apiClient.post(`/netsuite-locations/${id}/set-default`)
-    console.log('[netsuiteApi] setDefaultLocation - response:', response.data)
+  async clearBranchLocation(branchId: number): Promise<ApiResponse<any>> {
+    console.log('[netsuiteApi] clearBranchLocation - branchId:', branchId)
+    const response = await apiClient.delete(`/netsuite-locations/${branchId}`)
+    console.log('[netsuiteApi] clearBranchLocation - response:', response.data)
     return response.data
   }
 }

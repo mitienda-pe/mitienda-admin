@@ -162,38 +162,51 @@
         <div>
           <div class="flex items-center justify-between mb-3">
             <div>
-              <h4 class="text-base font-semibold text-secondary-800">Locations</h4>
-              <p class="text-sm text-secondary-600">Ubicaciones de NetSuite</p>
+              <h4 class="text-base font-semibold text-secondary-800">Sucursales (Branches)</h4>
+              <p class="text-sm text-secondary-600">Asigna NetSuite Location IDs a tus sucursales</p>
             </div>
-            <Button
-              type="button"
-              label="Agregar Location"
-              icon="pi pi-plus"
-              size="small"
-              outlined
-              @click="openLocationDialog()"
-            />
           </div>
 
-          <!-- Locations Table -->
-          <div v-if="locations.length > 0" class="border border-secondary-200 rounded-lg overflow-hidden">
+          <!-- Info Message -->
+          <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div class="flex gap-2">
+              <i class="pi pi-info-circle text-blue-600 mt-0.5"></i>
+              <div class="text-sm text-blue-800">
+                <p class="font-medium mb-1">El mismo Location ID se usa para:</p>
+                <ul class="list-disc list-inside ml-2 space-y-1">
+                  <li>Inventory location (ubicación de inventario)</li>
+                  <li>Invoice series location (ubicación para serie de facturación)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loading State -->
+          <div v-if="isLoadingLocations" class="flex justify-center items-center py-8">
+            <i class="pi pi-spin pi-spinner text-2xl text-secondary-400"></i>
+            <span class="ml-2 text-secondary-600">Cargando sucursales...</span>
+          </div>
+
+          <!-- Branches Table -->
+          <div v-else-if="locations.length > 0" class="border border-secondary-200 rounded-lg overflow-hidden">
             <table class="w-full">
               <thead class="bg-secondary-50">
                 <tr>
-                  <th class="px-4 py-3 text-left text-sm font-semibold text-secondary-700">Location ID</th>
-                  <th class="px-4 py-3 text-left text-sm font-semibold text-secondary-700">Nombre</th>
                   <th class="px-4 py-3 text-left text-sm font-semibold text-secondary-700">Sucursal</th>
-                  <th class="px-4 py-3 text-center text-sm font-semibold text-secondary-700">Por Defecto</th>
+                  <th class="px-4 py-3 text-left text-sm font-semibold text-secondary-700">Dirección</th>
+                  <th class="px-4 py-3 text-left text-sm font-semibold text-secondary-700">NetSuite Location ID</th>
                   <th class="px-4 py-3 text-center text-sm font-semibold text-secondary-700 w-20">Acciones</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-secondary-200">
-                <tr v-for="(location, index) in locations" :key="index" class="hover:bg-secondary-50">
-                  <td class="px-4 py-3 text-sm text-secondary-800">{{ location.location_id }}</td>
-                  <td class="px-4 py-3 text-sm text-secondary-800">{{ location.location_name }}</td>
+                <tr v-for="(location, index) in locations" :key="location.tiendadireccion_id" class="hover:bg-secondary-50">
+                  <td class="px-4 py-3 text-sm font-medium text-secondary-800">{{ location.branch_name }}</td>
                   <td class="px-4 py-3 text-sm text-secondary-600">{{ location.branch_address || '-' }}</td>
-                  <td class="px-4 py-3 text-center">
-                    <i v-if="location.is_default" class="pi pi-check-circle text-green-600"></i>
+                  <td class="px-4 py-3 text-sm">
+                    <span v-if="location.netsuite_location_id" class="inline-flex items-center px-2.5 py-1 rounded-md bg-green-100 text-green-800 font-mono text-xs">
+                      {{ location.netsuite_location_id }}
+                    </span>
+                    <span v-else class="text-secondary-400 italic text-xs">Sin asignar</span>
                   </td>
                   <td class="px-4 py-3 text-center">
                     <div class="flex items-center justify-center gap-2">
@@ -203,13 +216,16 @@
                         text
                         severity="secondary"
                         @click="openLocationDialog(index)"
+                        v-tooltip.top="'Editar Location ID'"
                       />
                       <Button
-                        icon="pi pi-trash"
+                        v-if="location.netsuite_location_id"
+                        icon="pi pi-times"
                         size="small"
                         text
                         severity="danger"
-                        @click="deleteLocation(index)"
+                        @click="clearLocationId(index)"
+                        v-tooltip.top="'Limpiar Location ID'"
                       />
                     </div>
                   </td>
@@ -220,8 +236,8 @@
 
           <div v-else class="p-6 text-center border-2 border-dashed border-secondary-300 rounded-lg">
             <i class="pi pi-map-marker text-3xl text-secondary-400 mb-2"></i>
-            <p class="text-secondary-600">No hay locations configuradas</p>
-            <p class="text-sm text-secondary-500 mt-1">Agrega al menos una location para NetSuite</p>
+            <p class="text-secondary-600">No hay sucursales disponibles</p>
+            <p class="text-sm text-secondary-500 mt-1">Las sucursales se gestionan desde el módulo de Branches</p>
           </div>
         </div>
       </div>
@@ -306,53 +322,37 @@
     <!-- Location Dialog -->
     <Dialog
       v-model:visible="locationDialogVisible"
-      :header="editingLocationIndex !== null ? 'Editar Location' : 'Agregar Location'"
+      header="Asignar NetSuite Location ID"
       :modal="true"
       :closable="true"
       :style="{ width: '500px' }"
     >
       <div class="space-y-4 py-4">
+        <!-- Branch Info (Read-only) -->
+        <div class="p-4 bg-secondary-50 rounded-lg">
+          <div class="text-sm">
+            <p class="font-medium text-secondary-800 mb-1">Sucursal</p>
+            <p class="text-secondary-700">{{ locationForm.branch_name }}</p>
+            <p class="text-xs text-secondary-600 mt-1">{{ locationForm.branch_address }}</p>
+          </div>
+        </div>
+
+        <!-- NetSuite Location ID Input -->
         <div>
           <label for="dialog_location_id" class="block text-sm font-medium text-secondary-700 mb-2">
-            Location ID <span class="text-red-500">*</span>
+            NetSuite Location ID <span class="text-red-500">*</span>
           </label>
           <InputText
             id="dialog_location_id"
-            v-model="locationForm.location_id"
+            v-model="locationForm.netsuite_location_id"
             placeholder="323"
             class="w-full"
-            :class="{ 'p-invalid': locationErrors.location_id }"
+            :class="{ 'p-invalid': locationErrors.netsuite_location_id }"
           />
-          <small v-if="locationErrors.location_id" class="text-red-500">{{ locationErrors.location_id }}</small>
-        </div>
-
-        <div>
-          <label for="dialog_location_name" class="block text-sm font-medium text-secondary-700 mb-2">
-            Nombre <span class="text-red-500">*</span>
-          </label>
-          <InputText
-            id="dialog_location_name"
-            v-model="locationForm.location_name"
-            placeholder="LAVICTORIA"
-            class="w-full"
-            :class="{ 'p-invalid': locationErrors.location_name }"
-          />
-          <small v-if="locationErrors.location_name" class="text-red-500">{{ locationErrors.location_name }}</small>
-        </div>
-
-        <div class="flex items-center justify-between p-4 bg-secondary-50 rounded-lg">
-          <div>
-            <label for="dialog_is_default" class="font-medium text-secondary-800 cursor-pointer">
-              Location por defecto
-            </label>
-            <p class="text-sm text-secondary-600 mt-1">
-              Usar esta location como predeterminada
-            </p>
-          </div>
-          <InputSwitch
-            id="dialog_is_default"
-            v-model="locationForm.is_default"
-          />
+          <small v-if="locationErrors.netsuite_location_id" class="text-red-500">{{ locationErrors.netsuite_location_id }}</small>
+          <small v-else class="text-secondary-600 mt-1 block">
+            Este ID se usará tanto para inventario como para facturación electrónica
+          </small>
         </div>
       </div>
 
@@ -365,8 +365,9 @@
             @click="closeLocationDialog"
           />
           <Button
-            :label="editingLocationIndex !== null ? 'Actualizar' : 'Agregar'"
-            @click="saveLocation"
+            label="Guardar"
+            :loading="isSavingLocation"
+            @click="saveLocationId"
           />
         </div>
       </template>
@@ -434,16 +435,18 @@ const locations = ref<NetsuiteLocation[]>([])
 const locationDialogVisible = ref(false)
 const editingLocationIndex = ref<number | null>(null)
 
-const locationForm = reactive<NetsuiteLocation>({
-  location_id: '',
-  location_name: '',
-  is_default: false
+const locationForm = reactive({
+  tiendadireccion_id: 0,
+  branch_name: '',
+  branch_address: '',
+  netsuite_location_id: ''
 })
 
 const locationErrors = reactive({
-  location_id: '',
-  location_name: ''
+  netsuite_location_id: ''
 })
+
+const isSavingLocation = ref(false)
 
 const errors = reactive({
   account_id: '',
@@ -530,36 +533,28 @@ watch(() => props.tiendaId, async (tiendaId) => {
   await loadLocations(tiendaId)
 }, { immediate: true })
 
-// Load locations from new sj_netsuite_locations table
+// Load branches with their NetSuite location IDs
 const isLoadingLocations = ref(false)
 async function loadLocations(tiendaId: number) {
   if (!tiendaId) return
 
   try {
     isLoadingLocations.value = true
-    console.log('[NetsuiteCredentials] Loading locations from API for tienda:', tiendaId)
+    console.log('[NetsuiteCredentials] Loading branches from API for tienda:', tiendaId)
     const response = await netsuiteApi.getLocations(tiendaId)
 
     if (response.success && response.data) {
-      // Transform API response to match component format
-      locations.value = response.data.map((loc: any) => ({
-        id: loc.id,
-        tiendadireccion_id: loc.tiendadireccion_id,
-        location_id: loc.netsuite_location_id,
-        location_name: loc.netsuite_location_name,
-        branch_address: loc.branch_address,
-        is_default: Boolean(loc.is_default)
-      }))
-      console.log('[NetsuiteCredentials] Loaded locations:', locations.value)
+      locations.value = response.data
+      console.log('[NetsuiteCredentials] Loaded branches:', locations.value)
     } else {
       locations.value = []
     }
   } catch (error: any) {
-    console.error('[NetsuiteCredentials] Error loading locations:', error)
+    console.error('[NetsuiteCredentials] Error loading branches:', error)
     toast.add({
       severity: 'error',
       summary: 'Error',
-      detail: 'No se pudieron cargar las locations',
+      detail: 'No se pudieron cargar las sucursales',
       life: 3000
     })
     locations.value = []
@@ -569,30 +564,19 @@ async function loadLocations(tiendaId: number) {
 }
 
 // Location dialog functions
-function openLocationDialog(index?: number) {
-  if (index !== undefined) {
-    // Edit mode
-    editingLocationIndex.value = index
-    const loc = locations.value[index]
-    Object.assign(locationForm, {
-      location_id: loc.location_id,
-      location_name: loc.location_name,
-      is_default: loc.is_default
-    })
-  } else {
-    // Add mode
-    editingLocationIndex.value = null
-    Object.assign(locationForm, {
-      location_id: '',
-      location_name: '',
-      is_default: locations.value.length === 0 // First location is default by default
-    })
-  }
+function openLocationDialog(index: number) {
+  editingLocationIndex.value = index
+  const branch = locations.value[index]
+
+  Object.assign(locationForm, {
+    tiendadireccion_id: branch.tiendadireccion_id,
+    branch_name: branch.branch_name,
+    branch_address: branch.branch_address,
+    netsuite_location_id: branch.netsuite_location_id || ''
+  })
 
   // Clear errors
-  locationErrors.location_id = ''
-  locationErrors.location_name = ''
-
+  locationErrors.netsuite_location_id = ''
   locationDialogVisible.value = true
 }
 
@@ -602,74 +586,103 @@ function closeLocationDialog() {
 }
 
 function validateLocationForm(): boolean {
-  locationErrors.location_id = ''
-  locationErrors.location_name = ''
+  locationErrors.netsuite_location_id = ''
 
-  let valid = true
-
-  if (!locationForm.location_id.trim()) {
-    locationErrors.location_id = 'Location ID es obligatorio'
-    valid = false
+  if (!locationForm.netsuite_location_id.trim()) {
+    locationErrors.netsuite_location_id = 'NetSuite Location ID es obligatorio'
+    return false
   }
 
-  if (!locationForm.location_name.trim()) {
-    locationErrors.location_name = 'Nombre es obligatorio'
-    valid = false
-  }
-
-  // Check for duplicate location_id (only if not editing the same location)
-  const duplicateIndex = locations.value.findIndex(loc => loc.location_id === locationForm.location_id)
-  if (duplicateIndex !== -1 && duplicateIndex !== editingLocationIndex.value) {
-    locationErrors.location_id = 'Este Location ID ya existe'
-    valid = false
-  }
-
-  return valid
+  return true
 }
 
-function saveLocation() {
+async function saveLocationId() {
   if (!validateLocationForm()) return
 
-  const newLocation: NetsuiteLocation = {
-    location_id: locationForm.location_id.trim(),
-    location_name: locationForm.location_name.trim(),
-    is_default: locationForm.is_default
-  }
+  try {
+    isSavingLocation.value = true
 
-  // If this is set as default, unset others
-  if (newLocation.is_default) {
-    locations.value.forEach(loc => {
-      loc.is_default = false
+    const response = await netsuiteApi.updateBranchLocation(
+      locationForm.tiendadireccion_id,
+      {
+        netsuite_location_id: locationForm.netsuite_location_id.trim()
+      }
+    )
+
+    if (response.success) {
+      toast.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'Location ID actualizado correctamente',
+        life: 3000
+      })
+
+      // Update local state
+      if (editingLocationIndex.value !== null) {
+        locations.value[editingLocationIndex.value].netsuite_location_id = locationForm.netsuite_location_id.trim()
+      }
+
+      closeLocationDialog()
+    } else {
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: response.message || 'No se pudo actualizar el Location ID',
+        life: 3000
+      })
+    }
+  } catch (error: any) {
+    console.error('[NetsuiteCredentials] Error updating location ID:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error.response?.data?.message || 'Error al actualizar el Location ID',
+      life: 3000
     })
+  } finally {
+    isSavingLocation.value = false
   }
-
-  if (editingLocationIndex.value !== null) {
-    // Update existing
-    locations.value[editingLocationIndex.value] = newLocation
-  } else {
-    // Add new
-    locations.value.push(newLocation)
-  }
-
-  closeLocationDialog()
 }
 
-function deleteLocation(index: number) {
-  const location = locations.value[index]
+async function clearLocationId(index: number) {
+  const branch = locations.value[index]
 
   confirm.require({
-    message: `¿Eliminar la location "${location.location_name}"?`,
-    header: 'Confirmar eliminación',
+    message: `¿Limpiar el Location ID de la sucursal "${branch.branch_name}"?`,
+    header: 'Confirmar',
     icon: 'pi pi-exclamation-triangle',
-    acceptLabel: 'Sí, eliminar',
+    acceptLabel: 'Sí, limpiar',
     rejectLabel: 'Cancelar',
-    accept: () => {
-      const wasDefault = location.is_default
-      locations.value.splice(index, 1)
+    accept: async () => {
+      try {
+        const response = await netsuiteApi.clearBranchLocation(branch.tiendadireccion_id)
 
-      // If deleted location was default, set first remaining as default
-      if (wasDefault && locations.value.length > 0) {
-        locations.value[0].is_default = true
+        if (response.success) {
+          toast.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Location ID eliminado correctamente',
+            life: 3000
+          })
+
+          // Update local state
+          locations.value[index].netsuite_location_id = null
+        } else {
+          toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo limpiar el Location ID',
+            life: 3000
+          })
+        }
+      } catch (error: any) {
+        console.error('[NetsuiteCredentials] Error clearing location ID:', error)
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error al limpiar el Location ID',
+          life: 3000
+        })
       }
     }
   })
