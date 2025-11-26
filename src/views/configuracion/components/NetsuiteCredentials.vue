@@ -744,7 +744,7 @@ async function handleSubmit() {
 
   // Get default location_id for backward compatibility
   const defaultLocation = locations.value.find(loc => loc.is_default)
-  const legacyLocationId = defaultLocation?.location_id || formData.location_id
+  const legacyLocationId = defaultLocation?.netsuite_location_id || formData.location_id
 
   // Preparar payload
   const payload: SaveNetsuiteCredentialsRequest = {
