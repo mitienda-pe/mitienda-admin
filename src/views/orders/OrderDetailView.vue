@@ -671,9 +671,9 @@ const billingDocumentNumber = computed(() => {
                 <p class="font-semibold text-gray-900">{{ order.payment_gateway }}</p>
               </div>
 
-              <!-- Multiple payments (POS sales) -->
-              <div v-if="order.payments && order.payments.length > 1" class="space-y-2">
-                <p class="text-sm text-gray-500 font-medium">Métodos de pago utilizados</p>
+              <!-- POS payments (one or more) -->
+              <div v-if="order.payments && order.payments.length > 0" class="space-y-2">
+                <p class="text-sm text-gray-500 font-medium">{{ order.payments.length > 1 ? 'Métodos de pago utilizados' : 'Método de pago' }}</p>
                 <div
                   v-for="(payment, index) in order.payments"
                   :key="index"
