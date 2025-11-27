@@ -69,14 +69,15 @@ export const ordersApi = {
 
     const response = await apiClient.get(`/orders?${params.toString()}`)
 
-    // La API devuelve { orders: [...], pager: {...} }
-    // Necesitamos transformarlo al formato esperado
+    // La API devuelve { error: 0, data: [...], pagination: {...} }
+    // Maneja ambos formatos: nuevo (data/pagination) y legacy (orders/pager)
     const rawData = response.data
+    const orders = rawData.data || rawData.orders
 
-    if (rawData.orders) {
+    if (orders) {
       return {
         success: true,
-        data: rawData.orders.map((order: any) => {
+        data: orders.map((order: any) => {
           // La API puede devolver formato transformado O formato directo de BD
           // Detectar cuál formato es basándonos en la presencia de campos clave
           const isTransformed = 'billing_info' in order
@@ -147,11 +148,11 @@ export const ordersApi = {
           }
         }),
         meta: {
-          page: filters.page || 1,
-          limit: filters.limit || 20,
-          total: rawData.pager?.total_items || rawData.orders.length,
-          totalPages: rawData.pager?.total_pages || 1,
-          hasMore: rawData.pager?.has_next || false
+          page: rawData.pagination?.page || rawData.pager?.currentPage || filters.page || 1,
+          limit: rawData.pagination?.perPage || rawData.pager?.perPage || filters.limit || 20,
+          total: rawData.pagination?.total || rawData.pager?.total || orders.length,
+          totalPages: rawData.pagination?.totalPages || rawData.pager?.pageCount || 1,
+          hasMore: rawData.pagination?.hasMore || rawData.pager?.hasMore || false
         }
       }
     }

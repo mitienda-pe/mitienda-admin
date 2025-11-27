@@ -74,8 +74,7 @@ export const useOrdersStore = defineStore('orders', () => {
 
         // Actualizar paginación
         pagination.value.total = response.meta?.total || 0
-        pagination.value.hasMore =
-          orders.value.length < (response.meta?.total || 0)
+        pagination.value.hasMore = response.meta?.hasMore || false
       } else {
         throw new Error('Error al cargar pedidos')
       }
