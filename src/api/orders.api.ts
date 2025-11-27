@@ -72,7 +72,12 @@ export const ordersApi = {
     // La API devuelve { error: 0, data: [...], pagination: {...} }
     // Maneja ambos formatos: nuevo (data/pagination) y legacy (orders/pager)
     const rawData = response.data
+    console.log('🔍 Orders API - Raw response keys:', Object.keys(rawData))
+    console.log('🔍 Orders API - Pagination:', rawData.pagination)
+    console.log('🔍 Orders API - Pager:', rawData.pager)
+
     const orders = rawData.data || rawData.orders
+    console.log('🔍 Orders API - Orders count:', orders?.length)
 
     if (orders) {
       return {
