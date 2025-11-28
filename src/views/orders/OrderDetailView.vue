@@ -215,6 +215,18 @@ const erpSyncData = computed(() => {
   }
 })
 
+const erpPayloadData = computed(() => {
+  if (!order.value?.tiendaventa_payload_notif_erp) return null
+
+  try {
+    const parsed = JSON.parse(order.value.tiendaventa_payload_notif_erp)
+    return parsed
+  } catch (e) {
+    console.error('Error parsing ERP payload:', e)
+    return null
+  }
+})
+
 const erpSyncStatus = computed(() => {
   if (!order.value) return null
 
@@ -565,10 +577,20 @@ const billingDocumentNumber = computed(() => {
                 </div>
               </div>
 
-              <!-- Raw JSON (collapsible) -->
+              <!-- Request Payload (collapsible) -->
+              <details v-if="erpPayloadData" class="mt-3">
+                <summary class="text-sm text-gray-500 cursor-pointer hover:text-gray-700 flex items-center gap-2">
+                  <i class="pi pi-arrow-up text-xs"></i>
+                  Ver Payload Enviado a NetSuite
+                </summary>
+                <pre class="mt-2 text-xs bg-blue-50 border border-blue-200 rounded p-3 overflow-auto max-h-96">{{ JSON.stringify(erpPayloadData, null, 2) }}</pre>
+              </details>
+
+              <!-- Response JSON (collapsible) -->
               <details class="mt-3">
-                <summary class="text-sm text-gray-500 cursor-pointer hover:text-gray-700">
-                  Ver JSON completo
+                <summary class="text-sm text-gray-500 cursor-pointer hover:text-gray-700 flex items-center gap-2">
+                  <i class="pi pi-arrow-down text-xs"></i>
+                  Ver Respuesta de NetSuite
                 </summary>
                 <pre class="mt-2 text-xs bg-gray-50 border border-gray-200 rounded p-3 overflow-auto max-h-96">{{ JSON.stringify(erpSyncData || order.tiendaventa_mensaje_notif_erp, null, 2) }}</pre>
               </details>
