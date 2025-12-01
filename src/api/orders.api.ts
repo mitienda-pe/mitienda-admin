@@ -67,17 +67,11 @@ export const ordersApi = {
     if (filters.date_from) params.append('date_from', filters.date_from)
     if (filters.date_to) params.append('date_to', filters.date_to)
 
-    const response = await apiClient.get(`/orders?${params.toString()}`)
+    // Use new paginated endpoint that returns: { error: 0, data: [...], pagination: {...} }
+    const response = await apiClient.get(`/orders/paginated?${params.toString()}`)
 
-    // La API devuelve { error: 0, data: [...], pagination: {...} }
-    // Maneja ambos formatos: nuevo (data/pagination) y legacy (orders/pager)
     const rawData = response.data
-    console.log('🔍 Orders API - Raw response keys:', Object.keys(rawData))
-    console.log('🔍 Orders API - Pagination:', rawData.pagination)
-    console.log('🔍 Orders API - Pager:', rawData.pager)
-
-    const orders = rawData.data || rawData.orders
-    console.log('🔍 Orders API - Orders count:', orders?.length)
+    const orders = rawData.data || []
 
     if (orders) {
       return {
@@ -153,11 +147,11 @@ export const ordersApi = {
           }
         }),
         meta: {
-          page: rawData.pagination?.page || rawData.pager?.currentPage || filters.page || 1,
-          limit: rawData.pagination?.perPage || rawData.pager?.perPage || filters.limit || 20,
-          total: rawData.pagination?.total || rawData.pager?.total || orders.length,
-          totalPages: rawData.pagination?.totalPages || rawData.pager?.pageCount || 1,
-          hasMore: rawData.pagination?.hasMore || rawData.pager?.hasMore || false
+          page: rawData.pagination?.page || filters.page || 1,
+          limit: rawData.pagination?.perPage || filters.limit || 20,
+          total: rawData.pagination?.total || 0,
+          totalPages: rawData.pagination?.totalPages || 0,
+          hasMore: rawData.pagination?.hasMore || false
         }
       }
     }

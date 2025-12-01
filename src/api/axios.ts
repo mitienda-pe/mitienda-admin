@@ -52,7 +52,13 @@ apiClient.interceptors.response.use(
       response.data = {
         success: response.data.error === 0,
         message: response.data.message,
-        data: response.data.data
+        data: response.data.data,
+        // Preservar campos adicionales como pagination, pager, meta, etc.
+        ...Object.fromEntries(
+          Object.entries(response.data).filter(
+            ([key]) => !['error', 'message', 'data'].includes(key)
+          )
+        )
       }
     }
     return response
