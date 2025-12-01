@@ -40,6 +40,21 @@ export function useFormatters() {
   // Formatear fecha (DD/MM/YYYY)
   const formatDate = (date: string | Date | null | undefined): string => {
     if (!date) return 'N/A'
+
+    // If date is a string in YYYY-MM-DD format (without time), treat it as a local date
+    // to avoid timezone conversion issues
+    if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      const [year, month, day] = date.split('-').map(Number)
+      const parsedDate = new Date(year, month - 1, day)
+
+      return new Intl.DateTimeFormat('es-PE', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }).format(parsedDate)
+    }
+
+    // For other date formats, use normal Date parsing
     const parsedDate = new Date(date)
     if (isNaN(parsedDate.getTime())) return 'N/A'
 
