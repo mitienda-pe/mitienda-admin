@@ -216,10 +216,11 @@ const erpSyncData = computed(() => {
 })
 
 const erpPayloadData = computed(() => {
-  if (!order.value?.tiendaventa_payload_notif_erp) return null
+  const orderData = order.value as any
+  if (!orderData?.tiendaventa_payload_notif_erp) return null
 
   try {
-    const parsed = JSON.parse(order.value.tiendaventa_payload_notif_erp)
+    const parsed = JSON.parse(orderData.tiendaventa_payload_notif_erp)
     return parsed
   } catch (e) {
     console.error('Error parsing ERP payload:', e)
