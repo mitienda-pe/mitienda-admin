@@ -25,6 +25,7 @@ export interface Order {
   notes?: string
   tiendaventa_estado_notif_erp?: number // 0 = success, 1 = error
   tiendaventa_mensaje_notif_erp?: string
+  tiendaventa_payload_notif_erp?: string // Request payload sent to NetSuite
   billing_document?: BillingDocument
   created_at: string
   updated_at: string
