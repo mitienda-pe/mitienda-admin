@@ -251,6 +251,7 @@ export const ordersApi = {
                                         rawData.erp_sync_message ??
                                         rawData.erp_message ??
                                         undefined,
+        tiendaventa_payload_notif_erp: rawData.tiendaventa_payload_notif_erp ?? undefined,
         // Billing document info
         billing_document: billingInfo['e-billing'] ? {
           id: billingInfo['e-billing'].id || 0,
