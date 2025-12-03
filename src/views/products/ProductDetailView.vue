@@ -73,9 +73,16 @@
                     {{ formatCurrency(product.compare_price) }}
                   </span>
                 </div>
-                <p v-if="product.cost" class="text-sm text-secondary-500 mt-1">
-                  Costo: {{ formatCurrency(product.cost) }}
-                </p>
+                <div class="text-sm text-secondary-500 mt-2 space-y-1">
+                  <p v-if="product.price_without_tax !== undefined && product.price_without_tax !== null">
+                    <span class="font-medium">Precio sin IGV:</span>
+                    <span class="font-mono">S/ {{ product.price_without_tax.toFixed(8) }}</span>
+                    <span class="text-xs text-gray-400 ml-1">(8 decimales de precisión)</span>
+                  </p>
+                  <p v-if="product.cost">
+                    <span class="font-medium">Costo:</span> {{ formatCurrency(product.cost) }}
+                  </p>
+                </div>
               </div>
 
               <!-- Separador -->

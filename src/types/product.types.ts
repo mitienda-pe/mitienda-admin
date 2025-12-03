@@ -28,6 +28,7 @@ export interface Product {
   description?: string
   description_html?: string
   price: number
+  price_without_tax?: number // Precio sin IGV (8 decimales de precisión)
   compare_price?: number
   cost?: number
   stock: number
