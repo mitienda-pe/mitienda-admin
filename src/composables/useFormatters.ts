@@ -1,12 +1,11 @@
 export function useFormatters() {
   // Formatear moneda (Soles peruanos)
-  // Modificado para mostrar 8 decimales de precisión (IGV calculado con 8 decimales)
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('es-PE', {
       style: 'currency',
       currency: 'PEN',
       minimumFractionDigits: 2,
-      maximumFractionDigits: 8 // Permite hasta 8 decimales para máxima precisión
+      maximumFractionDigits: 2
     }).format(amount)
   }
 
