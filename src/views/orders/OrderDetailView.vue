@@ -255,6 +255,11 @@ const erpSyncStatus = computed(() => {
   return null
 })
 
+const erpPaymentIds = computed(() => {
+  if (!erpSyncData.value || !erpSyncData.value.payment_ids) return []
+  return erpSyncData.value.payment_ids
+})
+
 const handleSendInvoiceEmail = async () => {
   if (!order.value) return
 
@@ -576,6 +581,50 @@ const billingDocumentNumber = computed(() => {
                   <p class="text-sm text-gray-500">Invoice ID</p>
                   <p class="font-mono text-sm text-gray-900">{{ erpSyncData.invoice_id }}</p>
                 </div>
+
+                <!-- Payment IDs / Transactions -->
+                <div v-if="erpPaymentIds.length > 0" class="mt-4">
+                  <p class="text-sm text-gray-500 mb-2">Transacciones en NetSuite</p>
+                  <div class="space-y-2">
+                    <div
+                      v-for="(payment, index) in erpPaymentIds"
+                      :key="index"
+                      class="flex items-start justify-between p-3 rounded-lg border"
+                      :class="payment.type === 'journal_entry' ? 'bg-orange-50 border-orange-200' : 'bg-gray-50 border-gray-200'"
+                    >
+                      <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                          <p class="font-semibold text-gray-900 text-sm">
+                            <span v-if="payment.type === 'journal_entry'">
+                              <i class="pi pi-book text-orange-600 mr-1"></i>
+                              Asiento Contable
+                            </span>
+                            <span v-else>
+                              <i class="pi pi-credit-card text-blue-600 mr-1"></i>
+                              Pago Cliente
+                            </span>
+                          </p>
+                        </div>
+                        <p class="text-xs text-gray-600 mt-1">
+                          ID: <span class="font-mono">{{ payment.payment_id }}</span>
+                        </p>
+                        <p class="text-xs text-gray-600">
+                          <span v-if="payment.type === 'journal_entry'" class="text-orange-700 font-medium">
+                            Redondeo a favor
+                          </span>
+                          <span v-else class="capitalize">
+                            {{ payment.method === 'efectivo' ? 'Efectivo' : payment.method === 'card' ? 'Tarjeta' : payment.method }}
+                          </span>
+                        </p>
+                      </div>
+                      <div class="text-right">
+                        <p class="font-bold text-sm" :class="payment.type === 'journal_entry' ? 'text-orange-700' : 'text-gray-900'">
+                          {{ formatCurrency(payment.amount) }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <!-- Request Payload (collapsible) -->
@@ -587,14 +636,11 @@ const billingDocumentNumber = computed(() => {
                 <pre class="mt-2 text-xs bg-blue-50 border border-blue-200 rounded p-3 overflow-auto max-h-96">{{ JSON.stringify(erpPayloadData, null, 2) }}</pre>
               </details>
 
-              <!-- Response JSON (collapsible) -->
-              <details class="mt-3">
-                <summary class="text-sm text-gray-500 cursor-pointer hover:text-gray-700 flex items-center gap-2">
-                  <i class="pi pi-arrow-down text-xs"></i>
-                  Ver Respuesta de NetSuite
-                </summary>
-                <pre class="mt-2 text-xs bg-gray-50 border border-gray-200 rounded p-3 overflow-auto max-h-96">{{ JSON.stringify(erpSyncData || order.tiendaventa_mensaje_notif_erp, null, 2) }}</pre>
-              </details>
+              <!-- Response JSON (always visible) -->
+              <div class="mt-3">
+                <p class="text-sm text-gray-500 mb-2">Respuesta de NetSuite</p>
+                <pre class="text-xs bg-gray-50 border border-gray-200 rounded p-3 overflow-auto max-h-96">{{ JSON.stringify(erpSyncData || order.tiendaventa_mensaje_notif_erp, null, 2) }}</pre>
+              </div>
             </div>
           </template>
         </Card>
