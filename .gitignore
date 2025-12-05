@@ -44,3 +44,6 @@ test-video.*
 public/tinymce/*
 !public/tinymce/langs/
 !public/tinymce/README.md
+
+# Claude Code
+.claude/

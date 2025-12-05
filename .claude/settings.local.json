@@ -47,7 +47,14 @@
       "Bash(npx vue-tsc:*)",
       "Bash(git rm:*)",
       "Bash(mkdir:*)",
-      "Read(//private/tmp/**)"
+      "Read(//private/tmp/**)",
+      "Bash(/tmp/test_orders_api.sh)",
+      "Bash(/tmp/check_pagination.sh:*)",
+      "Bash(/tmp/test_paginated_endpoint.sh:*)",
+      "Bash(TOKEN=\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwaTIubWl0aWVuZGEucGUvIiwic3ViIjoiNDA4IiwiYXVkIjoibW9iaWxlIiwiaWF0IjoxNzY0NjAwNTE0LCJleHAiOjE3NjcxOTI1MTQsInVzZXJfaWQiOjQwOCwiZW1haWwiOiJHY2tsNkt2Q3VKeXA3VUxDLzhkZmtNemxYU3dQRGY2SXA1OTZxZ2FsLzVkU1JnPT0iLCJzdG9yZV9pZCI6NDA0LCJwZXJtaXNzaW9ucyI6WyJyZWFkX3Byb2R1Y3RzIiwicmVhZF9vcmRlcnMiLCJyZWFkX2N1c3RvbWVycyJdfQ.jMDIWvgiWKBENBUIGdIf4BM1Lr_EO4QLoXcyP7HMKTo\")",
+      "Bash(TOKEN=\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2FwaTIubWl0aWVuZGEucGUvIiwic3ViIjoiNDA4IiwiYXVkIjoibW9iaWxlIiwiaWF0IjoxNzY0NjAwNTE0LCJleHAiOjE3NjcxOTI1MTQsInVzZXJfaWQiOjQwOCwiZW1haWwiOiJHY2tsNkt2Q3VKeXA3VUxDLzhkZmtNemxYU3dQRGY2SXA1OTZxZ2FsLzVkU1JnPT0iLCJzdG9yZV9pZCI6MTIwOTcsInBlcm1pc3Npb25zIjpbInJlYWRfcHJvZHVjdHMiLCJ3cml0ZV9wcm9kdWN0cyIsInVwZGF0ZV9wcm9kdWN0cyIsImRlbGV0ZV9wcm9kdWN0cyIsInJlYWRfb3JkZXJzIiwid3JpdGVfb3JkZXJzIiwidXBkYXRlX29yZGVycyIsInJlYWRfY3VzdG9tZXJzIiwid3JpdGVfY3VzdG9tZXJzIiwidXBkYXRlX2N1c3RvbWVycyJdfQ.HW1nSui8VdOMuveBoF5NqTClSgo_3qdHJUDu40crBto\")",
+      "Bash(/tmp/test_pos_orders.sh:*)",
+      "Bash(/tmp/check_order_id.sh:*)"
     ],
     "deny": [],
     "ask": []

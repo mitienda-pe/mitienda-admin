@@ -156,6 +156,32 @@
             />
             <small class="text-secondary-600 mt-1 block">Para custbody_pe_ubicacion_para_serie</small>
           </div>
+
+          <div>
+            <label for="generic_customer_id" class="block text-sm font-medium text-secondary-700 mb-2">
+              Generic Customer ID
+            </label>
+            <InputText
+              id="generic_customer_id"
+              v-model="formData.generic_customer_id"
+              placeholder="32797"
+              class="w-full"
+            />
+            <small class="text-secondary-600 mt-1 block">Cliente genérico para ventas &lt;700 soles sin DNI</small>
+          </div>
+
+          <div>
+            <label for="bonification_item_id" class="block text-sm font-medium text-secondary-700 mb-2">
+              Bonification Item ID
+            </label>
+            <InputText
+              id="bonification_item_id"
+              v-model="formData.bonification_item_id"
+              placeholder="536"
+              class="w-full"
+            />
+            <small class="text-secondary-600 mt-1 block">Item para productos bonificados (gratis)</small>
+          </div>
         </div>
 
         <!-- Locations Section -->
@@ -426,6 +452,8 @@ const formData = reactive<Partial<SaveNetsuiteCredentialsRequest>>({
   subsidiary_id: '3',
   location_id: '323', // Deprecated - kept for backward compatibility
   ubicacion_serie_id: '323',
+  generic_customer_id: '',
+  bonification_item_id: '',
   autosync_enabled: false,
   estado: 1
 })
@@ -502,6 +530,8 @@ watch(() => props.tiendaId, async (tiendaId) => {
       subsidiary_id: creds.tiendacredencialerp_subsidiary_id || '3',
       location_id: creds.tiendacredencialerp_location_id || '323',
       ubicacion_serie_id: creds.tiendacredencialerp_ubicacion_serie_id || '323',
+      generic_customer_id: creds.tiendacredencialerp_generic_customer_id || '',
+      bonification_item_id: creds.tiendacredencialerp_bonification_item_id || '',
       autosync_enabled: Number(creds.tiendacredencialerp_autosync_enabled) === 1,
       estado: Number(creds.tiendacredencialerp_estado)
     })
@@ -524,6 +554,8 @@ watch(() => props.tiendaId, async (tiendaId) => {
       subsidiary_id: '3',
       location_id: '323',
       ubicacion_serie_id: '323',
+      generic_customer_id: '',
+      bonification_item_id: '',
       autosync_enabled: false,
       estado: 1
     })
@@ -755,6 +787,8 @@ async function handleSubmit() {
     subsidiary_id: formData.subsidiary_id,
     location_id: legacyLocationId, // Deprecated - for backward compatibility
     ubicacion_serie_id: formData.ubicacion_serie_id,
+    generic_customer_id: formData.generic_customer_id,
+    bonification_item_id: formData.bonification_item_id,
     autosync_enabled: formData.autosync_enabled || false,
     estado: formData.estado || 1,
     locations: locations.value.length > 0 ? locations.value : undefined

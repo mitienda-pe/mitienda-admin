@@ -22,6 +22,8 @@ export interface NetsuiteCredential {
   tiendacredencialerp_subsidiary_id?: string
   tiendacredencialerp_location_id?: string // Deprecated - for backward compatibility
   tiendacredencialerp_ubicacion_serie_id?: string
+  tiendacredencialerp_generic_customer_id?: string
+  tiendacredencialerp_bonification_item_id?: string
   tiendacredencialerp_estado: number
   tiendacredencialerp_autosync_enabled: number
   tiendacredencialerp_fecha_creacion?: string
@@ -39,6 +41,8 @@ export interface SaveNetsuiteCredentialsRequest {
   subsidiary_id?: string
   location_id?: string // Deprecated - for backward compatibility
   ubicacion_serie_id?: string
+  generic_customer_id?: string
+  bonification_item_id?: string
   autosync_enabled: boolean
   estado: number
   locations?: NetsuiteLocation[] // New field for multiple locations
