@@ -212,15 +212,23 @@
                       </td>
                       <td class="whitespace-nowrap px-4 py-4 text-sm text-gray-500">{{ product.producto_sku }}</td>
                       <td class="px-4 py-4">
-                        <InputNumber
-                          v-model="product.productobonificacion_cantidad"
-                          :min="1"
-                          :maxFractionDigits="0"
-                          :useGrouping="false"
-                          @blur="validateAndUpdateBonificationQuantity(product)"
-                          inputClass="w-full text-center"
-                          class="w-20"
-                        />
+                        <div class="flex items-center gap-2">
+                          <InputNumber
+                            v-model="product.productobonificacion_cantidad"
+                            :min="1"
+                            :maxFractionDigits="0"
+                            :useGrouping="false"
+                            inputClass="w-full text-center"
+                            class="w-20"
+                          />
+                          <button
+                            @click="validateAndUpdateBonificationQuantity(product)"
+                            class="px-2 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                            title="Guardar cantidad"
+                          >
+                            ✓
+                          </button>
+                        </div>
                       </td>
                       <td class="px-4 py-4 text-center">
                         <button
