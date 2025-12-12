@@ -381,6 +381,9 @@ const toast = useToast()
 
 const { currentPromotion, promotionProducts, bonificationProducts, isLoading, error } = storeToRefs(promotionsStore)
 
+// Store original quantities for comparison
+const originalBonificationQuantities = ref<Record<string, number>>({})
+
 // Dialogs
 const showLinkProductsDialog = ref(false)
 const showLinkBonificationsDialog = ref(false)
@@ -560,12 +563,12 @@ async function validateAndUpdateProductQuantity(product: any) {
   }
 }
 
-// Validate and update bonification quantity (triggered on blur)
+// Validate and update bonification quantity
 async function validateAndUpdateBonificationQuantity(product: any) {
   if (!currentPromotion.value) return
 
   // Validación: cantidad no puede estar vacía o ser menor a 1
-  const quantity = product.productobonificacion_cantidad
+  const quantity = Number(product.productobonificacion_cantidad)
 
   if (!quantity || quantity < 1) {
     toast.add({
@@ -579,12 +582,11 @@ async function validateAndUpdateBonificationQuantity(product: any) {
     return
   }
 
-  // Check si la cantidad cambió realmente
-  const originalProduct = bonificationProducts.value.find(
-    p => p.producto_id === product.producto_id &&
-         (p.productoatributo_id || 0) === (product.productoatributo_id || 0)
-  )
-  if (originalProduct && originalProduct.productobonificacion_cantidad === quantity) {
+  // Check si la cantidad cambió comparando con el valor original guardado
+  const key = `${product.producto_id}-${product.productoatributo_id || 0}`
+  const originalQuantity = originalBonificationQuantities.value[key]
+
+  if (originalQuantity === quantity) {
     return // No cambió, no hacer nada
   }
 
@@ -601,7 +603,10 @@ async function validateAndUpdateBonificationQuantity(product: any) {
       life: 2000
     })
 
-    // Refrescar para obtener datos actualizados
+    // Actualizar el valor original guardado
+    originalBonificationQuantities.value[key] = quantity
+
+    // Refrescar para obtener datos actualizados del servidor
     await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
   } catch (error: any) {
     console.error('Error updating bonification quantity:', error)
@@ -679,9 +684,15 @@ function ensureQuantitiesAreSet() {
   })
 
   // Ensure bonification quantities are at least 1 and convert to number
+  // AND save original values for comparison
+  originalBonificationQuantities.value = {}
   bonificationProducts.value.forEach(product => {
     const cantidad = Number(product.productobonificacion_cantidad)
     product.productobonificacion_cantidad = cantidad && cantidad >= 1 ? cantidad : 1
+
+    // Save original value
+    const key = `${product.producto_id}-${product.productoatributo_id || 0}`
+    originalBonificationQuantities.value[key] = product.productobonificacion_cantidad
   })
 }
 
