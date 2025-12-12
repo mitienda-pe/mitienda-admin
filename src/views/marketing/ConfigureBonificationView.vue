@@ -191,7 +191,7 @@
                   <td class="px-4 py-4 text-sm text-gray-500">{{ product.producto_sku }}</td>
                   <td class="px-4 py-4">
                     <InputNumber
-                      v-model="product.productopromobonificacion_cantidad"
+                      v-model="product.productobonificacion_cantidad"
                       :min="1"
                       :maxFractionDigits="0"
                       @update:modelValue="updateBonificationQuantity(product.producto_id, product.productoatributo_id, $event)"
@@ -306,7 +306,7 @@ async function fetchProducts() {
     if (bonificationsResponse.data.status === 'success') {
       bonificationProducts.value = bonificationsResponse.data.data.map((p: any) => ({
         ...p,
-        productopromobonificacion_cantidad: p.productopromobonificacion_cantidad || 1
+        productobonificacion_cantidad: p.productobonificacion_cantidad || 1
       }))
     }
   } catch (error: any) {

@@ -213,7 +213,7 @@
                       <td class="whitespace-nowrap px-4 py-4 text-sm text-gray-500">{{ product.producto_sku }}</td>
                       <td class="px-4 py-4">
                         <InputNumber
-                          v-model="product.productopromobonificacion_cantidad"
+                          v-model="product.productobonificacion_cantidad"
                           :min="1"
                           :maxFractionDigits="0"
                           :useGrouping="false"
@@ -557,7 +557,7 @@ async function validateAndUpdateBonificationQuantity(product: any) {
   if (!currentPromotion.value) return
 
   // Validación: cantidad no puede estar vacía o ser menor a 1
-  const quantity = product.productopromobonificacion_cantidad
+  const quantity = product.productobonificacion_cantidad
 
   if (!quantity || quantity < 1) {
     toast.add({
@@ -576,7 +576,7 @@ async function validateAndUpdateBonificationQuantity(product: any) {
     p => p.producto_id === product.producto_id &&
          (p.productoatributo_id || 0) === (product.productoatributo_id || 0)
   )
-  if (originalProduct && originalProduct.productopromobonificacion_cantidad === quantity) {
+  if (originalProduct && originalProduct.productobonificacion_cantidad === quantity) {
     return // No cambió, no hacer nada
   }
 
@@ -673,8 +673,8 @@ function ensureQuantitiesAreSet() {
 
   // Ensure bonification quantities are at least 1
   bonificationProducts.value.forEach(product => {
-    if (!product.productopromobonificacion_cantidad || product.productopromobonificacion_cantidad < 1) {
-      product.productopromobonificacion_cantidad = 1
+    if (!product.productobonificacion_cantidad || product.productobonificacion_cantidad < 1) {
+      product.productobonificacion_cantidad = 1
     }
   })
 }
