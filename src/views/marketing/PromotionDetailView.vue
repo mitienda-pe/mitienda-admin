@@ -672,18 +672,16 @@ async function unlinkBonification(productId: number, attributeId: number | undef
 
 // Ensure quantities are set correctly when loading products
 function ensureQuantitiesAreSet() {
-  // Ensure product quantities are at least 1
+  // Ensure product quantities are at least 1 and convert to number
   promotionProducts.value.forEach(product => {
-    if (!product.productopromocion_cantidadproducto || product.productopromocion_cantidadproducto < 1) {
-      product.productopromocion_cantidadproducto = 1
-    }
+    const cantidad = Number(product.productopromocion_cantidadproducto)
+    product.productopromocion_cantidadproducto = cantidad && cantidad >= 1 ? cantidad : 1
   })
 
-  // Ensure bonification quantities are at least 1
+  // Ensure bonification quantities are at least 1 and convert to number
   bonificationProducts.value.forEach(product => {
-    if (!product.productobonificacion_cantidad || product.productobonificacion_cantidad < 1) {
-      product.productobonificacion_cantidad = 1
-    }
+    const cantidad = Number(product.productobonificacion_cantidad)
+    product.productobonificacion_cantidad = cantidad && cantidad >= 1 ? cantidad : 1
   })
 }
 
