@@ -399,15 +399,116 @@ const billingDocumentNumber = computed(() => {
     <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Columna Principal -->
       <div class="lg:col-span-2 space-y-6">
-        <!-- Productos -->
+        <!-- Información del Cliente y Pago -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Información del Cliente -->
+          <Card>
+            <template #title>
+              <div class="flex items-center gap-2">
+                <i class="pi pi-user text-primary"></i>
+                Cliente
+              </div>
+            </template>
+            <template #content>
+              <div class="space-y-3">
+                <div>
+                  <p class="text-sm text-gray-500">Nombre</p>
+                  <p class="font-semibold text-gray-900">{{ order.customer?.name || 'N/A' }}</p>
+                </div>
+                <div v-if="order.customer?.email">
+                  <p class="text-sm text-gray-500">Email</p>
+                  <p class="font-semibold text-gray-900">{{ order.customer.email }}</p>
+                </div>
+                <div v-if="order.customer?.phone">
+                  <p class="text-sm text-gray-500">Teléfono</p>
+                  <p class="font-semibold text-gray-900">{{ order.customer.phone }}</p>
+                </div>
+                <div v-if="order.customer?.document_type && order.customer?.document_number">
+                  <p class="text-sm text-gray-500">Documento</p>
+                  <p class="font-semibold text-gray-900">
+                    {{ order.customer.document_type }} {{ order.customer.document_number }}
+                  </p>
+                </div>
+              </div>
+            </template>
+          </Card>
+
+          <!-- Información de Pago -->
+          <Card>
+            <template #title>
+              <div class="flex items-center gap-2">
+                <i class="pi pi-credit-card text-primary"></i>
+                Pago
+              </div>
+            </template>
+            <template #content>
+              <div class="space-y-3">
+                <div v-if="order.payment_gateway">
+                  <p class="text-sm text-gray-500">Pasarela de pago</p>
+                  <p class="font-semibold text-gray-900">{{ order.payment_gateway }}</p>
+                </div>
+
+                <!-- POS payments (one or more) -->
+                <div v-if="order.payments && order.payments.length > 0" class="space-y-2">
+                  <p class="text-sm text-gray-500 font-medium">{{ order.payments.length > 1 ? 'Métodos de pago utilizados' : 'Método de pago' }}</p>
+                  <div
+                    v-for="(payment, index) in order.payments"
+                    :key="index"
+                    class="flex justify-between items-start p-3 bg-gray-50 rounded-lg border border-gray-200"
+                  >
+                    <div class="flex-1">
+                      <p class="font-semibold text-gray-900">{{ payment.method_name }}</p>
+                      <div v-if="payment.authorization_number" class="mt-1">
+                        <p class="text-xs text-gray-500">
+                          <i class="pi pi-check-circle mr-1"></i>
+                          Autorización: <span class="font-mono">{{ payment.authorization_number }}</span>
+                        </p>
+                      </div>
+                      <div v-if="payment.reference && !payment.authorization_number" class="mt-1">
+                        <p class="text-xs text-gray-500">
+                          Ref: {{ payment.reference }}
+                        </p>
+                      </div>
+                    </div>
+                    <div class="text-right">
+                      <p class="font-bold text-gray-900">{{ formatCurrency(parseFloat(payment.amount)) }}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Single payment (web sales) -->
+                <div v-else-if="order.payment_method">
+                  <p class="text-sm text-gray-500">Método de pago</p>
+                  <p class="font-semibold text-gray-900 capitalize">{{ order.payment_method }}</p>
+                </div>
+
+                <div v-if="order.gateway_code">
+                  <p class="text-sm text-gray-500">Código de la pasarela</p>
+                  <p class="font-mono text-sm text-gray-900">{{ order.gateway_code }}</p>
+                </div>
+                <div v-if="order.gateway_message">
+                  <p class="text-sm text-gray-500">Mensaje de la pasarela</p>
+                  <p class="text-gray-900">{{ order.gateway_message }}</p>
+                </div>
+                <div v-if="order.notes">
+                  <p class="text-sm text-gray-500">Notas</p>
+                  <p class="text-gray-900">{{ order.notes }}</p>
+                </div>
+              </div>
+            </template>
+          </Card>
+        </div>
+
+        <!-- Resumen del Pedido -->
         <Card>
           <template #title>
             <div class="flex items-center gap-2">
-              <i class="pi pi-box text-primary"></i>
-              Productos
+              <i class="pi pi-shopping-cart text-primary"></i>
+              Resumen del Pedido
             </div>
           </template>
           <template #content>
+            <!-- Productos -->
             <div class="space-y-4">
               <div
                 v-for="item in order.items"
@@ -446,42 +547,43 @@ const billingDocumentNumber = computed(() => {
             </div>
 
             <!-- Totales -->
-            <div class="mt-6 pt-6 border-t border-gray-200 space-y-2">
-              <div class="flex justify-between text-gray-600">
-                <span>Subtotal:</span>
-                <span>{{ formatCurrency(subtotal) }}</span>
-              </div>
-              <div v-if="order.shipping_cost" class="flex justify-between text-gray-600">
-                <span>Envío:</span>
-                <span>{{ formatCurrency(order.shipping_cost) }}</span>
-              </div>
-              <div v-if="order.discount" class="flex justify-between text-green-600">
-                <span>Descuento:</span>
-                <span>-{{ formatCurrency(order.discount) }}</span>
+            <div class="mt-6 pt-6 border-t-2 border-gray-300 space-y-3">
+              <!-- Subtotal de productos -->
+              <div class="flex justify-between text-gray-700">
+                <span>Subtotal productos:</span>
+                <span class="font-medium">{{ formatCurrency(subtotal) }}</span>
               </div>
 
-              <!-- Mostrar redondeo si existe -->
+              <!-- Costo de envío -->
+              <div v-if="order.shipping_cost && order.shipping_cost > 0" class="flex justify-between text-gray-700">
+                <span>Costo de envío:</span>
+                <span class="font-medium">{{ formatCurrency(order.shipping_cost) }}</span>
+              </div>
+
+              <!-- Descuento -->
+              <div v-if="order.discount && order.discount > 0" class="flex justify-between text-green-700">
+                <span>Descuento:</span>
+                <span class="font-medium">-{{ formatCurrency(order.discount) }}</span>
+              </div>
+
+              <!-- Redondeo (si existe) -->
               <template v-if="roundingAmount !== 0">
-                <div class="flex justify-between text-gray-600 pt-2 border-t">
+                <div class="flex justify-between text-gray-700 pt-3 border-t border-gray-200">
                   <span>Subtotal antes de redondeo:</span>
-                  <span>{{ formatCurrency(order.total) }}</span>
+                  <span class="font-medium">{{ formatCurrency(order.total) }}</span>
                 </div>
-                <div class="flex justify-between text-gray-600">
+                <div class="flex justify-between text-gray-700">
                   <span>Redondeo:</span>
-                  <span :class="roundingAmount < 0 ? 'text-red-600' : 'text-green-600'">
+                  <span class="font-medium" :class="roundingAmount < 0 ? 'text-red-600' : 'text-green-600'">
                     {{ formatCurrency(roundingAmount) }}
                   </span>
                 </div>
-                <div class="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t">
-                  <span>Total:</span>
-                  <span class="text-primary">{{ formatCurrency(totalAfterRounding) }}</span>
-                </div>
               </template>
 
-              <!-- Si no hay redondeo, mostrar total normal -->
-              <div v-else class="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t">
-                <span>Total:</span>
-                <span class="text-primary">{{ formatCurrency(order.total) }}</span>
+              <!-- Total final -->
+              <div class="flex justify-between text-xl font-bold text-gray-900 pt-3 border-t-2 border-gray-300">
+                <span>Total a pagar:</span>
+                <span class="text-primary">{{ formatCurrency(roundingAmount !== 0 ? totalAfterRounding : order.total) }}</span>
               </div>
             </div>
           </template>
@@ -648,40 +750,8 @@ const billingDocumentNumber = computed(() => {
         </Card>
       </div>
 
-      <!-- Sidebar: Información del Cliente y Pedido -->
+      <!-- Sidebar: Información de Envío y Análisis -->
       <div class="lg:col-span-1 space-y-6">
-        <!-- Información del Cliente -->
-        <Card>
-          <template #title>
-            <div class="flex items-center gap-2">
-              <i class="pi pi-user text-primary"></i>
-              Cliente
-            </div>
-          </template>
-          <template #content>
-            <div class="space-y-3">
-              <div>
-                <p class="text-sm text-gray-500">Nombre</p>
-                <p class="font-semibold text-gray-900">{{ order.customer?.name || 'N/A' }}</p>
-              </div>
-              <div v-if="order.customer?.email">
-                <p class="text-sm text-gray-500">Email</p>
-                <p class="font-semibold text-gray-900">{{ order.customer.email }}</p>
-              </div>
-              <div v-if="order.customer?.phone">
-                <p class="text-sm text-gray-500">Teléfono</p>
-                <p class="font-semibold text-gray-900">{{ order.customer.phone }}</p>
-              </div>
-              <div v-if="order.customer?.document_type && order.customer?.document_number">
-                <p class="text-sm text-gray-500">Documento</p>
-                <p class="font-semibold text-gray-900">
-                  {{ order.customer.document_type }} {{ order.customer.document_number }}
-                </p>
-              </div>
-            </div>
-          </template>
-        </Card>
-
         <!-- Información de Envío -->
         <Card v-if="order.shipping_details">
           <template #title>
@@ -744,71 +814,6 @@ const billingDocumentNumber = computed(() => {
 
         <!-- Análisis de Riesgo de Fraude -->
         <FraudRiskCard :order-id="orderId" />
-
-        <!-- Información de Pago -->
-        <Card>
-          <template #title>
-            <div class="flex items-center gap-2">
-              <i class="pi pi-credit-card text-primary"></i>
-              Pago
-            </div>
-          </template>
-          <template #content>
-            <div class="space-y-3">
-              <div v-if="order.payment_gateway">
-                <p class="text-sm text-gray-500">Pasarela de pago</p>
-                <p class="font-semibold text-gray-900">{{ order.payment_gateway }}</p>
-              </div>
-
-              <!-- POS payments (one or more) -->
-              <div v-if="order.payments && order.payments.length > 0" class="space-y-2">
-                <p class="text-sm text-gray-500 font-medium">{{ order.payments.length > 1 ? 'Métodos de pago utilizados' : 'Método de pago' }}</p>
-                <div
-                  v-for="(payment, index) in order.payments"
-                  :key="index"
-                  class="flex justify-between items-start p-3 bg-gray-50 rounded-lg border border-gray-200"
-                >
-                  <div class="flex-1">
-                    <p class="font-semibold text-gray-900">{{ payment.method_name }}</p>
-                    <div v-if="payment.authorization_number" class="mt-1">
-                      <p class="text-xs text-gray-500">
-                        <i class="pi pi-check-circle mr-1"></i>
-                        Autorización: <span class="font-mono">{{ payment.authorization_number }}</span>
-                      </p>
-                    </div>
-                    <div v-if="payment.reference && !payment.authorization_number" class="mt-1">
-                      <p class="text-xs text-gray-500">
-                        Ref: {{ payment.reference }}
-                      </p>
-                    </div>
-                  </div>
-                  <div class="text-right">
-                    <p class="font-bold text-gray-900">{{ formatCurrency(parseFloat(payment.amount)) }}</p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Single payment (web sales) -->
-              <div v-else-if="order.payment_method">
-                <p class="text-sm text-gray-500">Método de pago</p>
-                <p class="font-semibold text-gray-900 capitalize">{{ order.payment_method }}</p>
-              </div>
-
-              <div v-if="order.gateway_code">
-                <p class="text-sm text-gray-500">Código de la pasarela</p>
-                <p class="font-mono text-sm text-gray-900">{{ order.gateway_code }}</p>
-              </div>
-              <div v-if="order.gateway_message">
-                <p class="text-sm text-gray-500">Mensaje de la pasarela</p>
-                <p class="text-gray-900">{{ order.gateway_message }}</p>
-              </div>
-              <div v-if="order.notes">
-                <p class="text-sm text-gray-500">Notas</p>
-                <p class="text-gray-900">{{ order.notes }}</p>
-              </div>
-            </div>
-          </template>
-        </Card>
 
         <!-- Comprobante Emitido -->
         <Card v-if="hasEmittedDocument">
