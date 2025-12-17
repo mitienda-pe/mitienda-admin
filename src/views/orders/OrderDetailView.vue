@@ -396,12 +396,10 @@ const billingDocumentNumber = computed(() => {
     </div>
 
     <!-- Contenido del Pedido -->
-    <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Columna Principal -->
-      <div class="lg:col-span-2 space-y-6">
-        <!-- Información del Cliente y Pago -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- Información del Cliente -->
+    <div v-else class="space-y-6">
+      <!-- Fila 1: Cliente, Dirección de Envío, Pago (3 columnas) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Información del Cliente -->
           <Card>
             <template #title>
               <div class="flex items-center gap-2">
@@ -433,7 +431,42 @@ const billingDocumentNumber = computed(() => {
             </template>
           </Card>
 
-          <!-- Información de Pago -->
+        <!-- Dirección de Envío (sin mapa) -->
+        <Card v-if="order.shipping_details">
+          <template #title>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-map-marker text-primary"></i>
+              Dirección de Envío
+            </div>
+          </template>
+          <template #content>
+            <div class="space-y-3">
+              <div v-if="order.shipping_details.address">
+                <p class="text-sm text-gray-500">Dirección</p>
+                <p class="font-semibold text-gray-900">{{ order.shipping_details.address }}</p>
+                <p v-if="order.shipping_details.address_line2" class="text-gray-700 text-sm">
+                  {{ order.shipping_details.address_line2 }}
+                </p>
+              </div>
+              <div v-if="order.shipping_details.district || order.shipping_details.city">
+                <p class="text-sm text-gray-500">Ubicación</p>
+                <p class="text-gray-900">
+                  {{ [order.shipping_details.district, order.shipping_details.city, order.shipping_details.state].filter(Boolean).join(', ') }}
+                </p>
+              </div>
+              <div v-if="order.shipping_details.reference">
+                <p class="text-sm text-gray-500">Referencia</p>
+                <p class="text-gray-900">{{ order.shipping_details.reference }}</p>
+              </div>
+              <div v-if="order.shipping_details.courier">
+                <p class="text-sm text-gray-500">Courier</p>
+                <p class="text-gray-900">{{ order.shipping_details.courier }}</p>
+              </div>
+            </div>
+          </template>
+        </Card>
+
+        <!-- Información de Pago -->
           <Card>
             <template #title>
               <div class="flex items-center gap-2">
@@ -499,377 +532,354 @@ const billingDocumentNumber = computed(() => {
           </Card>
         </div>
 
-        <!-- Resumen del Pedido -->
-        <Card>
-          <template #title>
-            <div class="flex items-center gap-2">
-              <i class="pi pi-shopping-cart text-primary"></i>
-              Resumen del Pedido
-            </div>
-          </template>
-          <template #content>
-            <!-- Productos -->
-            <div class="space-y-4">
-              <div
-                v-for="item in order.items"
-                :key="item.id"
-                class="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-0"
-              >
-                <!-- Imagen del producto -->
-                <div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <img
-                    v-if="item.product_image"
-                    :src="item.product_image"
-                    :alt="item.product_name"
-                    class="w-full h-full object-cover rounded-lg"
+        <!-- Fila 2: Resumen/Mapa/Timeline y Análisis/Comprobante (2 columnas) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Columna izquierda (2/3 width) -->
+          <div class="lg:col-span-2 space-y-6">
+            <!-- Resumen del Pedido -->
+            <Card>
+              <template #title>
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-shopping-cart text-primary"></i>
+                  Resumen del Pedido
+                </div>
+              </template>
+              <template #content>
+                <!-- Productos -->
+                <div class="space-y-4">
+                  <div
+                    v-for="item in order.items"
+                    :key="item.id"
+                    class="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-0"
+                  >
+                    <!-- Imagen del producto -->
+                    <div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <img
+                        v-if="item.product_image"
+                        :src="item.product_image"
+                        :alt="item.product_name"
+                        class="w-full h-full object-cover rounded-lg"
+                      />
+                      <i v-else class="pi pi-image text-2xl text-gray-400"></i>
+                    </div>
+
+                    <!-- Información del producto -->
+                    <div class="flex-1">
+                      <h4 class="font-semibold text-gray-900">{{ item.product_name }}</h4>
+                      <p v-if="item.product_sku" class="text-sm text-gray-500">
+                        SKU: {{ item.product_sku }}
+                      </p>
+                      <p class="text-sm text-gray-600 mt-1">
+                        {{ formatCurrency(item.price) }} × {{ item.quantity }}
+                      </p>
+                    </div>
+
+                    <!-- Subtotal del item -->
+                    <div class="text-right">
+                      <p class="font-semibold text-gray-900">
+                        {{ formatCurrency(item.price * item.quantity) }}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Totales -->
+                <div class="mt-6 pt-6 border-t-2 border-gray-300 space-y-3">
+                  <!-- Subtotal de productos -->
+                  <div class="flex justify-between text-gray-700">
+                    <span>Subtotal productos:</span>
+                    <span class="font-medium">{{ formatCurrency(subtotal) }}</span>
+                  </div>
+
+                  <!-- Costo de envío -->
+                  <div v-if="order.shipping_cost && order.shipping_cost > 0" class="flex justify-between text-gray-700">
+                    <span>Costo de envío:</span>
+                    <span class="font-medium">{{ formatCurrency(order.shipping_cost) }}</span>
+                  </div>
+
+                  <!-- Descuento -->
+                  <div v-if="order.discount && order.discount > 0" class="flex justify-between text-green-700">
+                    <span>Descuento:</span>
+                    <span class="font-medium">-{{ formatCurrency(order.discount) }}</span>
+                  </div>
+
+                  <!-- Redondeo (si existe) -->
+                  <template v-if="roundingAmount !== 0">
+                    <div class="flex justify-between text-gray-700 pt-3 border-t border-gray-200">
+                      <span>Subtotal antes de redondeo:</span>
+                      <span class="font-medium">{{ formatCurrency(order.total) }}</span>
+                    </div>
+                    <div class="flex justify-between text-gray-700">
+                      <span>Redondeo:</span>
+                      <span class="font-medium" :class="roundingAmount < 0 ? 'text-red-600' : 'text-green-600'">
+                        {{ formatCurrency(roundingAmount) }}
+                      </span>
+                    </div>
+                  </template>
+
+                  <!-- Total final -->
+                  <div class="flex justify-between text-xl font-bold text-gray-900 pt-3 border-t-2 border-gray-300">
+                    <span>Total a pagar:</span>
+                    <span class="text-primary">{{ formatCurrency(roundingAmount !== 0 ? totalAfterRounding : order.total) }}</span>
+                  </div>
+                </div>
+              </template>
+            </Card>
+
+            <!-- Mapa de Ubicación -->
+            <Card v-if="order.shipping_details?.latitude && order.shipping_details?.longitude">
+              <template #title>
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-map text-primary"></i>
+                  Mapa de Ubicación
+                </div>
+              </template>
+              <template #content>
+                <div class="space-y-3">
+                  <DeliveryMap
+                    :latitude="order.shipping_details.latitude"
+                    :longitude="order.shipping_details.longitude"
+                    :address="order.shipping_details.address"
+                    height="300px"
                   />
-                  <i v-else class="pi pi-image text-2xl text-gray-400"></i>
-                </div>
-
-                <!-- Información del producto -->
-                <div class="flex-1">
-                  <h4 class="font-semibold text-gray-900">{{ item.product_name }}</h4>
-                  <p v-if="item.product_sku" class="text-sm text-gray-500">
-                    SKU: {{ item.product_sku }}
+                  <p class="text-gray-500 text-xs font-mono text-center">
+                    {{ order.shipping_details.latitude }}, {{ order.shipping_details.longitude }}
                   </p>
-                  <p class="text-sm text-gray-600 mt-1">
-                    {{ formatCurrency(item.price) }} × {{ item.quantity }}
-                  </p>
+                  <a
+                    :href="`https://www.google.com/maps?q=${order.shipping_details.latitude},${order.shipping_details.longitude}`"
+                    target="_blank"
+                    class="text-primary hover:underline text-sm flex items-center justify-center gap-1"
+                  >
+                    <i class="pi pi-external-link"></i>
+                    Ver en Google Maps
+                  </a>
                 </div>
+              </template>
+            </Card>
 
-                <!-- Subtotal del item -->
-                <div class="text-right">
-                  <p class="font-semibold text-gray-900">
-                    {{ formatCurrency(item.price * item.quantity) }}
-                  </p>
+            <!-- Timeline del Pedido -->
+            <Card>
+              <template #title>
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-history text-primary"></i>
+                  Historial
                 </div>
-              </div>
-            </div>
+              </template>
+              <template #content>
+                <Timeline :value="timelineEvents" align="left">
+                  <template #marker="slotProps">
+                    <span
+                      class="flex w-8 h-8 items-center justify-center text-white rounded-full z-10"
+                      :style="{ backgroundColor: slotProps.item.color }"
+                    >
+                      <i :class="slotProps.item.icon"></i>
+                    </span>
+                  </template>
+                  <template #content="slotProps">
+                    <div>
+                      <p class="font-semibold text-gray-900">{{ slotProps.item.status }}</p>
+                      <p class="text-sm text-gray-500">{{ slotProps.item.date }}</p>
+                    </div>
+                  </template>
+                </Timeline>
+              </template>
+            </Card>
 
-            <!-- Totales -->
-            <div class="mt-6 pt-6 border-t-2 border-gray-300 space-y-3">
-              <!-- Subtotal de productos -->
-              <div class="flex justify-between text-gray-700">
-                <span>Subtotal productos:</span>
-                <span class="font-medium">{{ formatCurrency(subtotal) }}</span>
-              </div>
-
-              <!-- Costo de envío -->
-              <div v-if="order.shipping_cost && order.shipping_cost > 0" class="flex justify-between text-gray-700">
-                <span>Costo de envío:</span>
-                <span class="font-medium">{{ formatCurrency(order.shipping_cost) }}</span>
-              </div>
-
-              <!-- Descuento -->
-              <div v-if="order.discount && order.discount > 0" class="flex justify-between text-green-700">
-                <span>Descuento:</span>
-                <span class="font-medium">-{{ formatCurrency(order.discount) }}</span>
-              </div>
-
-              <!-- Redondeo (si existe) -->
-              <template v-if="roundingAmount !== 0">
-                <div class="flex justify-between text-gray-700 pt-3 border-t border-gray-200">
-                  <span>Subtotal antes de redondeo:</span>
-                  <span class="font-medium">{{ formatCurrency(order.total) }}</span>
-                </div>
-                <div class="flex justify-between text-gray-700">
-                  <span>Redondeo:</span>
-                  <span class="font-medium" :class="roundingAmount < 0 ? 'text-red-600' : 'text-green-600'">
-                    {{ formatCurrency(roundingAmount) }}
+            <!-- Sincronización ERP -->
+            <Card v-if="erpSyncData || order.tiendaventa_mensaje_notif_erp">
+              <template #title>
+                <div class="flex items-center justify-between w-full">
+                  <div class="flex items-center gap-2">
+                    <i class="pi pi-sync text-primary"></i>
+                    Sincronización ERP
+                  </div>
+                  <span
+                    v-if="erpSyncStatus"
+                    :class="[
+                      'px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1.5',
+                      erpSyncStatus.bgClass,
+                      erpSyncStatus.textClass
+                    ]"
+                  >
+                    <i :class="['pi', erpSyncStatus.icon]"></i>
+                    {{ erpSyncStatus.label }}
                   </span>
                 </div>
               </template>
-
-              <!-- Total final -->
-              <div class="flex justify-between text-xl font-bold text-gray-900 pt-3 border-t-2 border-gray-300">
-                <span>Total a pagar:</span>
-                <span class="text-primary">{{ formatCurrency(roundingAmount !== 0 ? totalAfterRounding : order.total) }}</span>
-              </div>
-            </div>
-          </template>
-        </Card>
-
-        <!-- Timeline del Pedido -->
-        <Card>
-          <template #title>
-            <div class="flex items-center gap-2">
-              <i class="pi pi-history text-primary"></i>
-              Historial
-            </div>
-          </template>
-          <template #content>
-            <Timeline :value="timelineEvents" align="left">
-              <template #marker="slotProps">
-                <span
-                  class="flex w-8 h-8 items-center justify-center text-white rounded-full z-10"
-                  :style="{ backgroundColor: slotProps.item.color }"
-                >
-                  <i :class="slotProps.item.icon"></i>
-                </span>
-              </template>
-              <template #content="slotProps">
-                <div>
-                  <p class="font-semibold text-gray-900">{{ slotProps.item.status }}</p>
-                  <p class="text-sm text-gray-500">{{ slotProps.item.date }}</p>
-                </div>
-              </template>
-            </Timeline>
-          </template>
-        </Card>
-
-        <!-- Sincronización ERP -->
-        <Card v-if="erpSyncData || order.tiendaventa_mensaje_notif_erp">
-          <template #title>
-            <div class="flex items-center justify-between w-full">
-              <div class="flex items-center gap-2">
-                <i class="pi pi-sync text-primary"></i>
-                Sincronización ERP
-              </div>
-              <span
-                v-if="erpSyncStatus"
-                :class="[
-                  'px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1.5',
-                  erpSyncStatus.bgClass,
-                  erpSyncStatus.textClass
-                ]"
-              >
-                <i :class="['pi', erpSyncStatus.icon]"></i>
-                {{ erpSyncStatus.label }}
-              </span>
-            </div>
-          </template>
-          <template #content>
-            <div class="space-y-4">
-              <!-- Success/Error Status -->
-              <div v-if="erpSyncData">
-                <div v-if="!erpSyncData.success && erpSyncData.error" class="mb-3">
-                  <p class="text-sm text-gray-500 mb-1">Error</p>
-                  <div class="bg-red-50 border border-red-200 rounded-lg p-3">
-                    <p class="text-sm text-red-800">{{ erpSyncData.error }}</p>
-                  </div>
-                </div>
-
-                <!-- Steps Timeline -->
-                <div v-if="erpSyncData.steps && erpSyncData.steps.length > 0">
-                  <p class="text-sm text-gray-500 mb-2">Pasos de sincronización</p>
-                  <div class="space-y-2">
-                    <div
-                      v-for="(step, index) in erpSyncData.steps"
-                      :key="index"
-                      class="flex items-start gap-2 text-sm"
-                    >
-                      <i
-                        :class="[
-                          'pi mt-0.5',
-                          step.status === 'success' ? 'pi-check-circle text-green-600' : 'pi-times-circle text-red-600'
-                        ]"
-                      ></i>
-                      <div class="flex-1">
-                        <p class="font-medium text-gray-900">{{ step.step }}</p>
-                        <p v-if="step.action" class="text-gray-600 text-xs">Acción: {{ step.action }}</p>
-                        <p v-if="step.customer_id" class="text-gray-600 text-xs">Customer ID: {{ step.customer_id }}</p>
-                        <p v-if="step.message" class="text-gray-600 text-xs">{{ step.message }}</p>
+              <template #content>
+                <div class="space-y-4">
+                  <!-- Success/Error Status -->
+                  <div v-if="erpSyncData">
+                    <div v-if="!erpSyncData.success && erpSyncData.error" class="mb-3">
+                      <p class="text-sm text-gray-500 mb-1">Error</p>
+                      <div class="bg-red-50 border border-red-200 rounded-lg p-3">
+                        <p class="text-sm text-red-800">{{ erpSyncData.error }}</p>
                       </div>
                     </div>
-                  </div>
-                </div>
 
-                <!-- Failed At -->
-                <div v-if="erpSyncData.failed_at" class="mt-3">
-                  <p class="text-sm text-gray-500">Fecha de error</p>
-                  <p class="text-gray-900 text-sm">{{ erpSyncData.failed_at }}</p>
-                </div>
-
-                <!-- Success Data (if applicable) -->
-                <div v-if="erpSyncData.success && erpSyncData.invoice_id">
-                  <p class="text-sm text-gray-500">Invoice ID</p>
-                  <p class="font-mono text-sm text-gray-900">{{ erpSyncData.invoice_id }}</p>
-                </div>
-
-                <!-- Payment IDs / Transactions -->
-                <div v-if="erpPaymentIds.length > 0" class="mt-4">
-                  <p class="text-sm text-gray-500 mb-2">Transacciones en NetSuite</p>
-                  <div class="space-y-2">
-                    <div
-                      v-for="(payment, index) in erpPaymentIds"
-                      :key="index"
-                      class="flex items-start justify-between p-3 rounded-lg border"
-                      :class="payment.type === 'journal_entry' ? 'bg-orange-50 border-orange-200' : 'bg-gray-50 border-gray-200'"
-                    >
-                      <div class="flex-1">
-                        <div class="flex items-center gap-2">
-                          <p class="font-semibold text-gray-900 text-sm">
-                            <span v-if="payment.type === 'journal_entry'">
-                              <i class="pi pi-book text-orange-600 mr-1"></i>
-                              Asiento Contable
-                            </span>
-                            <span v-else>
-                              <i class="pi pi-credit-card text-blue-600 mr-1"></i>
-                              Pago Cliente
-                            </span>
-                          </p>
+                    <!-- Steps Timeline -->
+                    <div v-if="erpSyncData.steps && erpSyncData.steps.length > 0">
+                      <p class="text-sm text-gray-500 mb-2">Pasos de sincronización</p>
+                      <div class="space-y-2">
+                        <div
+                          v-for="(step, index) in erpSyncData.steps"
+                          :key="index"
+                          class="flex items-start gap-2 text-sm"
+                        >
+                          <i
+                            :class="[
+                              'pi mt-0.5',
+                              step.status === 'success' ? 'pi-check-circle text-green-600' : 'pi-times-circle text-red-600'
+                            ]"
+                          ></i>
+                          <div class="flex-1">
+                            <p class="font-medium text-gray-900">{{ step.step }}</p>
+                            <p v-if="step.action" class="text-gray-600 text-xs">Acción: {{ step.action }}</p>
+                            <p v-if="step.customer_id" class="text-gray-600 text-xs">Customer ID: {{ step.customer_id }}</p>
+                            <p v-if="step.message" class="text-gray-600 text-xs">{{ step.message }}</p>
+                          </div>
                         </div>
-                        <p class="text-xs text-gray-600 mt-1">
-                          ID: <span class="font-mono">{{ payment.payment_id }}</span>
-                        </p>
-                        <p class="text-xs text-gray-600">
-                          <span v-if="payment.type === 'journal_entry'" class="text-orange-700 font-medium">
-                            Redondeo a favor
-                          </span>
-                          <span v-else class="capitalize">
-                            {{ payment.method === 'efectivo' ? 'Efectivo' : payment.method === 'card' ? 'Tarjeta' : payment.method }}
-                          </span>
-                        </p>
                       </div>
-                      <div class="text-right">
-                        <p class="font-bold text-sm" :class="payment.type === 'journal_entry' ? 'text-orange-700' : 'text-gray-900'">
-                          {{ formatCurrency(payment.amount) }}
-                        </p>
+                    </div>
+
+                    <!-- Failed At -->
+                    <div v-if="erpSyncData.failed_at" class="mt-3">
+                      <p class="text-sm text-gray-500">Fecha de error</p>
+                      <p class="text-gray-900 text-sm">{{ erpSyncData.failed_at }}</p>
+                    </div>
+
+                    <!-- Success Data (if applicable) -->
+                    <div v-if="erpSyncData.success && erpSyncData.invoice_id">
+                      <p class="text-sm text-gray-500">Invoice ID</p>
+                      <p class="font-mono text-sm text-gray-900">{{ erpSyncData.invoice_id }}</p>
+                    </div>
+
+                    <!-- Payment IDs / Transactions -->
+                    <div v-if="erpPaymentIds.length > 0" class="mt-4">
+                      <p class="text-sm text-gray-500 mb-2">Transacciones en NetSuite</p>
+                      <div class="space-y-2">
+                        <div
+                          v-for="(payment, index) in erpPaymentIds"
+                          :key="index"
+                          class="flex items-start justify-between p-3 rounded-lg border"
+                          :class="payment.type === 'journal_entry' ? 'bg-orange-50 border-orange-200' : 'bg-gray-50 border-gray-200'"
+                        >
+                          <div class="flex-1">
+                            <div class="flex items-center gap-2">
+                              <p class="font-semibold text-gray-900 text-sm">
+                                <span v-if="payment.type === 'journal_entry'">
+                                  <i class="pi pi-book text-orange-600 mr-1"></i>
+                                  Asiento Contable
+                                </span>
+                                <span v-else>
+                                  <i class="pi pi-credit-card text-blue-600 mr-1"></i>
+                                  Pago Cliente
+                                </span>
+                              </p>
+                            </div>
+                            <p class="text-xs text-gray-600 mt-1">
+                              ID: <span class="font-mono">{{ payment.payment_id }}</span>
+                            </p>
+                            <p class="text-xs text-gray-600">
+                              <span v-if="payment.type === 'journal_entry'" class="text-orange-700 font-medium">
+                                Redondeo a favor
+                              </span>
+                              <span v-else class="capitalize">
+                                {{ payment.method === 'efectivo' ? 'Efectivo' : payment.method === 'card' ? 'Tarjeta' : payment.method }}
+                              </span>
+                            </p>
+                          </div>
+                          <div class="text-right">
+                            <p class="font-bold text-sm" :class="payment.type === 'journal_entry' ? 'text-orange-700' : 'text-gray-900'">
+                              {{ formatCurrency(payment.amount) }}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
+
+                  <!-- Request Payload (collapsible) -->
+                  <details v-if="erpPayloadData" class="mt-3">
+                    <summary class="text-sm text-gray-500 cursor-pointer hover:text-gray-700 flex items-center gap-2">
+                      <i class="pi pi-arrow-up text-xs"></i>
+                      Ver Payload Enviado a NetSuite
+                    </summary>
+                    <pre class="mt-2 text-xs bg-blue-50 border border-blue-200 rounded p-3 overflow-auto max-h-96">{{ JSON.stringify(erpPayloadData, null, 2) }}</pre>
+                  </details>
+
+                  <!-- Response JSON (always visible) -->
+                  <div class="mt-3">
+                    <p class="text-sm text-gray-500 mb-2">Respuesta de NetSuite</p>
+                    <pre class="text-xs bg-gray-50 border border-gray-200 rounded p-3 overflow-auto max-h-96">{{ JSON.stringify(erpSyncData || order.tiendaventa_mensaje_notif_erp, null, 2) }}</pre>
+                  </div>
                 </div>
-              </div>
+              </template>
+            </Card>
+          </div>
 
-              <!-- Request Payload (collapsible) -->
-              <details v-if="erpPayloadData" class="mt-3">
-                <summary class="text-sm text-gray-500 cursor-pointer hover:text-gray-700 flex items-center gap-2">
-                  <i class="pi pi-arrow-up text-xs"></i>
-                  Ver Payload Enviado a NetSuite
-                </summary>
-                <pre class="mt-2 text-xs bg-blue-50 border border-blue-200 rounded p-3 overflow-auto max-h-96">{{ JSON.stringify(erpPayloadData, null, 2) }}</pre>
-              </details>
+          <!-- Columna derecha (1/3 width) -->
+          <div class="space-y-6">
+            <!-- Análisis de Riesgo de Fraude -->
+            <FraudRiskCard :order-id="orderId" />
 
-              <!-- Response JSON (always visible) -->
-              <div class="mt-3">
-                <p class="text-sm text-gray-500 mb-2">Respuesta de NetSuite</p>
-                <pre class="text-xs bg-gray-50 border border-gray-200 rounded p-3 overflow-auto max-h-96">{{ JSON.stringify(erpSyncData || order.tiendaventa_mensaje_notif_erp, null, 2) }}</pre>
-              </div>
-            </div>
-          </template>
-        </Card>
-      </div>
+            <!-- Comprobante Emitido -->
+            <Card v-if="hasEmittedDocument">
+              <template #title>
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-file-pdf text-primary"></i>
+                  Comprobante Emitido
+                </div>
+              </template>
+              <template #content>
+                <div class="space-y-3">
+                  <div>
+                    <p class="text-sm text-gray-500">Número de comprobante</p>
+                    <p class="font-semibold text-gray-900 font-mono">{{ billingDocumentNumber }}</p>
+                  </div>
+                  <div v-if="order.billing_document?.billing_date">
+                    <p class="text-sm text-gray-500">Fecha de emisión</p>
+                    <p class="text-gray-900">{{ formatDate(order.billing_document.billing_date) }}</p>
+                  </div>
 
-      <!-- Sidebar: Información de Envío y Análisis -->
-      <div class="lg:col-span-1 space-y-6">
-        <!-- Información de Envío -->
-        <Card v-if="order.shipping_details">
-          <template #title>
-            <div class="flex items-center gap-2">
-              <i class="pi pi-map-marker text-primary"></i>
-              Dirección de Envío
-            </div>
-          </template>
-          <template #content>
-            <div class="space-y-3">
-              <div v-if="order.shipping_details.address">
-                <p class="text-sm text-gray-500">Dirección</p>
-                <p class="font-semibold text-gray-900">{{ order.shipping_details.address }}</p>
-                <p v-if="order.shipping_details.address_line2" class="text-gray-700 text-sm">
-                  {{ order.shipping_details.address_line2 }}
-                </p>
-              </div>
-              <div v-if="order.shipping_details.district || order.shipping_details.city">
-                <p class="text-sm text-gray-500">Ubicación</p>
-                <p class="text-gray-900">
-                  {{ [order.shipping_details.district, order.shipping_details.city, order.shipping_details.state].filter(Boolean).join(', ') }}
-                </p>
-              </div>
-              <div v-if="order.shipping_details.reference">
-                <p class="text-sm text-gray-500">Referencia</p>
-                <p class="text-gray-900">{{ order.shipping_details.reference }}</p>
-              </div>
-              <!-- Mapa de ubicación -->
-              <div v-if="order.shipping_details.latitude && order.shipping_details.longitude" class="pt-3">
-                <p class="text-sm text-gray-500 mb-2">Ubicación de entrega</p>
-                <DeliveryMap
-                  :latitude="order.shipping_details.latitude"
-                  :longitude="order.shipping_details.longitude"
-                  :address="order.shipping_details.address"
-                  height="250px"
-                />
-                <p class="text-gray-500 text-xs font-mono mt-2 text-center">
-                  {{ order.shipping_details.latitude }}, {{ order.shipping_details.longitude }}
-                </p>
-                <a
-                  :href="`https://www.google.com/maps?q=${order.shipping_details.latitude},${order.shipping_details.longitude}`"
-                  target="_blank"
-                  class="text-primary hover:underline text-xs flex items-center justify-center gap-1 mt-1"
-                >
-                  <i class="pi pi-external-link"></i>
-                  Ver en Google Maps
-                </a>
-              </div>
-              <div v-if="order.shipping_details.cost">
-                <p class="text-sm text-gray-500">Costo de envío</p>
-                <p class="font-semibold text-gray-900">{{ formatCurrency(parseFloat(order.shipping_details.cost)) }}</p>
-              </div>
-              <div v-if="order.shipping_details.courier">
-                <p class="text-sm text-gray-500">Courier</p>
-                <p class="text-gray-900">{{ order.shipping_details.courier }}</p>
-              </div>
-            </div>
-          </template>
-        </Card>
-
-        <!-- Análisis de Riesgo de Fraude -->
-        <FraudRiskCard :order-id="orderId" />
-
-        <!-- Comprobante Emitido -->
-        <Card v-if="hasEmittedDocument">
-          <template #title>
-            <div class="flex items-center gap-2">
-              <i class="pi pi-file-pdf text-primary"></i>
-              Comprobante Emitido
-            </div>
-          </template>
-          <template #content>
-            <div class="space-y-3">
-              <div>
-                <p class="text-sm text-gray-500">Número de comprobante</p>
-                <p class="font-semibold text-gray-900 font-mono">{{ billingDocumentNumber }}</p>
-              </div>
-              <div v-if="order.billing_document?.billing_date">
-                <p class="text-sm text-gray-500">Fecha de emisión</p>
-                <p class="text-gray-900">{{ formatDate(order.billing_document.billing_date) }}</p>
-              </div>
-
-              <!-- Download Buttons -->
-              <div class="flex flex-col gap-2 pt-2">
-                <Button
-                  v-if="order.billing_document?.pdf_url"
-                  label="Descargar PDF"
-                  icon="pi pi-file-pdf"
-                  severity="danger"
-                  outlined
-                  size="small"
-                  class="w-full"
-                  @click="downloadDocument(order.billing_document.pdf_url!, 'comprobante.pdf')"
-                />
-                <Button
-                  v-if="order.billing_document?.xml_url"
-                  label="Descargar XML"
-                  icon="pi pi-file"
-                  severity="info"
-                  outlined
-                  size="small"
-                  class="w-full"
-                  @click="downloadDocument(order.billing_document.xml_url!, 'comprobante.xml')"
-                />
-                <Button
-                  v-if="!order.billing_document?.pdf_url && !order.billing_document?.xml_url"
-                  label="Ver Comprobante"
-                  icon="pi pi-eye"
-                  severity="secondary"
-                  outlined
-                  size="small"
-                  class="w-full"
-                  @click="$router.push(`/billing/documents/${order.billing_document?.id}`)"
-                />
-              </div>
-            </div>
-          </template>
-        </Card>
+                  <!-- Download Buttons -->
+                  <div class="flex flex-col gap-2 pt-2">
+                    <Button
+                      v-if="order.billing_document?.pdf_url"
+                      label="Descargar PDF"
+                      icon="pi pi-file-pdf"
+                      severity="danger"
+                      outlined
+                      size="small"
+                      class="w-full"
+                      @click="downloadDocument(order.billing_document.pdf_url!, 'comprobante.pdf')"
+                    />
+                    <Button
+                      v-if="order.billing_document?.xml_url"
+                      label="Descargar XML"
+                      icon="pi pi-file"
+                      severity="info"
+                      outlined
+                      size="small"
+                      class="w-full"
+                      @click="downloadDocument(order.billing_document.xml_url!, 'comprobante.xml')"
+                    />
+                    <Button
+                      v-if="!order.billing_document?.pdf_url && !order.billing_document?.xml_url"
+                      label="Ver Comprobante"
+                      icon="pi pi-eye"
+                      severity="secondary"
+                      outlined
+                      size="small"
+                      class="w-full"
+                      @click="$router.push(`/billing/documents/${order.billing_document?.id}`)"
+                    />
+                  </div>
+                </div>
+              </template>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
 
