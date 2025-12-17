@@ -523,7 +523,8 @@ const catalogMenuItems = [
 // Items del grupo Marketing
 const marketingMenuItems = [
   { label: 'Promociones', icon: 'pi pi-percentage', to: '/marketing/promotions' },
-  { label: 'Barras de Anuncios', icon: 'pi pi-megaphone', to: '/marketing/announcement-bars' }
+  { label: 'Barras de Anuncios', icon: 'pi pi-megaphone', to: '/marketing/announcement-bars' },
+  { label: 'Carritos Abandonados', icon: 'pi pi-shopping-cart', to: '/marketing/abandoned-carts' }
 ]
 
 // Items del grupo Facturación
