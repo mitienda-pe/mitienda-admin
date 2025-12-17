@@ -10,6 +10,7 @@ import ProgressSpinner from 'primevue/progressspinner'
 import Timeline from 'primevue/timeline'
 import EmitDocumentDialog from '@/components/billing/EmitDocumentDialog.vue'
 import DeliveryMap from '@/components/map/DeliveryMap.vue'
+import FraudRiskCard from '@/components/fraud/FraudRiskCard.vue'
 import type { Order, OrderStatus } from '@/types/order.types'
 
 const route = useRoute()
@@ -740,6 +741,9 @@ const billingDocumentNumber = computed(() => {
             </div>
           </template>
         </Card>
+
+        <!-- Análisis de Riesgo de Fraude -->
+        <FraudRiskCard :order-id="orderId" />
 
         <!-- Información de Pago -->
         <Card>
