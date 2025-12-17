@@ -278,44 +278,78 @@ const totalCarts = computed(() => cartsStore.pagination.total)
         responsive-layout="scroll"
         @row-click="(event) => handleCartClick(event.data)"
       >
-        <Column field="id" header="ID" sortable style="width: 80px"></Column>
-        <Column field="email" header="Correo" sortable></Column>
-        <Column field="customer_name" header="Cliente" sortable></Column>
-        <Column field="amount" header="Monto carrito" sortable>
+        <Column field="email" header="Correo" sortable>
           <template #body="{ data }">
-            <span class="font-semibold">{{ formatCurrency(data.amount, data.currency) }}</span>
+            <div class="py-2">{{ data.email }}</div>
           </template>
         </Column>
-        <Column field="updated_at" header="Fecha" sortable>
+        <Column field="customer_name" header="Cliente" sortable>
           <template #body="{ data }">
-            {{ formatDate(data.updated_at) }}
+            <div class="py-2">
+              {{ data.customer_name }}
+              <span v-if="data.customer_type === 'guest'" class="text-xs text-gray-500 ml-1">[Invitado]</span>
+            </div>
           </template>
         </Column>
-        <Column field="status" header="Estado" sortable>
+        <Column field="amount" header="Monto" sortable style="width: 120px">
           <template #body="{ data }">
-            <Badge :value="data.status_label" :severity="getStatusSeverity(data.status)" />
+            <div class="py-2">
+              <span class="font-semibold">{{ formatCurrency(data.amount, data.currency) }}</span>
+            </div>
+          </template>
+        </Column>
+        <Column field="updated_at" header="Fecha" sortable style="width: 160px">
+          <template #body="{ data }">
+            <div class="py-2">{{ formatDate(data.updated_at) }}</div>
+          </template>
+        </Column>
+        <Column field="status" header="Estado" sortable style="width: 120px">
+          <template #body="{ data }">
+            <div class="py-2">
+              <Badge :value="data.status_label" :severity="getStatusSeverity(data.status)" />
+            </div>
           </template>
         </Column>
         <Column header="Acciones" style="width: 100px">
           <template #body="{ data }">
-            <Button
-              icon="pi pi-eye"
-              severity="secondary"
-              text
-              @click.stop="handleCartClick(data)"
-            />
+            <div class="py-2">
+              <Button
+                icon="pi pi-eye"
+                severity="secondary"
+                text
+                rounded
+                @click.stop="handleCartClick(data)"
+              />
+            </div>
           </template>
         </Column>
       </DataTable>
 
-      <!-- Load More -->
-      <div v-if="cartsStore.canLoadMore" class="flex justify-center py-4 border-t border-gray-200">
+      <!-- Loading más carritos -->
+      <div v-if="cartsStore.isLoadingMore" class="flex justify-center py-6 border-t border-gray-200">
+        <ProgressSpinner style="width: 40px; height: 40px" />
+      </div>
+
+      <!-- Botón Cargar Más -->
+      <div
+        v-else-if="cartsStore.canLoadMore"
+        class="flex justify-center py-6 border-t border-gray-200"
+      >
         <Button
-          label="Cargar más"
-          icon="pi pi-refresh"
-          :loading="cartsStore.isLoadingMore"
+          label="Cargar más carritos"
+          icon="pi pi-chevron-down"
+          outlined
           @click="cartsStore.loadMore()"
         />
+      </div>
+
+      <!-- Fin de resultados -->
+      <div
+        v-if="!cartsStore.canLoadMore && cartsStore.hasCarts && !cartsStore.isLoadingMore"
+        class="text-center py-6 text-gray-500 border-t border-gray-200"
+      >
+        <i class="pi pi-check-circle mr-2"></i>
+        Has visto todos los carritos
       </div>
     </div>
 
@@ -436,5 +470,14 @@ const totalCarts = computed(() => cartsStore.pagination.total)
 
 :deep(.p-datatable-tbody > tr:hover) {
   background-color: #f9fafb !important;
+}
+
+:deep(.p-datatable .p-datatable-thead > tr > th) {
+  padding: 1rem;
+  background-color: #f9fafb;
+}
+
+:deep(.p-datatable .p-datatable-tbody > tr > td) {
+  padding: 0.75rem 1rem;
 }
 </style>
