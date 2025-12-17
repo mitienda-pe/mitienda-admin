@@ -9,6 +9,7 @@ import Card from 'primevue/card'
 import ProgressSpinner from 'primevue/progressspinner'
 import Timeline from 'primevue/timeline'
 import EmitDocumentDialog from '@/components/billing/EmitDocumentDialog.vue'
+import DeliveryMap from '@/components/map/DeliveryMap.vue'
 import type { Order, OrderStatus } from '@/types/order.types'
 
 const route = useRoute()
@@ -707,11 +708,26 @@ const billingDocumentNumber = computed(() => {
                 <p class="text-sm text-gray-500">Referencia</p>
                 <p class="text-gray-900">{{ order.shipping_details.reference }}</p>
               </div>
-              <div v-if="order.shipping_details.latitude && order.shipping_details.longitude">
-                <p class="text-sm text-gray-500">Coordenadas</p>
-                <p class="text-gray-900 text-sm font-mono">
+              <!-- Mapa de ubicación -->
+              <div v-if="order.shipping_details.latitude && order.shipping_details.longitude" class="pt-3">
+                <p class="text-sm text-gray-500 mb-2">Ubicación de entrega</p>
+                <DeliveryMap
+                  :latitude="order.shipping_details.latitude"
+                  :longitude="order.shipping_details.longitude"
+                  :address="order.shipping_details.address"
+                  height="250px"
+                />
+                <p class="text-gray-500 text-xs font-mono mt-2 text-center">
                   {{ order.shipping_details.latitude }}, {{ order.shipping_details.longitude }}
                 </p>
+                <a
+                  :href="`https://www.google.com/maps?q=${order.shipping_details.latitude},${order.shipping_details.longitude}`"
+                  target="_blank"
+                  class="text-primary hover:underline text-xs flex items-center justify-center gap-1 mt-1"
+                >
+                  <i class="pi pi-external-link"></i>
+                  Ver en Google Maps
+                </a>
               </div>
               <div v-if="order.shipping_details.cost">
                 <p class="text-sm text-gray-500">Costo de envío</p>
