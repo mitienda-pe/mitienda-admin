@@ -881,7 +881,6 @@ const billingDocumentNumber = computed(() => {
           </div>
         </div>
       </div>
-    </div>
 
     <!-- Emit Document Dialog -->
     <EmitDocumentDialog
