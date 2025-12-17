@@ -29,7 +29,7 @@ export const fraudAnalysisApi = {
    */
   async getAnalysis(orderId: number): Promise<ApiResponse<FraudAnalysis>> {
     const response = await apiClient.get<ApiResponse<FraudAnalysis>>(
-      `/api/v1/fraud-analysis/${orderId}`
+      `/fraud-analysis/${orderId}`
     )
     return response.data
   },
@@ -39,7 +39,7 @@ export const fraudAnalysisApi = {
    */
   async refreshAnalysis(orderId: number): Promise<ApiResponse<FraudAnalysis>> {
     const response = await apiClient.post<ApiResponse<FraudAnalysis>>(
-      `/api/v1/fraud-analysis/${orderId}/refresh`
+      `/fraud-analysis/${orderId}/refresh`
     )
     return response.data
   },
