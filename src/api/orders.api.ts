@@ -208,7 +208,10 @@ export const ordersApi = {
         })),
         subtotal: 0, // Se calcula del total
         discount: parseFloat(rawData.discount?.discount_amount || '0'),
-        shipping: parseFloat(shipping.cost || '0'),
+        shipping_cost: rawData.shipping_cost !== undefined && rawData.shipping_cost !== null
+          ? parseFloat(rawData.shipping_cost.toString())
+          : parseFloat(shipping.cost || '0'),
+        shipping: parseFloat(shipping.cost || '0'), // Mantener por compatibilidad
         tax: 0,
         total: parseFloat(rawData.total_amount || '0'),
         rounding_amount: rawData.rounding_amount !== undefined && rawData.rounding_amount !== null
