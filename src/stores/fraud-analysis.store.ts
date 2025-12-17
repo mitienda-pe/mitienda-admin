@@ -1,28 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import api from '@/services/api'
+import { fraudAnalysisApi, type FraudAnalysis, type FraudMetric } from '@/api/fraud-analysis.api'
 
-export interface FraudMetric {
-  metric: string
-  risk_level: 'low' | 'medium' | 'high'
-  suspicious_count: number
-  total_compared: number
-  description: string
-}
-
-export interface FraudAnalysis {
-  order_id: number
-  overall_risk_score: number
-  is_confirmed_fraud: boolean
-  confirmed_fraud_details: {
-    fraud_type: string | null
-    verified_at: string | null
-    gateway_fraud_score: number | null
-  } | null
-  metrics: FraudMetric[]
-  analyzed_at: string
-  cached: boolean
-}
+// Re-export types for convenience
+export type { FraudAnalysis, FraudMetric }
 
 export const useFraudAnalysisStore = defineStore('fraud-analysis', () => {
   // State
@@ -54,12 +35,12 @@ export const useFraudAnalysisStore = defineStore('fraud-analysis', () => {
     isLoading.value = true
 
     try {
-      const response = await api.get(`/api/v1/fraud-analysis/${orderId}`)
+      const response = await fraudAnalysisApi.getAnalysis(orderId)
 
-      if (response.data.success) {
-        analysis.value = response.data.data
+      if (response.success && response.data) {
+        analysis.value = response.data
       } else {
-        throw new Error(response.data.message || 'Error al obtener análisis de fraude')
+        throw new Error(response.message || 'Error al obtener análisis de fraude')
       }
     } catch (error: any) {
       console.error('Error fetching fraud analysis:', error)
@@ -73,12 +54,12 @@ export const useFraudAnalysisStore = defineStore('fraud-analysis', () => {
     isLoading.value = true
 
     try {
-      const response = await api.post(`/api/v1/fraud-analysis/${orderId}/refresh`)
+      const response = await fraudAnalysisApi.refreshAnalysis(orderId)
 
-      if (response.data.success) {
-        analysis.value = response.data.data
+      if (response.success && response.data) {
+        analysis.value = response.data
       } else {
-        throw new Error(response.data.message || 'Error al actualizar análisis de fraude')
+        throw new Error(response.message || 'Error al actualizar análisis de fraude')
       }
     } catch (error: any) {
       console.error('Error refreshing fraud analysis:', error)
