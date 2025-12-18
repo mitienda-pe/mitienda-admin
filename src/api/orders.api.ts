@@ -250,6 +250,7 @@ export const ordersApi = {
           department: receiverAddress.department?.name || undefined,
           province: receiverAddress.province?.name || undefined,
           district: receiverAddress.district?.name || undefined,
+          ubigeo_code: receiverAddress.ubigeo_code || undefined,
           zip_code: receiverAddress.zip_code || undefined,
           latitude: receiverAddress.latitude || undefined,
           longitude: receiverAddress.longitud || undefined,

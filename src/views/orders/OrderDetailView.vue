@@ -536,16 +536,14 @@ const billingDocumentNumber = computed(() => {
               </div>
               <div v-if="order.shipping_details?.address">
                 <p class="text-sm text-gray-500">Dirección</p>
-                <p class="font-semibold text-gray-900">{{ order.shipping_details.address }}</p>
-                <p v-if="order.shipping_details.address_line2" class="text-gray-700 text-sm">
-                  {{ order.shipping_details.address_line2 }}
-                </p>
-              </div>
-              <div v-if="order.shipping_details?.district || order.shipping_details?.province || order.shipping_details?.department">
-                <p class="text-sm text-gray-500">Ubicación</p>
-                <p class="text-gray-900 text-sm">
-                  {{ [order.shipping_details.district, order.shipping_details.province, order.shipping_details.department, order.shipping_details.country].filter(Boolean).join(', ') }}
-                </p>
+                <div class="space-y-1">
+                  <p class="font-semibold text-gray-900">
+                    {{ order.shipping_details.address }}{{ order.shipping_details.address_line2 ? ', ' + order.shipping_details.address_line2 : '' }}
+                  </p>
+                  <p class="text-gray-900 text-sm">
+                    {{ [order.shipping_details.district, order.shipping_details.province, order.shipping_details.department, order.shipping_details.country].filter(Boolean).join(', ') }}{{ order.shipping_details.ubigeo_code ? ', ' + order.shipping_details.ubigeo_code : '' }}
+                  </p>
+                </div>
               </div>
               <div v-if="order.shipping_details?.date_delivered">
                 <p class="text-sm text-gray-500">Fecha de entrega</p>

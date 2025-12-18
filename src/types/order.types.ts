@@ -72,6 +72,7 @@ export interface ShippingDetails {
   department?: string
   province?: string
   district?: string
+  ubigeo_code?: string
   zip_code?: string
   latitude?: string
   longitude?: string
