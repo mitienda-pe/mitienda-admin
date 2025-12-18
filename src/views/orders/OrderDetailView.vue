@@ -660,71 +660,105 @@ const billingDocumentNumber = computed(() => {
                   </table>
                 </div>
 
-                <!-- Totales -->
-                <div class="mt-6 pt-6 border-t-2 border-gray-300 space-y-3">
-                  <!-- Subtotal de productos -->
-                  <div class="flex justify-between text-gray-700">
-                    <span>Subtotal productos:</span>
-                    <span class="font-medium">{{ formatCurrency(subtotal) }}</span>
-                  </div>
+                <!-- Totales - Tabla -->
+                <div class="mt-6 overflow-x-auto -mx-6">
+                  <table class="w-full">
+                    <tbody class="divide-y divide-gray-100">
+                      <!-- Subtotal de productos -->
+                      <tr>
+                        <td class="px-6 py-3 text-sm text-gray-700">
+                          Subtotal productos:
+                        </td>
+                        <td class="px-6 py-3 text-sm text-right font-medium text-gray-900">
+                          {{ formatCurrency(subtotal) }}
+                        </td>
+                      </tr>
 
-                  <!-- Costo de envío -->
-                  <div v-if="order.shipping_cost && order.shipping_cost > 0" class="flex justify-between text-gray-700">
-                    <span>Costo de envío:</span>
-                    <span class="font-medium">{{ formatCurrency(order.shipping_cost) }}</span>
-                  </div>
+                      <!-- Costo de envío -->
+                      <tr v-if="order.shipping_cost && order.shipping_cost > 0">
+                        <td class="px-6 py-3 text-sm text-gray-700">
+                          Costo de envío:
+                        </td>
+                        <td class="px-6 py-3 text-sm text-right font-medium text-gray-900">
+                          {{ formatCurrency(order.shipping_cost) }}
+                        </td>
+                      </tr>
 
-                  <!-- Promociones aplicadas -->
-                  <div v-if="order.promotions && order.promotions.length > 0" class="space-y-2 pt-2 border-t border-gray-200">
-                    <p class="text-sm font-semibold text-gray-700">Promociones aplicadas:</p>
-                    <div
-                      v-for="(promo, index) in order.promotions"
-                      :key="index"
-                      class="flex justify-between items-center text-green-700 pl-3"
-                    >
-                      <span class="text-sm">
-                        <i class="pi pi-tag mr-1"></i>
-                        {{ promo.name }}
-                        <span v-if="promo.code" class="text-xs text-gray-500">({{ promo.code }})</span>
-                      </span>
-                      <span class="font-medium">-{{ formatCurrency(promo.discount_amount) }}</span>
-                    </div>
-                  </div>
+                      <!-- Promociones aplicadas -->
+                      <template v-if="order.promotions && order.promotions.length > 0">
+                        <tr class="bg-green-50">
+                          <td colspan="2" class="px-6 py-2 text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            Promociones aplicadas:
+                          </td>
+                        </tr>
+                        <tr
+                          v-for="(promo, index) in order.promotions"
+                          :key="index"
+                          class="bg-green-50"
+                        >
+                          <td class="px-6 py-2 text-sm text-green-700">
+                            <i class="pi pi-tag mr-1"></i>
+                            {{ promo.name }}
+                            <span v-if="promo.code" class="text-xs text-gray-500">({{ promo.code }})</span>
+                          </td>
+                          <td class="px-6 py-2 text-sm text-right font-medium text-green-700">
+                            -{{ formatCurrency(promo.discount_amount) }}
+                          </td>
+                        </tr>
+                      </template>
 
-                  <!-- Descuento de cupón (si existe y es diferente de las promociones) -->
-                  <div v-if="order.coupon_discount && order.coupon_discount > 0" class="flex justify-between text-green-700">
-                    <span>
-                      <i class="pi pi-ticket mr-1"></i>
-                      Cupón de descuento:
-                    </span>
-                    <span class="font-medium">-{{ formatCurrency(order.coupon_discount) }}</span>
-                  </div>
+                      <!-- Descuento de cupón (si existe y es diferente de las promociones) -->
+                      <tr v-if="order.coupon_discount && order.coupon_discount > 0" class="bg-green-50">
+                        <td class="px-6 py-3 text-sm text-green-700">
+                          <i class="pi pi-ticket mr-1"></i>
+                          Cupón de descuento:
+                        </td>
+                        <td class="px-6 py-3 text-sm text-right font-medium text-green-700">
+                          -{{ formatCurrency(order.coupon_discount) }}
+                        </td>
+                      </tr>
 
-                  <!-- Descuento total (si no hay promociones detalladas) -->
-                  <div v-if="order.discount && order.discount > 0 && (!order.promotions || order.promotions.length === 0) && (!order.coupon_discount || order.coupon_discount === 0)" class="flex justify-between text-green-700">
-                    <span>Descuento:</span>
-                    <span class="font-medium">-{{ formatCurrency(order.discount) }}</span>
-                  </div>
+                      <!-- Descuento total (si no hay promociones detalladas) -->
+                      <tr v-if="order.discount && order.discount > 0 && (!order.promotions || order.promotions.length === 0) && (!order.coupon_discount || order.coupon_discount === 0)" class="bg-green-50">
+                        <td class="px-6 py-3 text-sm text-green-700">
+                          Descuento:
+                        </td>
+                        <td class="px-6 py-3 text-sm text-right font-medium text-green-700">
+                          -{{ formatCurrency(order.discount) }}
+                        </td>
+                      </tr>
 
-                  <!-- Redondeo (si existe) -->
-                  <template v-if="roundingAmount !== 0">
-                    <div class="flex justify-between text-gray-700 pt-3 border-t border-gray-200">
-                      <span>Subtotal antes de redondeo:</span>
-                      <span class="font-medium">{{ formatCurrency(order.total) }}</span>
-                    </div>
-                    <div class="flex justify-between text-gray-700">
-                      <span>Redondeo:</span>
-                      <span class="font-medium" :class="roundingAmount < 0 ? 'text-red-600' : 'text-green-600'">
-                        {{ formatCurrency(roundingAmount) }}
-                      </span>
-                    </div>
-                  </template>
+                      <!-- Redondeo (si existe) -->
+                      <template v-if="roundingAmount !== 0">
+                        <tr class="border-t-2 border-gray-300">
+                          <td class="px-6 py-3 text-sm text-gray-700">
+                            Subtotal antes de redondeo:
+                          </td>
+                          <td class="px-6 py-3 text-sm text-right font-medium text-gray-900">
+                            {{ formatCurrency(order.total) }}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="px-6 py-3 text-sm text-gray-700">
+                            Redondeo:
+                          </td>
+                          <td class="px-6 py-3 text-sm text-right font-medium" :class="roundingAmount < 0 ? 'text-red-600' : 'text-green-600'">
+                            {{ formatCurrency(roundingAmount) }}
+                          </td>
+                        </tr>
+                      </template>
 
-                  <!-- Total final -->
-                  <div class="flex justify-between text-xl font-bold text-gray-900 pt-3 border-t-2 border-gray-300">
-                    <span>Total a pagar:</span>
-                    <span class="text-primary">{{ formatCurrency(roundingAmount !== 0 ? totalAfterRounding : order.total) }}</span>
-                  </div>
+                      <!-- Total final -->
+                      <tr class="border-t-2 border-gray-300 bg-gray-50">
+                        <td class="px-6 py-4 text-lg font-bold text-gray-900">
+                          Total a pagar:
+                        </td>
+                        <td class="px-6 py-4 text-lg text-right font-bold text-primary">
+                          {{ formatCurrency(roundingAmount !== 0 ? totalAfterRounding : order.total) }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </template>
             </Card>
