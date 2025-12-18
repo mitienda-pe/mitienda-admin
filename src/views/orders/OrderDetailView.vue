@@ -574,42 +574,90 @@ const billingDocumentNumber = computed(() => {
                 </div>
               </template>
               <template #content>
-                <!-- Productos -->
-                <div class="space-y-4">
-                  <div
-                    v-for="item in order.items"
-                    :key="item.id"
-                    class="flex items-start gap-4 pb-4 border-b border-gray-100 last:border-0"
-                  >
-                    <!-- Imagen del producto -->
-                    <div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <img
-                        v-if="item.product_image"
-                        :src="item.product_image"
-                        :alt="item.product_name"
-                        class="w-full h-full object-cover rounded-lg"
-                      />
-                      <i v-else class="pi pi-image text-2xl text-gray-400"></i>
-                    </div>
+                <!-- Productos - Tabla -->
+                <div class="overflow-x-auto -mx-6">
+                  <table class="w-full">
+                    <thead>
+                      <tr class="border-b border-gray-200 bg-gray-50">
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-secondary-700 uppercase tracking-wider">
+                          Ítem
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-secondary-700 uppercase tracking-wider">
+                          Imagen
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-secondary-700 uppercase tracking-wider">
+                          Descripción
+                        </th>
+                        <th class="px-6 py-3 text-center text-xs font-semibold text-secondary-700 uppercase tracking-wider">
+                          Cant
+                        </th>
+                        <th class="px-6 py-3 text-right text-xs font-semibold text-secondary-700 uppercase tracking-wider">
+                          Precio Unit
+                        </th>
+                        <th class="px-6 py-3 text-right text-xs font-semibold text-secondary-700 uppercase tracking-wider">
+                          Dscto
+                        </th>
+                        <th class="px-6 py-3 text-right text-xs font-semibold text-secondary-700 uppercase tracking-wider">
+                          Valor Venta
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                      <tr
+                        v-for="(item, index) in order.items"
+                        :key="item.id"
+                        class="hover:bg-gray-50"
+                      >
+                        <!-- Ítem -->
+                        <td class="px-6 py-4 text-sm text-gray-700">
+                          {{ index + 1 }}
+                        </td>
 
-                    <!-- Información del producto -->
-                    <div class="flex-1">
-                      <h4 class="font-semibold text-gray-900">{{ item.product_name }}</h4>
-                      <p v-if="item.product_sku" class="text-sm text-gray-500">
-                        SKU: {{ item.product_sku }}
-                      </p>
-                      <p class="text-sm text-gray-600 mt-1">
-                        {{ formatCurrency(item.price) }} × {{ item.quantity }}
-                      </p>
-                    </div>
+                        <!-- Imagen -->
+                        <td class="px-6 py-4">
+                          <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <img
+                              v-if="item.product_image"
+                              :src="item.product_image"
+                              :alt="item.product_name"
+                              class="w-full h-full object-cover rounded-lg"
+                            />
+                            <i v-else class="pi pi-image text-xl text-gray-400"></i>
+                          </div>
+                        </td>
 
-                    <!-- Subtotal del item -->
-                    <div class="text-right">
-                      <p class="font-semibold text-gray-900">
-                        {{ formatCurrency(item.price * item.quantity) }}
-                      </p>
-                    </div>
-                  </div>
+                        <!-- Descripción -->
+                        <td class="px-6 py-4">
+                          <div class="text-sm">
+                            <p class="font-medium text-gray-900">{{ item.product_name }}</p>
+                            <p v-if="item.product_sku" class="text-xs text-gray-500 mt-0.5">
+                              SKU: {{ item.product_sku }}
+                            </p>
+                          </div>
+                        </td>
+
+                        <!-- Cantidad -->
+                        <td class="px-6 py-4 text-center text-sm text-gray-900">
+                          {{ item.quantity }}
+                        </td>
+
+                        <!-- Precio Unitario -->
+                        <td class="px-6 py-4 text-right text-sm text-gray-900">
+                          {{ formatCurrency(item.price) }}
+                        </td>
+
+                        <!-- Descuento -->
+                        <td class="px-6 py-4 text-right text-sm text-gray-900">
+                          -
+                        </td>
+
+                        <!-- Valor Venta -->
+                        <td class="px-6 py-4 text-right text-sm font-medium text-gray-900">
+                          {{ formatCurrency(item.price * item.quantity) }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
 
                 <!-- Totales -->
