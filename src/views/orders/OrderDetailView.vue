@@ -192,6 +192,20 @@ const totalPayments = computed(() => {
   return order.value.payments.reduce((sum, payment) => sum + parseFloat(payment.amount || '0'), 0)
 })
 
+// Get discount for a specific order item
+const getItemDiscount = (itemId: number): number => {
+  if (!order.value?.promotions) return 0
+
+  const itemPromotion = order.value.promotions.find(promo => promo.order_item_id === itemId)
+  return itemPromotion?.discount_amount || 0
+}
+
+// Get order-level promotions (not linked to specific items)
+const orderLevelPromotions = computed(() => {
+  if (!order.value?.promotions) return []
+  return order.value.promotions.filter(promo => !promo.order_item_id)
+})
+
 const goBack = () => {
   router.push('/orders')
 }
@@ -647,8 +661,11 @@ const billingDocumentNumber = computed(() => {
                         </td>
 
                         <!-- Descuento -->
-                        <td class="px-6 py-4 text-right text-sm text-gray-900">
-                          -
+                        <td class="px-6 py-4 text-right text-sm" :class="getItemDiscount(item.id) > 0 ? 'text-green-700 font-medium' : 'text-gray-400'">
+                          <span v-if="getItemDiscount(item.id) > 0">
+                            -{{ formatCurrency(getItemDiscount(item.id)) }}
+                          </span>
+                          <span v-else>-</span>
                         </td>
 
                         <!-- Valor Venta -->
@@ -684,15 +701,15 @@ const billingDocumentNumber = computed(() => {
                         </td>
                       </tr>
 
-                      <!-- Promociones aplicadas -->
-                      <template v-if="order.promotions && order.promotions.length > 0">
+                      <!-- Promociones a nivel de orden (no vinculadas a productos específicos) -->
+                      <template v-if="orderLevelPromotions.length > 0">
                         <tr class="bg-green-50">
                           <td colspan="2" class="px-6 py-2 text-xs font-semibold text-gray-700 uppercase tracking-wider">
                             Promociones aplicadas:
                           </td>
                         </tr>
                         <tr
-                          v-for="(promo, index) in order.promotions"
+                          v-for="(promo, index) in orderLevelPromotions"
                           :key="index"
                           class="bg-green-50"
                         >

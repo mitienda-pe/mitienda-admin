@@ -40,6 +40,8 @@ export interface OrderPromotion {
   discount_amount: number
   discount_type: 'percentage' | 'fixed'
   discount_value: number
+  order_item_id?: number | null // Links promotion to specific order item (null = order-level)
+  product_id?: number | null
 }
 
 export interface OrderPayment {
