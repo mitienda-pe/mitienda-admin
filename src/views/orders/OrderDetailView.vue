@@ -567,11 +567,6 @@ const billingDocumentNumber = computed(() => {
             </template>
             <template #content>
               <div class="space-y-3">
-                <div v-if="order.payment_gateway">
-                  <p class="text-sm text-gray-500">Pasarela de pago</p>
-                  <p class="font-semibold text-gray-900">{{ order.payment_gateway }}</p>
-                </div>
-
                 <!-- POS payments (one or more) -->
                 <div v-if="order.payments && order.payments.length > 0" class="space-y-2">
                   <p class="text-sm text-gray-500 font-medium">{{ order.payments.length > 1 ? 'Métodos de pago utilizados' : 'Método de pago' }}</p>
