@@ -541,10 +541,10 @@ const billingDocumentNumber = computed(() => {
                   {{ order.shipping_details.address_line2 }}
                 </p>
               </div>
-              <div v-if="order.shipping_details?.district || order.shipping_details?.city">
+              <div v-if="order.shipping_details?.district || order.shipping_details?.province || order.shipping_details?.department">
                 <p class="text-sm text-gray-500">Ubicación</p>
                 <p class="text-gray-900 text-sm">
-                  {{ [order.shipping_details.district, order.shipping_details.city, order.shipping_details.state].filter(Boolean).join(', ') }}
+                  {{ [order.shipping_details.district, order.shipping_details.province, order.shipping_details.department, order.shipping_details.country].filter(Boolean).join(', ') }}
                 </p>
               </div>
               <div v-if="order.shipping_details?.date_delivered">

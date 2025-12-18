@@ -68,8 +68,9 @@ export interface ShippingDetails {
   cost: string
   address: string
   address_line2?: string
-  city?: string
-  state?: string
+  country?: string
+  department?: string
+  province?: string
   district?: string
   zip_code?: string
   latitude?: string
