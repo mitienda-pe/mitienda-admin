@@ -607,10 +607,6 @@ const billingDocumentNumber = computed(() => {
                   <p class="font-semibold text-gray-900 capitalize">{{ order.payment_method }}</p>
                 </div>
 
-                <div v-if="order.gateway_code">
-                  <p class="text-sm text-gray-500">Código de la pasarela</p>
-                  <p class="font-mono text-sm text-gray-900 whitespace-pre-line">{{ order.gateway_code.replace(/<br\s*\/?>/gi, '\n') }}</p>
-                </div>
                 <div v-if="order.gateway_message">
                   <p class="text-sm text-gray-500">Mensaje de la pasarela</p>
                   <p class="text-gray-900">{{ order.gateway_message }}</p>
