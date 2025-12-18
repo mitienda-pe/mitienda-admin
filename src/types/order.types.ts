@@ -51,6 +51,7 @@ export interface OrderPayment {
   amount: string
   reference?: string | null
   authorization_number?: string | null
+  payment_date?: string | null
 }
 
 export interface BillingDocument {

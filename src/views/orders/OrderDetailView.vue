@@ -577,6 +577,12 @@ const billingDocumentNumber = computed(() => {
                   >
                     <div class="flex-1">
                       <p class="font-semibold text-gray-900">{{ payment.method_name }}</p>
+                      <div v-if="payment.payment_date" class="mt-1">
+                        <p class="text-xs text-gray-500">
+                          <i class="pi pi-calendar mr-1"></i>
+                          {{ formatDateTime(payment.payment_date) }}
+                        </p>
+                      </div>
                       <div v-if="payment.authorization_number" class="mt-1">
                         <p class="text-xs text-gray-500">
                           <i class="pi pi-check-circle mr-1"></i>
