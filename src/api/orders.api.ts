@@ -202,16 +202,23 @@ export const ordersApi = {
           document_number: billingInfo.doc_number || '',
           created_at: rawData.date_created || ''
         },
-        items: (rawData.order_items || []).map((item: any) => ({
-          id: item.id,
-          product_id: 0,
-          product_name: item.tittle || '', // Nota: API usa 'tittle' (typo)
-          product_sku: item.sku || '',
-          product_image: item.image || undefined,
-          quantity: item.quantity || 0,
-          price: parseFloat(item.price || '0'),
-          subtotal: parseFloat(item.total || '0')
-        })),
+        items: (rawData.order_items || []).map((item: any) => {
+          console.log('🖼️ [OrdersAPI] Order item:', {
+            id: item.id,
+            name: item.tittle,
+            image: item.image
+          })
+          return {
+            id: item.id,
+            product_id: 0,
+            product_name: item.tittle || '', // Nota: API usa 'tittle' (typo)
+            product_sku: item.sku || '',
+            product_image: item.image || undefined,
+            quantity: item.quantity || 0,
+            price: parseFloat(item.price || '0'),
+            subtotal: parseFloat(item.total || '0')
+          }
+        }),
         subtotal: 0, // Se calcula del total
         discount: parseFloat(rawData.discount?.discount_amount || '0'),
         shipping_cost: rawData.shipping_cost !== undefined && rawData.shipping_cost !== null
