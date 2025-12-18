@@ -153,6 +153,25 @@ const timelineEvents = computed(() => {
   return events
 })
 
+// Subtotal de productos + envío (antes de promociones a nivel de orden)
+const subtotalAntesPromociones = computed(() => {
+  if (!order.value?.items) return 0
+
+  // Suma de productos con sus descuentos individuales + envío
+  const productosTotal = order.value.items.reduce((sum, item) => {
+    const itemTotal = item.price * item.quantity
+    const itemDiscount = getItemDiscount(item.id)
+    return sum + (itemTotal - itemDiscount)
+  }, 0)
+
+  return productosTotal + (order.value?.shipping_cost || 0)
+})
+
+// Descuento total de promociones a nivel de orden
+const descuentoPromocionesOrden = computed(() => {
+  return orderLevelPromotions.value.reduce((sum, promo) => sum + promo.discount_amount, 0)
+})
+
 // Subtotal sin IGV - usar el total final de la orden (que ya incluye todos los descuentos)
 const subtotalSinIGV = computed(() => {
   if (!order.value) return 0
@@ -767,6 +786,16 @@ const billingDocumentNumber = computed(() => {
                 <div class="mt-6 overflow-x-auto -mx-6">
                   <table class="w-full">
                     <tbody class="divide-y divide-gray-100">
+                      <!-- Subtotal antes de promociones de orden -->
+                      <tr v-if="orderLevelPromotions.length > 0">
+                        <td class="px-6 py-3 text-sm text-gray-700">
+                          Subtotal:
+                        </td>
+                        <td class="px-6 py-3 text-sm text-right font-medium text-gray-900">
+                          {{ formatCurrency(subtotalAntesPromociones) }}
+                        </td>
+                      </tr>
+
                       <!-- Promociones a nivel de orden (no vinculadas a productos específicos) -->
                       <template v-if="orderLevelPromotions.length > 0">
                         <tr class="bg-green-50">
