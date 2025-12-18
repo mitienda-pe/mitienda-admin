@@ -153,9 +153,25 @@ const timelineEvents = computed(() => {
   return events
 })
 
-const subtotal = computed(() => {
+// Subtotal de productos (sin envío, con descuentos aplicados)
+const subtotalProductos = computed(() => {
   if (!order.value?.items) return 0
-  return order.value.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  return order.value.items.reduce((sum, item) => {
+    const itemTotal = item.price * item.quantity
+    const itemDiscount = getItemDiscount(item.id)
+    return sum + (itemTotal - itemDiscount)
+  }, 0)
+})
+
+// Subtotal con envío (sin IGV)
+const subtotalSinIGV = computed(() => {
+  const subtotalConEnvio = subtotalProductos.value + (order.value?.shipping_cost || 0)
+  return subtotalConEnvio / 1.18 // Dividir entre 1.18 para quitar el IGV
+})
+
+// IGV (18%)
+const igv = computed(() => {
+  return subtotalSinIGV.value * 0.18
 })
 
 const roundingAmount = computed(() => {
@@ -704,6 +720,51 @@ const billingDocumentNumber = computed(() => {
                           {{ formatCurrency((item.price * item.quantity) - getItemDiscount(item.id)) }}
                         </td>
                       </tr>
+
+                      <!-- Servicio de Envío como ítem adicional -->
+                      <tr v-if="order.shipping_cost && order.shipping_cost > 0" class="hover:bg-gray-50 border-t-2 border-gray-200">
+                        <!-- Ítem -->
+                        <td class="px-6 py-4 text-sm text-gray-700">
+                          {{ order.items.length + 1 }}
+                        </td>
+
+                        <!-- Imagen -->
+                        <td class="px-6 py-4">
+                          <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="pi pi-truck text-xl text-primary"></i>
+                          </div>
+                        </td>
+
+                        <!-- Descripción -->
+                        <td class="px-6 py-4">
+                          <div class="text-sm">
+                            <p class="font-medium text-gray-900">Servicio de Envío</p>
+                            <p v-if="order.shipping_details?.courier" class="text-xs text-gray-500 mt-0.5">
+                              {{ order.shipping_details.courier }}
+                            </p>
+                          </div>
+                        </td>
+
+                        <!-- Cantidad -->
+                        <td class="px-6 py-4 text-center text-sm text-gray-900">
+                          1
+                        </td>
+
+                        <!-- Precio Unitario -->
+                        <td class="px-6 py-4 text-right text-sm text-gray-900">
+                          {{ formatCurrency(order.shipping_cost) }}
+                        </td>
+
+                        <!-- Descuento -->
+                        <td class="px-6 py-4 text-right text-sm text-gray-400">
+                          <span>—</span>
+                        </td>
+
+                        <!-- Valor Venta -->
+                        <td class="px-6 py-4 text-right text-sm font-medium text-gray-900">
+                          {{ formatCurrency(order.shipping_cost) }}
+                        </td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
@@ -712,26 +773,6 @@ const billingDocumentNumber = computed(() => {
                 <div class="mt-6 overflow-x-auto -mx-6">
                   <table class="w-full">
                     <tbody class="divide-y divide-gray-100">
-                      <!-- Subtotal de productos -->
-                      <tr>
-                        <td class="px-6 py-3 text-sm text-gray-700">
-                          Subtotal productos:
-                        </td>
-                        <td class="px-6 py-3 text-sm text-right font-medium text-gray-900">
-                          {{ formatCurrency(subtotal) }}
-                        </td>
-                      </tr>
-
-                      <!-- Costo de envío -->
-                      <tr v-if="order.shipping_cost && order.shipping_cost > 0">
-                        <td class="px-6 py-3 text-sm text-gray-700">
-                          Costo de envío:
-                        </td>
-                        <td class="px-6 py-3 text-sm text-right font-medium text-gray-900">
-                          {{ formatCurrency(order.shipping_cost) }}
-                        </td>
-                      </tr>
-
                       <!-- Promociones a nivel de orden (no vinculadas a productos específicos) -->
                       <template v-if="orderLevelPromotions.length > 0">
                         <tr class="bg-green-50">
@@ -776,16 +817,28 @@ const billingDocumentNumber = computed(() => {
                         </td>
                       </tr>
 
+                      <!-- Subtotal sin IGV -->
+                      <tr class="border-t-2 border-gray-300">
+                        <td class="px-6 py-3 text-sm text-gray-700">
+                          Subtotal (sin IGV):
+                        </td>
+                        <td class="px-6 py-3 text-sm text-right font-medium text-gray-900">
+                          {{ formatCurrency(subtotalSinIGV) }}
+                        </td>
+                      </tr>
+
+                      <!-- IGV (18%) -->
+                      <tr>
+                        <td class="px-6 py-3 text-sm text-gray-700">
+                          IGV (18%):
+                        </td>
+                        <td class="px-6 py-3 text-sm text-right font-medium text-gray-900">
+                          {{ formatCurrency(igv) }}
+                        </td>
+                      </tr>
+
                       <!-- Redondeo (si existe) -->
                       <template v-if="roundingAmount !== 0">
-                        <tr class="border-t-2 border-gray-300">
-                          <td class="px-6 py-3 text-sm text-gray-700">
-                            Subtotal antes de redondeo:
-                          </td>
-                          <td class="px-6 py-3 text-sm text-right font-medium text-gray-900">
-                            {{ formatCurrency(order.total) }}
-                          </td>
-                        </tr>
                         <tr>
                           <td class="px-6 py-3 text-sm text-gray-700">
                             Redondeo:
