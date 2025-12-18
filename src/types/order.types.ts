@@ -23,6 +23,7 @@ export interface Order {
   shipping_details?: ShippingDetails
   billing_address?: Address
   notes?: string
+  store_notes?: string
   tiendaventa_estado_notif_erp?: number // 0 = success, 1 = error
   tiendaventa_mensaje_notif_erp?: string
   tiendaventa_payload_notif_erp?: string // Request payload sent to NetSuite
@@ -76,6 +77,9 @@ export interface ShippingDetails {
   reference?: string
   courier?: string
   tracking_url?: string
+  recipient_name?: string
+  recipient_phone?: string
+  date_delivered?: string | null
 }
 
 export interface OrderItem {
@@ -101,6 +105,7 @@ export interface Customer {
   phone?: string
   document_type?: string
   document_number?: string
+  business_name?: string
   created_at: string
 }
 

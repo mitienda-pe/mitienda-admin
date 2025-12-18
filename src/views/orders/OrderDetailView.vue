@@ -480,68 +480,78 @@ const billingDocumentNumber = computed(() => {
 
     <!-- Contenido del Pedido -->
     <div v-else class="space-y-6">
-      <!-- Fila 1: Cliente, Dirección de Envío, Pago (3 columnas) -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Información del Cliente -->
-          <Card>
-            <template #title>
-              <div class="flex items-center gap-2">
-                <i class="pi pi-user text-primary"></i>
-                Cliente
-              </div>
-            </template>
-            <template #content>
-              <div class="space-y-3">
-                <div>
-                  <p class="text-sm text-gray-500">Nombre</p>
-                  <p class="font-semibold text-gray-900">{{ order.customer?.name || 'N/A' }}</p>
-                </div>
-                <div v-if="order.customer?.email">
-                  <p class="text-sm text-gray-500">Email</p>
-                  <p class="font-semibold text-gray-900">{{ order.customer.email }}</p>
-                </div>
-                <div v-if="order.customer?.phone">
-                  <p class="text-sm text-gray-500">Teléfono</p>
-                  <p class="font-semibold text-gray-900">{{ order.customer.phone }}</p>
-                </div>
-                <div v-if="order.customer?.document_type && order.customer?.document_number">
-                  <p class="text-sm text-gray-500">Documento</p>
-                  <p class="font-semibold text-gray-900">
-                    {{ order.customer.document_type }} {{ order.customer.document_number }}
-                  </p>
-                </div>
-              </div>
-            </template>
-          </Card>
-
-        <!-- Dirección de Envío (sin mapa) -->
-        <Card v-if="order.shipping_details">
+      <!-- Fila 1: Facturación, Envío, Pago, Observaciones (2x2 grid) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Facturación -->
+        <Card>
           <template #title>
             <div class="flex items-center gap-2">
-              <i class="pi pi-map-marker text-primary"></i>
-              Dirección de Envío
+              <i class="pi pi-file-edit text-primary"></i>
+              Facturación
             </div>
           </template>
           <template #content>
             <div class="space-y-3">
-              <div v-if="order.shipping_details.address">
+              <div v-if="order.customer?.business_name">
+                <p class="text-sm text-gray-500">Razón Social</p>
+                <p class="font-semibold text-gray-900">{{ order.customer.business_name }}</p>
+              </div>
+              <div v-else>
+                <p class="text-sm text-gray-500">Nombre</p>
+                <p class="font-semibold text-gray-900">{{ order.customer?.name || 'N/A' }}</p>
+              </div>
+              <div v-if="order.customer?.document_type && order.customer?.document_number">
+                <p class="text-sm text-gray-500">{{ order.customer.document_type }}</p>
+                <p class="font-semibold text-gray-900">{{ order.customer.document_number }}</p>
+              </div>
+              <div v-if="order.customer?.email">
+                <p class="text-sm text-gray-500">Email</p>
+                <p class="font-semibold text-gray-900 break-words">{{ order.customer.email }}</p>
+              </div>
+              <div v-if="order.customer?.phone">
+                <p class="text-sm text-gray-500">Teléfono</p>
+                <p class="font-semibold text-gray-900">{{ order.customer.phone }}</p>
+              </div>
+            </div>
+          </template>
+        </Card>
+
+        <!-- Envío -->
+        <Card>
+          <template #title>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-map-marker text-primary"></i>
+              Envío
+            </div>
+          </template>
+          <template #content>
+            <div class="space-y-3">
+              <div v-if="order.shipping_details?.recipient_name">
+                <p class="text-sm text-gray-500">Destinatario</p>
+                <p class="font-semibold text-gray-900">{{ order.shipping_details.recipient_name }}</p>
+              </div>
+              <div v-if="order.shipping_details?.recipient_phone">
+                <p class="text-sm text-gray-500">Teléfono</p>
+                <p class="font-semibold text-gray-900">{{ order.shipping_details.recipient_phone }}</p>
+              </div>
+              <div v-if="order.shipping_details?.address">
                 <p class="text-sm text-gray-500">Dirección</p>
                 <p class="font-semibold text-gray-900">{{ order.shipping_details.address }}</p>
                 <p v-if="order.shipping_details.address_line2" class="text-gray-700 text-sm">
                   {{ order.shipping_details.address_line2 }}
                 </p>
               </div>
-              <div v-if="order.shipping_details.district || order.shipping_details.city">
+              <div v-if="order.shipping_details?.district || order.shipping_details?.city">
                 <p class="text-sm text-gray-500">Ubicación</p>
-                <p class="text-gray-900">
+                <p class="text-gray-900 text-sm">
                   {{ [order.shipping_details.district, order.shipping_details.city, order.shipping_details.state].filter(Boolean).join(', ') }}
                 </p>
               </div>
-              <div v-if="order.shipping_details.reference">
-                <p class="text-sm text-gray-500">Referencia</p>
-                <p class="text-gray-900">{{ order.shipping_details.reference }}</p>
+              <div v-if="order.shipping_details?.date_delivered">
+                <p class="text-sm text-gray-500">Fecha de entrega</p>
+                <p class="text-gray-900">{{ formatDate(order.shipping_details.date_delivered) }}</p>
               </div>
-              <div v-if="order.shipping_details.courier">
+              <div v-if="order.shipping_details?.courier">
                 <p class="text-sm text-gray-500">Courier</p>
                 <p class="text-gray-900">{{ order.shipping_details.courier }}</p>
               </div>
@@ -549,8 +559,8 @@ const billingDocumentNumber = computed(() => {
           </template>
         </Card>
 
-        <!-- Información de Pago -->
-          <Card>
+        <!-- Pago -->
+        <Card>
             <template #title>
               <div class="flex items-center gap-2">
                 <i class="pi pi-credit-card text-primary"></i>
@@ -612,16 +622,34 @@ const billingDocumentNumber = computed(() => {
                   <p class="text-sm text-gray-500">Mensaje de la pasarela</p>
                   <p class="text-gray-900">{{ order.gateway_message }}</p>
                 </div>
-                <div v-if="order.notes">
-                  <p class="text-sm text-gray-500">Notas</p>
-                  <p class="text-gray-900">{{ order.notes }}</p>
-                </div>
               </div>
             </template>
           </Card>
-        </div>
 
-        <!-- Fila 2: Resumen/Mapa/Timeline y Análisis/Comprobante (2 columnas) -->
+        <!-- Observaciones -->
+        <Card v-if="order.notes || order.store_notes">
+          <template #title>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-comment text-primary"></i>
+              Observaciones
+            </div>
+          </template>
+          <template #content>
+            <div class="space-y-3">
+              <div v-if="order.notes">
+                <p class="text-sm text-gray-500">Cliente</p>
+                <p class="text-gray-900">{{ order.notes }}</p>
+              </div>
+              <div v-if="order.store_notes">
+                <p class="text-sm text-gray-500">Tienda (Interno)</p>
+                <p class="text-gray-900 font-medium">{{ order.store_notes }}</p>
+              </div>
+            </div>
+          </template>
+        </Card>
+      </div>
+
+      <!-- Fila 2: Resumen/Mapa/Timeline y Análisis/Comprobante (2 columnas) -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <!-- Columna izquierda (2/3 width) -->
           <div class="lg:col-span-2 space-y-6">

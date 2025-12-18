@@ -200,6 +200,7 @@ export const ordersApi = {
           phone: billingInfo.phone_number || '',
           document_type: billingInfo.doc_type || '',
           document_number: billingInfo.doc_number || '',
+          business_name: billingInfo.bussiness_name || '',
           created_at: rawData.date_created || ''
         },
         items: (rawData.order_items || []).map((item: any) => {
@@ -253,11 +254,15 @@ export const ordersApi = {
           longitude: receiverAddress.longitud || undefined,
           reference: receiverAddress.comment || undefined,
           courier: shipping.courrier?.name || undefined,
-          tracking_url: shipping.url_traking || undefined
+          tracking_url: shipping.url_traking || undefined,
+          recipient_name: shipping.recipient_name || undefined,
+          recipient_phone: shipping.recipient_phone || undefined,
+          date_delivered: shipping.date_delivered || undefined
         },
         created_at: rawData.date_created || '',
         updated_at: rawData.date_created || '',
-        notes: receiverAddress.comment || undefined,
+        notes: rawData.notes || undefined,
+        store_notes: rawData.store_notes || undefined,
         // ERP Sync fields - intentar varios nombres posibles del backend
         tiendaventa_estado_notif_erp: rawData.tiendaventa_estado_notif_erp ??
                                        rawData.erp_sync_status ??
