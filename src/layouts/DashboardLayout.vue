@@ -108,6 +108,35 @@
               </router-link>
             </li>
 
+            <!-- Grupo Ventas -->
+            <li>
+              <button
+                @click="salesExpanded = !salesExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isSalesActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-chart-line"></i>
+                  <span>Ventas</span>
+                </div>
+                <i :class="salesExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="salesExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in salesMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+
             <!-- Grupo Catálogo -->
             <li>
               <button
@@ -289,6 +318,36 @@
                 <i :class="item.icon"></i>
                 <span>{{ item.label }}</span>
               </router-link>
+            </li>
+
+            <!-- Grupo Ventas -->
+            <li>
+              <button
+                @click="salesExpanded = !salesExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isSalesActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-chart-line"></i>
+                  <span>Ventas</span>
+                </div>
+                <i :class="salesExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="salesExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in salesMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                    @click="sidebarVisible = false"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
             </li>
 
             <!-- Grupo Catálogo -->
@@ -473,6 +532,7 @@ const sidebarVisible = ref(false)
 const userMenu = ref()
 
 // Estados de expansión de los menús con refs
+const salesExpandedRef = ref(false)
 const catalogExpandedRef = ref(false)
 const marketingExpandedRef = ref(false)
 const billingExpandedRef = ref(false)
@@ -480,6 +540,11 @@ const apiExpandedRef = ref(false)
 const configExpandedRef = ref(false)
 
 // Computar dinámicamente qué menú debe estar expandido según la ruta
+const salesExpanded = computed({
+  get: () => salesExpandedRef.value || route.path.startsWith('/orders') || route.path.includes('abandoned-carts'),
+  set: (val) => { salesExpandedRef.value = val }
+})
+
 const catalogExpanded = computed({
   get: () => catalogExpandedRef.value || route.path.startsWith('/products') || route.path.startsWith('/catalog'),
   set: (val) => { catalogExpandedRef.value = val }
@@ -508,8 +573,13 @@ const configExpanded = computed({
 // Items simples del menú
 const simpleMenuItems = [
   { label: 'Dashboard', icon: 'pi pi-home', to: '/dashboard' },
-  { label: 'Pedidos', icon: 'pi pi-shopping-cart', to: '/orders' },
   { label: 'Clientes', icon: 'pi pi-users', to: '/customers' }
+]
+
+// Items del grupo Ventas
+const salesMenuItems = [
+  { label: 'Pedidos', icon: 'pi pi-shopping-cart', to: '/orders' },
+  { label: 'Carritos Abandonados', icon: 'pi pi-shopping-bag', to: '/marketing/abandoned-carts' }
 ]
 
 // Items del grupo Catálogo
@@ -523,8 +593,7 @@ const catalogMenuItems = [
 // Items del grupo Marketing
 const marketingMenuItems = [
   { label: 'Promociones', icon: 'pi pi-percentage', to: '/marketing/promotions' },
-  { label: 'Barras de Anuncios', icon: 'pi pi-megaphone', to: '/marketing/announcement-bars' },
-  { label: 'Carritos Abandonados', icon: 'pi pi-shopping-cart', to: '/marketing/abandoned-carts' }
+  { label: 'Barras de Anuncios', icon: 'pi pi-megaphone', to: '/marketing/announcement-bars' }
 ]
 
 // Items del grupo Facturación
@@ -545,6 +614,11 @@ const configMenuItems = [
   { label: 'Mapeo de Inventario', icon: 'pi pi-box', to: '/configuracion/netsuite/inventario' },
   { label: 'Cola de Sincronización', icon: 'pi pi-list', to: '/configuracion/netsuite/cola' }
 ]
+
+// Detectar si estamos en alguna ruta de ventas
+const isSalesActive = computed(() => {
+  return route.path.startsWith('/orders') || route.path.includes('abandoned-carts')
+})
 
 // Detectar si estamos en alguna ruta del catálogo
 const isCatalogActive = computed(() => {
