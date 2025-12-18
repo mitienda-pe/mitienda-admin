@@ -207,6 +207,7 @@ export const ordersApi = {
           product_id: 0,
           product_name: item.tittle || '', // Nota: API usa 'tittle' (typo)
           product_sku: item.sku || '',
+          product_image: item.image || undefined,
           quantity: item.quantity || 0,
           price: parseFloat(item.price || '0'),
           subtotal: parseFloat(item.total || '0')
@@ -283,6 +284,18 @@ export const ordersApi = {
         promotions_discount: order.promotions_discount,
         coupon_discount: order.coupon_discount
       })
+
+      // Log each promotion detail
+      if (order.promotions && order.promotions.length > 0) {
+        console.log('🏷️ [OrdersAPI] Promotions details:')
+        order.promotions.forEach((promo, index) => {
+          console.log(`  ${index + 1}. ${promo.name}:`, {
+            discount_amount: promo.discount_amount,
+            order_item_id: promo.order_item_id,
+            product_id: promo.product_id
+          })
+        })
+      }
 
       return {
         success: true,
