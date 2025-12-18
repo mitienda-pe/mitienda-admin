@@ -169,6 +169,11 @@ const totalAfterRounding = computed(() => {
   return order.value.total
 })
 
+const totalPayments = computed(() => {
+  if (!order.value?.payments || order.value.payments.length === 0) return 0
+  return order.value.payments.reduce((sum, payment) => sum + parseFloat(payment.amount || '0'), 0)
+})
+
 const goBack = () => {
   router.push('/orders')
 }
@@ -506,6 +511,12 @@ const billingDocumentNumber = computed(() => {
                     <div class="text-right">
                       <p class="font-bold text-gray-900">{{ formatCurrency(parseFloat(payment.amount)) }}</p>
                     </div>
+                  </div>
+
+                  <!-- Total when multiple payments -->
+                  <div v-if="order.payments.length > 1" class="flex justify-between items-center pt-3 border-t-2 border-gray-300">
+                    <p class="font-semibold text-gray-900">Total pagado:</p>
+                    <p class="font-bold text-lg text-primary">{{ formatCurrency(totalPayments) }}</p>
                   </div>
                 </div>
 
