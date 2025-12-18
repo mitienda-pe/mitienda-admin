@@ -625,29 +625,29 @@ const billingDocumentNumber = computed(() => {
               </div>
             </template>
           </Card>
-
-        <!-- Observaciones -->
-        <Card v-if="order.notes || order.store_notes">
-          <template #title>
-            <div class="flex items-center gap-2">
-              <i class="pi pi-comment text-primary"></i>
-              Observaciones
-            </div>
-          </template>
-          <template #content>
-            <div class="space-y-3">
-              <div v-if="order.notes">
-                <p class="text-sm text-gray-500">Cliente</p>
-                <p class="text-gray-900">{{ order.notes }}</p>
-              </div>
-              <div v-if="order.store_notes">
-                <p class="text-sm text-gray-500">Tienda (Interno)</p>
-                <p class="text-gray-900 font-medium">{{ order.store_notes }}</p>
-              </div>
-            </div>
-          </template>
-        </Card>
       </div>
+
+      <!-- Observaciones (ancho completo) -->
+      <Card v-if="order.notes || order.store_notes">
+        <template #title>
+          <div class="flex items-center gap-2">
+            <i class="pi pi-comment text-primary"></i>
+            Observaciones
+          </div>
+        </template>
+        <template #content>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div v-if="order.notes">
+              <p class="text-sm text-gray-500 font-medium mb-2">Cliente</p>
+              <p class="text-gray-900">{{ order.notes }}</p>
+            </div>
+            <div v-if="order.store_notes">
+              <p class="text-sm text-gray-500 font-medium mb-2">Tienda (Interno)</p>
+              <p class="text-gray-900 font-semibold">{{ order.store_notes }}</p>
+            </div>
+          </div>
+        </template>
+      </Card>
 
       <!-- Fila 2: Resumen/Mapa/Timeline y Análisis/Comprobante (2 columnas) -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
