@@ -253,7 +253,7 @@
               </ul>
             </li>
 
-            <!-- Grupo: Configuración -->
+            <!-- Grupo: NetSuite -->
             <li>
               <button
                 @click="configExpanded = !configExpanded"
@@ -261,8 +261,8 @@
                 :class="{ 'bg-primary-50 text-primary font-medium': isConfigActive }"
               >
                 <div class="flex items-center gap-3">
-                  <i class="pi pi-sliders-h"></i>
-                  <span>Configuración</span>
+                  <i class="pi pi-cloud"></i>
+                  <span>NetSuite</span>
                 </div>
                 <i :class="configExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
               </button>
@@ -470,7 +470,7 @@
               </ul>
             </li>
 
-            <!-- Grupo Configuración -->
+            <!-- Grupo NetSuite -->
             <li>
               <button
                 @click="configExpanded = !configExpanded"
@@ -478,8 +478,8 @@
                 :class="{ 'bg-primary-50 text-primary font-medium': isConfigActive }"
               >
                 <div class="flex items-center gap-3">
-                  <i class="pi pi-sliders-h"></i>
-                  <span>Configuración</span>
+                  <i class="pi pi-cloud"></i>
+                  <span>NetSuite</span>
                 </div>
                 <i :class="configExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
               </button>
@@ -608,9 +608,9 @@ const apiMenuItems = [
   { label: 'Webhooks', icon: 'pi pi-link', to: '/api/webhooks' }
 ]
 
-// Items del grupo Configuración
+// Items del grupo NetSuite
 const configMenuItems = [
-  { label: 'NetSuite', icon: 'pi pi-cloud', to: '/configuracion/netsuite' },
+  { label: 'Configuración', icon: 'pi pi-cog', to: '/configuracion/netsuite' },
   { label: 'Mapeo de Inventario', icon: 'pi pi-box', to: '/configuracion/netsuite/inventario' },
   { label: 'Cola de Sincronización', icon: 'pi pi-list', to: '/configuracion/netsuite/cola' }
 ]
