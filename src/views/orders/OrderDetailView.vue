@@ -153,20 +153,14 @@ const timelineEvents = computed(() => {
   return events
 })
 
-// Subtotal de productos (sin envío, con descuentos aplicados)
-const subtotalProductos = computed(() => {
-  if (!order.value?.items) return 0
-  return order.value.items.reduce((sum, item) => {
-    const itemTotal = item.price * item.quantity
-    const itemDiscount = getItemDiscount(item.id)
-    return sum + (itemTotal - itemDiscount)
-  }, 0)
-})
-
-// Subtotal con envío (sin IGV)
+// Subtotal sin IGV - usar el total final de la orden (que ya incluye todos los descuentos)
 const subtotalSinIGV = computed(() => {
-  const subtotalConEnvio = subtotalProductos.value + (order.value?.shipping_cost || 0)
-  return subtotalConEnvio / 1.18 // Dividir entre 1.18 para quitar el IGV
+  if (!order.value) return 0
+
+  // El total de la orden ya tiene todos los descuentos aplicados (items + order-level)
+  // Solo dividimos entre 1.18 para obtener el monto sin IGV
+  const totalConIGV = roundingAmount.value !== 0 ? totalAfterRounding.value : order.value.total
+  return totalConIGV / 1.18
 })
 
 // IGV (18%)
