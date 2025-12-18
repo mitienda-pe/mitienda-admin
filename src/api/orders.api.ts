@@ -174,10 +174,15 @@ export const ordersApi = {
    * Usa la estructura que devuelve el OrderTransformer del backend
    */
   async getOrder(id: number): Promise<ApiResponse<Order>> {
+    console.log('🌐 [OrdersAPI] Requesting order:', id)
     const response = await apiClient.get(`/orders/${id}`)
 
     // La API devuelve un objeto transformado con campos en inglés
     const rawData = response.data
+
+    console.log('📥 [OrdersAPI] Raw response from backend:', rawData)
+    console.log('📥 [OrdersAPI] Discount data:', rawData?.discount)
+    console.log('📥 [OrdersAPI] Promotions data:', rawData?.promotions)
 
     if (rawData) {
       // La API usa OrderTransformer - ver app/Libraries/OrderTransformer.php
@@ -255,6 +260,10 @@ export const ordersApi = {
                                         rawData.erp_message ??
                                         undefined,
         tiendaventa_payload_notif_erp: rawData.tiendaventa_payload_notif_erp ?? undefined,
+        // Promotions info
+        promotions: rawData.discount?.promotions || rawData.promotions || undefined,
+        promotions_discount: rawData.discount?.promotions_discount || rawData.promotions_discount || undefined,
+        coupon_discount: rawData.discount?.coupon_discount || rawData.coupon_discount || undefined,
         // Billing document info
         billing_document: billingInfo['e-billing'] ? {
           id: billingInfo['e-billing'].id || 0,
@@ -266,6 +275,14 @@ export const ordersApi = {
           xml_url: billingInfo['e-billing'].url_xml || undefined
         } : undefined
       }
+
+      console.log('🔄 [OrdersAPI] Mapped order object:', {
+        id: order.id,
+        discount: order.discount,
+        promotions: order.promotions,
+        promotions_discount: order.promotions_discount,
+        coupon_discount: order.coupon_discount
+      })
 
       return {
         success: true,

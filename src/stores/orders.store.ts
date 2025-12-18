@@ -102,16 +102,27 @@ export const useOrdersStore = defineStore('orders', () => {
       isLoading.value = true
       error.value = null
 
+      console.log('🔍 [OrdersStore] Fetching order:', id)
       const response = await ordersApi.getOrder(id)
+      console.log('📡 [OrdersStore] API Response:', response)
 
       if (response.success && response.data) {
+        console.log('✅ [OrdersStore] Order data received:', {
+          id: response.data.id,
+          total: response.data.total,
+          discount: response.data.discount,
+          promotions: response.data.promotions,
+          promotions_discount: response.data.promotions_discount,
+          coupon_discount: response.data.coupon_discount,
+          shipping_cost: response.data.shipping_cost
+        })
         currentOrder.value = response.data
       } else {
         throw new Error(response.message || 'Error al cargar pedido')
       }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Error desconocido'
-      console.error('Error fetching order:', err)
+      console.error('❌ [OrdersStore] Error fetching order:', err)
     } finally {
       isLoading.value = false
     }

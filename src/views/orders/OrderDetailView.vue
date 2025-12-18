@@ -23,11 +23,29 @@ const orderId = Number(route.params.id)
 const showEmitDialog = ref(false)
 const isSendingEmail = ref(false)
 
-onMounted(() => {
-  ordersStore.fetchOrder(orderId)
+onMounted(async () => {
+  console.log('🔍 [OrderDetailView] Cargando orden:', orderId)
+  await ordersStore.fetchOrder(orderId)
+  console.log('✅ [OrderDetailView] Orden cargada:', ordersStore.currentOrder)
 })
 
-const order = computed<Order | null>(() => ordersStore.currentOrder)
+const order = computed<Order | null>(() => {
+  const currentOrder = ordersStore.currentOrder
+
+  if (currentOrder) {
+    console.log('📦 [OrderDetailView] Order computed:', {
+      id: currentOrder.id,
+      total: currentOrder.total,
+      discount: currentOrder.discount,
+      promotions: currentOrder.promotions,
+      promotions_discount: currentOrder.promotions_discount,
+      coupon_discount: currentOrder.coupon_discount,
+      shipping_cost: currentOrder.shipping_cost
+    })
+  }
+
+  return currentOrder
+})
 
 // Solo estados de PAGO (no estados de envío)
 // pending = 2 (pendiente), paid = 1 (confirmado), cancelled = 0 (rechazado)
