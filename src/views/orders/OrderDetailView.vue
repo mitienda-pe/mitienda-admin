@@ -194,9 +194,21 @@ const totalPayments = computed(() => {
 
 // Get discount for a specific order item
 const getItemDiscount = (itemId: number): number => {
-  if (!order.value?.promotions) return 0
+  if (!order.value?.promotions) {
+    console.log(`🔍 [getItemDiscount] No promotions for item ${itemId}`)
+    return 0
+  }
+
+  console.log(`🔍 [getItemDiscount] Looking for discount for item ${itemId}`)
+  console.log(`   Available promotions:`, order.value.promotions.map(p => ({
+    name: p.name,
+    order_item_id: p.order_item_id,
+    discount_amount: p.discount_amount
+  })))
 
   const itemPromotion = order.value.promotions.find(promo => promo.order_item_id === itemId)
+  console.log(`   Found promotion:`, itemPromotion)
+
   return itemPromotion?.discount_amount || 0
 }
 
@@ -670,7 +682,7 @@ const billingDocumentNumber = computed(() => {
 
                         <!-- Valor Venta -->
                         <td class="px-6 py-4 text-right text-sm font-medium text-gray-900">
-                          {{ formatCurrency(item.price * item.quantity) }}
+                          {{ formatCurrency((item.price * item.quantity) - getItemDiscount(item.id)) }}
                         </td>
                       </tr>
                     </tbody>
