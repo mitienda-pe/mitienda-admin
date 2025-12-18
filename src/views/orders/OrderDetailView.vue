@@ -192,24 +192,29 @@ const totalPayments = computed(() => {
   return order.value.payments.reduce((sum, payment) => sum + parseFloat(payment.amount || '0'), 0)
 })
 
+// Get promotion for a specific order item
+const getItemPromotion = (itemId: number) => {
+  if (!order.value?.promotions) return null
+  return order.value.promotions.find(promo => promo.order_item_id === itemId)
+}
+
 // Get discount for a specific order item
 const getItemDiscount = (itemId: number): number => {
-  if (!order.value?.promotions) {
-    console.log(`🔍 [getItemDiscount] No promotions for item ${itemId}`)
-    return 0
-  }
+  const promotion = getItemPromotion(itemId)
+  return promotion?.discount_amount || 0
+}
 
-  console.log(`🔍 [getItemDiscount] Looking for discount for item ${itemId}`)
-  console.log(`   Available promotions:`, order.value.promotions.map(p => ({
-    name: p.name,
-    order_item_id: p.order_item_id,
-    discount_amount: p.discount_amount
-  })))
+// Check if item is bonificado (100% discount - free item from promotion like 2x1)
+const isItemBonificado = (itemId: number): boolean => {
+  const promotion = getItemPromotion(itemId)
+  if (!promotion) return false
 
-  const itemPromotion = order.value.promotions.find(promo => promo.order_item_id === itemId)
-  console.log(`   Found promotion:`, itemPromotion)
+  // If discount equals the item price, it's bonificado
+  const item = order.value?.items.find(i => i.id === itemId)
+  if (!item) return false
 
-  return itemPromotion?.discount_amount || 0
+  const itemTotal = item.price * item.quantity
+  return promotion.discount_amount >= itemTotal
 }
 
 // Get order-level promotions (not linked to specific items)
@@ -655,7 +660,15 @@ const billingDocumentNumber = computed(() => {
                         <!-- Descripción -->
                         <td class="px-6 py-4">
                           <div class="text-sm">
-                            <p class="font-medium text-gray-900">{{ item.product_name }}</p>
+                            <p class="font-medium text-gray-900">
+                              {{ item.product_name }}
+                              <span v-if="isItemBonificado(item.id)" class="ml-2 text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded">
+                                BONIFICADO
+                              </span>
+                              <span v-else-if="getItemPromotion(item.id)" class="ml-2 text-xs font-semibold text-green-700">
+                                {{ getItemPromotion(item.id)?.discount_value }}% OFF
+                              </span>
+                            </p>
                             <p v-if="item.product_sku" class="text-xs text-gray-500 mt-0.5">
                               SKU: {{ item.product_sku }}
                             </p>
@@ -673,11 +686,17 @@ const billingDocumentNumber = computed(() => {
                         </td>
 
                         <!-- Descuento -->
-                        <td class="px-6 py-4 text-right text-sm" :class="getItemDiscount(item.id) > 0 ? 'text-green-700 font-medium' : 'text-gray-400'">
-                          <span v-if="getItemDiscount(item.id) > 0">
-                            -{{ formatCurrency(getItemDiscount(item.id)) }}
-                          </span>
-                          <span v-else>-</span>
+                        <td class="px-6 py-4 text-right text-sm whitespace-nowrap" :class="getItemDiscount(item.id) > 0 ? 'text-green-700 font-medium' : 'text-gray-400'">
+                          <template v-if="isItemBonificado(item.id)">
+                            <span>-{{ formatCurrency(item.price * item.quantity) }}</span>
+                            <span class="block text-xs">(100%)</span>
+                          </template>
+                          <template v-else-if="getItemDiscount(item.id) > 0">
+                            <span>-{{ formatCurrency(getItemDiscount(item.id)) }}</span>
+                          </template>
+                          <template v-else>
+                            <span>—</span>
+                          </template>
                         </td>
 
                         <!-- Valor Venta -->
