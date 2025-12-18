@@ -608,8 +608,34 @@ const billingDocumentNumber = computed(() => {
                     <span class="font-medium">{{ formatCurrency(order.shipping_cost) }}</span>
                   </div>
 
-                  <!-- Descuento -->
-                  <div v-if="order.discount && order.discount > 0" class="flex justify-between text-green-700">
+                  <!-- Promociones aplicadas -->
+                  <div v-if="order.promotions && order.promotions.length > 0" class="space-y-2 pt-2 border-t border-gray-200">
+                    <p class="text-sm font-semibold text-gray-700">Promociones aplicadas:</p>
+                    <div
+                      v-for="(promo, index) in order.promotions"
+                      :key="index"
+                      class="flex justify-between items-center text-green-700 pl-3"
+                    >
+                      <span class="text-sm">
+                        <i class="pi pi-tag mr-1"></i>
+                        {{ promo.name }}
+                        <span v-if="promo.code" class="text-xs text-gray-500">({{ promo.code }})</span>
+                      </span>
+                      <span class="font-medium">-{{ formatCurrency(promo.discount_amount) }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Descuento de cupón (si existe y es diferente de las promociones) -->
+                  <div v-if="order.coupon_discount && order.coupon_discount > 0" class="flex justify-between text-green-700">
+                    <span>
+                      <i class="pi pi-ticket mr-1"></i>
+                      Cupón de descuento:
+                    </span>
+                    <span class="font-medium">-{{ formatCurrency(order.coupon_discount) }}</span>
+                  </div>
+
+                  <!-- Descuento total (si no hay promociones detalladas) -->
+                  <div v-if="order.discount && order.discount > 0 && (!order.promotions || order.promotions.length === 0) && (!order.coupon_discount || order.coupon_discount === 0)" class="flex justify-between text-green-700">
                     <span>Descuento:</span>
                     <span class="font-medium">-{{ formatCurrency(order.discount) }}</span>
                   </div>

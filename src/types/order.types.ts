@@ -27,8 +27,19 @@ export interface Order {
   tiendaventa_mensaje_notif_erp?: string
   tiendaventa_payload_notif_erp?: string // Request payload sent to NetSuite
   billing_document?: BillingDocument
+  promotions?: OrderPromotion[] // Applied promotions (2x1, discounts, etc.)
+  promotions_discount?: number // Total discount from promotions
+  coupon_discount?: number // Total discount from coupon
   created_at: string
   updated_at: string
+}
+
+export interface OrderPromotion {
+  name: string
+  code?: string
+  discount_amount: number
+  discount_type: 'percentage' | 'fixed'
+  discount_value: number
 }
 
 export interface OrderPayment {
