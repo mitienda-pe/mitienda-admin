@@ -579,7 +579,7 @@ const simpleMenuItems = [
 // Items del grupo Ventas
 const salesMenuItems = [
   { label: 'Pedidos', icon: 'pi pi-shopping-cart', to: '/orders' },
-  { label: 'Carritos Abandonados', icon: 'pi pi-sad-cry', to: '/marketing/abandoned-carts' }
+  { label: 'Carritos Abandonados', icon: 'pi pi-shopping-bag', to: '/marketing/abandoned-carts' }
 ]
 
 // Items del grupo Catálogo
