@@ -105,6 +105,18 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/reports',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: 'orders',
+        name: 'OrdersReport',
+        component: () => import('@/views/reports/OrdersReportView.vue')
+      }
+    ]
+  },
+  {
     path: '/catalog',
     component: DashboardLayout,
     meta: { requiresAuth: true, requiresStore: true },

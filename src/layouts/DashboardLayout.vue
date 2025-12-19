@@ -541,7 +541,7 @@ const configExpandedRef = ref(false)
 
 // Computar dinámicamente qué menú debe estar expandido según la ruta
 const salesExpanded = computed({
-  get: () => salesExpandedRef.value || route.path.startsWith('/orders') || route.path.includes('abandoned-carts'),
+  get: () => salesExpandedRef.value || route.path.startsWith('/orders') || route.path.includes('abandoned-carts') || route.path.startsWith('/reports'),
   set: (val) => { salesExpandedRef.value = val }
 })
 
@@ -579,7 +579,8 @@ const simpleMenuItems = [
 // Items del grupo Ventas
 const salesMenuItems = [
   { label: 'Pedidos', icon: 'pi pi-shopping-cart', to: '/orders' },
-  { label: 'Carritos Abandonados', icon: 'pi pi-shopping-bag', to: '/marketing/abandoned-carts' }
+  { label: 'Carritos Abandonados', icon: 'pi pi-shopping-bag', to: '/marketing/abandoned-carts' },
+  { label: 'Reportes', icon: 'pi pi-chart-bar', to: '/reports/orders' }
 ]
 
 // Items del grupo Catálogo
@@ -616,7 +617,7 @@ const configMenuItems = [
 
 // Detectar si estamos en alguna ruta de ventas
 const isSalesActive = computed(() => {
-  return route.path.startsWith('/orders') || route.path.includes('abandoned-carts')
+  return route.path.startsWith('/orders') || route.path.includes('abandoned-carts') || route.path.startsWith('/reports')
 })
 
 // Detectar si estamos en alguna ruta del catálogo
