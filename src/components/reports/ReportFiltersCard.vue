@@ -19,7 +19,7 @@
             dateFormat="dd/mm/yy"
             placeholder="Seleccionar fecha"
             :showIcon="true"
-            :maxDate="localFilters.date_to || new Date()"
+            :maxDate="localFilters.date_to || maxDateValue"
             class="w-full"
           />
         </div>
@@ -35,7 +35,7 @@
             placeholder="Seleccionar fecha"
             :showIcon="true"
             :minDate="localFilters.date_from"
-            :maxDate="new Date()"
+            :maxDate="maxDateValue"
             class="w-full"
           />
         </div>
@@ -129,6 +129,9 @@ const emit = defineEmits<Emits>()
 
 // Local state for v-model binding
 const localFilters = ref<ReportFilters>({ ...props.filters })
+
+// Max date is today
+const maxDateValue = ref(new Date())
 
 // Payment Status Options
 const paymentStatusOptions = [
