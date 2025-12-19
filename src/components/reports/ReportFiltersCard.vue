@@ -102,7 +102,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import Card from 'primevue/card'
 import Calendar from 'primevue/calendar'
 import Dropdown from 'primevue/dropdown'
@@ -120,6 +120,14 @@ interface Emits {
   (e: 'apply'): void
 }
 
+// Local filters type with Date objects instead of strings
+interface LocalFilters {
+  date_from?: Date
+  date_to?: Date
+  payment_status?: PaymentStatus
+  payment_gateway_id?: number
+}
+
 const props = withDefaults(defineProps<Props>(), {
   paymentGateways: () => [],
   loadingGateways: false
@@ -127,8 +135,13 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
-// Local state for v-model binding
-const localFilters = ref<ReportFilters>({ ...props.filters })
+// Local state for v-model binding (using Date objects for Calendar compatibility)
+const localFilters = ref<LocalFilters>({
+  date_from: undefined,
+  date_to: undefined,
+  payment_status: props.filters.payment_status || PaymentStatus.ALL,
+  payment_gateway_id: props.filters.payment_gateway_id || 0
+})
 
 // Max date is today
 const maxDateValue = ref(new Date())
@@ -165,10 +178,10 @@ const handleApplyFilters = () => {
   // Convert Date objects to ISO strings
   const filters: ReportFilters = {
     date_from: localFilters.value.date_from
-      ? formatDateToISO(localFilters.value.date_from as Date)
+      ? formatDateToISO(localFilters.value.date_from)
       : undefined,
     date_to: localFilters.value.date_to
-      ? formatDateToISO(localFilters.value.date_to as Date)
+      ? formatDateToISO(localFilters.value.date_to)
       : undefined,
     payment_status: localFilters.value.payment_status,
     payment_gateway_id: localFilters.value.payment_gateway_id
@@ -194,9 +207,4 @@ const formatDateToISO = (date: Date): string => {
   const day = String(date.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
 }
-
-// Watch for external filter changes
-watch(() => props.filters, (newFilters) => {
-  localFilters.value = { ...newFilters }
-}, { deep: true })
 </script>
