@@ -20,6 +20,12 @@ export interface ProductExternalCategories {
   mercadolibre?: ProductExternalCategory | null
 }
 
+export interface PriceRange {
+  min: number | null
+  max: number | null
+  has_range: boolean
+}
+
 export interface Product {
   id: number
   sku: string
@@ -29,6 +35,8 @@ export interface Product {
   description_html?: string
   price: number
   price_without_tax?: number // Precio sin IGV (8 decimales de precisión)
+  price_range?: PriceRange | null // Rango de precios para productos con variantes
+  has_variation_attributes?: boolean // Indica si el producto tiene variantes
   compare_price?: number
   cost?: number
   stock: number

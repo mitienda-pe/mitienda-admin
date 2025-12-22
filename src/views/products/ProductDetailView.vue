@@ -68,7 +68,7 @@
               <!-- Precio -->
               <div>
                 <div class="flex items-baseline gap-3">
-                  <span class="text-4xl font-bold text-primary">{{ formatCurrency(product.price) }}</span>
+                  <ProductPrice :product="product" size="xl" />
                   <span v-if="product.compare_price" class="text-xl text-secondary-400 line-through">
                     {{ formatCurrency(product.compare_price) }}
                   </span>
@@ -81,6 +81,9 @@
                   </p>
                   <p v-if="product.cost">
                     <span class="font-medium">Costo:</span> {{ formatCurrency(product.cost) }}
+                  </p>
+                  <p v-if="product.price_range?.has_range" class="text-xs text-secondary-400">
+                    Precio varía entre S/ {{ product.price_range.min?.toFixed(2) }} y S/ {{ product.price_range.max?.toFixed(2) }}
                   </p>
                 </div>
               </div>
@@ -429,6 +432,7 @@ import ProductDocumentUploader from '@/components/products/ProductDocumentUpload
 import ProductDocumentList from '@/components/products/ProductDocumentList.vue'
 import ProductDescriptionEditor from '@/components/products/ProductDescriptionEditor.vue'
 import ProductTagAssignment from '@/components/ProductTagAssignment.vue'
+import ProductPrice from '@/components/products/ProductPrice.vue'
 import type { ProductQuickEditData } from '@/components/products/ProductQuickEditDialog.vue'
 
 const route = useRoute()
