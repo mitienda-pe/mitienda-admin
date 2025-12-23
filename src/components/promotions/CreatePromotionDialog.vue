@@ -6,6 +6,7 @@ import Dropdown from 'primevue/dropdown'
 import Calendar from 'primevue/calendar'
 import Checkbox from 'primevue/checkbox'
 import Button from 'primevue/button'
+import { useToast } from 'primevue/usetoast'
 import { usePromotionsStore } from '@/stores/promotions.store'
 import type { CreatePromotionData } from '@/api/promotions.api'
 
@@ -22,6 +23,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const promotionsStore = usePromotionsStore()
+const toast = useToast()
 const isLoading = ref(false)
 const currentStep = ref(1)
 
@@ -194,7 +196,18 @@ async function handleSave() {
     emit('update:visible', false)
   } catch (error: any) {
     console.error('Error creating promotion:', error)
-    alert(error.response?.data?.message || 'Error al crear la promoción')
+    console.error('Error response:', error.response?.data)
+    console.error('Request payload:', formData.value)
+
+    const errorMessage = error.response?.data?.message || 'Error al crear la promoción'
+    const errorDetail = error.response?.data?.messages?.error || ''
+
+    toast.add({
+      severity: 'error',
+      summary: 'Error al crear promoción',
+      detail: errorDetail || errorMessage,
+      life: 5000
+    })
   } finally {
     isLoading.value = false
   }
