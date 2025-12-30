@@ -4,7 +4,9 @@ import type {
   ReportPreviewResponse,
   OrderReportRow,
   PaymentGateway,
-  ExportFormat
+  ExportFormat,
+  ProductSalesReportRow,
+  ProductSalesPreviewResponse
 } from '@/types/report.types'
 
 export const reportsApi = {
@@ -83,6 +85,69 @@ export const reportsApi = {
     }
 
     return response.data.data
+  },
+
+  /**
+   * Get preview of product sales report (first 100 rows)
+   */
+  async getProductSalesReportPreview(
+    filters: ReportFilters
+  ): Promise<ProductSalesPreviewResponse> {
+    const params = new URLSearchParams()
+
+    if (filters.date_from) params.append('date_from', filters.date_from)
+    if (filters.date_to) params.append('date_to', filters.date_to)
+    if (filters.payment_status !== undefined) {
+      params.append('payment_status', filters.payment_status.toString())
+    }
+    if (filters.payment_gateway_id !== undefined) {
+      params.append('payment_gateway_id', filters.payment_gateway_id.toString())
+    }
+
+    const response = await apiClient.get<{
+      success: boolean
+      data: ProductSalesReportRow[]
+      total_count: number
+      has_more: boolean
+      filters_applied: ReportFilters
+    }>(`/reports/product-sales/preview?${params.toString()}`)
+
+    if (!response.data.success) {
+      throw new Error('Failed to fetch product sales report preview')
+    }
+
+    return {
+      data: response.data.data,
+      total_count: response.data.total_count,
+      has_more: response.data.has_more,
+      filters_applied: response.data.filters_applied
+    }
+  },
+
+  /**
+   * Export product sales report to file (CSV or XLSX)
+   */
+  async exportProductSalesReport(
+    filters: ReportFilters,
+    format: ExportFormat = ExportFormat.CSV
+  ): Promise<Blob> {
+    const params = new URLSearchParams()
+
+    if (filters.date_from) params.append('date_from', filters.date_from)
+    if (filters.date_to) params.append('date_to', filters.date_to)
+    if (filters.payment_status !== undefined) {
+      params.append('payment_status', filters.payment_status.toString())
+    }
+    if (filters.payment_gateway_id !== undefined) {
+      params.append('payment_gateway_id', filters.payment_gateway_id.toString())
+    }
+    params.append('format', format)
+
+    const response = await apiClient.get(`/reports/product-sales/export?${params.toString()}`, {
+      responseType: 'blob'
+    })
+
+    return response.data
   },
 
   /**

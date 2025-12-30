@@ -137,6 +137,35 @@
               </ul>
             </li>
 
+            <!-- Grupo Reportes -->
+            <li>
+              <button
+                @click="reportsExpanded = !reportsExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isReportsActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-chart-bar"></i>
+                  <span>Reportes</span>
+                </div>
+                <i :class="reportsExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="reportsExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in reportsMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+
             <!-- Grupo Catálogo -->
             <li>
               <button
@@ -350,6 +379,36 @@
               </ul>
             </li>
 
+            <!-- Grupo Reportes -->
+            <li>
+              <button
+                @click="reportsExpanded = !reportsExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isReportsActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-chart-bar"></i>
+                  <span>Reportes</span>
+                </div>
+                <i :class="reportsExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="reportsExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in reportsMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                    @click="sidebarVisible = false"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+
             <!-- Grupo Catálogo -->
             <li>
               <button
@@ -533,6 +592,7 @@ const userMenu = ref()
 
 // Estados de expansión de los menús con refs
 const salesExpandedRef = ref(false)
+const reportsExpandedRef = ref(false)
 const catalogExpandedRef = ref(false)
 const marketingExpandedRef = ref(false)
 const billingExpandedRef = ref(false)
@@ -541,8 +601,13 @@ const configExpandedRef = ref(false)
 
 // Computar dinámicamente qué menú debe estar expandido según la ruta
 const salesExpanded = computed({
-  get: () => salesExpandedRef.value || route.path.startsWith('/orders') || route.path.includes('abandoned-carts') || route.path.startsWith('/reports'),
+  get: () => salesExpandedRef.value || route.path.startsWith('/orders') || route.path.includes('abandoned-carts'),
   set: (val) => { salesExpandedRef.value = val }
+})
+
+const reportsExpanded = computed({
+  get: () => reportsExpandedRef.value || route.path.startsWith('/reports'),
+  set: (val) => { reportsExpandedRef.value = val }
 })
 
 const catalogExpanded = computed({
@@ -579,8 +644,13 @@ const simpleMenuItems = [
 // Items del grupo Ventas
 const salesMenuItems = [
   { label: 'Pedidos', icon: 'pi pi-shopping-cart', to: '/orders' },
-  { label: 'Carritos Abandonados', icon: 'pi pi-shopping-bag', to: '/marketing/abandoned-carts' },
-  { label: 'Reportes', icon: 'pi pi-chart-bar', to: '/reports/orders' }
+  { label: 'Carritos Abandonados', icon: 'pi pi-shopping-bag', to: '/marketing/abandoned-carts' }
+]
+
+// Items del grupo Reportes
+const reportsMenuItems = [
+  { label: 'Pedidos', icon: 'pi pi-shopping-cart', to: '/reports/orders' },
+  { label: 'Ventas por Producto', icon: 'pi pi-box', to: '/reports/product-sales' }
 ]
 
 // Items del grupo Catálogo
@@ -617,7 +687,12 @@ const configMenuItems = [
 
 // Detectar si estamos en alguna ruta de ventas
 const isSalesActive = computed(() => {
-  return route.path.startsWith('/orders') || route.path.includes('abandoned-carts') || route.path.startsWith('/reports')
+  return route.path.startsWith('/orders') || route.path.includes('abandoned-carts')
+})
+
+// Detectar si estamos en alguna ruta de reportes
+const isReportsActive = computed(() => {
+  return route.path.startsWith('/reports')
 })
 
 // Detectar si estamos en alguna ruta del catálogo
