@@ -167,8 +167,8 @@ const subtotalAntesPromociones = computed(() => {
   return productosTotal + (order.value?.shipping_cost || 0)
 })
 
-// Descuento total de promociones a nivel de orden
-const descuentoPromocionesOrden = computed(() => {
+// Descuento total de promociones a nivel de orden (reservado para uso futuro)
+const _descuentoPromocionesOrden = computed(() => {
   return orderLevelPromotions.value.reduce((sum, promo) => sum + promo.discount_amount, 0)
 })
 

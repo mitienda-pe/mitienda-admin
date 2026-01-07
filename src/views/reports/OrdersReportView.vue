@@ -141,7 +141,7 @@
             <template #body="{ data }">
               <AppBadge
                 :label="data.shipping_status"
-                variant="secondary"
+                variant="neutral"
               />
             </template>
           </Column>
@@ -198,7 +198,7 @@ const hasAppliedFilters = ref(false)
 
 // Computed
 const hasPreviewData = computed(() => {
-  return previewData.value && previewData.value.data.length > 0
+  return !!(previewData.value && previewData.value.data.length > 0)
 })
 
 // Methods
@@ -291,13 +291,13 @@ const formatCurrency = (amount: number): string => {
   return amount.toFixed(2)
 }
 
-const getPaymentStatusVariant = (status: string): 'success' | 'warning' | 'danger' | 'secondary' => {
+const getPaymentStatusVariant = (status: string): 'success' | 'warning' | 'danger' | 'neutral' => {
   const statusLower = status.toLowerCase()
   if (statusLower.includes('aprobado') || statusLower.includes('approved')) return 'success'
   if (statusLower.includes('pendiente') || statusLower.includes('pending')) return 'warning'
   if (statusLower.includes('rechazado') || statusLower.includes('rejected')) return 'danger'
-  if (statusLower.includes('expirado') || statusLower.includes('expired')) return 'secondary'
-  return 'secondary'
+  if (statusLower.includes('expirado') || statusLower.includes('expired')) return 'neutral'
+  return 'neutral'
 }
 
 // Lifecycle

@@ -1,12 +1,12 @@
 import apiClient from './axios'
-import type {
-  ReportFilters,
-  ReportPreviewResponse,
-  OrderReportRow,
-  PaymentGateway,
+import {
   ExportFormat,
-  ProductSalesReportRow,
-  ProductSalesPreviewResponse
+  type ReportFilters,
+  type ReportPreviewResponse,
+  type OrderReportRow,
+  type PaymentGateway,
+  type ProductSalesReportRow,
+  type ProductSalesPreviewResponse
 } from '@/types/report.types'
 
 export const reportsApi = {
