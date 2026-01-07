@@ -135,15 +135,23 @@
                       </td>
                       <td class="whitespace-nowrap px-4 py-4 text-sm text-gray-500">{{ product.producto_sku }}</td>
                       <td v-if="Number(currentPromotion.promocion_id) === 7" class="px-4 py-4">
-                        <InputNumber
-                          v-model="product.productopromocion_cantidadproducto"
-                          :min="1"
-                          :maxFractionDigits="0"
-                          :useGrouping="false"
-                          @blur="validateAndUpdateProductQuantity(product)"
-                          inputClass="w-full text-center"
-                          class="w-20"
-                        />
+                        <div class="flex items-center gap-2">
+                          <InputNumber
+                            v-model="product.productopromocion_cantidadproducto"
+                            :min="1"
+                            :maxFractionDigits="0"
+                            :useGrouping="false"
+                            inputClass="w-full text-center"
+                            class="w-20"
+                          />
+                          <button
+                            @click="validateAndUpdateProductQuantity(product)"
+                            class="px-2 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                            title="Guardar cantidad"
+                          >
+                            ✓
+                          </button>
+                        </div>
                       </td>
                       <td class="px-4 py-4 text-center">
                         <button
@@ -382,6 +390,7 @@ const toast = useToast()
 const { currentPromotion, promotionProducts, bonificationProducts, isLoading, error } = storeToRefs(promotionsStore)
 
 // Store original quantities for comparison
+const originalProductQuantities = ref<Record<number, number>>({})
 const originalBonificationQuantities = ref<Record<string, number>>({})
 
 // Dialogs
@@ -511,12 +520,12 @@ async function handleBonificationsLinked() {
   })
 }
 
-// Validate and update product quantity (triggered on blur)
+// Validate and update product quantity (triggered by button click)
 async function validateAndUpdateProductQuantity(product: any) {
   if (!currentPromotion.value) return
 
   // Validación: cantidad no puede estar vacía o ser menor a 1
-  const quantity = product.productopromocion_cantidadproducto
+  const quantity = Number(product.productopromocion_cantidadproducto)
 
   if (!quantity || quantity < 1) {
     toast.add({
@@ -527,12 +536,13 @@ async function validateAndUpdateProductQuantity(product: any) {
     })
     // Restaurar valor original
     await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
+    ensureQuantitiesAreSet()
     return
   }
 
-  // Check si la cantidad cambió realmente
-  const originalProduct = promotionProducts.value.find(p => p.producto_id === product.producto_id)
-  if (originalProduct && originalProduct.productopromocion_cantidadproducto === quantity) {
+  // Check si la cantidad cambió comparando con el valor original guardado
+  const originalQuantity = originalProductQuantities.value[product.producto_id]
+  if (originalQuantity === quantity) {
     return // No cambió, no hacer nada
   }
 
@@ -548,8 +558,12 @@ async function validateAndUpdateProductQuantity(product: any) {
       life: 2000
     })
 
+    // Actualizar el valor original guardado
+    originalProductQuantities.value[product.producto_id] = quantity
+
     // Refrescar para obtener datos actualizados
     await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
+    ensureQuantitiesAreSet()
   } catch (error: any) {
     console.error('Error updating product quantity:', error)
     toast.add({
@@ -560,6 +574,7 @@ async function validateAndUpdateProductQuantity(product: any) {
     })
     // Reload to revert the change
     await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
+    ensureQuantitiesAreSet()
   }
 }
 
@@ -678,9 +693,14 @@ async function unlinkBonification(productId: number, attributeId: number | undef
 // Ensure quantities are set correctly when loading products
 function ensureQuantitiesAreSet() {
   // Ensure product quantities are at least 1 and convert to number
+  // AND save original values for comparison
+  originalProductQuantities.value = {}
   promotionProducts.value.forEach(product => {
     const cantidad = Number(product.productopromocion_cantidadproducto)
     product.productopromocion_cantidadproducto = cantidad && cantidad >= 1 ? cantidad : 1
+
+    // Save original value
+    originalProductQuantities.value[product.producto_id] = product.productopromocion_cantidadproducto
   })
 
   // Ensure bonification quantities are at least 1 and convert to number
