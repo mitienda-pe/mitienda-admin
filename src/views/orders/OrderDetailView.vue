@@ -22,6 +22,9 @@ const { formatCurrency, formatDate, formatTime, formatDateTime } = useFormatters
 const orderId = Number(route.params.id)
 const showEmitDialog = ref(false)
 const isSendingEmail = ref(false)
+const isDebugLoading = ref(false)
+const debugPaymentData = ref<any>(null)
+const debugPaymentError = ref<string | null>(null)
 
 onMounted(async () => {
   console.log('🔍 [OrderDetailView] Cargando orden:', orderId)
@@ -385,6 +388,35 @@ const billingDocumentNumber = computed(() => {
   const { serie, correlative } = order.value.billing_document
   return `${serie}-${correlative}`
 })
+
+const handleDebugPayments = async () => {
+  if (!order.value) return
+
+  try {
+    isDebugLoading.value = true
+    debugPaymentError.value = null
+    debugPaymentData.value = null
+
+    const response = await fetch(`https://api2.mitienda.pe/debug/order-payments/${orderId}`)
+    const data = await response.json()
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Error al consultar pagos')
+    }
+
+    debugPaymentData.value = data
+  } catch (error: any) {
+    debugPaymentError.value = error.message || 'Error desconocido'
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error.message || 'No se pudo consultar el estado de pagos',
+      life: 5000
+    })
+  } finally {
+    isDebugLoading.value = false
+  }
+}
 </script>
 
 <template>
@@ -1091,6 +1123,79 @@ const billingDocumentNumber = computed(() => {
                   <div class="mt-3">
                     <p class="text-sm text-gray-500 mb-2">Respuesta de NetSuite</p>
                     <pre class="text-xs bg-gray-50 border border-gray-200 rounded p-3 overflow-auto max-h-96">{{ JSON.stringify(erpSyncData || order.tiendaventa_mensaje_notif_erp, null, 2) }}</pre>
+                  </div>
+
+                  <!-- Debug Payment Status -->
+                  <div class="mt-4 pt-4 border-t border-gray-200">
+                    <div class="flex items-center justify-between mb-3">
+                      <p class="text-sm text-gray-500">Verificar estado de pagos en NetSuite</p>
+                      <Button
+                        label="Consultar Pagos"
+                        icon="pi pi-search"
+                        severity="secondary"
+                        size="small"
+                        :loading="isDebugLoading"
+                        @click="handleDebugPayments"
+                      />
+                    </div>
+
+                    <!-- Debug Results -->
+                    <div v-if="debugPaymentData" class="space-y-3">
+                      <!-- Payment Status Summary -->
+                      <div
+                        class="p-3 rounded-lg border"
+                        :class="debugPaymentData.netsuite?.amount_remaining === 0
+                          ? 'bg-green-50 border-green-200'
+                          : 'bg-yellow-50 border-yellow-200'"
+                      >
+                        <div class="flex items-center gap-2 mb-2">
+                          <i
+                            :class="[
+                              'pi',
+                              debugPaymentData.netsuite?.amount_remaining === 0
+                                ? 'pi-check-circle text-green-600'
+                                : 'pi-exclamation-circle text-yellow-600'
+                            ]"
+                          ></i>
+                          <span class="font-semibold text-sm">
+                            {{ debugPaymentData.netsuite?.amount_remaining === 0 ? 'Pagado completamente' : 'Pago pendiente' }}
+                          </span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <p class="text-gray-500 text-xs">Total Invoice</p>
+                            <p class="font-mono font-semibold">{{ formatCurrency(debugPaymentData.netsuite?.total || 0) }}</p>
+                          </div>
+                          <div>
+                            <p class="text-gray-500 text-xs">Pagado</p>
+                            <p class="font-mono font-semibold text-green-700">{{ formatCurrency(debugPaymentData.netsuite?.amount_paid || 0) }}</p>
+                          </div>
+                          <div>
+                            <p class="text-gray-500 text-xs">Pendiente</p>
+                            <p
+                              class="font-mono font-semibold"
+                              :class="debugPaymentData.netsuite?.amount_remaining > 0 ? 'text-red-600' : 'text-gray-500'"
+                            >
+                              {{ formatCurrency(debugPaymentData.netsuite?.amount_remaining || 0) }}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Full Debug Response -->
+                      <details class="text-sm">
+                        <summary class="text-gray-500 cursor-pointer hover:text-gray-700 flex items-center gap-2">
+                          <i class="pi pi-code text-xs"></i>
+                          Ver respuesta completa
+                        </summary>
+                        <pre class="mt-2 text-xs bg-gray-50 border border-gray-200 rounded p-3 overflow-auto max-h-64">{{ JSON.stringify(debugPaymentData, null, 2) }}</pre>
+                      </details>
+                    </div>
+
+                    <!-- Debug Error -->
+                    <div v-if="debugPaymentError" class="p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <p class="text-sm text-red-800">{{ debugPaymentError }}</p>
+                    </div>
                   </div>
                 </div>
               </template>
