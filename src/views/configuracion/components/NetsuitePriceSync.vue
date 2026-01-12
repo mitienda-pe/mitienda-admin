@@ -109,7 +109,7 @@
       <template #content>
         <div class="space-y-4">
           <!-- Resumen -->
-          <div class="grid grid-cols-3 gap-4 text-center">
+          <div class="grid grid-cols-4 gap-4 text-center">
             <div class="p-4 bg-blue-50 rounded-lg">
               <p class="text-sm text-blue-700 font-medium">Revisados</p>
               <p class="text-2xl font-bold text-blue-900 mt-1">
@@ -120,6 +120,12 @@
               <p class="text-sm text-green-700 font-medium">Actualizados</p>
               <p class="text-2xl font-bold text-green-900 mt-1">
                 {{ lastSyncResult.updated_count || 0 }}
+              </p>
+            </div>
+            <div class="p-4 bg-gray-50 rounded-lg">
+              <p class="text-sm text-gray-700 font-medium">Sin Cambio</p>
+              <p class="text-2xl font-bold text-gray-900 mt-1">
+                {{ (lastSyncResult.total_products_checked || 0) - (lastSyncResult.total_changes || 0) }}
               </p>
             </div>
             <div class="p-4 bg-orange-50 rounded-lg">
@@ -150,9 +156,9 @@
                   <span class="font-mono text-sm">S/ {{ slotProps.data.old_price.toFixed(2) }}</span>
                 </template>
               </Column>
-              <Column field="new_price" header="Precio Nuevo" style="width: 15%">
+              <Column field="new_price_with_igv" header="Precio Nuevo" style="width: 15%">
                 <template #body="slotProps">
-                  <span class="font-mono text-sm font-semibold">S/ {{ slotProps.data.new_price.toFixed(2) }}</span>
+                  <span class="font-mono text-sm font-semibold">S/ {{ (slotProps.data.new_price_with_igv || slotProps.data.new_price || 0).toFixed(2) }}</span>
                 </template>
               </Column>
               <Column field="price_change_percent" header="Cambio" style="width: 15%">
@@ -225,10 +231,10 @@
               <span class="font-mono text-sm">S/ {{ slotProps.data.old_price.toFixed(2) }}</span>
             </template>
           </Column>
-          <Column field="new_price" header="Precio Nuevo" style="width: 15%">
+          <Column field="new_price_with_igv" header="Precio Nuevo" style="width: 15%">
             <template #body="slotProps">
               <span class="font-mono text-sm font-semibold text-green-700">
-                S/ {{ slotProps.data.new_price.toFixed(2) }}
+                S/ {{ (slotProps.data.new_price_with_igv || slotProps.data.new_price || 0).toFixed(2) }}
               </span>
             </template>
           </Column>
@@ -249,6 +255,115 @@
         <p class="mt-4 text-secondary-600">Consultando precios en NetSuite...</p>
       </div>
     </Dialog>
+
+    <!-- Sección de Promociones -->
+    <Divider />
+
+    <Message severity="info" :closable="false">
+      <div class="flex items-start gap-3">
+        <i class="pi pi-gift text-xl mt-1"></i>
+        <div class="flex-1">
+          <p class="font-semibold mb-2">Sincronización de Promociones desde NetSuite</p>
+          <p class="text-sm">
+            Sincroniza promociones tipo FREEGIFT (bonificaciones), PERCENTOFF y AMOUNTOFF (descuentos) desde NetSuite.
+            Las promociones se crean o actualizan automáticamente en MiTienda.
+          </p>
+        </div>
+      </div>
+    </Message>
+
+    <!-- Acciones de sincronización de promociones -->
+    <Card>
+      <template #title>
+        <span class="text-lg">Sincronizar Promociones</span>
+      </template>
+      <template #content>
+        <div class="space-y-4">
+          <Button
+            label="Sincronizar Promociones Ahora"
+            icon="pi pi-gift"
+            severity="info"
+            :loading="syncingPromotions"
+            @click="syncPromotions"
+            class="w-full"
+          />
+          <p class="text-sm text-secondary-600">
+            <i class="pi pi-clock mr-1"></i>
+            Cron programado: Todos los días a las 3:00 AM
+          </p>
+        </div>
+      </template>
+    </Card>
+
+    <!-- Resultados de sincronización de promociones -->
+    <Card v-if="lastPromotionSyncResult">
+      <template #title>
+        <div class="flex items-center gap-2">
+          <i :class="['pi', lastPromotionSyncResult.success ? 'pi-check-circle text-green-600' : 'pi-times-circle text-red-600']"></i>
+          <span class="text-lg">Resultado de Promociones</span>
+        </div>
+      </template>
+      <template #content>
+        <div class="space-y-4">
+          <!-- Resumen -->
+          <div class="grid grid-cols-4 gap-4 text-center">
+            <div class="p-4 bg-green-50 rounded-lg">
+              <p class="text-sm text-green-700 font-medium">Creadas</p>
+              <p class="text-2xl font-bold text-green-900 mt-1">
+                {{ lastPromotionSyncResult.promotions_created || 0 }}
+              </p>
+            </div>
+            <div class="p-4 bg-blue-50 rounded-lg">
+              <p class="text-sm text-blue-700 font-medium">Actualizadas</p>
+              <p class="text-2xl font-bold text-blue-900 mt-1">
+                {{ lastPromotionSyncResult.promotions_updated || 0 }}
+              </p>
+            </div>
+            <div class="p-4 bg-gray-50 rounded-lg">
+              <p class="text-sm text-gray-700 font-medium">Omitidas</p>
+              <p class="text-2xl font-bold text-gray-900 mt-1">
+                {{ lastPromotionSyncResult.promotions_skipped || 0 }}
+              </p>
+            </div>
+            <div class="p-4 bg-purple-50 rounded-lg">
+              <p class="text-sm text-purple-700 font-medium">Productos Vinculados</p>
+              <p class="text-2xl font-bold text-purple-900 mt-1">
+                {{ (lastPromotionSyncResult.activators_linked || 0) + (lastPromotionSyncResult.bonifications_linked || 0) }}
+              </p>
+            </div>
+          </div>
+
+          <!-- SKUs no encontrados -->
+          <div v-if="lastPromotionSyncResult.skus_not_found && lastPromotionSyncResult.skus_not_found.length > 0">
+            <Divider />
+            <Message severity="warn" :closable="false">
+              <p class="font-semibold mb-2">SKUs no encontrados en MiTienda ({{ lastPromotionSyncResult.skus_not_found.length }}):</p>
+              <ul class="list-disc list-inside space-y-1 text-sm">
+                <li v-for="(sku, index) in lastPromotionSyncResult.skus_not_found.slice(0, 5)" :key="index">
+                  {{ sku }}
+                </li>
+              </ul>
+              <p v-if="lastPromotionSyncResult.skus_not_found.length > 5" class="text-sm mt-2">
+                ... y {{ lastPromotionSyncResult.skus_not_found.length - 5 }} SKUs más
+              </p>
+            </Message>
+          </div>
+
+          <!-- Errores -->
+          <div v-if="lastPromotionSyncResult.errors && lastPromotionSyncResult.errors.length > 0">
+            <Divider />
+            <Message severity="error" :closable="false">
+              <p class="font-semibold mb-2">Errores encontrados ({{ lastPromotionSyncResult.errors.length }}):</p>
+              <ul class="list-disc list-inside space-y-1 text-sm">
+                <li v-for="(error, index) in lastPromotionSyncResult.errors.slice(0, 5)" :key="index">
+                  {{ error }}
+                </li>
+              </ul>
+            </Message>
+          </div>
+        </div>
+      </template>
+    </Card>
   </div>
 </template>
 
@@ -266,10 +381,12 @@ interface SyncStatus {
 interface SyncResult {
   success: boolean
   total_products_checked: number
+  total_changes: number
   updated_count: number
   skipped_count: number
   changes: any[]
   errors: any[]
+  warnings: any[]
   execution_time: number
 }
 
@@ -287,7 +404,7 @@ const props = defineProps({
 
 const toast = useToast()
 
-// Estado
+// Estado - Precios
 const syncing = ref(false)
 const previewing = ref(false)
 const loadingStatus = ref(false)
@@ -295,6 +412,10 @@ const syncStatus = ref<SyncStatus | null>(null)
 const lastSyncResult = ref<SyncResult | null>(null)
 const previewDialog = ref(false)
 const previewData = ref<PreviewData | null>(null)
+
+// Estado - Promociones
+const syncingPromotions = ref(false)
+const lastPromotionSyncResult = ref<any | null>(null)
 
 // Métodos
 const formatDate = (dateString: string | null): string => {
@@ -335,7 +456,7 @@ const previewChanges = async () => {
   previewData.value = null
 
   try {
-    const response = await axios.get(`/test/netsuite/map-prices?tienda_id=${props.tiendaId}`)
+    const response = await axios.get(`/api/v1/netsuite-prices/map?tienda_id=${props.tiendaId}`)
 
     if (response.data.success) {
       previewData.value = {
@@ -382,7 +503,10 @@ const syncPrices = async () => {
       life: 3000
     })
 
-    const response = await axios.get(`/test/netsuite/sync-prices?tienda_id=${props.tiendaId}`, {
+    const response = await axios.post(`/api/v1/netsuite-prices/sync`, {
+      tienda_id: props.tiendaId,
+      dry_run: false
+    }, {
       timeout: 300000 // 5 minutos
     })
 
@@ -419,6 +543,73 @@ const syncPrices = async () => {
     })
   } finally {
     syncing.value = false
+  }
+}
+
+// Sincronización de promociones
+const syncPromotions = async () => {
+  const confirmSync = await new Promise((resolve) => {
+    const confirmed = window.confirm(
+      '¿Está seguro que desea sincronizar las promociones desde NetSuite?\n\n' +
+      'Esta acción creará o actualizará promociones en MiTienda.\n' +
+      'El proceso puede tardar varios minutos.'
+    )
+    resolve(confirmed)
+  })
+
+  if (!confirmSync) return
+
+  syncingPromotions.value = true
+  lastPromotionSyncResult.value = null
+
+  try {
+    toast.add({
+      severity: 'info',
+      summary: 'Sincronización Iniciada',
+      detail: 'Actualizando promociones desde NetSuite...',
+      life: 3000
+    })
+
+    const response = await axios.post(`/api/v1/netsuite-prices/sync-promotions`, {
+      tienda_id: props.tiendaId,
+      dry_run: false
+    }, {
+      timeout: 300000 // 5 minutos
+    })
+
+    if (response.data.success) {
+      lastPromotionSyncResult.value = response.data.result
+
+      const created = response.data.result.promotions_created || 0
+      const updated = response.data.result.promotions_updated || 0
+
+      toast.add({
+        severity: 'success',
+        summary: 'Sincronización Exitosa',
+        detail: `Se crearon ${created} y actualizaron ${updated} promociones`,
+        life: 5000
+      })
+    } else {
+      throw new Error(response.data.error || 'Error en la sincronización')
+    }
+  } catch (error: any) {
+    console.error('Error syncing promotions:', error)
+
+    let errorMessage = 'No se pudo completar la sincronización de promociones'
+    if (error.code === 'ECONNABORTED') {
+      errorMessage = 'La sincronización está tardando más de lo esperado. El proceso puede seguir ejecutándose en segundo plano.'
+    } else if (error.response?.data?.error) {
+      errorMessage = error.response.data.error
+    }
+
+    toast.add({
+      severity: 'error',
+      summary: 'Error en Sincronización',
+      detail: errorMessage,
+      life: 8000
+    })
+  } finally {
+    syncingPromotions.value = false
   }
 }
 
