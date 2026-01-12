@@ -370,7 +370,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
-import axios from 'axios'
+import apiClient from '@/api/axios'
 
 // PrimeVue components
 import Button from 'primevue/button'
@@ -467,7 +467,7 @@ const previewChanges = async () => {
   previewData.value = null
 
   try {
-    const response = await axios.get(`/api/v1/netsuite-prices/map?tienda_id=${props.tiendaId}`)
+    const response = await apiClient.get(`/netsuite-prices/map?tienda_id=${props.tiendaId}`)
 
     if (response.data.success) {
       previewData.value = {
@@ -514,7 +514,7 @@ const syncPrices = async () => {
       life: 3000
     })
 
-    const response = await axios.post(`/api/v1/netsuite-prices/sync`, {
+    const response = await apiClient.post(`/netsuite-prices/sync`, {
       tienda_id: props.tiendaId,
       dry_run: false
     }, {
@@ -581,7 +581,7 @@ const syncPromotions = async () => {
       life: 3000
     })
 
-    const response = await axios.post(`/api/v1/netsuite-prices/sync-promotions`, {
+    const response = await apiClient.post(`/netsuite-prices/sync-promotions`, {
       tienda_id: props.tiendaId,
       dry_run: false
     }, {
