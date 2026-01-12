@@ -372,6 +372,17 @@ import { ref, onMounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import axios from 'axios'
 
+// PrimeVue components
+import Button from 'primevue/button'
+import Card from 'primevue/card'
+import Message from 'primevue/message'
+import Divider from 'primevue/divider'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import Tag from 'primevue/tag'
+import Dialog from 'primevue/dialog'
+import ProgressSpinner from 'primevue/progressspinner'
+
 interface SyncStatus {
   last_sync: string | null
   last_updated_count: number
