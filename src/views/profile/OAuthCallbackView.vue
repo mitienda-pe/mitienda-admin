@@ -50,12 +50,23 @@ onMounted(async () => {
     if (result.success) {
       // Si estamos vinculando una cuenta existente
       await profileStore.fetchProfile()
-      toast.add({
-        severity: 'success',
-        summary: 'Cuenta vinculada',
-        detail: `Tu cuenta de ${provider === 'google' ? 'Google' : 'Facebook'} ha sido vinculada`,
-        life: 3000
-      })
+
+      // Check if there was a warning (e.g., account already linked to another user)
+      if (result.data?.warning) {
+        toast.add({
+          severity: 'warn',
+          summary: 'Cuenta no vinculada',
+          detail: result.data.warning,
+          life: 8000
+        })
+      } else {
+        toast.add({
+          severity: 'success',
+          summary: 'Cuenta vinculada',
+          detail: `Tu cuenta de ${provider === 'google' ? 'Google' : 'Facebook'} ha sido vinculada`,
+          life: 3000
+        })
+      }
     } else {
       error.value = result.message || 'Error al procesar la autenticación'
     }

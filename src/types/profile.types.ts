@@ -108,4 +108,5 @@ export interface SocialLoginResponse {
   user: UserProfile
   store_id?: number
   isNewUser?: boolean
+  warning?: string // Warning message when social account couldn't be linked
 }
