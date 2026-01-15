@@ -73,8 +73,7 @@
                 <div>
                   <dt class="text-sm font-medium text-gray-500">Descuento</dt>
                   <dd class="mt-1 text-sm text-gray-900">
-                    {{ currentPromotion.tiendapromocion_valor }}
-                    {{ currentPromotion.tiendapromocion_tipodescuento === 1 ? '%' : 'S/' }}
+                    {{ formatDiscount(currentPromotion.tiendapromocion_valor, currentPromotion.tiendapromocion_tipodescuento) }}
                   </dd>
                 </div>
                 <div>
@@ -469,6 +468,23 @@ function formatDate(dateString: string) {
   if (!dateString) return '-'
   const date = new Date(dateString)
   return date.toLocaleDateString('es-PE', { year: 'numeric', month: 'long', day: 'numeric' })
+}
+
+// Format discount value with correct symbol
+// tipodescuento: 1 = porcentaje (%), 2 = monto fijo (S/)
+// Default is percentage if not specified
+function formatDiscount(valor: number | string | null | undefined, tipodescuento: number | string | null | undefined): string {
+  if (valor === null || valor === undefined || valor === '') return '-'
+
+  const numericValue = typeof valor === 'string' ? parseFloat(valor) : valor
+  // Default to percentage (1) if tipodescuento is not set or is falsy
+  const isPercentage = !tipodescuento || tipodescuento == 1
+
+  if (isPercentage) {
+    return `${numericValue}%`
+  } else {
+    return `S/ ${numericValue.toFixed(2)}`
+  }
 }
 
 // Open edit dialog

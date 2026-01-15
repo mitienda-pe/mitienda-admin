@@ -218,6 +218,52 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/payment-gateways',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: '',
+        name: 'PaymentGateways',
+        component: () => import('@/views/payment-gateways/ProvidersListView.vue')
+      },
+      {
+        path: ':code',
+        name: 'PaymentGatewayConfig',
+        component: () => import('@/views/payment-gateways/ProviderConfigView.vue')
+      }
+    ]
+  },
+  {
+    path: '/shipping',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: 'rates',
+        name: 'ShippingRates',
+        component: () => import('@/views/shipping/ShippingRatesView.vue')
+      }
+    ]
+  },
+  {
+    path: '/profile',
+    component: DashboardLayout,
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        name: 'Profile',
+        component: () => import('@/views/profile/ProfileView.vue')
+      },
+      {
+        path: 'oauth/callback',
+        name: 'OAuthCallback',
+        component: () => import('@/views/profile/OAuthCallbackView.vue')
+      }
+    ]
+  },
+  {
     path: '/api',
     component: DashboardLayout,
     meta: { requiresAuth: true, requiresStore: true },

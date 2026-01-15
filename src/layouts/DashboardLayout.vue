@@ -253,6 +253,47 @@
               </ul>
             </li>
 
+            <!-- Grupo Formas de Pago -->
+            <li>
+              <button
+                @click="paymentGatewaysExpanded = !paymentGatewaysExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isPaymentGatewaysActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-credit-card"></i>
+                  <span>Formas de Pago</span>
+                </div>
+                <i :class="paymentGatewaysExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="paymentGatewaysExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in paymentGatewaysMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Tarifas de Envío -->
+            <li>
+              <router-link
+                to="/shipping/rates"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                active-class="bg-primary-50 text-primary font-medium"
+              >
+                <i class="pi pi-truck"></i>
+                <span>Tarifas de Envío</span>
+              </router-link>
+            </li>
+
             <!-- Grupo: API -->
             <li>
               <button
@@ -499,6 +540,49 @@
               </ul>
             </li>
 
+            <!-- Grupo Formas de Pago (móvil) -->
+            <li>
+              <button
+                @click="paymentGatewaysExpanded = !paymentGatewaysExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isPaymentGatewaysActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-credit-card"></i>
+                  <span>Formas de Pago</span>
+                </div>
+                <i :class="paymentGatewaysExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="paymentGatewaysExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in paymentGatewaysMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                    @click="sidebarVisible = false"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Tarifas de Envío (móvil) -->
+            <li>
+              <router-link
+                to="/shipping/rates"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                active-class="bg-primary-50 text-primary font-medium"
+                @click="sidebarVisible = false"
+              >
+                <i class="pi pi-truck"></i>
+                <span>Tarifas de Envío</span>
+              </router-link>
+            </li>
+
             <!-- Grupo API -->
             <li>
               <button
@@ -596,6 +680,7 @@ const reportsExpandedRef = ref(false)
 const catalogExpandedRef = ref(false)
 const marketingExpandedRef = ref(false)
 const billingExpandedRef = ref(false)
+const paymentGatewaysExpandedRef = ref(false)
 const apiExpandedRef = ref(false)
 const configExpandedRef = ref(false)
 
@@ -623,6 +708,11 @@ const marketingExpanded = computed({
 const billingExpanded = computed({
   get: () => billingExpandedRef.value || route.path.startsWith('/billing'),
   set: (val) => { billingExpandedRef.value = val }
+})
+
+const paymentGatewaysExpanded = computed({
+  get: () => paymentGatewaysExpandedRef.value || route.path.startsWith('/payment-gateways'),
+  set: (val) => { paymentGatewaysExpandedRef.value = val }
 })
 
 const apiExpanded = computed({
@@ -673,6 +763,11 @@ const billingMenuItems = [
   { label: 'Documentos', icon: 'pi pi-file', to: '/billing/documents' }
 ]
 
+// Items del grupo Formas de Pago
+const paymentGatewaysMenuItems = [
+  { label: 'Pasarelas', icon: 'pi pi-credit-card', to: '/payment-gateways' }
+]
+
 // Items del grupo API
 const apiMenuItems = [
   { label: 'Credenciales', icon: 'pi pi-key', to: '/api/credentials' },
@@ -710,6 +805,11 @@ const isBillingActive = computed(() => {
   return route.path.startsWith('/billing')
 })
 
+// Detectar si estamos en alguna ruta de formas de pago
+const isPaymentGatewaysActive = computed(() => {
+  return route.path.startsWith('/payment-gateways')
+})
+
 // Detectar si estamos en alguna ruta de API
 const isApiActive = computed(() => {
   return route.path.startsWith('/api')
@@ -730,7 +830,7 @@ const userMenuItems = ref([
     label: 'Mi Perfil',
     icon: 'pi pi-user',
     command: () => {
-      // TODO: Implementar vista de perfil
+      router.push('/profile')
     }
   },
   {

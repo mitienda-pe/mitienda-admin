@@ -151,10 +151,7 @@ body {
   border-color: var(--primary-500);
 }
 
-/* PrimeVue Dropdown spacing */
-.p-dropdown {
-  padding: 0.75rem 1rem;
-}
+/* PrimeVue Dropdown spacing - obsoleto, redefinido más abajo */
 
 .p-dropdown-panel .p-dropdown-items {
   padding: 0.5rem;
@@ -284,22 +281,72 @@ body {
   color: #ffffff !important;
 }
 
-/* Calendar/DatePicker - mejorar visibilidad */
-.p-calendar .p-inputtext {
+/* Calendar/DatePicker - unificar con Dropdown */
+.p-calendar {
+  display: inline-flex;
+  align-items: center;
   border: 1px solid #d1d5db;
-  background-color: #ffffff;
   border-radius: 0.375rem;
+  background: #ffffff;
+  transition: all 0.2s;
 }
 
-.p-calendar .p-inputtext:enabled:hover {
+.p-calendar:not(.p-disabled):hover {
   border-color: #9ca3af;
 }
 
-.p-calendar .p-inputtext:enabled:focus {
+.p-calendar:not(.p-disabled).p-focus,
+.p-calendar:has(.p-inputtext:focus) {
   outline: 0 none;
-  outline-offset: 0;
   box-shadow: 0 0 0 3px rgba(0, 178, 166, 0.2);
   border-color: var(--primary-500);
+}
+
+.p-calendar .p-inputtext {
+  border: none !important;
+  background: transparent !important;
+  padding: 0.75rem 1rem;
+  flex: 1;
+  border-radius: 0.375rem 0 0 0.375rem;
+  box-shadow: none !important;
+}
+
+.p-calendar .p-inputtext:enabled:hover,
+.p-calendar .p-inputtext:enabled:focus {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Botón del calendario con mismo estilo que dropdown trigger */
+.p-calendar .p-datepicker-trigger,
+.p-calendar .p-calendar-button {
+  padding: 0 1rem;
+  background: #f3f4f6;
+  color: #6b7280;
+  border: none;
+  border-left: 1px solid #d1d5db;
+  border-radius: 0 0.375rem 0.375rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  min-width: 2.75rem;
+}
+
+.p-calendar .p-datepicker-trigger:hover,
+.p-calendar .p-calendar-button:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* Calendar con icono pero sin botón (showIcon pero no showOnFocus) */
+.p-calendar.p-calendar-w-btn {
+  width: 100%;
+}
+
+.p-calendar.p-calendar-w-btn .p-inputtext {
+  border-radius: 0.375rem 0 0 0.375rem;
 }
 
 /* PrimeVue Tag - mejorar padding y visualización */
@@ -332,4 +379,296 @@ body {
 
 .p-tabview .p-tabview-nav li .p-tabview-nav-link .p-tag {
   margin-left: 0.5rem;
+}
+
+/* ============================================
+   InputGroup - Unificar estilos de inputs agrupados
+   ============================================ */
+
+/* Base InputGroup */
+.p-inputgroup {
+  display: flex;
+  align-items: stretch;
+}
+
+/* InputGroupAddon - quitar border-radius interno */
+.p-inputgroup > .p-inputgroupaddon,
+.p-inputgroup > .p-inputgroup-addon {
+  padding: 0.75rem 1rem;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  color: #6b7280;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Addon a la izquierda: quitar border-radius derecho */
+.p-inputgroup > .p-inputgroupaddon:first-child,
+.p-inputgroup > .p-inputgroup-addon:first-child {
+  border-radius: 0.375rem 0 0 0.375rem;
+  border-right: none;
+}
+
+/* Addon a la derecha: quitar border-radius izquierdo */
+.p-inputgroup > .p-inputgroupaddon:last-child,
+.p-inputgroup > .p-inputgroup-addon:last-child {
+  border-radius: 0 0.375rem 0.375rem 0;
+  border-left: none;
+}
+
+/* InputNumber dentro de InputGroup */
+.p-inputgroup > .p-inputnumber {
+  flex: 1;
+}
+
+.p-inputgroup > .p-inputnumber .p-inputtext {
+  border-radius: 0;
+}
+
+/* InputNumber con addon a la izquierda */
+.p-inputgroup > .p-inputgroupaddon:first-child + .p-inputnumber .p-inputtext,
+.p-inputgroup > .p-inputgroup-addon:first-child + .p-inputnumber .p-inputtext {
+  border-radius: 0 0.375rem 0.375rem 0;
+}
+
+/* InputNumber con addon a la derecha */
+.p-inputgroup > .p-inputnumber:first-child .p-inputtext {
+  border-radius: 0.375rem 0 0 0.375rem;
+  border-right: none;
+}
+
+/* InputText dentro de InputGroup */
+.p-inputgroup > .p-inputtext {
+  flex: 1;
+  border-radius: 0;
+}
+
+.p-inputgroup > .p-inputgroupaddon:first-child + .p-inputtext,
+.p-inputgroup > .p-inputgroup-addon:first-child + .p-inputtext {
+  border-radius: 0 0.375rem 0.375rem 0;
+}
+
+.p-inputgroup > .p-inputtext:first-child {
+  border-radius: 0.375rem 0 0 0.375rem;
+}
+
+/* ============================================
+   Dropdown - Fix padding y estilos
+   ============================================ */
+
+/* Dropdown base */
+.p-dropdown {
+  padding: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  background: #ffffff;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.p-dropdown:not(.p-disabled):hover {
+  border-color: #9ca3af;
+}
+
+.p-dropdown:not(.p-disabled).p-focus {
+  outline: 0 none;
+  box-shadow: 0 0 0 3px rgba(0, 178, 166, 0.2);
+  border-color: var(--primary-500);
+}
+
+.p-dropdown .p-dropdown-label {
+  padding: 0.75rem 1rem;
+  flex: 1;
+  color: #374151;
+  border-radius: 0.375rem 0 0 0.375rem;
+}
+
+.p-dropdown .p-dropdown-label.p-placeholder {
+  color: #9ca3af;
+}
+
+.p-dropdown .p-dropdown-trigger {
+  padding: 0 1rem;
+  background: #f3f4f6;
+  color: #6b7280;
+  border-left: 1px solid #d1d5db;
+  border-radius: 0 0.375rem 0.375rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+}
+
+.p-dropdown .p-dropdown-clear-icon {
+  color: #9ca3af;
+  margin-right: 0.25rem;
+}
+
+/* ============================================
+   SelectButton - Alinear con otros inputs
+   ============================================ */
+
+.p-selectbutton {
+  display: inline-flex;
+}
+
+.p-selectbutton .p-button {
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #374151;
+  font-weight: 500;
+}
+
+.p-selectbutton .p-button:first-child {
+  border-radius: 0.375rem 0 0 0.375rem;
+}
+
+.p-selectbutton .p-button:last-child {
+  border-radius: 0 0.375rem 0.375rem 0;
+}
+
+.p-selectbutton .p-button:not(:first-child) {
+  border-left: none;
+}
+
+.p-selectbutton .p-button:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.p-selectbutton .p-button.p-highlight {
+  background: var(--primary-500);
+  border-color: var(--primary-500);
+  color: #ffffff;
+}
+
+.p-selectbutton .p-button.p-highlight:hover {
+  background: var(--primary-600);
+  border-color: var(--primary-600);
+}
+
+/* ============================================
+   InputNumber + SelectButton combo (tiempo de entrega)
+   ============================================ */
+
+/* Cuando InputNumber y SelectButton están juntos con flex gap-2 */
+.flex.gap-2 > .p-inputnumber + .p-selectbutton .p-button:first-child,
+.flex.gap-2 > .p-inputnumber ~ .p-selectbutton .p-button:first-child {
+  border-radius: 0.375rem 0 0 0.375rem;
+}
+
+/* ============================================
+   Dropdown dentro de InputGroup
+   ============================================ */
+
+.p-inputgroup > .p-dropdown {
+  flex: 1;
+  border-radius: 0;
+}
+
+.p-inputgroup > .p-inputgroupaddon:first-child + .p-dropdown,
+.p-inputgroup > .p-inputgroup-addon:first-child + .p-dropdown {
+  border-radius: 0 0.375rem 0.375rem 0;
+}
+
+.p-inputgroup > .p-dropdown:first-child {
+  border-radius: 0.375rem 0 0 0.375rem;
+  border-right: none;
+}
+
+.p-inputgroup > .p-dropdown:last-child {
+  border-radius: 0 0.375rem 0.375rem 0;
+}
+
+/* ============================================
+   IconField - Campo con ícono (búsqueda, etc.)
+   PrimeVue 4.x usa: p-icon-field, p-icon-field-left, p-input-icon
+   Legacy usa: p-input-icon-left, p-input-icon-right
+   ============================================ */
+
+/* PrimeVue 4.x API: p-icon-field */
+.p-icon-field {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+}
+
+.p-icon-field .p-input-icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Por defecto y con p-icon-field-left: ícono a la izquierda */
+.p-icon-field .p-input-icon,
+.p-icon-field-left .p-input-icon {
+  left: 0.875rem;
+  right: auto;
+}
+
+.p-icon-field .p-inputtext,
+.p-icon-field-left .p-inputtext {
+  padding-left: 2.5rem;
+  width: 100%;
+}
+
+/* Ícono a la derecha: p-icon-field-right */
+.p-icon-field-right .p-input-icon {
+  right: 0.875rem;
+  left: auto;
+}
+
+.p-icon-field-right .p-inputtext {
+  padding-right: 2.5rem;
+  padding-left: 1rem;
+}
+
+/* Legacy API: p-input-icon-left / p-input-icon-right (span wrapper) */
+.p-input-icon-left,
+.p-input-icon-right {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+}
+
+.p-input-icon-left > i,
+.p-input-icon-left > svg,
+.p-input-icon-right > i,
+.p-input-icon-right > svg {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  z-index: 1;
+}
+
+.p-input-icon-left > i,
+.p-input-icon-left > svg {
+  left: 0.875rem;
+}
+
+.p-input-icon-left > .p-inputtext {
+  padding-left: 2.5rem;
+  width: 100%;
+}
+
+.p-input-icon-right > i:last-child,
+.p-input-icon-right > svg:last-child {
+  right: 0.875rem;
+}
+
+.p-input-icon-right > .p-inputtext {
+  padding-right: 2.5rem;
+  width: 100%;
 }
