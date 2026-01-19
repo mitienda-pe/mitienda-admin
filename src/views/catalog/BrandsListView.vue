@@ -11,7 +11,7 @@
       <Button
         label="Nueva Marca"
         icon="pi pi-plus"
-        @click="showCreateDialog = true"
+        @click="$router.push({ name: 'brand-create' })"
       />
     </div>
 
@@ -51,7 +51,7 @@
                   rounded
                   size="small"
                   severity="secondary"
-                  @click="editBrand(brand)"
+                  @click="$router.push({ name: 'brand-edit', params: { id: brand.id } })"
                 />
                 <Button
                   icon="pi pi-trash"
@@ -79,53 +79,9 @@
         v-if="!searchQuery"
         label="Nueva Marca"
         icon="pi pi-plus"
-        @click="showCreateDialog = true"
+        @click="$router.push({ name: 'brand-create' })"
       />
     </div>
-
-    <!-- Dialog Crear/Editar -->
-    <Dialog
-      v-model:visible="showCreateDialog"
-      :header="editingBrand ? 'Editar Marca' : 'Nueva Marca'"
-      :modal="true"
-      :style="{ width: '500px' }"
-    >
-      <div class="space-y-4">
-        <!-- Nombre -->
-        <div>
-          <label class="block text-sm font-medium text-secondary-700 mb-2">
-            Nombre <span class="text-red-500">*</span>
-          </label>
-          <InputText
-            v-model="formData.name"
-            class="w-full"
-            placeholder="Ej: Samsung"
-          />
-        </div>
-
-        <!-- Slug -->
-        <div>
-          <label class="block text-sm font-medium text-secondary-700 mb-2">
-            Slug
-          </label>
-          <InputText
-            v-model="formData.slug"
-            class="w-full"
-            placeholder="samsung"
-          />
-          <small class="text-secondary-500">Se genera automáticamente si se deja vacío</small>
-        </div>
-      </div>
-
-      <template #footer>
-        <Button label="Cancelar" text @click="closeDialog" />
-        <Button
-          :label="editingBrand ? 'Guardar' : 'Crear'"
-          :loading="isSaving"
-          @click="saveBrand"
-        />
-      </template>
-    </Dialog>
 
     <!-- Dialog Confirmar Eliminación -->
     <Dialog
@@ -157,7 +113,6 @@ import { useToast } from 'primevue/usetoast'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
-import InputText from 'primevue/inputtext'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import SearchBar from '@/components/common/SearchBar.vue'
@@ -167,17 +122,9 @@ const catalogStore = useCatalogStore()
 const toast = useToast()
 
 const searchQuery = ref('')
-const showCreateDialog = ref(false)
 const showDeleteDialog = ref(false)
-const editingBrand = ref<Brand | null>(null)
 const brandToDelete = ref<Brand | null>(null)
-const isSaving = ref(false)
 const isDeleting = ref(false)
-
-const formData = ref({
-  name: '',
-  slug: ''
-})
 
 const filteredBrands = computed(() => {
   if (!searchQuery.value) return catalogStore.brands
@@ -189,62 +136,9 @@ const filteredBrands = computed(() => {
   )
 })
 
-const editBrand = (brand: Brand) => {
-  editingBrand.value = brand
-  formData.value = {
-    name: brand.name,
-    slug: brand.slug || ''
-  }
-  showCreateDialog.value = true
-}
-
 const confirmDelete = (brand: Brand) => {
   brandToDelete.value = brand
   showDeleteDialog.value = true
-}
-
-const closeDialog = () => {
-  showCreateDialog.value = false
-  editingBrand.value = null
-  formData.value = {
-    name: '',
-    slug: ''
-  }
-}
-
-const saveBrand = async () => {
-  if (!formData.value.name) {
-    toast.add({
-      severity: 'warn',
-      summary: 'Validación',
-      detail: 'El nombre es requerido',
-      life: 3000
-    })
-    return
-  }
-
-  try {
-    isSaving.value = true
-
-    // TODO: Implementar catalogStore.createBrand y catalogStore.updateBrand
-    toast.add({
-      severity: 'info',
-      summary: 'Funcionalidad pendiente',
-      detail: 'La creación/edición de marcas se implementará próximamente',
-      life: 5000
-    })
-
-    closeDialog()
-  } catch (error: any) {
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: error.message || 'Error al guardar la marca',
-      life: 5000
-    })
-  } finally {
-    isSaving.value = false
-  }
 }
 
 const deleteBrand = async () => {
@@ -252,13 +146,13 @@ const deleteBrand = async () => {
 
   try {
     isDeleting.value = true
+    await catalogStore.deleteBrand(brandToDelete.value.id)
 
-    // TODO: Implementar catalogStore.deleteBrand
     toast.add({
-      severity: 'info',
-      summary: 'Funcionalidad pendiente',
-      detail: 'La eliminación de marcas se implementará próximamente',
-      life: 5000
+      severity: 'success',
+      summary: 'Eliminado',
+      detail: 'La marca ha sido eliminada correctamente',
+      life: 3000
     })
 
     showDeleteDialog.value = false
@@ -267,7 +161,7 @@ const deleteBrand = async () => {
     toast.add({
       severity: 'error',
       summary: 'Error',
-      detail: error.message || 'Error al eliminar la marca',
+      detail: error.response?.data?.message || 'Error al eliminar la marca',
       life: 5000
     })
   } finally {

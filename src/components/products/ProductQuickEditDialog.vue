@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 import Dialog from 'primevue/dialog'
 import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
 import Checkbox from 'primevue/checkbox'
 import Button from 'primevue/button'
+import Dropdown from 'primevue/dropdown'
+import { useCatalogStore } from '@/stores/catalog.store'
+import { useGammaStore } from '@/stores/gamma.store'
 import type { Product } from '@/types/product.types'
 
 interface Props {
@@ -24,17 +27,24 @@ export interface ProductQuickEditData {
   order?: number
   barcode?: string
   description_html?: string
+  brand_id?: number | null
+  gamma_id?: number | null
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+
+const catalogStore = useCatalogStore()
+const gammaStore = useGammaStore()
 
 const formData = ref<ProductQuickEditData>({
   price: 0,
   stock: 0,
   published: false,
   order: undefined,
-  barcode: undefined
+  barcode: undefined,
+  brand_id: null,
+  gamma_id: null
 })
 
 const errors = ref({
@@ -42,19 +52,50 @@ const errors = ref({
   stock: ''
 })
 
+// Computed para obtener gammas filtradas por marca seleccionada
+const gammaOptions = computed(() => {
+  return gammaStore.gammasByBrand || []
+})
+
+// Cargar gammas cuando cambia la marca
+const handleBrandChange = async () => {
+  formData.value.gamma_id = null // Resetear gamma cuando cambia la marca
+  gammaStore.clearGammasByBrand()
+
+  if (formData.value.brand_id) {
+    await gammaStore.fetchByBrand(formData.value.brand_id)
+  }
+}
+
 // Actualizar form cuando cambia el producto
-watch(() => props.product, (newProduct) => {
+watch(() => props.product, async (newProduct) => {
   if (newProduct) {
     formData.value = {
       price: newProduct.price,
       stock: newProduct.stock,
       published: newProduct.published,
       order: newProduct.order,
-      barcode: newProduct.barcode
+      barcode: newProduct.barcode,
+      brand_id: newProduct.brand?.id || null,
+      gamma_id: newProduct.gamma?.id || null
     }
     errors.value = { price: '', stock: '' }
+
+    // Cargar gammas si hay una marca seleccionada
+    if (newProduct.brand?.id) {
+      await gammaStore.fetchByBrand(newProduct.brand.id)
+    } else {
+      gammaStore.clearGammasByBrand()
+    }
   }
 }, { immediate: true })
+
+// Cargar marcas al montar si no están cargadas
+onMounted(async () => {
+  if (catalogStore.brands.length === 0) {
+    await catalogStore.fetchBrands()
+  }
+})
 
 const validateForm = (): boolean => {
   errors.value = { price: '', stock: '' }
@@ -151,6 +192,45 @@ const handleClose = () => {
           class="w-full"
         />
         <small class="text-gray-500">Código de barras del producto (EAN, UPC, etc.)</small>
+      </div>
+
+      <!-- Marca -->
+      <div>
+        <label for="brand" class="block text-sm font-medium text-gray-700 mb-2">
+          Marca
+        </label>
+        <Dropdown
+          id="brand"
+          v-model="formData.brand_id"
+          :options="catalogStore.brands"
+          optionLabel="name"
+          optionValue="id"
+          placeholder="Seleccionar marca"
+          showClear
+          class="w-full"
+          @change="handleBrandChange"
+        />
+      </div>
+
+      <!-- Gamma (sub-marca) -->
+      <div>
+        <label for="gamma" class="block text-sm font-medium text-gray-700 mb-2">
+          Gamma (sub-marca)
+        </label>
+        <Dropdown
+          id="gamma"
+          v-model="formData.gamma_id"
+          :options="gammaOptions"
+          optionLabel="tiendagamma_nombre"
+          optionValue="tiendagamma_id"
+          placeholder="Seleccionar gamma"
+          showClear
+          class="w-full"
+          :disabled="!formData.brand_id || gammaOptions.length === 0"
+        />
+        <small v-if="formData.brand_id && gammaOptions.length === 0" class="text-gray-500">
+          Esta marca no tiene gammas registradas
+        </small>
       </div>
 
       <!-- Orden en catálogo -->

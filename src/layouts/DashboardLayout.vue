@@ -748,6 +748,7 @@ const catalogMenuItems = [
   { label: 'Productos', icon: 'pi pi-box', to: '/products' },
   { label: 'Categorías', icon: 'pi pi-folder', to: '/catalog/categories' },
   { label: 'Marcas', icon: 'pi pi-tag', to: '/catalog/brands' },
+  { label: 'Gammas', icon: 'pi pi-sitemap', to: '/catalog/gammas' },
   { label: 'Etiquetas', icon: 'pi pi-bookmark', to: '/catalog/product-tags' }
 ]
 

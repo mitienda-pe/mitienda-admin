@@ -159,6 +159,12 @@
                 <span class="font-medium">{{ product.brand.name }}</span>
               </div>
 
+              <!-- Gamma (sub-marca) -->
+              <div v-if="product.gamma">
+                <span class="text-secondary-600">Gamma: </span>
+                <span class="font-medium">{{ product.gamma.name }}</span>
+              </div>
+
               <!-- Categorías -->
               <div v-if="product.categories && product.categories.length > 0">
                 <div class="mb-1">
