@@ -760,8 +760,16 @@ const handleDebugPayments = async () => {
                         </td>
 
                         <!-- Precio Unitario -->
-                        <td class="px-6 py-4 text-right text-sm text-gray-900">
-                          {{ formatCurrency(item.price) }}
+                        <td class="px-6 py-4 text-right text-sm">
+                          <template v-if="item.original_price && item.original_price > item.price">
+                            <div class="flex flex-col items-end">
+                              <span class="text-gray-400 line-through text-xs">{{ formatCurrency(item.original_price) }}</span>
+                              <span class="text-green-600 font-medium">{{ formatCurrency(item.price) }}</span>
+                            </div>
+                          </template>
+                          <template v-else>
+                            <span class="text-gray-900">{{ formatCurrency(item.price) }}</span>
+                          </template>
                         </td>
 
                         <!-- Descuento -->
@@ -772,6 +780,7 @@ const handleDebugPayments = async () => {
                           </template>
                           <template v-else-if="getItemDiscount(item.id) > 0">
                             <span>-{{ formatCurrency(getItemDiscount(item.id)) }}</span>
+                            <span v-if="getItemPromotion(item.id)?.discount_value" class="block text-xs text-green-600">({{ getItemPromotion(item.id)?.discount_value }}% OFF)</span>
                           </template>
                           <template v-else>
                             <span>—</span>
