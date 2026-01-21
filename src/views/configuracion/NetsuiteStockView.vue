@@ -127,12 +127,16 @@
             </template>
           </Column>
 
-          <Column header="Estado" style="min-width: 100px" class="text-center">
+          <Column header="Estado" style="min-width: 120px" class="text-center">
             <template #body="{ data }">
-              <Tag
+              <Button
                 v-if="data.netsuite_stock === null"
+                label="Consultar"
+                icon="pi pi-search"
+                size="small"
                 severity="secondary"
-                value="Sin datos"
+                :loading="loadingProductId === data.product_id"
+                @click="queryIndividualStock(data)"
               />
               <Tag
                 v-else-if="data.stock_match"
@@ -209,6 +213,8 @@ const pagination = ref({
   pages: 0
 })
 
+const loadingProductId = ref<number | null>(null)
+
 async function loadStock() {
   isLoading.value = true
   error.value = null
@@ -255,6 +261,44 @@ function getStockDiff(data: ProductStock): string {
   const diff = data.netsuite_stock - data.local_stock
   if (diff > 0) return `+${diff}`
   return diff.toString()
+}
+
+async function queryIndividualStock(product: ProductStock) {
+  loadingProductId.value = product.product_id
+
+  try {
+    const response = await netsuiteApi.getProductNetsuiteStock(product.product_id)
+
+    if (response.success && response.data) {
+      // Actualizar el producto en la lista
+      const index = products.value.findIndex(p => p.product_id === product.product_id)
+      if (index !== -1) {
+        const netsuiteStock = response.data.netsuite_stock
+        products.value[index] = {
+          ...products.value[index],
+          netsuite_stock: netsuiteStock,
+          stock_match: netsuiteStock !== null && products.value[index].local_stock === netsuiteStock
+        }
+      }
+    } else {
+      toast.add({
+        severity: 'warn',
+        summary: 'Sin stock',
+        detail: `No se encontró stock en NetSuite para ${product.sku}`,
+        life: 3000
+      })
+    }
+  } catch (err: any) {
+    console.error('Error querying individual stock:', err)
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: err.response?.data?.messages?.error || 'Error consultando stock',
+      life: 5000
+    })
+  } finally {
+    loadingProductId.value = null
+  }
 }
 
 onMounted(() => {
