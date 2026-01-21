@@ -251,7 +251,7 @@ export const netsuiteApi = {
     search?: string
     page?: number
     limit?: number
-  }): Promise<ApiResponse<{
+  }): Promise<{
     success: boolean
     data: Array<{
       product_id: number
@@ -271,7 +271,8 @@ export const netsuiteApi = {
     location_id: number
     checked_at: string
     netsuite_error?: string | null
-  }>> {
+    message?: string
+  }> {
     console.log('[netsuiteApi] getNetsuiteStockList - params:', params)
     const queryParams = new URLSearchParams()
     if (params?.search) queryParams.append('search', params.search)
