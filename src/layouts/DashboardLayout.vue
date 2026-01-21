@@ -778,6 +778,7 @@ const apiMenuItems = [
 // Items del grupo NetSuite
 const configMenuItems = [
   { label: 'Configuración', icon: 'pi pi-cog', to: '/configuracion/netsuite' },
+  { label: 'Stock', icon: 'pi pi-box', to: '/configuracion/netsuite/stock' },
   { label: 'Cola de Sincronización', icon: 'pi pi-list', to: '/configuracion/netsuite/cola' }
 ]
 
