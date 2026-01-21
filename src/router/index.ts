@@ -334,6 +334,11 @@ const routes: RouteRecordRaw[] = [
         path: 'netsuite/cola',
         name: 'NetsuiteQueue',
         component: () => import('@/views/configuracion/NetsuiteQueueView.vue')
+      },
+      {
+        path: 'netsuite/stock',
+        name: 'NetsuiteStock',
+        component: () => import('@/views/configuracion/NetsuiteStockView.vue')
       }
     ]
   },

@@ -241,6 +241,48 @@ export const netsuiteApi = {
     return response.data
   },
 
+  // ========== NetSuite Stock Query API ==========
+
+  /**
+   * Get NetSuite stock for all mapped products
+   * Read-only query - does not update local stock
+   */
+  async getNetsuiteStockList(params?: {
+    search?: string
+    page?: number
+    limit?: number
+  }): Promise<ApiResponse<{
+    success: boolean
+    data: Array<{
+      product_id: number
+      sku: string
+      product_name: string
+      netsuite_item_id: string
+      local_stock: number
+      netsuite_stock: number | null
+      stock_match: boolean
+    }>
+    pagination: {
+      page: number
+      limit: number
+      total: number
+      pages: number
+    }
+    location_id: number
+    checked_at: string
+    netsuite_error?: string | null
+  }>> {
+    console.log('[netsuiteApi] getNetsuiteStockList - params:', params)
+    const queryParams = new URLSearchParams()
+    if (params?.search) queryParams.append('search', params.search)
+    if (params?.page) queryParams.append('page', params.page.toString())
+    if (params?.limit) queryParams.append('limit', params.limit.toString())
+
+    const response = await apiClient.get(`/netsuite-stock?${queryParams.toString()}`)
+    console.log('[netsuiteApi] getNetsuiteStockList - response:', response.data)
+    return response.data
+  },
+
   // ========== Locations API ==========
 
   /**
