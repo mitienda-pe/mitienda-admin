@@ -64,6 +64,24 @@ export const netsuiteApi = {
     return response.data
   },
 
+  // ========== Stock Validation Toggle ==========
+
+  /**
+   * Get stock validation status for a store
+   */
+  async getStockValidation(tiendaId: number): Promise<ApiResponse<{ stock_validation_enabled: boolean }>> {
+    const response = await apiClient.get(`/netsuite-credentials/${tiendaId}/stock-validation`)
+    return response.data
+  },
+
+  /**
+   * Update stock validation status for a store
+   */
+  async updateStockValidation(tiendaId: number, enabled: boolean): Promise<ApiResponse<{ stock_validation_enabled: boolean }>> {
+    const response = await apiClient.put(`/netsuite-credentials/${tiendaId}/stock-validation`, { enabled })
+    return response.data
+  },
+
   // ========== Series API ==========
 
   /**

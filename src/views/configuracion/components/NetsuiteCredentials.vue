@@ -292,6 +292,23 @@
 
           <div class="flex items-center justify-between p-4 bg-secondary-50 rounded-lg">
             <div>
+              <label for="stock_validation" class="font-medium text-secondary-800 cursor-pointer">
+                Validación de Stock en NetSuite
+              </label>
+              <p class="text-sm text-secondary-600 mt-1">
+                Validar disponibilidad de stock en NetSuite antes de confirmar ventas
+              </p>
+            </div>
+            <InputSwitch
+              id="stock_validation"
+              v-model="stockValidationEnabled"
+              :disabled="isTogglingStockValidation"
+              @change="handleStockValidationToggle"
+            />
+          </div>
+
+          <div class="flex items-center justify-between p-4 bg-secondary-50 rounded-lg">
+            <div>
               <label for="estado" class="font-medium text-secondary-800 cursor-pointer">
                 Estado
               </label>
@@ -442,6 +459,10 @@ const {
 
 const isEdit = ref(false)
 
+// Stock validation toggle
+const stockValidationEnabled = ref(false)
+const isTogglingStockValidation = ref(false)
+
 const formData = reactive<Partial<SaveNetsuiteCredentialsRequest>>({
   tienda_id: props.tiendaId || 0,
   account_id: '',
@@ -536,9 +557,13 @@ watch(() => props.tiendaId, async (tiendaId) => {
       estado: Number(creds.tiendacredencialerp_estado)
     })
 
+    // Load stock validation status
+    stockValidationEnabled.value = !!creds.stock_validation_enabled
+
     console.log('[NetsuiteCredentials] formData after assign:')
     console.log('  - estado:', formData.estado, typeof formData.estado)
     console.log('  - autosync_enabled:', formData.autosync_enabled, typeof formData.autosync_enabled)
+    console.log('  - stock_validation_enabled:', stockValidationEnabled.value)
     console.log('  - estadoBoolean computed:', estadoBoolean.value)
   } else {
     console.log('[NetsuiteCredentials] No credentials found, resetting form')
@@ -863,6 +888,46 @@ async function handleTest() {
       detail: result.error || 'No se pudo conectar con NetSuite',
       life: 5000
     })
+  }
+}
+
+async function handleStockValidationToggle() {
+  if (!props.tiendaId) return
+
+  try {
+    isTogglingStockValidation.value = true
+    const response = await netsuiteApi.updateStockValidation(props.tiendaId, stockValidationEnabled.value)
+
+    if (response.success) {
+      toast.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: stockValidationEnabled.value
+          ? 'Validación de stock NetSuite habilitada'
+          : 'Validación de stock NetSuite deshabilitada',
+        life: 3000
+      })
+    } else {
+      // Revert toggle on error
+      stockValidationEnabled.value = !stockValidationEnabled.value
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No se pudo actualizar la configuración',
+        life: 3000
+      })
+    }
+  } catch (error: any) {
+    // Revert toggle on error
+    stockValidationEnabled.value = !stockValidationEnabled.value
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error.response?.data?.message || 'Error al actualizar configuración',
+      life: 3000
+    })
+  } finally {
+    isTogglingStockValidation.value = false
   }
 }
 

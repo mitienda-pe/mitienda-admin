@@ -29,6 +29,7 @@ export interface NetsuiteCredential {
   tiendacredencialerp_fecha_creacion?: string
   tiendacredencialerp_fecha_actualizacion?: string
   locations?: NetsuiteLocation[] // New field for multiple locations
+  stock_validation_enabled?: boolean // From tiendas table
 }
 
 export interface SaveNetsuiteCredentialsRequest {
