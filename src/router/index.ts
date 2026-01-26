@@ -128,13 +128,33 @@ const routes: RouteRecordRaw[] = [
     children: [
       {
         path: 'categories',
-        name: 'Categories',
+        name: 'categories-list',
         component: () => import('@/views/catalog/CategoriesListView.vue')
       },
       {
+        path: 'categories/new',
+        name: 'category-create',
+        component: () => import('@/views/catalog/CategoryFormView.vue')
+      },
+      {
+        path: 'categories/:id/edit',
+        name: 'category-edit',
+        component: () => import('@/views/catalog/CategoryFormView.vue')
+      },
+      {
         path: 'brands',
-        name: 'Brands',
+        name: 'brands-list',
         component: () => import('@/views/catalog/BrandsListView.vue')
+      },
+      {
+        path: 'brands/new',
+        name: 'brand-create',
+        component: () => import('@/views/catalog/BrandFormView.vue')
+      },
+      {
+        path: 'brands/:id/edit',
+        name: 'brand-edit',
+        component: () => import('@/views/catalog/BrandFormView.vue')
       },
       {
         path: 'product-tags',
@@ -145,6 +165,21 @@ const routes: RouteRecordRaw[] = [
         path: 'product-tags/:id',
         name: 'ProductTagForm',
         component: () => import('@/views/catalog/ProductTagFormView.vue')
+      },
+      {
+        path: 'gammas',
+        name: 'gammas-list',
+        component: () => import('@/views/catalog/GammasListView.vue')
+      },
+      {
+        path: 'gammas/new',
+        name: 'gamma-create',
+        component: () => import('@/views/catalog/GammaFormView.vue')
+      },
+      {
+        path: 'gammas/:id/edit',
+        name: 'gamma-edit',
+        component: () => import('@/views/catalog/GammaFormView.vue')
       }
     ]
   },
@@ -299,6 +334,11 @@ const routes: RouteRecordRaw[] = [
         path: 'netsuite/cola',
         name: 'NetsuiteQueue',
         component: () => import('@/views/configuracion/NetsuiteQueueView.vue')
+      },
+      {
+        path: 'netsuite/stock',
+        name: 'NetsuiteStock',
+        component: () => import('@/views/configuracion/NetsuiteStockView.vue')
       }
     ]
   },

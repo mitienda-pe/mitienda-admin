@@ -5,13 +5,13 @@
       <div>
         <h1 class="text-3xl font-bold text-secondary">Categorías</h1>
         <p class="text-sm text-secondary-500 mt-1">
-          {{ catalogStore.categories.length }} categorías registradas
+          {{ catalogStore.flatCategories.length }} categorías registradas
         </p>
       </div>
       <Button
         label="Nueva Categoría"
         icon="pi pi-plus"
-        @click="showCreateDialog = true"
+        @click="$router.push({ name: 'category-create' })"
       />
     </div>
 
@@ -51,7 +51,7 @@
                   rounded
                   size="small"
                   severity="secondary"
-                  @click="editCategory(category)"
+                  @click="$router.push({ name: 'category-edit', params: { id: category.id } })"
                 />
                 <Button
                   icon="pi pi-trash"
@@ -69,6 +69,12 @@
               <i class="pi pi-folder"></i>
               <span>Subcategoría de: {{ getParentName(category.parent_id) }}</span>
             </div>
+
+            <!-- Orden -->
+            <div v-if="category.order !== undefined && category.order > 0" class="flex items-center gap-2 text-sm text-secondary-500">
+              <i class="pi pi-sort-amount-up"></i>
+              <span>Orden: {{ category.order }}</span>
+            </div>
           </div>
         </template>
       </Card>
@@ -85,69 +91,9 @@
         v-if="!searchQuery"
         label="Nueva Categoría"
         icon="pi pi-plus"
-        @click="showCreateDialog = true"
+        @click="$router.push({ name: 'category-create' })"
       />
     </div>
-
-    <!-- Dialog Crear/Editar -->
-    <Dialog
-      v-model:visible="showCreateDialog"
-      :header="editingCategory ? 'Editar Categoría' : 'Nueva Categoría'"
-      :modal="true"
-      :style="{ width: '500px' }"
-    >
-      <div class="space-y-4">
-        <!-- Nombre -->
-        <div>
-          <label class="block text-sm font-medium text-secondary-700 mb-2">
-            Nombre <span class="text-red-500">*</span>
-          </label>
-          <InputText
-            v-model="formData.name"
-            class="w-full"
-            placeholder="Ej: Electrónica"
-          />
-        </div>
-
-        <!-- Slug -->
-        <div>
-          <label class="block text-sm font-medium text-secondary-700 mb-2">
-            Slug
-          </label>
-          <InputText
-            v-model="formData.slug"
-            class="w-full"
-            placeholder="electronica"
-          />
-          <small class="text-secondary-500">Se genera automáticamente si se deja vacío</small>
-        </div>
-
-        <!-- Categoría Padre -->
-        <div>
-          <label class="block text-sm font-medium text-secondary-700 mb-2">
-            Categoría Padre
-          </label>
-          <Dropdown
-            v-model="formData.parent_id"
-            :options="parentCategoryOptions"
-            option-label="name"
-            option-value="id"
-            placeholder="Ninguna (categoría raíz)"
-            class="w-full"
-            show-clear
-          />
-        </div>
-      </div>
-
-      <template #footer>
-        <Button label="Cancelar" text @click="closeDialog" />
-        <Button
-          :label="editingCategory ? 'Guardar' : 'Crear'"
-          :loading="isSaving"
-          @click="saveCategory"
-        />
-      </template>
-    </Dialog>
 
     <!-- Dialog Confirmar Eliminación -->
     <Dialog
@@ -157,7 +103,9 @@
       :style="{ width: '400px' }"
     >
       <p>¿Estás seguro de eliminar la categoría <strong>{{ categoryToDelete?.name }}</strong>?</p>
-      <p class="text-sm text-secondary-500 mt-2">Esta acción no se puede deshacer.</p>
+      <p class="text-sm text-secondary-500 mt-2">
+        Esta acción eliminará también las subcategorías. No se puede deshacer.
+      </p>
 
       <template #footer>
         <Button label="Cancelar" text @click="showDeleteDialog = false" />
@@ -179,8 +127,6 @@ import { useToast } from 'primevue/usetoast'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
-import InputText from 'primevue/inputtext'
-import Dropdown from 'primevue/dropdown'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import SearchBar from '@/components/common/SearchBar.vue'
@@ -190,49 +136,23 @@ const catalogStore = useCatalogStore()
 const toast = useToast()
 
 const searchQuery = ref('')
-const showCreateDialog = ref(false)
 const showDeleteDialog = ref(false)
-const editingCategory = ref<Category | null>(null)
 const categoryToDelete = ref<Category | null>(null)
-const isSaving = ref(false)
 const isDeleting = ref(false)
 
-const formData = ref({
-  name: '',
-  slug: '',
-  parent_id: null as number | null
-})
-
 const filteredCategories = computed(() => {
-  if (!searchQuery.value) return catalogStore.categories
+  if (!searchQuery.value) return catalogStore.flatCategories
 
   const query = searchQuery.value.toLowerCase()
-  return catalogStore.categories.filter(cat =>
+  return catalogStore.flatCategories.filter(cat =>
     cat.name.toLowerCase().includes(query) ||
     cat.slug?.toLowerCase().includes(query)
   )
 })
 
-const parentCategoryOptions = computed(() => {
-  // Filtrar para no mostrar la categoría que se está editando
-  return catalogStore.categories.filter(cat =>
-    cat.id !== editingCategory.value?.id
-  )
-})
-
 const getParentName = (parentId: number) => {
-  const parent = catalogStore.categories.find(cat => cat.id === parentId)
+  const parent = catalogStore.flatCategories.find(cat => cat.id === parentId)
   return parent?.name || 'Sin nombre'
-}
-
-const editCategory = (category: Category) => {
-  editingCategory.value = category
-  formData.value = {
-    name: category.name,
-    slug: category.slug || '',
-    parent_id: category.parent_id || null
-  }
-  showCreateDialog.value = true
 }
 
 const confirmDelete = (category: Category) => {
@@ -240,63 +160,18 @@ const confirmDelete = (category: Category) => {
   showDeleteDialog.value = true
 }
 
-const closeDialog = () => {
-  showCreateDialog.value = false
-  editingCategory.value = null
-  formData.value = {
-    name: '',
-    slug: '',
-    parent_id: null
-  }
-}
-
-const saveCategory = async () => {
-  if (!formData.value.name) {
-    toast.add({
-      severity: 'warn',
-      summary: 'Validación',
-      detail: 'El nombre es requerido',
-      life: 3000
-    })
-    return
-  }
-
-  try {
-    isSaving.value = true
-
-    // TODO: Implementar catalogStore.createCategory y catalogStore.updateCategory
-    toast.add({
-      severity: 'info',
-      summary: 'Funcionalidad pendiente',
-      detail: 'La creación/edición de categorías se implementará próximamente',
-      life: 5000
-    })
-
-    closeDialog()
-  } catch (error: any) {
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: error.message || 'Error al guardar la categoría',
-      life: 5000
-    })
-  } finally {
-    isSaving.value = false
-  }
-}
-
 const deleteCategory = async () => {
   if (!categoryToDelete.value) return
 
   try {
     isDeleting.value = true
+    await catalogStore.deleteCategory(categoryToDelete.value.id)
 
-    // TODO: Implementar catalogStore.deleteCategory
     toast.add({
-      severity: 'info',
-      summary: 'Funcionalidad pendiente',
-      detail: 'La eliminación de categorías se implementará próximamente',
-      life: 5000
+      severity: 'success',
+      summary: 'Eliminado',
+      detail: 'La categoría ha sido eliminada correctamente',
+      life: 3000
     })
 
     showDeleteDialog.value = false
@@ -305,7 +180,7 @@ const deleteCategory = async () => {
     toast.add({
       severity: 'error',
       summary: 'Error',
-      detail: error.message || 'Error al eliminar la categoría',
+      detail: error.response?.data?.message || 'Error al eliminar la categoría',
       life: 5000
     })
   } finally {
@@ -314,7 +189,7 @@ const deleteCategory = async () => {
 }
 
 onMounted(async () => {
-  if (catalogStore.categories.length === 0) {
+  if (catalogStore.flatCategories.length === 0) {
     await catalogStore.fetchCategories()
   }
 })

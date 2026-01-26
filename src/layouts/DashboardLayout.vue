@@ -748,6 +748,7 @@ const catalogMenuItems = [
   { label: 'Productos', icon: 'pi pi-box', to: '/products' },
   { label: 'Categorías', icon: 'pi pi-folder', to: '/catalog/categories' },
   { label: 'Marcas', icon: 'pi pi-tag', to: '/catalog/brands' },
+  { label: 'Gammas', icon: 'pi pi-sitemap', to: '/catalog/gammas' },
   { label: 'Etiquetas', icon: 'pi pi-bookmark', to: '/catalog/product-tags' }
 ]
 
@@ -777,6 +778,7 @@ const apiMenuItems = [
 // Items del grupo NetSuite
 const configMenuItems = [
   { label: 'Configuración', icon: 'pi pi-cog', to: '/configuracion/netsuite' },
+  { label: 'Stock', icon: 'pi pi-box', to: '/configuracion/netsuite/stock' },
   { label: 'Cola de Sincronización', icon: 'pi pi-list', to: '/configuracion/netsuite/cola' }
 ]
 

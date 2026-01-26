@@ -56,6 +56,7 @@ export interface Product {
   documents?: ProductDocument[]
   categories?: Category[]
   brand?: Brand
+  gamma?: Gamma
   seo?: ProductSEO
   external_categories?: ProductExternalCategories
   order?: number
@@ -81,6 +82,21 @@ export interface Category {
   slug: string
   parent_id?: number
   image?: string
+  image_id?: number
+  order?: number
+  meta_title?: string
+  meta_description?: string
+  sub?: Category[] // Subcategorías anidadas
+}
+
+export interface CategoryFormData {
+  name: string
+  slug?: string
+  parent_id?: number | null
+  image?: string
+  order?: number
+  meta_title?: string
+  meta_description?: string
 }
 
 export interface Brand {
@@ -88,6 +104,22 @@ export interface Brand {
   name: string
   slug: string
   logo?: string
+  image_id?: number
+  meta_title?: string
+  meta_description?: string
+}
+
+export interface BrandFormData {
+  name: string
+  slug?: string
+  image?: string
+  meta_title?: string
+  meta_description?: string
+}
+
+export interface Gamma {
+  id: number
+  name: string
 }
 
 export interface ProductFilters {

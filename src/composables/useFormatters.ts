@@ -5,7 +5,7 @@ export function useFormatters() {
       style: 'currency',
       currency: 'PEN',
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      maximumFractionDigits: 3
     }).format(amount)
   }
 

@@ -93,6 +93,7 @@ export interface OrderItem {
   product_image?: string
   quantity: number
   price: number
+  original_price?: number // Precio original antes de descuento
   subtotal: number
   product?: {
     id: number
