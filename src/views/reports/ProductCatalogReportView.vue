@@ -103,7 +103,7 @@
     </Card>
 
     <!-- Export Section -->
-    <Card v-if="hasAppliedFilters" class="mb-6">
+    <Card class="mb-6">
       <template #content>
         <div class="flex items-center justify-between">
           <div>
@@ -126,7 +126,7 @@
     </Card>
 
     <!-- Preview Table -->
-    <Card v-if="hasAppliedFilters">
+    <Card>
       <template #title>
         <div class="flex items-center gap-2">
           <i class="pi pi-eye text-primary"></i>
@@ -225,16 +225,6 @@
       </template>
     </Card>
 
-    <!-- Initial Empty State -->
-    <Card v-else>
-      <template #content>
-        <AppEmptyState
-          icon="pi-filter"
-          title="Selecciona los filtros"
-          message="Configura los filtros y haz clic en 'Aplicar Filtros' para generar el reporte"
-        />
-      </template>
-    </Card>
   </div>
 </template>
 
@@ -276,7 +266,6 @@ const loadingCategories = ref(false)
 const loadingBrands = ref(false)
 const exporting = ref(false)
 const error = ref<string | null>(null)
-const hasAppliedFilters = ref(false)
 
 const publishedOptions = [
   { label: 'Todos', value: '' },
@@ -301,7 +290,6 @@ const handleApplyFilters = async () => {
   try {
     loadingPreview.value = true
     error.value = null
-    hasAppliedFilters.value = true
 
     previewData.value = await reportsApi.getProductCatalogPreview(filters.value)
 
@@ -364,8 +352,7 @@ const handleClearFilters = () => {
     category_id: undefined,
     brand_id: undefined
   }
-  hasAppliedFilters.value = false
-  previewData.value = null
+  handleApplyFilters()
 }
 
 const formatCurrency = (amount: number): string => {
@@ -406,5 +393,6 @@ const loadBrands = async () => {
 onMounted(() => {
   loadCategories()
   loadBrands()
+  handleApplyFilters()
 })
 </script>
