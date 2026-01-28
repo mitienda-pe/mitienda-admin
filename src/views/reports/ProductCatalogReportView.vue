@@ -376,7 +376,7 @@ const loadCategories = async () => {
   try {
     loadingCategories.value = true
     const response = await categoryApi.getAll()
-    categories.value = response.data.map((cat: any) => ({
+    categories.value = (response.data ?? []).map((cat: any) => ({
       id: cat.id,
       name: cat.name
     }))
@@ -391,7 +391,7 @@ const loadBrands = async () => {
   try {
     loadingBrands.value = true
     const response = await brandApi.getAll()
-    brands.value = response.data.map((brand: any) => ({
+    brands.value = (response.data ?? []).map((brand: any) => ({
       id: brand.id,
       name: brand.name
     }))
