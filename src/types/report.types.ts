@@ -87,3 +87,34 @@ export interface ProductSalesPreviewResponse {
   has_more: boolean
   filters_applied: ReportFilters
 }
+
+// Product Catalog Report
+export interface ProductCatalogFilters {
+  search?: string
+  published?: string // '0' | '1' | '' (all)
+  stock_status?: string // 'all' | 'in_stock' | 'out_of_stock' | 'limited'
+  category_id?: number
+  brand_id?: number
+}
+
+export interface ProductCatalogRow {
+  product_id: number
+  sku: string
+  name: string
+  stock: number | string // number or "Ilimitado"
+  stock_raw: number
+  stock_unlimited: boolean
+  price_without_tax: number
+  price_with_tax: number
+  published: boolean
+  published_label: string
+  category: string
+  brand: string
+}
+
+export interface ProductCatalogPreviewResponse {
+  data: ProductCatalogRow[]
+  total_count: number
+  has_more: boolean
+  filters_applied: ProductCatalogFilters
+}

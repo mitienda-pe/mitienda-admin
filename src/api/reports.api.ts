@@ -6,7 +6,10 @@ import {
   type OrderReportRow,
   type PaymentGateway,
   type ProductSalesReportRow,
-  type ProductSalesPreviewResponse
+  type ProductSalesPreviewResponse,
+  type ProductCatalogFilters,
+  type ProductCatalogRow,
+  type ProductCatalogPreviewResponse
 } from '@/types/report.types'
 
 export const reportsApi = {
@@ -144,6 +147,67 @@ export const reportsApi = {
     params.append('format', format)
 
     const response = await apiClient.get(`/reports/product-sales/export?${params.toString()}`, {
+      responseType: 'blob'
+    })
+
+    return response.data
+  },
+
+  /**
+   * Get preview of product catalog report (first 100 rows)
+   */
+  async getProductCatalogPreview(
+    filters: ProductCatalogFilters
+  ): Promise<ProductCatalogPreviewResponse> {
+    const params = new URLSearchParams()
+
+    if (filters.search) params.append('search', filters.search)
+    if (filters.published !== undefined && filters.published !== '')
+      params.append('published', filters.published)
+    if (filters.stock_status && filters.stock_status !== 'all')
+      params.append('stock_status', filters.stock_status)
+    if (filters.category_id) params.append('category_id', filters.category_id.toString())
+    if (filters.brand_id) params.append('brand_id', filters.brand_id.toString())
+
+    const response = await apiClient.get<{
+      success: boolean
+      data: ProductCatalogRow[]
+      total_count: number
+      has_more: boolean
+      filters_applied: ProductCatalogFilters
+    }>(`/reports/product-catalog/preview?${params.toString()}`)
+
+    if (!response.data.success) {
+      throw new Error('Failed to fetch product catalog preview')
+    }
+
+    return {
+      data: response.data.data,
+      total_count: response.data.total_count,
+      has_more: response.data.has_more,
+      filters_applied: response.data.filters_applied
+    }
+  },
+
+  /**
+   * Export product catalog report to file (CSV or XLSX)
+   */
+  async exportProductCatalog(
+    filters: ProductCatalogFilters,
+    format: ExportFormat = ExportFormat.CSV
+  ): Promise<Blob> {
+    const params = new URLSearchParams()
+
+    if (filters.search) params.append('search', filters.search)
+    if (filters.published !== undefined && filters.published !== '')
+      params.append('published', filters.published)
+    if (filters.stock_status && filters.stock_status !== 'all')
+      params.append('stock_status', filters.stock_status)
+    if (filters.category_id) params.append('category_id', filters.category_id.toString())
+    if (filters.brand_id) params.append('brand_id', filters.brand_id.toString())
+    params.append('format', format)
+
+    const response = await apiClient.get(`/reports/product-catalog/export?${params.toString()}`, {
       responseType: 'blob'
     })
 

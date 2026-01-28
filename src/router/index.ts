@@ -118,6 +118,11 @@ const routes: RouteRecordRaw[] = [
         path: 'product-sales',
         name: 'ProductSalesReport',
         component: () => import('@/views/reports/ProductSalesReportView.vue')
+      },
+      {
+        path: 'product-catalog',
+        name: 'ProductCatalogReport',
+        component: () => import('@/views/reports/ProductCatalogReportView.vue')
       }
     ]
   },
