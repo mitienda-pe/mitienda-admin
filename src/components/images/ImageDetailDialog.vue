@@ -126,7 +126,7 @@
           <router-link
             v-for="product in image.used_by_products"
             :key="product.id"
-            :to="{ name: 'product-detail', params: { id: product.id } }"
+            :to="`/products/${product.id}`"
             class="text-sm text-primary hover:underline"
             @click="$emit('update:visible', false)"
           >
