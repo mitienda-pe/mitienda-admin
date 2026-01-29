@@ -194,6 +194,28 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/pages',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: '',
+        name: 'pages-list',
+        component: () => import('@/views/pages/PagesListView.vue')
+      },
+      {
+        path: 'new',
+        name: 'page-create',
+        component: () => import('@/views/pages/PageCreateView.vue')
+      },
+      {
+        path: ':id/edit',
+        name: 'page-edit',
+        component: () => import('@/views/pages/PageEditView.vue')
+      }
+    ]
+  },
+  {
     path: '/marketing',
     component: DashboardLayout,
     meta: { requiresAuth: true, requiresStore: true },

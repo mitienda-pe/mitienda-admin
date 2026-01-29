@@ -728,7 +728,8 @@ const configExpanded = computed({
 // Items simples del menú
 const simpleMenuItems = [
   { label: 'Dashboard', icon: 'pi pi-home', to: '/dashboard' },
-  { label: 'Clientes', icon: 'pi pi-users', to: '/customers' }
+  { label: 'Clientes', icon: 'pi pi-users', to: '/customers' },
+  { label: 'Páginas', icon: 'pi pi-file-edit', to: '/pages' }
 ]
 
 // Items del grupo Ventas
