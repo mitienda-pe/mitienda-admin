@@ -118,3 +118,33 @@ export interface ProductCatalogPreviewResponse {
   has_more: boolean
   filters_applied: ProductCatalogFilters
 }
+
+// Promotions Report
+export interface PromotionsFilters {
+  search?: string
+  estado?: string // 'active' | 'inactive' | 'expired' | 'all'
+  tipo_descuento?: string // '1' | '2' | 'all'
+  origen?: string // 'netsuite' | 'manual' | 'all'
+}
+
+export interface PromotionReportRow {
+  promotion_id: number
+  name: string
+  code: string
+  discount_type: string // 'Porcentaje' | 'Monto fijo'
+  discount_type_raw: number
+  discount_value: number
+  start_date: string
+  end_date: string | null
+  status: string // 'Activa' | 'Inactiva' | 'Expirada'
+  status_raw: string // 'active' | 'inactive' | 'expired'
+  product_count: number
+  origin: string // 'NetSuite' | 'Manual'
+}
+
+export interface PromotionsPreviewResponse {
+  data: PromotionReportRow[]
+  total_count: number
+  has_more: boolean
+  filters_applied: PromotionsFilters
+}

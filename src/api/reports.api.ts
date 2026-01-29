@@ -9,7 +9,10 @@ import {
   type ProductSalesPreviewResponse,
   type ProductCatalogFilters,
   type ProductCatalogRow,
-  type ProductCatalogPreviewResponse
+  type ProductCatalogPreviewResponse,
+  type PromotionsFilters,
+  type PromotionReportRow,
+  type PromotionsPreviewResponse
 } from '@/types/report.types'
 
 export const reportsApi = {
@@ -208,6 +211,69 @@ export const reportsApi = {
     params.append('format', format)
 
     const response = await apiClient.get(`/reports/product-catalog/export?${params.toString()}`, {
+      responseType: 'blob'
+    })
+
+    return response.data
+  },
+
+  /**
+   * Get preview of promotions report (first 100 rows)
+   */
+  async getPromotionsPreview(
+    filters: PromotionsFilters
+  ): Promise<PromotionsPreviewResponse> {
+    const params = new URLSearchParams()
+
+    if (filters.search) params.append('search', filters.search)
+    if (filters.estado && filters.estado !== 'all')
+      params.append('estado', filters.estado)
+    if (filters.tipo_descuento && filters.tipo_descuento !== 'all')
+      params.append('tipo_descuento', filters.tipo_descuento)
+    if (filters.origen && filters.origen !== 'all')
+      params.append('origen', filters.origen)
+
+    const response = await apiClient.get<{
+      success: boolean
+      data: PromotionReportRow[]
+      total_count: number
+      has_more: boolean
+      filters_applied: PromotionsFilters
+    }>(`/reports/promotions/preview?${params.toString()}`)
+
+    if (!response.data.success) {
+      throw new Error('Failed to fetch promotions report preview')
+    }
+
+    return {
+      data: response.data.data,
+      total_count: response.data.total_count,
+      has_more: response.data.has_more,
+      filters_applied: response.data.filters_applied
+    }
+  },
+
+  /**
+   * Export promotions report to file (CSV or XLSX)
+   */
+  async exportPromotions(
+    filters: PromotionsFilters,
+    format: ExportFormat = ExportFormat.CSV,
+    exportLevel: 'summary' | 'detailed' = 'summary'
+  ): Promise<Blob> {
+    const params = new URLSearchParams()
+
+    if (filters.search) params.append('search', filters.search)
+    if (filters.estado && filters.estado !== 'all')
+      params.append('estado', filters.estado)
+    if (filters.tipo_descuento && filters.tipo_descuento !== 'all')
+      params.append('tipo_descuento', filters.tipo_descuento)
+    if (filters.origen && filters.origen !== 'all')
+      params.append('origen', filters.origen)
+    params.append('format', format)
+    params.append('export_level', exportLevel)
+
+    const response = await apiClient.get(`/reports/promotions/export?${params.toString()}`, {
       responseType: 'blob'
     })
 

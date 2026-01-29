@@ -741,7 +741,8 @@ const salesMenuItems = [
 const reportsMenuItems = [
   { label: 'Pedidos', icon: 'pi pi-shopping-cart', to: '/reports/orders' },
   { label: 'Ventas por Producto', icon: 'pi pi-box', to: '/reports/product-sales' },
-  { label: 'Catálogo de Productos', icon: 'pi pi-list', to: '/reports/product-catalog' }
+  { label: 'Catálogo de Productos', icon: 'pi pi-list', to: '/reports/product-catalog' },
+  { label: 'Promociones', icon: 'pi pi-percentage', to: '/reports/promotions' }
 ]
 
 // Items del grupo Catálogo
