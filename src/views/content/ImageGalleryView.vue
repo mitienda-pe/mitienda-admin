@@ -23,7 +23,7 @@
           />
         </IconField>
       </div>
-      <Select
+      <Dropdown
         v-model="sourceFilter"
         :options="sourceOptions"
         optionLabel="label"
@@ -127,7 +127,7 @@ import InputText from 'primevue/inputtext'
 import Message from 'primevue/message'
 import Paginator from 'primevue/paginator'
 import ProgressSpinner from 'primevue/progressspinner'
-import Select from 'primevue/select'
+import Dropdown from 'primevue/dropdown'
 import ImageDetailDialog from '@/components/images/ImageDetailDialog.vue'
 import type { GalleryImage, ImageSource } from '@/types/gallery-image.types'
 
