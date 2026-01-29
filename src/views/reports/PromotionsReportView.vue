@@ -385,7 +385,7 @@ const formatDate = (dateStr: string): string => {
   })
 }
 
-const statusVariant = (statusRaw: string): string => {
+const statusVariant = (statusRaw: string): 'success' | 'info' | 'warning' | 'danger' | 'neutral' => {
   switch (statusRaw) {
     case 'active': return 'success'
     case 'expired': return 'warning'
