@@ -498,12 +498,12 @@ const formData = reactive<Partial<SaveNetsuiteCredentialsRequest>>({
   consumer_secret: '',
   token_id: '',
   token_secret: '',
-  subsidiary_id: '3',
-  location_id: '323', // Deprecated - kept for backward compatibility
-  ubicacion_serie_id: '323',
+  subsidiary_id: '',
+  location_id: '', // Deprecated - kept for backward compatibility
+  ubicacion_serie_id: '',
   generic_customer_id: '',
   bonification_item_id: '',
-  price_level_id: 4,
+  price_level_id: undefined,
   customer_category_id: '',
   autosync_enabled: false,
   estado: 1
@@ -578,12 +578,12 @@ watch(() => props.tiendaId, async (tiendaId) => {
       consumer_secret: '', // No cargar secrets
       token_id: creds.tiendacredencialerp_token_id,
       token_secret: '',
-      subsidiary_id: creds.tiendacredencialerp_subsidiary_id || '3',
-      location_id: creds.tiendacredencialerp_location_id || '323',
-      ubicacion_serie_id: creds.tiendacredencialerp_ubicacion_serie_id || '323',
+      subsidiary_id: creds.tiendacredencialerp_subsidiary_id || '',
+      location_id: creds.tiendacredencialerp_location_id || '',
+      ubicacion_serie_id: creds.tiendacredencialerp_ubicacion_serie_id || '',
       generic_customer_id: creds.tiendacredencialerp_generic_customer_id || '',
       bonification_item_id: creds.tiendacredencialerp_bonification_item_id || '',
-      price_level_id: creds.tiendacredencialerp_price_level_id ?? 4,
+      price_level_id: creds.tiendacredencialerp_price_level_id ?? undefined,
       customer_category_id: creds.tiendacredencialerp_customer_category_id || '',
       autosync_enabled: Number(creds.tiendacredencialerp_autosync_enabled) === 1,
       estado: Number(creds.tiendacredencialerp_estado)
@@ -608,12 +608,12 @@ watch(() => props.tiendaId, async (tiendaId) => {
       consumer_secret: '',
       token_id: '',
       token_secret: '',
-      subsidiary_id: '3',
-      location_id: '323',
-      ubicacion_serie_id: '323',
+      subsidiary_id: '',
+      location_id: '',
+      ubicacion_serie_id: '',
       generic_customer_id: '',
       bonification_item_id: '',
-      price_level_id: 4,
+      price_level_id: undefined,
       customer_category_id: '',
       autosync_enabled: false,
       estado: 1
@@ -995,9 +995,9 @@ function handleDelete() {
           consumer_secret: '',
           token_id: '',
           token_secret: '',
-          subsidiary_id: '3',
-          location_id: '323',
-          ubicacion_serie_id: '323',
+          subsidiary_id: '',
+          location_id: '',
+          ubicacion_serie_id: '',
           autosync_enabled: false,
           estado: 1
         })
