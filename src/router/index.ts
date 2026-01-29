@@ -221,6 +221,38 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/blog',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: '',
+        name: 'blog-posts-list',
+        component: () => import('@/views/blog/BlogPostsListView.vue')
+      },
+      {
+        path: 'new',
+        name: 'blog-post-create',
+        component: () => import('@/views/blog/BlogPostCreateView.vue')
+      },
+      {
+        path: ':id/edit',
+        name: 'blog-post-edit',
+        component: () => import('@/views/blog/BlogPostEditView.vue')
+      },
+      {
+        path: ':id/preview',
+        name: 'blog-post-preview',
+        component: () => import('@/views/blog/BlogPostPreviewView.vue')
+      },
+      {
+        path: 'categories',
+        name: 'blog-categories',
+        component: () => import('@/views/blog/BlogCategoriesView.vue')
+      }
+    ]
+  },
+  {
     path: '/marketing',
     component: DashboardLayout,
     meta: { requiresAuth: true, requiresStore: true },
