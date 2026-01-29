@@ -51,25 +51,25 @@
                 <i :class="editorTypeIcon(page.editor_type)" class="mr-1"></i>
                 {{ editorTypeLabel(page.editor_type) }}
               </span>
-              <span
-                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                :class="page.published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'"
-              >
-                {{ page.published ? 'Publicada' : 'Borrador' }}
-              </span>
             </div>
             <p class="text-sm text-secondary-400 mt-1">/{{ page.slug }}</p>
           </div>
 
-          <div class="flex items-center gap-2 ml-4">
+          <div class="flex items-center gap-3 ml-4">
+            <div class="flex items-center gap-2" v-tooltip.top="page.published ? 'Publicada' : 'Borrador'">
+              <InputSwitch
+                :modelValue="page.published"
+                @update:modelValue="handleTogglePublished(page)"
+              />
+            </div>
             <Button
-              v-tooltip.top="page.published ? 'Despublicar' : 'Publicar'"
-              :icon="page.published ? 'pi pi-eye' : 'pi pi-eye-slash'"
+              v-tooltip.top="'Vista previa'"
+              icon="pi pi-eye"
               text
               rounded
               size="small"
-              :severity="page.published ? 'success' : 'secondary'"
-              @click="handleTogglePublished(page)"
+              severity="secondary"
+              @click="$router.push({ name: 'page-preview', params: { id: page.id } })"
             />
             <Button
               v-tooltip.top="'Editar'"
@@ -138,6 +138,7 @@ import { usePagesStore } from '@/stores/pages.store'
 import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
+import InputSwitch from 'primevue/inputswitch'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import SearchBar from '@/components/common/SearchBar.vue'

@@ -212,6 +212,11 @@ const routes: RouteRecordRaw[] = [
         path: ':id/edit',
         name: 'page-edit',
         component: () => import('@/views/pages/PageEditView.vue')
+      },
+      {
+        path: ':id/preview',
+        name: 'page-preview',
+        component: () => import('@/views/pages/PagePreviewView.vue')
       }
     ]
   },

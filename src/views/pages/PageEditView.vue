@@ -45,6 +45,13 @@
 
         <div class="flex items-center gap-2">
           <Button
+            label="Vista Previa"
+            icon="pi pi-eye"
+            text
+            severity="secondary"
+            @click="$router.push({ name: 'page-preview', params: { id: page.id } })"
+          />
+          <Button
             label="Configuración"
             icon="pi pi-cog"
             text
