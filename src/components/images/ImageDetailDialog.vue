@@ -26,10 +26,14 @@
       <div class="flex items-center gap-3 flex-wrap">
         <span
           class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-          :class="image.source === 'cloudflare' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'"
+          :class="{
+            'bg-blue-100 text-blue-800': image.source === 'r2',
+            'bg-green-100 text-green-800': image.source === 'cloudflare',
+            'bg-gray-100 text-gray-800': image.source === 'legacy',
+          }"
         >
-          <i :class="image.source === 'cloudflare' ? 'pi pi-cloud' : 'pi pi-server'" class="mr-1"></i>
-          {{ image.source === 'cloudflare' ? 'Cloudflare' : 'Legacy S3' }}
+          <i :class="image.source === 'r2' ? 'pi pi-cloud-upload' : image.source === 'cloudflare' ? 'pi pi-cloud' : 'pi pi-server'" class="mr-1"></i>
+          {{ image.source === 'r2' ? 'R2 CDN' : image.source === 'cloudflare' ? 'Cloudflare' : 'Legacy S3' }}
         </span>
         <span v-if="image.width && image.height" class="text-sm text-secondary-500">
           {{ image.width }} × {{ image.height }} px
@@ -58,7 +62,7 @@
             :disabled="image.source === 'cloudflare'"
           />
           <small v-if="image.source === 'cloudflare'" class="text-secondary-400">
-            No disponible para imágenes de Cloudflare
+            No disponible para imágenes de Cloudflare Images
           </small>
         </div>
         <div>
@@ -71,7 +75,7 @@
             :disabled="image.source === 'cloudflare'"
           />
           <small v-if="image.source === 'cloudflare'" class="text-secondary-400">
-            No disponible para imágenes de Cloudflare
+            No disponible para imágenes de Cloudflare Images
           </small>
         </div>
         <Button

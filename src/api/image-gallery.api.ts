@@ -56,4 +56,19 @@ export const imageGalleryApi = {
       params: { source },
     })
   },
+
+  async uploadImage(file: File, title?: string): Promise<{ r2_imagen_id: number; r2_key: string; url: string }> {
+    const formData = new FormData()
+    formData.append('image', file)
+    if (title) formData.append('title', title)
+
+    const response = await apiClient.post('/image-gallery/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return response.data.data
+  },
+
+  async deleteR2Image(id: number): Promise<void> {
+    await apiClient.delete(`/image-gallery/r2/${id}`)
+  },
 }

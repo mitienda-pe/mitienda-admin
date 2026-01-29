@@ -1,4 +1,4 @@
-export type ImageSource = 'legacy' | 'cloudflare'
+export type ImageSource = 'legacy' | 'cloudflare' | 'r2'
 
 export interface GalleryImage {
   id: number
