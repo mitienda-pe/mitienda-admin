@@ -110,7 +110,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useBlogStore } from '@/stores/blog.store'
 import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
@@ -126,7 +126,6 @@ import type { BlogPost } from '@/types/blog.types'
 import type { PageEditorType } from '@/types/page.types'
 
 const route = useRoute()
-const router = useRouter()
 const blogStore = useBlogStore()
 const toast = useToast()
 

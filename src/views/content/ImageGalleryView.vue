@@ -75,9 +75,13 @@
             <div class="flex items-center gap-1 mt-1">
               <span
                 class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium"
-                :class="img.source === 'cloudflare' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'"
+                :class="{
+                  'bg-blue-100 text-blue-700': img.source === 'r2',
+                  'bg-green-100 text-green-700': img.source === 'cloudflare',
+                  'bg-gray-100 text-gray-600': img.source === 'legacy',
+                }"
               >
-                {{ img.source === 'cloudflare' ? 'CF' : 'S3' }}
+                {{ img.source === 'r2' ? 'R2' : img.source === 'cloudflare' ? 'CF' : 'S3' }}
               </span>
               <span v-if="img.width && img.height" class="text-[10px] text-secondary-400">
                 {{ img.width }}×{{ img.height }}
@@ -120,7 +124,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useImageGalleryStore } from '@/stores/image-gallery.store'
-import Button from 'primevue/button'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
@@ -143,6 +146,7 @@ let searchTimeout: ReturnType<typeof setTimeout> | null = null
 
 const sourceOptions = [
   { label: 'Todas las fuentes', value: 'all' },
+  { label: 'R2 CDN', value: 'r2' },
   { label: 'Cloudflare', value: 'cloudflare' },
   { label: 'Legacy S3', value: 'legacy' },
 ]
