@@ -182,6 +182,20 @@
             />
             <small class="text-secondary-600 mt-1 block">Item para productos bonificados (gratis)</small>
           </div>
+
+          <div>
+            <label for="price_level_id" class="block text-sm font-medium text-secondary-700 mb-2">
+              Price Level ID
+            </label>
+            <InputNumber
+              id="price_level_id"
+              v-model="formData.price_level_id"
+              placeholder="4"
+              class="w-full"
+              :min="1"
+            />
+            <small class="text-secondary-600 mt-1 block">Nivel de precio en NetSuite (ej: 4 = Tiendas / Ecommerce)</small>
+          </div>
         </div>
 
         <!-- Locations Section -->
@@ -428,6 +442,7 @@ import type { SaveNetsuiteCredentialsRequest, NetsuiteLocation } from '@/types/n
 
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
+import InputNumber from 'primevue/inputnumber'
 import Password from 'primevue/password'
 import InputSwitch from 'primevue/inputswitch'
 import Divider from 'primevue/divider'
@@ -475,6 +490,7 @@ const formData = reactive<Partial<SaveNetsuiteCredentialsRequest>>({
   ubicacion_serie_id: '323',
   generic_customer_id: '',
   bonification_item_id: '',
+  price_level_id: 4,
   autosync_enabled: false,
   estado: 1
 })
@@ -553,6 +569,7 @@ watch(() => props.tiendaId, async (tiendaId) => {
       ubicacion_serie_id: creds.tiendacredencialerp_ubicacion_serie_id || '323',
       generic_customer_id: creds.tiendacredencialerp_generic_customer_id || '',
       bonification_item_id: creds.tiendacredencialerp_bonification_item_id || '',
+      price_level_id: creds.tiendacredencialerp_price_level_id ?? 4,
       autosync_enabled: Number(creds.tiendacredencialerp_autosync_enabled) === 1,
       estado: Number(creds.tiendacredencialerp_estado)
     })
@@ -581,6 +598,7 @@ watch(() => props.tiendaId, async (tiendaId) => {
       ubicacion_serie_id: '323',
       generic_customer_id: '',
       bonification_item_id: '',
+      price_level_id: 4,
       autosync_enabled: false,
       estado: 1
     })
@@ -814,6 +832,7 @@ async function handleSubmit() {
     ubicacion_serie_id: formData.ubicacion_serie_id,
     generic_customer_id: formData.generic_customer_id,
     bonification_item_id: formData.bonification_item_id,
+    price_level_id: formData.price_level_id ?? 4,
     autosync_enabled: formData.autosync_enabled || false,
     estado: formData.estado || 1,
     locations: locations.value.length > 0 ? locations.value : undefined

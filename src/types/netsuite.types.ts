@@ -24,6 +24,7 @@ export interface NetsuiteCredential {
   tiendacredencialerp_ubicacion_serie_id?: string
   tiendacredencialerp_generic_customer_id?: string
   tiendacredencialerp_bonification_item_id?: string
+  tiendacredencialerp_price_level_id?: number
   tiendacredencialerp_estado: number
   tiendacredencialerp_autosync_enabled: number
   tiendacredencialerp_fecha_creacion?: string
@@ -44,6 +45,7 @@ export interface SaveNetsuiteCredentialsRequest {
   ubicacion_serie_id?: string
   generic_customer_id?: string
   bonification_item_id?: string
+  price_level_id?: number
   autosync_enabled: boolean
   estado: number
   locations?: NetsuiteLocation[] // New field for multiple locations
