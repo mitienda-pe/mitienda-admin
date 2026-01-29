@@ -196,6 +196,19 @@
             />
             <small class="text-secondary-600 mt-1 block">Nivel de precio en NetSuite (ej: 4 = Tiendas / Ecommerce)</small>
           </div>
+
+          <div>
+            <label for="customer_category_id" class="block text-sm font-medium text-secondary-700 mb-2">
+              Customer Category ID
+            </label>
+            <InputText
+              id="customer_category_id"
+              v-model="formData.customer_category_id"
+              placeholder="4"
+              class="w-full"
+            />
+            <small class="text-secondary-600 mt-1 block">Categoría de cliente en NetSuite para filtrar promociones (ej: 4 = TIENDAS)</small>
+          </div>
         </div>
 
         <!-- Locations Section -->
@@ -491,6 +504,7 @@ const formData = reactive<Partial<SaveNetsuiteCredentialsRequest>>({
   generic_customer_id: '',
   bonification_item_id: '',
   price_level_id: 4,
+  customer_category_id: '',
   autosync_enabled: false,
   estado: 1
 })
@@ -570,6 +584,7 @@ watch(() => props.tiendaId, async (tiendaId) => {
       generic_customer_id: creds.tiendacredencialerp_generic_customer_id || '',
       bonification_item_id: creds.tiendacredencialerp_bonification_item_id || '',
       price_level_id: creds.tiendacredencialerp_price_level_id ?? 4,
+      customer_category_id: creds.tiendacredencialerp_customer_category_id || '',
       autosync_enabled: Number(creds.tiendacredencialerp_autosync_enabled) === 1,
       estado: Number(creds.tiendacredencialerp_estado)
     })
@@ -599,6 +614,7 @@ watch(() => props.tiendaId, async (tiendaId) => {
       generic_customer_id: '',
       bonification_item_id: '',
       price_level_id: 4,
+      customer_category_id: '',
       autosync_enabled: false,
       estado: 1
     })
@@ -833,6 +849,7 @@ async function handleSubmit() {
     generic_customer_id: formData.generic_customer_id,
     bonification_item_id: formData.bonification_item_id,
     price_level_id: formData.price_level_id ?? 4,
+    customer_category_id: formData.customer_category_id || undefined,
     autosync_enabled: formData.autosync_enabled || false,
     estado: formData.estado || 1,
     locations: locations.value.length > 0 ? locations.value : undefined
