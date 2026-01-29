@@ -108,35 +108,6 @@
               </router-link>
             </li>
 
-            <!-- Grupo Contenido -->
-            <li>
-              <button
-                @click="contentExpanded = !contentExpanded"
-                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
-                :class="{ 'bg-primary-50 text-primary font-medium': isContentActive }"
-              >
-                <div class="flex items-center gap-3">
-                  <i class="pi pi-file-edit"></i>
-                  <span>Contenido</span>
-                </div>
-                <i :class="contentExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
-              </button>
-
-              <!-- Submenú -->
-              <ul v-show="contentExpanded" class="ml-4 mt-1 space-y-1">
-                <li v-for="item in contentMenuItems" :key="item.to">
-                  <router-link
-                    :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
-                  >
-                    <i :class="item.icon"></i>
-                    <span>{{ item.label }}</span>
-                  </router-link>
-                </li>
-              </ul>
-            </li>
-
             <!-- Grupo Ventas -->
             <li>
               <button
@@ -241,6 +212,35 @@
               <!-- Submenú -->
               <ul v-show="marketingExpanded" class="ml-4 mt-1 space-y-1">
                 <li v-for="item in marketingMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Grupo Contenido -->
+            <li>
+              <button
+                @click="contentExpanded = !contentExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isContentActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-file-edit"></i>
+                  <span>Contenido</span>
+                </div>
+                <i :class="contentExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="contentExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in contentMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
                     class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
@@ -419,36 +419,6 @@
               </router-link>
             </li>
 
-            <!-- Grupo Contenido -->
-            <li>
-              <button
-                @click="contentExpanded = !contentExpanded"
-                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
-                :class="{ 'bg-primary-50 text-primary font-medium': isContentActive }"
-              >
-                <div class="flex items-center gap-3">
-                  <i class="pi pi-file-edit"></i>
-                  <span>Contenido</span>
-                </div>
-                <i :class="contentExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
-              </button>
-
-              <!-- Submenú -->
-              <ul v-show="contentExpanded" class="ml-4 mt-1 space-y-1">
-                <li v-for="item in contentMenuItems" :key="item.to">
-                  <router-link
-                    :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
-                    @click="sidebarVisible = false"
-                  >
-                    <i :class="item.icon"></i>
-                    <span>{{ item.label }}</span>
-                  </router-link>
-                </li>
-              </ul>
-            </li>
-
             <!-- Grupo Ventas -->
             <li>
               <button
@@ -556,6 +526,36 @@
               <!-- Submenú -->
               <ul v-show="marketingExpanded" class="ml-4 mt-1 space-y-1">
                 <li v-for="item in marketingMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                    @click="sidebarVisible = false"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Grupo Contenido -->
+            <li>
+              <button
+                @click="contentExpanded = !contentExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isContentActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-file-edit"></i>
+                  <span>Contenido</span>
+                </div>
+                <i :class="contentExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="contentExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in contentMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
                     class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
@@ -786,7 +786,7 @@ const configExpanded = computed({
 })
 
 const contentExpanded = computed({
-  get: () => contentExpandedRef.value || route.path.startsWith('/pages') || route.path.startsWith('/blog'),
+  get: () => contentExpandedRef.value || route.path.startsWith('/pages') || route.path.startsWith('/blog') || route.path.startsWith('/content'),
   set: (val) => { contentExpandedRef.value = val }
 })
 
@@ -799,7 +799,8 @@ const simpleMenuItems = [
 // Items del grupo Contenido
 const contentMenuItems = [
   { label: 'Páginas', icon: 'pi pi-file-edit', to: '/pages' },
-  { label: 'Blog', icon: 'pi pi-pencil', to: '/blog' }
+  { label: 'Blog', icon: 'pi pi-pencil', to: '/blog' },
+  { label: 'Imágenes', icon: 'pi pi-images', to: '/content/images' }
 ]
 
 // Items del grupo Ventas
@@ -857,7 +858,7 @@ const configMenuItems = [
 
 // Detectar si estamos en alguna ruta de contenido
 const isContentActive = computed(() => {
-  return route.path.startsWith('/pages') || route.path.startsWith('/blog')
+  return route.path.startsWith('/pages') || route.path.startsWith('/blog') || route.path.startsWith('/content')
 })
 
 // Detectar si estamos en alguna ruta de ventas

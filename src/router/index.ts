@@ -253,6 +253,18 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/content',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: 'images',
+        name: 'image-gallery',
+        component: () => import('@/views/content/ImageGalleryView.vue')
+      }
+    ]
+  },
+  {
     path: '/marketing',
     component: DashboardLayout,
     meta: { requiresAuth: true, requiresStore: true },
