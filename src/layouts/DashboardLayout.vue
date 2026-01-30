@@ -882,7 +882,8 @@ const billingMenuItems = [
 // Items del grupo Reparto
 const shippingMenuItems = [
   { label: 'Tarifas de Envío', icon: 'pi pi-money-bill', to: '/shipping/rates' },
-  { label: 'Zonas de Reparto', icon: 'pi pi-map', to: '/shipping/zones' }
+  { label: 'Zonas de Reparto', icon: 'pi pi-map', to: '/shipping/zones' },
+  { label: 'Proveedores', icon: 'pi pi-truck', to: '/shipping/couriers' }
 ]
 
 // Items del grupo Formas de Pago
