@@ -109,6 +109,8 @@ import Message from 'primevue/message'
 
 import urbanerLogo from '@/assets/images/urbaner-logo.png'
 import minutos99Logo from '@/assets/images/logo_99minutos.svg'
+import chazkiLogo from '@/assets/images/logo-chazki.png'
+import nirexLogo from '@/assets/images/logo-nirex.svg'
 
 const router = useRouter()
 const store = useCourierProvidersStore()
@@ -116,17 +118,23 @@ const store = useCourierProvidersStore()
 const courierLogos: Record<string, string> = {
   urbaner: urbanerLogo,
   '99minutos': minutos99Logo,
+  chazki: chazkiLogo,
+  nirex: nirexLogo,
 }
 
 const courierGradients: Record<string, string> = {
   urbaner: 'bg-gradient-to-br from-blue-50 to-blue-100',
   '99minutos': 'bg-gradient-to-br from-orange-50 to-orange-100',
+  chazki: 'bg-gradient-to-br from-teal-50 to-teal-100',
+  nirex: 'bg-gradient-to-br from-purple-50 to-purple-100',
 }
 
 function getDefaultDescription(code: string): string {
   const descriptions: Record<string, string> = {
     urbaner: 'Servicio de courier para envíos Express, Same Day y Next Day en Lima y ciudades principales.',
     '99minutos': 'Plataforma de logística para envíos Same Day y Next Day en Perú y Latinoamérica.',
+    chazki: 'Servicio de courier para envíos Regular, Express y Programado en Lima y ciudades principales.',
+    nirex: 'Plataforma de logística last-mile para envíos en Lima Metropolitana y Callao.',
   }
   return descriptions[code] || ''
 }

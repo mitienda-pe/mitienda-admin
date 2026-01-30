@@ -80,3 +80,33 @@ export interface Minutos99Credentials {
   company_name: string
   api_version: Minutos99ApiVersion
 }
+
+// Chazki-specific types
+export interface ChazkiCredentials {
+  enterprise_key: string
+  store_id: string
+  branch_id: string
+  services: string // JSON array of enabled services
+  sender_name: string
+  sender_email: string
+  sender_phone: string
+  origin_address: string
+  origin_district: string
+  origin_reference: string
+  origin_latitude: string
+  origin_longitude: string
+}
+
+export type ChazkiServiceType = 'Regular' | 'Express' | 'Programado'
+
+// Nirex-specific types
+export interface NirexCredentials {
+  api_key: string
+  sender_name: string
+  sender_email: string
+  sender_phone: string
+  origin_address: string
+  origin_district: string
+  origin_reference: string
+  environment: CourierEnvironment
+}

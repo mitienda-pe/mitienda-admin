@@ -47,6 +47,8 @@ const courierCode = computed(() => route.params.code as string)
 const componentMap: Record<string, ReturnType<typeof defineAsyncComponent>> = {
   urbaner: defineAsyncComponent(() => import('./couriers/UrbanerConfigView.vue')),
   '99minutos': defineAsyncComponent(() => import('./couriers/Minutos99ConfigView.vue')),
+  chazki: defineAsyncComponent(() => import('./couriers/ChazkiConfigView.vue')),
+  nirex: defineAsyncComponent(() => import('./couriers/NirexConfigView.vue')),
 }
 
 const configComponent = computed(() => {
