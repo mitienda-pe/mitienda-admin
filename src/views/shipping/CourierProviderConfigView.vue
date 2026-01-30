@@ -51,6 +51,7 @@ const componentMap: Record<string, ReturnType<typeof defineAsyncComponent>> = {
   nirex: defineAsyncComponent(() => import('./couriers/NirexConfigView.vue')),
   urbano: defineAsyncComponent(() => import('./couriers/UrbanoConfigView.vue')),
   yango: defineAsyncComponent(() => import('./couriers/YangoConfigView.vue')),
+  hop: defineAsyncComponent(() => import('./couriers/HopConfigView.vue')),
 }
 
 const configComponent = computed(() => {

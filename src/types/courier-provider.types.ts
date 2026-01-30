@@ -129,6 +129,21 @@ export interface YangoCredentials {
   callback_url: string
 }
 
+// HOP-specific types
+export interface HopCredentials {
+  client_id: string
+  client_secret: string
+  email: string
+  password: string
+  seller_code: string
+  sender_name: string
+  sender_phone: string
+  origin_address: string
+  origin_zipcode: string
+  country: string
+  environment: CourierEnvironment
+}
+
 // Nirex-specific types
 export interface NirexCredentials {
   api_key: string

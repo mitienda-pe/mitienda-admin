@@ -29,9 +29,15 @@
       >
         <template #header>
           <div
-            class="flex items-center justify-center p-6"
+            class="relative flex items-center justify-center p-6"
             :class="courierGradients[provider.code] || 'bg-gradient-to-br from-gray-50 to-gray-100'"
           >
+            <Tag
+              v-if="betaCouriers.includes(provider.code)"
+              value="Beta"
+              severity="warn"
+              class="!absolute top-2 right-2 text-xs"
+            />
             <img
               v-if="courierLogos[provider.code]"
               :src="courierLogos[provider.code]"
@@ -59,7 +65,7 @@
         </template>
         <template #content>
           <p class="text-sm text-gray-600">
-            {{ provider.description || getDefaultDescription(provider.code) }}
+            {{ stripHtml(provider.description) || getDefaultDescription(provider.code) }}
           </p>
           <div v-if="provider.configured && provider.environment" class="mt-2">
             <Tag
@@ -113,6 +119,7 @@ import chazkiLogo from '@/assets/images/logo-chazki.webp'
 import nirexLogo from '@/assets/images/logo-nirex.png'
 import urbanoLogo from '@/assets/images/logo-urbano.png'
 import yangoLogo from '@/assets/images/logo-yango.svg'
+import hopLogo from '@/assets/images/logo-hop.svg'
 
 const router = useRouter()
 const store = useCourierProvidersStore()
@@ -124,6 +131,14 @@ const courierLogos: Record<string, string> = {
   nirex: nirexLogo,
   urbano: urbanoLogo,
   yango: yangoLogo,
+  hop: hopLogo,
+}
+
+const betaCouriers = ['chazki', 'nirex', 'urbano', 'yango', 'hop']
+
+function stripHtml(text: string): string {
+  if (!text) return ''
+  return text.replace(/<[^>]*>/g, '')
 }
 
 const courierGradients: Record<string, string> = {
@@ -133,6 +148,7 @@ const courierGradients: Record<string, string> = {
   nirex: 'bg-gradient-to-br from-purple-50 to-purple-100',
   urbano: 'bg-gradient-to-br from-indigo-50 to-indigo-100',
   yango: 'bg-gradient-to-br from-red-50 to-red-100',
+  hop: 'bg-gradient-to-br from-emerald-50 to-emerald-100',
 }
 
 function getDefaultDescription(code: string): string {
@@ -143,6 +159,7 @@ function getDefaultDescription(code: string): string {
     nirex: 'Plataforma de logística last-mile para envíos en Lima Metropolitana y Callao.',
     urbano: 'Servicio de courier y logística a nivel nacional con distribución terrestre, aérea y puntos de recojo.',
     yango: 'Plataforma de delivery express con courier, express y cargo para entregas rápidas en la ciudad.',
+    hop: 'Plataforma logística con red de puntos de entrega y retiro en Argentina, Uruguay y Perú.',
   }
   return descriptions[code] || ''
 }
