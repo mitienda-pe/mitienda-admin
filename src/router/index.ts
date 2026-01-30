@@ -265,6 +265,23 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/legal',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: '',
+        name: 'legal-pages',
+        component: () => import('@/views/legal/LegalPagesListView.vue')
+      },
+      {
+        path: ':slug/edit',
+        name: 'legal-page-edit',
+        component: () => import('@/views/legal/LegalPageEditView.vue')
+      }
+    ]
+  },
+  {
     path: '/marketing',
     component: DashboardLayout,
     meta: { requiresAuth: true, requiresStore: true },
@@ -359,6 +376,21 @@ const routes: RouteRecordRaw[] = [
         path: 'rates',
         name: 'ShippingRates',
         component: () => import('@/views/shipping/ShippingRatesView.vue')
+      },
+      {
+        path: 'zones',
+        name: 'shipping-zones',
+        component: () => import('@/views/shipping/ShippingZonesListView.vue')
+      },
+      {
+        path: 'zones/new',
+        name: 'shipping-zone-create',
+        component: () => import('@/views/shipping/ShippingZoneCreateView.vue')
+      },
+      {
+        path: 'zones/:id',
+        name: 'shipping-zone-detail',
+        component: () => import('@/views/shipping/ShippingZoneDetailView.vue')
       }
     ]
   },

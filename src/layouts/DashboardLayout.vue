@@ -282,7 +282,7 @@
               </ul>
             </li>
 
-            <!-- Grupo Formas de Pago -->
+            <!-- Grupo Configuración -->
             <li>
               <button
                 @click="paymentGatewaysExpanded = !paymentGatewaysExpanded"
@@ -290,8 +290,8 @@
                 :class="{ 'bg-primary-50 text-primary font-medium': isPaymentGatewaysActive }"
               >
                 <div class="flex items-center gap-3">
-                  <i class="pi pi-credit-card"></i>
-                  <span>Formas de Pago</span>
+                  <i class="pi pi-cog"></i>
+                  <span>Configuración</span>
                 </div>
                 <i :class="paymentGatewaysExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
               </button>
@@ -311,16 +311,33 @@
               </ul>
             </li>
 
-            <!-- Tarifas de Envío -->
+            <!-- Grupo Reparto -->
             <li>
-              <router-link
-                to="/shipping/rates"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
-                active-class="bg-primary-50 text-primary font-medium"
+              <button
+                @click="shippingExpanded = !shippingExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isShippingActive }"
               >
-                <i class="pi pi-truck"></i>
-                <span>Tarifas de Envío</span>
-              </router-link>
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-truck"></i>
+                  <span>Reparto</span>
+                </div>
+                <i :class="shippingExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="shippingExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in shippingMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
             </li>
 
             <!-- Grupo: API -->
@@ -331,7 +348,7 @@
                 :class="{ 'bg-primary-50 text-primary font-medium': isApiActive }"
               >
                 <div class="flex items-center gap-3">
-                  <i class="pi pi-cog"></i>
+                  <i class="pi pi-code"></i>
                   <span>API</span>
                 </div>
                 <i :class="apiExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
@@ -599,7 +616,7 @@
               </ul>
             </li>
 
-            <!-- Grupo Formas de Pago (móvil) -->
+            <!-- Grupo Configuración (móvil) -->
             <li>
               <button
                 @click="paymentGatewaysExpanded = !paymentGatewaysExpanded"
@@ -607,8 +624,8 @@
                 :class="{ 'bg-primary-50 text-primary font-medium': isPaymentGatewaysActive }"
               >
                 <div class="flex items-center gap-3">
-                  <i class="pi pi-credit-card"></i>
-                  <span>Formas de Pago</span>
+                  <i class="pi pi-cog"></i>
+                  <span>Configuración</span>
                 </div>
                 <i :class="paymentGatewaysExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
               </button>
@@ -629,17 +646,34 @@
               </ul>
             </li>
 
-            <!-- Tarifas de Envío (móvil) -->
+            <!-- Grupo Reparto (móvil) -->
             <li>
-              <router-link
-                to="/shipping/rates"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
-                active-class="bg-primary-50 text-primary font-medium"
-                @click="sidebarVisible = false"
+              <button
+                @click="shippingExpanded = !shippingExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isShippingActive }"
               >
-                <i class="pi pi-truck"></i>
-                <span>Tarifas de Envío</span>
-              </router-link>
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-truck"></i>
+                  <span>Reparto</span>
+                </div>
+                <i :class="shippingExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="shippingExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in shippingMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                    @click="sidebarVisible = false"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
             </li>
 
             <!-- Grupo API -->
@@ -650,7 +684,7 @@
                 :class="{ 'bg-primary-50 text-primary font-medium': isApiActive }"
               >
                 <div class="flex items-center gap-3">
-                  <i class="pi pi-cog"></i>
+                  <i class="pi pi-code"></i>
                   <span>API</span>
                 </div>
                 <i :class="apiExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
@@ -743,6 +777,7 @@ const paymentGatewaysExpandedRef = ref(false)
 const apiExpandedRef = ref(false)
 const configExpandedRef = ref(false)
 const contentExpandedRef = ref(false)
+const shippingExpandedRef = ref(false)
 
 // Computar dinámicamente qué menú debe estar expandido según la ruta
 const salesExpanded = computed({
@@ -786,8 +821,13 @@ const configExpanded = computed({
 })
 
 const contentExpanded = computed({
-  get: () => contentExpandedRef.value || route.path.startsWith('/pages') || route.path.startsWith('/blog') || route.path.startsWith('/content'),
+  get: () => contentExpandedRef.value || route.path.startsWith('/pages') || route.path.startsWith('/blog') || route.path.startsWith('/content') || route.path.startsWith('/legal'),
   set: (val) => { contentExpandedRef.value = val }
+})
+
+const shippingExpanded = computed({
+  get: () => shippingExpandedRef.value || route.path.startsWith('/shipping'),
+  set: (val) => { shippingExpandedRef.value = val }
 })
 
 // Items simples del menú
@@ -800,6 +840,7 @@ const simpleMenuItems = [
 const contentMenuItems = [
   { label: 'Páginas', icon: 'pi pi-file-edit', to: '/pages' },
   { label: 'Blog', icon: 'pi pi-pencil', to: '/blog' },
+  { label: 'Legal', icon: 'pi pi-shield', to: '/legal' },
   { label: 'Imágenes', icon: 'pi pi-images', to: '/content/images' }
 ]
 
@@ -838,9 +879,15 @@ const billingMenuItems = [
   { label: 'Documentos', icon: 'pi pi-file', to: '/billing/documents' }
 ]
 
+// Items del grupo Reparto
+const shippingMenuItems = [
+  { label: 'Tarifas de Envío', icon: 'pi pi-money-bill', to: '/shipping/rates' },
+  { label: 'Zonas de Reparto', icon: 'pi pi-map', to: '/shipping/zones' }
+]
+
 // Items del grupo Formas de Pago
 const paymentGatewaysMenuItems = [
-  { label: 'Pasarelas', icon: 'pi pi-credit-card', to: '/payment-gateways' }
+  { label: 'Formas de Pago', icon: 'pi pi-credit-card', to: '/payment-gateways' }
 ]
 
 // Items del grupo API
@@ -856,9 +903,14 @@ const configMenuItems = [
   { label: 'Cola de Sincronización', icon: 'pi pi-list', to: '/configuracion/netsuite/cola' }
 ]
 
+// Detectar si estamos en alguna ruta de reparto
+const isShippingActive = computed(() => {
+  return route.path.startsWith('/shipping')
+})
+
 // Detectar si estamos en alguna ruta de contenido
 const isContentActive = computed(() => {
-  return route.path.startsWith('/pages') || route.path.startsWith('/blog') || route.path.startsWith('/content')
+  return route.path.startsWith('/pages') || route.path.startsWith('/blog') || route.path.startsWith('/content') || route.path.startsWith('/legal')
 })
 
 // Detectar si estamos en alguna ruta de ventas
