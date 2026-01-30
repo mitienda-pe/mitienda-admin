@@ -147,8 +147,8 @@ const courierGradients: Record<string, string> = {
   chazki: 'bg-gradient-to-br from-teal-50 to-teal-100',
   nirex: 'bg-gradient-to-br from-purple-50 to-purple-100',
   urbano: 'bg-gradient-to-br from-indigo-50 to-indigo-100',
-  yango: 'bg-gradient-to-br from-red-50 to-red-100',
-  hop: 'bg-gradient-to-br from-emerald-50 to-emerald-100',
+  yango: 'bg-[#ff0000]',
+  hop: 'bg-[#ee4424]',
 }
 
 function getDefaultDescription(code: string): string {
