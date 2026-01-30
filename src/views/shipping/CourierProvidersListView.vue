@@ -109,7 +109,7 @@ import Message from 'primevue/message'
 
 import urbanerLogo from '@/assets/images/urbaner-logo.png'
 import minutos99Logo from '@/assets/images/logo_99minutos.svg'
-import chazkiLogo from '@/assets/images/logo-chazki.png'
+import chazkiLogo from '@/assets/images/logo-chazki.webp'
 import nirexLogo from '@/assets/images/logo-nirex.png'
 
 const router = useRouter()
