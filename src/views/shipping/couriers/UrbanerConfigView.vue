@@ -9,6 +9,7 @@
         severity="secondary"
         @click="router.push('/shipping/couriers')"
       />
+      <img :src="urbanerLogo" alt="Urbaner" class="w-10 h-10 object-contain" />
       <div>
         <h1 class="text-2xl font-bold text-secondary">Urbaner</h1>
         <p class="text-sm text-secondary-400 mt-1">Configuración de credenciales y servicios</p>
@@ -239,6 +240,7 @@ import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCourierProvidersStore } from '@/stores/courier-providers.store'
 import { useToast } from 'primevue/usetoast'
+import urbanerLogo from '@/assets/images/urbaner-logo.png'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'

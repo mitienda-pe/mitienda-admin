@@ -1,11 +1,11 @@
 <template>
-  <div>
+  <div class="space-y-6">
     <!-- Header -->
-    <div class="mb-6">
-      <h1 class="text-3xl font-bold text-secondary">Proveedores de Courier</h1>
-      <p class="text-sm text-secondary-500 mt-1">
-        Configura los servicios de courier para envíos de tu tienda.
-      </p>
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Proveedores de Courier</h1>
+        <p class="text-gray-600 mt-1">Configura los servicios de courier para envíos de tu tienda</p>
+      </div>
     </div>
 
     <!-- Loading -->
@@ -20,88 +20,81 @@
 
     <!-- Providers Grid -->
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div
+      <Card
         v-for="provider in store.providers"
         :key="provider.code"
-        class="bg-white rounded-lg shadow border-2 transition-colors cursor-pointer hover:shadow-md"
-        :class="{
-          'border-green-200': provider.configured && provider.enabled,
-          'border-yellow-200': provider.configured && !provider.enabled,
-          'border-transparent': !provider.configured,
-        }"
+        class="cursor-pointer hover:shadow-lg transition-shadow border-2"
+        :class="provider.configured ? 'border-green-200 hover:border-primary' : 'border-transparent hover:border-primary'"
         @click="router.push(`/shipping/couriers/${provider.code}`)"
       >
-        <div class="p-6">
-          <!-- Logo & Name -->
-          <div class="flex items-center gap-4 mb-4">
-            <div class="w-12 h-12 bg-secondary-100 rounded-lg flex items-center justify-center">
-              <i class="pi pi-truck text-2xl text-secondary-500"></i>
-            </div>
-            <div>
-              <h3 class="text-lg font-semibold text-secondary-800">{{ provider.name }}</h3>
-              <p class="text-xs text-secondary-400">{{ provider.code }}</p>
-            </div>
+        <template #header>
+          <div
+            class="flex items-center justify-center p-6"
+            :class="courierGradients[provider.code] || 'bg-gradient-to-br from-gray-50 to-gray-100'"
+          >
+            <img
+              v-if="courierLogos[provider.code]"
+              :src="courierLogos[provider.code]"
+              :alt="provider.name"
+              class="h-20 object-contain"
+            />
+            <i v-else class="pi pi-truck text-5xl text-secondary-400"></i>
           </div>
-
-          <!-- Description -->
-          <p class="text-sm text-secondary-500 mb-4 line-clamp-2">
+        </template>
+        <template #title>
+          <div class="flex items-center justify-between">
+            <span>{{ provider.name }}</span>
+            <Tag
+              v-if="provider.configured"
+              value="Configurado"
+              severity="success"
+              icon="pi pi-check"
+            />
+            <Tag
+              v-else
+              value="Sin configurar"
+              severity="secondary"
+            />
+          </div>
+        </template>
+        <template #content>
+          <p class="text-sm text-gray-600">
             {{ provider.description || getDefaultDescription(provider.code) }}
           </p>
-
-          <!-- Status -->
-          <div class="flex items-center gap-2">
-            <span
-              v-if="provider.configured"
-              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700"
-            >
-              <i class="pi pi-check-circle mr-1"></i>
-              Configurado
-            </span>
-            <span
-              v-else
-              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-secondary-100 text-secondary-500"
-            >
-              <i class="pi pi-circle mr-1"></i>
-              Sin configurar
-            </span>
-
-            <span
-              v-if="provider.configured && provider.environment"
-              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-              :class="{
-                'bg-blue-100 text-blue-700': provider.environment === 'produccion',
-                'bg-orange-100 text-orange-700': provider.environment === 'prueba',
-              }"
-            >
-              {{ provider.environment === 'produccion' ? 'Producción' : 'Prueba' }}
+          <div v-if="provider.configured && provider.environment" class="mt-2">
+            <Tag
+              :value="provider.environment === 'produccion' ? 'Producción' : 'Prueba'"
+              :severity="provider.environment === 'produccion' ? 'info' : 'warn'"
+              class="text-xs"
+            />
+          </div>
+          <div class="mt-4 flex items-center gap-2 text-sm">
+            <i class="pi pi-cog text-primary"></i>
+            <span class="text-primary font-medium">
+              {{ provider.configured ? 'Editar configuración' : 'Configurar courier' }}
             </span>
           </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="px-6 py-3 bg-secondary-50 border-t rounded-b-lg">
-          <span class="text-sm text-primary font-medium">
-            {{ provider.configured ? 'Editar configuración' : 'Configurar courier' }}
-            <i class="pi pi-arrow-right ml-1"></i>
-          </span>
-        </div>
-      </div>
+        </template>
+      </Card>
     </div>
 
-    <!-- Info Box -->
-    <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-      <div class="flex gap-3">
-        <i class="pi pi-info-circle text-blue-500 mt-0.5"></i>
-        <div class="text-sm text-blue-700">
-          <p class="font-medium mb-1">Sobre los proveedores de courier</p>
-          <p>
-            Configura las credenciales de los servicios de courier para habilitar envíos
-            a través de sus APIs. Cada proveedor requiere una cuenta activa con sus
-            respectivas credenciales (API Key, etc.).
-          </p>
+    <!-- Information Box -->
+    <Card class="bg-blue-50 border border-blue-200">
+      <template #content>
+        <div class="flex gap-4">
+          <i class="pi pi-info-circle text-blue-600 text-2xl"></i>
+          <div>
+            <h3 class="font-semibold text-blue-900 mb-2">Sobre los proveedores de courier</h3>
+            <ul class="text-sm text-blue-800 space-y-1">
+              <li>• Cada proveedor requiere una cuenta activa con sus respectivas credenciales</li>
+              <li>• Puedes configurar múltiples couriers simultáneamente</li>
+              <li>• Usa el entorno de prueba (sandbox) para verificar la integración antes de activar en producción</li>
+              <li>• Los simuladores de precio te permiten probar sin afectar envíos reales</li>
+            </ul>
+          </div>
         </div>
-      </div>
-    </div>
+      </template>
+    </Card>
   </div>
 </template>
 
@@ -109,11 +102,26 @@
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCourierProvidersStore } from '@/stores/courier-providers.store'
+import Card from 'primevue/card'
+import Tag from 'primevue/tag'
 import ProgressSpinner from 'primevue/progressspinner'
 import Message from 'primevue/message'
 
+import urbanerLogo from '@/assets/images/urbaner-logo.png'
+import minutos99Logo from '@/assets/images/logo_99minutos.svg'
+
 const router = useRouter()
 const store = useCourierProvidersStore()
+
+const courierLogos: Record<string, string> = {
+  urbaner: urbanerLogo,
+  '99minutos': minutos99Logo,
+}
+
+const courierGradients: Record<string, string> = {
+  urbaner: 'bg-gradient-to-br from-blue-50 to-blue-100',
+  '99minutos': 'bg-gradient-to-br from-orange-50 to-orange-100',
+}
 
 function getDefaultDescription(code: string): string {
   const descriptions: Record<string, string> = {

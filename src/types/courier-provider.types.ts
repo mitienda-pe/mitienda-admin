@@ -63,9 +63,11 @@ export interface UrbanerService {
   tipo?: string
 }
 
+export type Minutos99ApiVersion = 'v1' | 'v3'
+
 // 99 Minutos-specific types
 export interface Minutos99Credentials {
-  api_key: string
+  api_key: string          // v1: API Key, v3: "client_id|client_secret"
   sender_first_name: string
   sender_last_name: string
   sender_email: string
@@ -76,4 +78,5 @@ export interface Minutos99Credentials {
   services: string // JSON
   environment: CourierEnvironment
   company_name: string
+  api_version: Minutos99ApiVersion
 }

@@ -9,6 +9,7 @@
         severity="secondary"
         @click="router.push('/shipping/couriers')"
       />
+      <img :src="minutos99Logo" alt="99 Minutos" class="w-10 h-10 object-contain" />
       <div>
         <h1 class="text-2xl font-bold text-secondary">99 Minutos</h1>
         <p class="text-sm text-secondary-400 mt-1">Configuración de credenciales y servicios</p>
@@ -34,8 +35,23 @@
       <!-- Main Form -->
       <div class="lg:col-span-2">
         <div class="bg-white rounded-lg shadow p-6 space-y-6">
-          <!-- API Key -->
+          <!-- API Version -->
           <div>
+            <label class="block text-sm font-medium text-secondary-700 mb-2">Versión de API</label>
+            <SelectButton
+              v-model="form.api_version"
+              :options="apiVersionOptions"
+              optionLabel="label"
+              optionValue="value"
+              :allowEmpty="false"
+            />
+            <p class="text-xs text-secondary-400 mt-1">
+              {{ form.api_version === 'v3' ? 'OAuth con Client ID y Client Secret (recomendado)' : 'Autenticación con API Key (legacy)' }}
+            </p>
+          </div>
+
+          <!-- v1: API Key -->
+          <div v-if="form.api_version === 'v1'">
             <label class="block text-sm font-medium text-secondary-700 mb-1">API Key</label>
             <Password
               v-model="form.api_key"
@@ -46,6 +62,29 @@
               inputClass="w-full"
             />
           </div>
+
+          <!-- v3: Client ID + Client Secret -->
+          <template v-if="form.api_version === 'v3'">
+            <div>
+              <label class="block text-sm font-medium text-secondary-700 mb-1">Client ID</label>
+              <InputText
+                v-model="form.client_id"
+                class="w-full"
+                placeholder="UUID del Client ID"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-secondary-700 mb-1">Client Secret</label>
+              <Password
+                v-model="form.client_secret"
+                class="w-full"
+                :feedback="false"
+                toggleMask
+                placeholder="Client Secret de 99 Minutos"
+                inputClass="w-full"
+              />
+            </div>
+          </template>
 
           <!-- Environment -->
           <div>
@@ -202,11 +241,21 @@
           <h4 class="text-sm font-semibold text-secondary-700 mb-2">Pasos para configurar</h4>
           <ol class="text-sm text-secondary-500 space-y-2 list-decimal list-inside">
             <li>Crea una cuenta en 99 Minutos</li>
-            <li>Obtén tu API Key desde el panel</li>
-            <li>Ingresa la API Key en esta configuración</li>
+            <li>Selecciona la versión de API (v1 o v3)</li>
+            <li v-if="form.api_version === 'v3'">Obtén tu Client ID y Client Secret desde el panel</li>
+            <li v-else>Obtén tu API Key desde el panel</li>
+            <li>Ingresa las credenciales en esta configuración</li>
             <li>Selecciona los servicios disponibles</li>
             <li>Ingresa los datos de remitente y dirección</li>
           </ol>
+
+          <Divider />
+
+          <h4 class="text-sm font-semibold text-secondary-700 mb-2">Versiones de API</h4>
+          <ul class="text-sm text-secondary-500 space-y-1">
+            <li><strong>v1 (Legacy):</strong> API Key simple, endpoints tradicionales</li>
+            <li><strong>v3 (OAuth):</strong> Client ID + Secret, autenticación JWT</li>
+          </ul>
 
           <Divider />
 
@@ -226,6 +275,7 @@ import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCourierProvidersStore } from '@/stores/courier-providers.store'
 import { useToast } from 'primevue/usetoast'
+import minutos99Logo from '@/assets/images/logo_99minutos.svg'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
@@ -237,6 +287,11 @@ import Divider from 'primevue/divider'
 const router = useRouter()
 const store = useCourierProvidersStore()
 const toast = useToast()
+
+const apiVersionOptions = [
+  { label: 'API v1 (Legacy)', value: 'v1' },
+  { label: 'API v3 (OAuth)', value: 'v3' },
+]
 
 const environmentOptions = [
   { label: 'Producción', value: 'produccion' },
@@ -254,7 +309,10 @@ const countryOptions = [
 ]
 
 const form = ref({
+  api_version: 'v1' as 'v1' | 'v3',
   api_key: '',
+  client_id: '',
+  client_secret: '',
   environment: 'produccion',
   sender_first_name: '',
   sender_last_name: '',
@@ -281,7 +339,22 @@ const isConfigured = computed(() => store.currentConfig?.courier?.configured ?? 
 watch(() => store.currentConfig, (config) => {
   if (config?.credentials) {
     const c = config.credentials
-    form.value.api_key = (c.api_key as string) || ''
+    const version = (c.api_version as string) || 'v1'
+    form.value.api_version = version as 'v1' | 'v3'
+
+    if (version === 'v3') {
+      // v3 stores "client_id|client_secret" in api_key field
+      const apiKeyRaw = (c.api_key as string) || ''
+      const parts = apiKeyRaw.split('|')
+      form.value.client_id = parts[0] || ''
+      form.value.client_secret = parts[1] || ''
+      form.value.api_key = ''
+    } else {
+      form.value.api_key = (c.api_key as string) || ''
+      form.value.client_id = ''
+      form.value.client_secret = ''
+    }
+
     form.value.environment = (c.environment as string) || 'produccion'
     form.value.sender_first_name = (c.sender_first_name as string) || ''
     form.value.sender_last_name = (c.sender_last_name as string) || ''
@@ -316,13 +389,35 @@ function buildServicesJson(): string {
 }
 
 async function handleSave() {
-  if (!form.value.api_key.trim()) {
-    toast.add({ severity: 'warn', summary: 'Requerido', detail: 'API Key es obligatoria', life: 3000 })
-    return
+  if (form.value.api_version === 'v3') {
+    if (!form.value.client_id.trim() || !form.value.client_secret.trim()) {
+      toast.add({ severity: 'warn', summary: 'Requerido', detail: 'Client ID y Client Secret son obligatorios para API v3', life: 3000 })
+      return
+    }
+  } else {
+    if (!form.value.api_key.trim()) {
+      toast.add({ severity: 'warn', summary: 'Requerido', detail: 'API Key es obligatoria', life: 3000 })
+      return
+    }
   }
 
+  // For v3, pack client_id|client_secret into api_key field
+  const apiKey = form.value.api_version === 'v3'
+    ? `${form.value.client_id}|${form.value.client_secret}`
+    : form.value.api_key
+
   const credentials = {
-    ...form.value,
+    api_key: apiKey,
+    api_version: form.value.api_version,
+    environment: form.value.environment,
+    sender_first_name: form.value.sender_first_name,
+    sender_last_name: form.value.sender_last_name,
+    sender_email: form.value.sender_email,
+    sender_phone: form.value.sender_phone,
+    origin_address: form.value.origin_address,
+    origin_interior: form.value.origin_interior,
+    country: form.value.country,
+    company_name: form.value.company_name,
     services: buildServicesJson(),
   }
 
