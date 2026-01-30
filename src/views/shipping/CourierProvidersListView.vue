@@ -111,6 +111,8 @@ import urbanerLogo from '@/assets/images/urbaner-logo.png'
 import minutos99Logo from '@/assets/images/logo_99minutos.svg'
 import chazkiLogo from '@/assets/images/logo-chazki.webp'
 import nirexLogo from '@/assets/images/logo-nirex.png'
+import urbanoLogo from '@/assets/images/logo-urbano.png'
+import yangoLogo from '@/assets/images/logo-yango.svg'
 
 const router = useRouter()
 const store = useCourierProvidersStore()
@@ -120,6 +122,8 @@ const courierLogos: Record<string, string> = {
   '99minutos': minutos99Logo,
   chazki: chazkiLogo,
   nirex: nirexLogo,
+  urbano: urbanoLogo,
+  yango: yangoLogo,
 }
 
 const courierGradients: Record<string, string> = {
@@ -127,6 +131,8 @@ const courierGradients: Record<string, string> = {
   '99minutos': 'bg-gradient-to-br from-orange-50 to-orange-100',
   chazki: 'bg-gradient-to-br from-teal-50 to-teal-100',
   nirex: 'bg-gradient-to-br from-purple-50 to-purple-100',
+  urbano: 'bg-gradient-to-br from-indigo-50 to-indigo-100',
+  yango: 'bg-gradient-to-br from-red-50 to-red-100',
 }
 
 function getDefaultDescription(code: string): string {
@@ -135,6 +141,8 @@ function getDefaultDescription(code: string): string {
     '99minutos': 'Plataforma de logística para envíos Same Day y Next Day en Perú y Latinoamérica.',
     chazki: 'Servicio de courier para envíos Regular, Express y Programado en Lima y ciudades principales.',
     nirex: 'Plataforma de logística last-mile para envíos en Lima Metropolitana y Callao.',
+    urbano: 'Servicio de courier y logística a nivel nacional con distribución terrestre, aérea y puntos de recojo.',
+    yango: 'Plataforma de delivery express con courier, express y cargo para entregas rápidas en la ciudad.',
   }
   return descriptions[code] || ''
 }

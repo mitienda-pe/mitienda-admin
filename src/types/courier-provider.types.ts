@@ -99,6 +99,36 @@ export interface ChazkiCredentials {
 
 export type ChazkiServiceType = 'Regular' | 'Express' | 'Programado'
 
+// Urbano-specific types
+export interface UrbanoCredentials {
+  api_key: string
+  contrato: string
+  seller_id: string
+  seller_name: string
+  sender_name: string
+  sender_phone: string
+  origin_address: string
+  origin_ubigeo: string
+  origin_region: string
+  origin_provincia: string
+  origin_ciudad: string
+  environment: CourierEnvironment
+}
+
+// Yango-specific types
+export interface YangoCredentials {
+  api_token: string
+  taxi_class: string
+  sender_name: string
+  sender_email: string
+  sender_phone: string
+  origin_address: string
+  origin_latitude: string
+  origin_longitude: string
+  origin_comment: string
+  callback_url: string
+}
+
 // Nirex-specific types
 export interface NirexCredentials {
   api_key: string

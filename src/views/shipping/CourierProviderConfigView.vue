@@ -49,6 +49,8 @@ const componentMap: Record<string, ReturnType<typeof defineAsyncComponent>> = {
   '99minutos': defineAsyncComponent(() => import('./couriers/Minutos99ConfigView.vue')),
   chazki: defineAsyncComponent(() => import('./couriers/ChazkiConfigView.vue')),
   nirex: defineAsyncComponent(() => import('./couriers/NirexConfigView.vue')),
+  urbano: defineAsyncComponent(() => import('./couriers/UrbanoConfigView.vue')),
+  yango: defineAsyncComponent(() => import('./couriers/YangoConfigView.vue')),
 }
 
 const configComponent = computed(() => {
