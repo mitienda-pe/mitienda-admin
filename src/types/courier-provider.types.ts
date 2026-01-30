@@ -25,16 +25,28 @@ export interface CalculatePriceRequest {
     lat?: number
     lng?: number
     address?: string
+    zipcode?: string
+    ubigeo?: string
+    [key: string]: unknown
   }
   destination: {
     lat?: number
     lng?: number
     address?: string
+    zipcode?: string
+    ubigeo?: string
+    [key: string]: unknown
   }
   vehicle_type?: number
   service_type?: number
   weight?: number
   country?: string
+  taxi_class?: string
+  package_value?: number
+  height?: number
+  length?: number
+  width?: number
+  [key: string]: unknown
 }
 
 export interface CreateOrderRequest {

@@ -315,7 +315,7 @@ watch(() => store.currentConfig, (config) => {
       const servicesData = JSON.parse((c.services as string) || '{}')
       if (servicesData.servicios) {
         selectedServiceIds.value = servicesData.servicios
-          .filter((s: { estado: string }) => s.estado === '1' || s.estado === 1)
+          .filter((s: { estado: string | number }) => s.estado === '1' || s.estado === 1)
           .map((s: { id: number | string }) => Number(s.id))
       }
     } catch {

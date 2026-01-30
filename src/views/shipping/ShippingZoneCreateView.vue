@@ -162,7 +162,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useShippingZonesStore } from '@/stores/shipping-zones.store'
 import { shippingZonesApi } from '@/api/shipping-zones.api'
