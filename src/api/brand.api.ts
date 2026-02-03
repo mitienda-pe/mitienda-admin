@@ -10,7 +10,8 @@ const transformBrand = (raw: any): Brand => ({
   logo: raw.tiendaimagen_id ? undefined : undefined, // TODO: fetch image URL if needed
   image_id: raw.tiendaimagen_id ? parseInt(raw.tiendaimagen_id) : undefined,
   meta_title: raw.tiendamarca_meta_tittle || undefined,
-  meta_description: raw.tiendamarca_meta_description || undefined
+  meta_description: raw.tiendamarca_meta_description || undefined,
+  product_count: raw.product_count !== undefined ? parseInt(raw.product_count) : 0
 })
 
 // Transform Brand form data to API format
@@ -26,13 +27,19 @@ export const brandApi = {
   // List all brands
   async getAll(): Promise<ApiResponse<Brand[]>> {
     const response = await apiClient.get('/brands')
-    const rawData = response.data
+    let rawData = response.data
+
+    // Handle case where axios interceptor may wrap the response
+    if (rawData && !Array.isArray(rawData) && Array.isArray(rawData.data)) {
+      rawData = rawData.data
+    }
 
     if (Array.isArray(rawData)) {
       const brands = rawData.map(transformBrand)
       return { success: true, data: brands }
     }
 
+    console.warn('brandApi.getAll: unexpected response format', response.data)
     return { success: false, data: [] }
   },
 
@@ -61,5 +68,23 @@ export const brandApi = {
   async delete(id: number): Promise<ApiResponse<void>> {
     await apiClient.delete(`/brands/${id}`)
     return { success: true }
+  },
+
+  // Get products linked/unlinked to a brand
+  async getProducts(id: number): Promise<ApiResponse<{ linked: any[]; unlinked: any[] }>> {
+    const response = await apiClient.get(`/brands/${id}/products`)
+    return { success: true, data: response.data }
+  },
+
+  // Link products to a brand (batch)
+  async linkProducts(id: number, productIds: number[]): Promise<ApiResponse<{ linked_count: number }>> {
+    const response = await apiClient.post(`/brands/${id}/link-products`, { product_ids: productIds })
+    return { success: true, data: response.data }
+  },
+
+  // Unlink products from a brand (batch)
+  async unlinkProducts(id: number, productIds: number[]): Promise<ApiResponse<{ unlinked_count: number }>> {
+    const response = await apiClient.post(`/brands/${id}/unlink-products`, { product_ids: productIds })
+    return { success: true, data: response.data }
   }
 }
