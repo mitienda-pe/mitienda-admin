@@ -12,6 +12,7 @@ const transformCategory = (raw: any): Category => ({
   order: raw.tiendacategoria_orden !== undefined ? parseInt(raw.tiendacategoria_orden) : undefined,
   meta_title: raw.tiendacategoria_meta_tittle || undefined,
   meta_description: raw.tiendacategoria_meta_description || undefined,
+  product_count: raw.product_count !== undefined ? parseInt(raw.product_count) : 0,
   sub: raw.sub ? raw.sub.map(transformCategory) : undefined
 })
 
@@ -104,5 +105,23 @@ export const categoryApi = {
   async delete(id: number): Promise<ApiResponse<void>> {
     await apiClient.delete(`/categories/${id}`)
     return { success: true }
+  },
+
+  // Get products linked/unlinked to a category
+  async getProducts(id: number): Promise<ApiResponse<{ linked: any[]; unlinked: any[] }>> {
+    const response = await apiClient.get(`/categories/${id}/products`)
+    return { success: true, data: response.data }
+  },
+
+  // Link products to a category (batch)
+  async linkProducts(id: number, productIds: number[]): Promise<ApiResponse<{ linked_count: number }>> {
+    const response = await apiClient.post(`/categories/${id}/link-products`, { product_ids: productIds })
+    return { success: true, data: response.data }
+  },
+
+  // Unlink products from a category (batch)
+  async unlinkProducts(id: number, productIds: number[]): Promise<ApiResponse<{ unlinked_count: number }>> {
+    const response = await apiClient.post(`/categories/${id}/unlink-products`, { product_ids: productIds })
+    return { success: true, data: response.data }
   }
 }

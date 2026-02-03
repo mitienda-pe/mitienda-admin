@@ -86,6 +86,7 @@ export interface Category {
   order?: number
   meta_title?: string
   meta_description?: string
+  product_count?: number // Cantidad de productos en esta categoría
   sub?: Category[] // Subcategorías anidadas
 }
 
@@ -107,6 +108,7 @@ export interface Brand {
   image_id?: number
   meta_title?: string
   meta_description?: string
+  product_count?: number // Cantidad de productos con esta marca
 }
 
 export interface BrandFormData {

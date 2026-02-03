@@ -37,7 +37,7 @@
     <div v-else-if="treeNodes.length > 0" class="bg-white rounded-lg shadow">
       <TreeTable
         :value="filteredTreeNodes"
-        :expandedKeys="expandedKeys"
+        v-model:expandedKeys="expandedKeys"
         class="w-full"
         :pt="{
           table: { class: 'w-full' },
@@ -65,9 +65,28 @@
             <span class="text-sm text-secondary-500">{{ node.data.order || '-' }}</span>
           </template>
         </Column>
-        <Column header="Acciones" class="w-32 text-right">
+        <Column field="product_count" header="Productos" class="w-24 text-center">
+          <template #body="{ node }">
+            <span
+              class="inline-flex items-center justify-center px-2 py-1 text-xs font-medium rounded-full"
+              :class="node.data.product_count > 0 ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-secondary-400'"
+            >
+              {{ node.data.product_count || 0 }}
+            </span>
+          </template>
+        </Column>
+        <Column header="Acciones" class="w-40 text-right">
           <template #body="{ node }">
             <div class="flex justify-end gap-1">
+              <Button
+                icon="pi pi-link"
+                text
+                rounded
+                size="small"
+                severity="secondary"
+                @click="openLinkDialog(node.data)"
+                v-tooltip.top="'Vincular productos'"
+              />
               <Button
                 icon="pi pi-pencil"
                 text
@@ -138,11 +157,20 @@
         />
       </template>
     </Dialog>
+
+    <!-- Dialog Vincular Productos -->
+    <ProductLinkDialog
+      v-model:visible="showLinkDialog"
+      entity-type="category"
+      :entity-id="categoryToLink?.id || 0"
+      :entity-name="categoryToLink?.name || ''"
+      @updated="onProductsUpdated"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useCatalogStore } from '@/stores/catalog.store'
 import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
@@ -152,6 +180,7 @@ import ProgressSpinner from 'primevue/progressspinner'
 import TreeTable from 'primevue/treetable'
 import Column from 'primevue/column'
 import SearchBar from '@/components/common/SearchBar.vue'
+import ProductLinkDialog from '@/components/catalog/ProductLinkDialog.vue'
 import type { Category } from '@/types/product.types'
 
 interface TreeNode {
@@ -168,10 +197,14 @@ const showDeleteDialog = ref(false)
 const categoryToDelete = ref<Category | null>(null)
 const isDeleting = ref(false)
 
+// Link products dialog
+const showLinkDialog = ref(false)
+const categoryToLink = ref<Category | null>(null)
+
 // All nodes expanded by default
 const expandedKeys = ref<Record<string, boolean>>({})
 
-// Convert categories to TreeTable format
+// Convert categories to TreeTable format (pure function, no side effects)
 const convertToTreeNodes = (categories: Category[]): TreeNode[] => {
   return categories.map(cat => {
     const node: TreeNode = {
@@ -180,16 +213,36 @@ const convertToTreeNodes = (categories: Category[]): TreeNode[] => {
     }
     if (cat.sub && cat.sub.length > 0) {
       node.children = convertToTreeNodes(cat.sub)
-      // Expand all nodes by default
-      expandedKeys.value[node.key] = true
     }
     return node
   })
 }
 
+// Collect all keys for expanding (separate function)
+const collectAllKeys = (nodes: TreeNode[]): Record<string, boolean> => {
+  const keys: Record<string, boolean> = {}
+  const collect = (items: TreeNode[]) => {
+    for (const item of items) {
+      if (item.children && item.children.length > 0) {
+        keys[item.key] = true
+        collect(item.children)
+      }
+    }
+  }
+  collect(nodes)
+  return keys
+}
+
 const treeNodes = computed(() => {
   return convertToTreeNodes(catalogStore.categories)
 })
+
+// Watch for tree changes and set expanded keys
+watch(treeNodes, (nodes) => {
+  if (nodes.length > 0 && Object.keys(expandedKeys.value).length === 0) {
+    expandedKeys.value = collectAllKeys(nodes)
+  }
+}, { immediate: true })
 
 // Filter tree nodes based on search
 const filterTreeNodes = (nodes: TreeNode[], query: string): TreeNode[] => {
@@ -225,6 +278,16 @@ const filteredTreeNodes = computed(() => {
 const confirmDelete = (category: Category) => {
   categoryToDelete.value = category
   showDeleteDialog.value = true
+}
+
+const openLinkDialog = (category: Category) => {
+  categoryToLink.value = category
+  showLinkDialog.value = true
+}
+
+const onProductsUpdated = () => {
+  // Refresh categories to update product counts
+  catalogStore.fetchCategories()
 }
 
 const deleteCategory = async () => {
@@ -282,8 +345,33 @@ onMounted(async () => {
   background-color: #f9fafb;
 }
 
+/* Toggler button styling */
 :deep(.p-treetable-toggler) {
   margin-right: 0.5rem;
   color: var(--primary-500);
+  width: 1.5rem;
+  height: 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ensure proper indentation for nested rows */
+:deep(.p-treetable-tbody td:first-child) {
+  display: flex;
+  align-items: center;
+}
+
+/* Child row indentation - each level gets more padding */
+:deep(.p-treetable-tbody tr[aria-level="2"] td:first-child) {
+  padding-left: 2rem !important;
+}
+
+:deep(.p-treetable-tbody tr[aria-level="3"] td:first-child) {
+  padding-left: 3.5rem !important;
+}
+
+:deep(.p-treetable-tbody tr[aria-level="4"] td:first-child) {
+  padding-left: 5rem !important;
 }
 </style>

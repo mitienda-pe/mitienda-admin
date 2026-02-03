@@ -44,7 +44,16 @@
                 <h3 class="text-lg font-semibold text-secondary">{{ brand.name }}</h3>
                 <p class="text-sm text-secondary-400">{{ brand.slug }}</p>
               </div>
-              <div class="flex gap-2">
+              <div class="flex gap-1">
+                <Button
+                  icon="pi pi-link"
+                  text
+                  rounded
+                  size="small"
+                  severity="secondary"
+                  @click="openLinkDialog(brand)"
+                  v-tooltip.top="'Vincular productos'"
+                />
                 <Button
                   icon="pi pi-pencil"
                   text
@@ -52,6 +61,7 @@
                   size="small"
                   severity="secondary"
                   @click="$router.push({ name: 'brand-edit', params: { id: brand.id } })"
+                  v-tooltip.top="'Editar'"
                 />
                 <Button
                   icon="pi pi-trash"
@@ -60,8 +70,16 @@
                   size="small"
                   severity="danger"
                   @click="confirmDelete(brand)"
+                  v-tooltip.top="'Eliminar'"
                 />
               </div>
+            </div>
+            <!-- Contador de productos -->
+            <div class="flex items-center gap-2 pt-2 border-t border-gray-100">
+              <i class="pi pi-box text-secondary-400"></i>
+              <span class="text-sm text-secondary-500">
+                {{ brand.product_count || 0 }} producto{{ (brand.product_count || 0) !== 1 ? 's' : '' }}
+              </span>
             </div>
           </div>
         </template>
@@ -103,6 +121,15 @@
         />
       </template>
     </Dialog>
+
+    <!-- Dialog Vincular Productos -->
+    <ProductLinkDialog
+      v-model:visible="showLinkDialog"
+      entity-type="brand"
+      :entity-id="brandToLink?.id || 0"
+      :entity-name="brandToLink?.name || ''"
+      @updated="onProductsUpdated"
+    />
   </div>
 </template>
 
@@ -116,6 +143,7 @@ import Dialog from 'primevue/dialog'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import SearchBar from '@/components/common/SearchBar.vue'
+import ProductLinkDialog from '@/components/catalog/ProductLinkDialog.vue'
 import type { Brand } from '@/types/product.types'
 
 const catalogStore = useCatalogStore()
@@ -125,6 +153,10 @@ const searchQuery = ref('')
 const showDeleteDialog = ref(false)
 const brandToDelete = ref<Brand | null>(null)
 const isDeleting = ref(false)
+
+// Link products dialog
+const showLinkDialog = ref(false)
+const brandToLink = ref<Brand | null>(null)
 
 const filteredBrands = computed(() => {
   if (!searchQuery.value) return catalogStore.brands
@@ -139,6 +171,16 @@ const filteredBrands = computed(() => {
 const confirmDelete = (brand: Brand) => {
   brandToDelete.value = brand
   showDeleteDialog.value = true
+}
+
+const openLinkDialog = (brand: Brand) => {
+  brandToLink.value = brand
+  showLinkDialog.value = true
+}
+
+const onProductsUpdated = () => {
+  // Refresh brands to update product counts
+  catalogStore.fetchBrands()
 }
 
 const deleteBrand = async () => {
