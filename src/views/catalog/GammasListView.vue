@@ -78,15 +78,30 @@
           </template>
         </Column>
 
+        <Column field="product_count" header="Productos" sortable style="width: 120px">
+          <template #body="{ data }">
+            <Tag :value="`${data.product_count || 0} productos`" severity="secondary" />
+          </template>
+        </Column>
+
         <Column field="tiendagamma_orden" header="Orden" sortable style="width: 100px">
           <template #body="{ data }">
             <span class="text-secondary-500">{{ data.tiendagamma_orden }}</span>
           </template>
         </Column>
 
-        <Column header="Acciones" style="width: 120px">
+        <Column header="Acciones" style="width: 160px">
           <template #body="{ data }">
             <div class="flex gap-2">
+              <Button
+                icon="pi pi-link"
+                text
+                rounded
+                size="small"
+                severity="secondary"
+                v-tooltip="'Vincular productos'"
+                @click="openLinkDialog(data)"
+              />
               <Button
                 icon="pi pi-pencil"
                 text
@@ -146,6 +161,15 @@
         />
       </template>
     </Dialog>
+
+    <!-- Dialog Vincular Productos -->
+    <ProductLinkDialog
+      v-model:visible="showLinkDialog"
+      entity-type="gamma"
+      :entity-id="gammaToLink?.tiendagamma_id || 0"
+      :entity-name="gammaToLink?.tiendagamma_nombre || ''"
+      @updated="onProductsUpdated"
+    />
   </div>
 </template>
 
@@ -163,6 +187,7 @@ import Tag from 'primevue/tag'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import SearchBar from '@/components/common/SearchBar.vue'
+import ProductLinkDialog from '@/components/catalog/ProductLinkDialog.vue'
 import type { Gamma } from '@/types/gamma.types'
 
 const gammaStore = useGammaStore()
@@ -174,6 +199,8 @@ const selectedBrandFilter = ref<number | null>(null)
 const showDeleteDialog = ref(false)
 const gammaToDelete = ref<Gamma | null>(null)
 const isDeleting = ref(false)
+const showLinkDialog = ref(false)
+const gammaToLink = ref<Gamma | null>(null)
 
 const brandOptions = computed(() => {
   return [
@@ -199,6 +226,15 @@ const filteredGammas = computed(() => {
 
 const onBrandFilterChange = async () => {
   await gammaStore.fetchAll(selectedBrandFilter.value || undefined)
+}
+
+const openLinkDialog = (gamma: Gamma) => {
+  gammaToLink.value = gamma
+  showLinkDialog.value = true
+}
+
+const onProductsUpdated = () => {
+  gammaStore.fetchAll(selectedBrandFilter.value || undefined)
 }
 
 const confirmDelete = (gamma: Gamma) => {

@@ -50,5 +50,23 @@ export const gammaApi = {
   async delete(id: number): Promise<ApiResponse<void>> {
     await apiClient.delete(`/gammas/${id}`)
     return { success: true }
+  },
+
+  // Get products linked/unlinked to a gamma
+  async getProducts(id: number): Promise<ApiResponse<{ linked: any[]; unlinked: any[] }>> {
+    const response = await apiClient.get(`/gammas/${id}/products`)
+    return { success: true, data: response.data }
+  },
+
+  // Link products to a gamma (batch)
+  async linkProducts(id: number, productIds: number[]): Promise<ApiResponse<{ linked_count: number }>> {
+    const response = await apiClient.post(`/gammas/${id}/link-products`, { product_ids: productIds })
+    return { success: true, data: response.data }
+  },
+
+  // Unlink products from a gamma (batch)
+  async unlinkProducts(id: number, productIds: number[]): Promise<ApiResponse<{ unlinked_count: number }>> {
+    const response = await apiClient.post(`/gammas/${id}/unlink-products`, { product_ids: productIds })
+    return { success: true, data: response.data }
   }
 }
