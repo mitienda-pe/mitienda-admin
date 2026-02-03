@@ -98,3 +98,110 @@ export interface EmitDocumentResponse {
   correlative: string
   files: BillingDocumentFiles
 }
+
+// Manual Billing Types
+
+export type ManualDocumentType = 1 | 2 | 3 // 1=Factura, 2=Boleta, 3=Nota de Crédito
+export type ClientDocumentType = 0 | 1 | 2 // 0=Sin doc, 1=DNI, 2=RUC
+
+export interface ManualDocumentClient {
+  document_type: ClientDocumentType
+  document_number: string
+  names?: string
+  last_names?: string
+  business_name?: string // For RUC
+  address?: string
+  email?: string
+  ubigeo?: string
+}
+
+export interface ManualDocumentItem {
+  id?: string // Frontend temp ID for tracking
+  product_id?: number
+  code: string
+  description: string
+  unit: string
+  quantity: number
+  unit_price: number // WITH IGV
+  unit_price_without_igv?: number // Calculated
+  affectation_type: number
+  subtotal?: number // Calculated
+  igv?: number // Calculated
+  total?: number // Calculated
+}
+
+export interface ReferenceDocument {
+  type: ManualDocumentType
+  serie: string
+  correlativo: number
+}
+
+export interface ManualEmitRequest {
+  document_type: ManualDocumentType
+  client: ManualDocumentClient
+  items: Omit<ManualDocumentItem, 'id' | 'unit_price_without_igv' | 'subtotal' | 'igv' | 'total'>[]
+  pdf_format?: PdfFormat
+  notes?: string
+  // Credit note fields
+  reference_document?: ReferenceDocument
+  credit_note_type?: string
+  reason?: string
+}
+
+export interface ManualEmitResponse {
+  id: number
+  document_type: ManualDocumentType
+  serie: string
+  correlative: number
+  total: number
+  files: BillingDocumentFiles
+}
+
+export interface ManualDocument extends Omit<BillingDocument, 'order_code'> {
+  origin: 'manual' | 'order'
+  order_code: string | null
+  document_type_code: ManualDocumentType
+  subtotal: number
+  igv: number
+  customer_document_type: ClientDocumentType
+  notes: string | null
+  items?: ManualDocumentItem[]
+  // Credit note fields
+  reference?: ReferenceDocument | null
+  credit_note_type?: string | null
+  credit_note_reason?: string | null
+}
+
+// DeColecta Lookup Types
+
+export interface DniLookupResult {
+  nombres: string
+  apellidoPaterno: string
+  apellidoMaterno: string
+  fullName: string
+}
+
+export interface RucLookupResult {
+  razonSocial: string
+  estado: string
+  condicion: string
+  direccion: string
+  ubigeo?: string
+  departamento?: string
+  provincia?: string
+  distrito?: string
+}
+
+export type DocumentLookupResult = DniLookupResult | RucLookupResult
+
+// Credit Note Types
+
+export const CREDIT_NOTE_TYPES = [
+  { code: '01', label: 'Anulación de la operación' },
+  { code: '02', label: 'Anulación por error en RUC' },
+  { code: '03', label: 'Corrección por error en descripción' },
+  { code: '04', label: 'Descuento global' },
+  { code: '05', label: 'Descuento por ítem' },
+  { code: '06', label: 'Devolución total' },
+  { code: '07', label: 'Devolución parcial' },
+] as const

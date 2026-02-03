@@ -2,6 +2,11 @@
   <div class="space-y-4">
     <div class="flex justify-between items-center">
       <h1 class="text-2xl font-bold text-gray-900">Documentos de Facturación</h1>
+      <Button
+        label="Emitir Comprobante"
+        icon="pi pi-plus"
+        @click="$router.push('/billing/manual/emit')"
+      />
     </div>
 
     <!-- Messages -->
@@ -35,14 +40,19 @@
           </div>
         </template>
 
-        <Column field="order_code" header="Pedido" :sortable="true">
+        <Column field="order_code" header="Origen" :sortable="true">
           <template #body="{ data }">
-            <router-link
-              :to="`/orders/${data.id}`"
-              class="text-primary hover:underline font-medium"
-            >
-              {{ data.order_code }}
-            </router-link>
+            <template v-if="data.order_code">
+              <router-link
+                :to="`/orders/${data.id}`"
+                class="text-primary hover:underline font-medium"
+              >
+                {{ data.order_code }}
+              </router-link>
+            </template>
+            <template v-else>
+              <Tag value="Manual" severity="secondary" class="text-xs" />
+            </template>
           </template>
         </Column>
 

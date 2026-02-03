@@ -347,6 +347,11 @@ const routes: RouteRecordRaw[] = [
         path: 'documents/:id',
         name: 'BillingDocumentDetail',
         component: () => import('@/views/billing/DocumentDetailView.vue')
+      },
+      {
+        path: 'manual/emit',
+        name: 'BillingManualEmit',
+        component: () => import('@/views/billing/ManualEmitView.vue')
       }
     ]
   },
