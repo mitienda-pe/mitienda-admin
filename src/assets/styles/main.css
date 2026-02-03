@@ -30,6 +30,71 @@
 
   --p-primary-color: var(--primary-500);
   --p-primary-contrast-color: #ffffff;
+
+  /* Tamaño estándar de iconos */
+  --icon-size-sm: 0.875rem;  /* 14px */
+  --icon-size-md: 1rem;      /* 16px */
+  --icon-size-lg: 1.25rem;   /* 20px */
+}
+
+/* ============================================
+   Global PrimeVue Icon Standardization
+   ============================================ */
+
+/* Iconos en triggers de input (calendar, dropdown, etc.) */
+.p-datepicker-trigger svg,
+.p-datepicker-trigger .p-icon,
+.p-datepicker-trigger-icon,
+.p-datepicker-trigger-icon svg,
+.p-calendar-button svg,
+.p-calendar-button .p-icon,
+.p-dropdown-trigger svg,
+.p-dropdown-trigger .p-icon,
+.p-input-icon svg,
+.p-input-icon .p-icon {
+  width: var(--icon-size-sm) !important;
+  height: var(--icon-size-sm) !important;
+}
+
+/* Botón trigger del calendario - ajustar para que el icono se vea del tamaño correcto */
+.p-calendar .p-datepicker-trigger.p-button-icon-only {
+  width: 2.75rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.p-calendar .p-datepicker-trigger.p-button-icon-only .p-icon {
+  width: var(--icon-size-sm) !important;
+  height: var(--icon-size-sm) !important;
+}
+
+/* Ocultar el label vacío en botones icon-only del datepicker */
+.p-calendar .p-datepicker-trigger.p-button-icon-only .p-button-label {
+  display: none;
+}
+
+/* Iconos en botones */
+.p-button .p-button-icon {
+  font-size: var(--icon-size-md);
+  margin: 0; /* Reset default margins */
+}
+
+.p-button .p-button-icon svg,
+.p-button .p-button-icon .p-icon {
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
+}
+
+.p-button-sm .p-button-icon {
+  font-size: var(--icon-size-sm);
+}
+
+.p-button-sm .p-button-icon svg,
+.p-button-sm .p-button-icon .p-icon {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
 }
 
 /* Global styles */
@@ -166,11 +231,18 @@ body {
 .p-button {
   padding: 0.75rem 1.25rem;
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .p-button.p-button-sm {
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
+}
+
+.p-button .p-button-label {
+  flex: none;
 }
 
 /* PrimeVue InputNumber - mejorar visibilidad */

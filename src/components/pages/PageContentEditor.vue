@@ -13,6 +13,17 @@
       ref="monacoContainer"
       class="h-full w-full border border-gray-300 rounded"
     ></div>
+
+    <!-- MTBuilder Visual Builder -->
+    <page-builder
+      v-else-if="editorType === 'visual_builder'"
+      ref="pageBuilderRef"
+      :page-id="pageId"
+      lang="es"
+      mode="external"
+      @builder:ready="onBuilderReady"
+      @builder:content-changed="onBuilderChange"
+    />
   </div>
 </template>
 
@@ -47,9 +58,13 @@ import 'tinymce/plugins/wordcount'
 
 import type { PageEditorType } from '@/types/page.types'
 
+// Import MTBuilder Web Component
+import '@carlosvidalperu/mtbuilder'
+
 interface Props {
   modelValue: string
   editorType: PageEditorType
+  pageId?: string
 }
 
 const props = defineProps<Props>()
@@ -60,6 +75,10 @@ const emit = defineEmits<{
 const localContent = ref(props.modelValue)
 const monacoContainer = ref<HTMLElement | null>(null)
 let monacoEditor: MonacoTypes.editor.IStandaloneCodeEditor | null = null
+
+// Visual Builder refs and state
+const pageBuilderRef = ref<HTMLElement | null>(null)
+let builderInitialized = false
 
 // TinyMCE Configuration (extended for full pages)
 const tinyConfig = {
@@ -116,6 +135,33 @@ const initMonaco = async () => {
   }
 }
 
+// Visual Builder handlers
+const onBuilderReady = () => {
+  if (builderInitialized) return
+  builderInitialized = true
+
+  if (props.modelValue && pageBuilderRef.value) {
+    try {
+      const parsed = JSON.parse(props.modelValue)
+      // If it has {json, html} structure, use json; otherwise use as-is
+      const builderData = parsed.json ? JSON.parse(parsed.json) : parsed
+      ;(pageBuilderRef.value as any).setPageData(builderData)
+    } catch {
+      // Content is empty or invalid, start fresh
+    }
+  }
+}
+
+const onBuilderChange = (event: Event) => {
+  const customEvent = event as CustomEvent
+  const { data, html } = customEvent.detail
+  // Store both: JSON for editing, HTML for preview
+  localContent.value = JSON.stringify({
+    json: JSON.stringify(data),
+    html: html
+  })
+}
+
 // Sync localContent → parent
 watch(localContent, (newVal) => {
   emit('update:modelValue', newVal)
@@ -142,5 +188,6 @@ onBeforeUnmount(() => {
     monacoEditor.dispose()
     monacoEditor = null
   }
+  builderInitialized = false
 })
 </script>

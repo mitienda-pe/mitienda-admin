@@ -115,20 +115,24 @@
               </p>
             </div>
 
-            <!-- Visual Builder (Coming Soon) -->
+            <!-- Visual Builder -->
             <div
-              class="border-2 rounded-lg p-5 opacity-50 cursor-not-allowed border-gray-200"
+              class="border-2 rounded-lg p-5 cursor-pointer transition-all"
+              :class="form.editor_type === 'visual_builder'
+                ? 'border-primary bg-primary/5'
+                : 'border-gray-200 hover:border-gray-300'"
+              @click="form.editor_type = 'visual_builder'"
             >
               <div class="flex items-center gap-3 mb-3">
-                <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-gray-100 text-secondary-400">
+                <div
+                  class="w-10 h-10 rounded-lg flex items-center justify-center"
+                  :class="form.editor_type === 'visual_builder' ? 'bg-primary text-white' : 'bg-gray-100 text-secondary-500'"
+                >
                   <i class="pi pi-th-large text-lg"></i>
                 </div>
-                <div>
-                  <h3 class="font-semibold text-secondary-400">Visual Builder</h3>
-                  <span class="text-xs text-orange-500 font-medium">Próximamente</span>
-                </div>
+                <h3 class="font-semibold text-secondary">Visual Builder</h3>
               </div>
-              <p class="text-sm text-secondary-400">
+              <p class="text-sm text-secondary-500">
                 Arrastra y suelta bloques para diseñar tu página visualmente.
               </p>
             </div>

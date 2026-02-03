@@ -72,6 +72,7 @@
         <PageContentEditor
           v-model="content"
           :editor-type="page.editor_type"
+          :page-id="String(page.id)"
         />
       </div>
     </template>

@@ -64,9 +64,9 @@
         <!-- Content -->
         <div class="p-8">
           <div
-            v-if="page.content"
+            v-if="renderableContent"
             class="prose prose-sm sm:prose max-w-none"
-            v-html="sanitize(page.content)"
+            v-html="sanitize(renderableContent)"
           ></div>
           <div v-else class="text-center py-12">
             <i class="pi pi-file text-4xl text-secondary-300 mb-3"></i>
@@ -85,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import DOMPurify from 'dompurify'
 import { useRoute } from 'vue-router'
 import { usePagesStore } from '@/stores/pages.store'
@@ -100,6 +100,25 @@ const pagesStore = usePagesStore()
 const sanitize = (html: string) => DOMPurify.sanitize(html)
 
 const page = ref<Page | null>(null)
+
+// Get renderable content - handle visual_builder JSON+HTML format
+const renderableContent = computed(() => {
+  if (!page.value?.content) return ''
+
+  if (page.value.editor_type === 'visual_builder') {
+    try {
+      const parsed = JSON.parse(page.value.content)
+      // Use the pre-generated HTML from the builder
+      return parsed.html || ''
+    } catch {
+      // If parsing fails, return content as-is
+      return page.value.content
+    }
+  }
+
+  // For wysiwyg and code editors, content is already HTML
+  return page.value.content
+})
 const isLoading = ref(true)
 const loadError = ref<string | null>(null)
 

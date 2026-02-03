@@ -13,7 +13,7 @@ export default defineConfig({
       template: {
         compilerOptions: {
           // Cloudflare Stream player uses <stream> custom element
-          isCustomElement: (tag) => tag === 'stream'
+          isCustomElement: (tag) => tag === 'stream' || tag === 'page-builder'
         }
       }
     })
