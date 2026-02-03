@@ -319,6 +319,21 @@
 
           <div class="flex items-center justify-between p-4 bg-secondary-50 rounded-lg">
             <div>
+              <label for="delegate_billing" class="font-medium text-secondary-800 cursor-pointer">
+                Delegar Facturación a NetSuite
+              </label>
+              <p class="text-sm text-secondary-600 mt-1">
+                NetSuite emite los comprobantes. No se usa Nubefact para facturación automática.
+              </p>
+            </div>
+            <InputSwitch
+              id="delegate_billing"
+              v-model="formData.delegate_billing"
+            />
+          </div>
+
+          <div class="flex items-center justify-between p-4 bg-secondary-50 rounded-lg">
+            <div>
               <label for="stock_validation" class="font-medium text-secondary-800 cursor-pointer">
                 Validación de Stock en NetSuite
               </label>
@@ -506,6 +521,7 @@ const formData = reactive<Partial<SaveNetsuiteCredentialsRequest>>({
   price_level_id: undefined,
   customer_category_id: '',
   autosync_enabled: false,
+  delegate_billing: false,
   estado: 1
 })
 
@@ -586,6 +602,7 @@ watch(() => props.tiendaId, async (tiendaId) => {
       price_level_id: creds.tiendacredencialerp_price_level_id ?? undefined,
       customer_category_id: creds.tiendacredencialerp_customer_category_id || '',
       autosync_enabled: Number(creds.tiendacredencialerp_autosync_enabled) === 1,
+      delegate_billing: Number(creds.tiendacredencialerp_delegate_billing) === 1,
       estado: Number(creds.tiendacredencialerp_estado)
     })
 
@@ -616,6 +633,7 @@ watch(() => props.tiendaId, async (tiendaId) => {
       price_level_id: undefined,
       customer_category_id: '',
       autosync_enabled: false,
+      delegate_billing: false,
       estado: 1
     })
   }

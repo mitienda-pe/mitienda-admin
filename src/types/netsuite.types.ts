@@ -28,6 +28,7 @@ export interface NetsuiteCredential {
   tiendacredencialerp_customer_category_id?: string
   tiendacredencialerp_estado: number
   tiendacredencialerp_autosync_enabled: number
+  tiendacredencialerp_delegate_billing?: number
   tiendacredencialerp_fecha_creacion?: string
   tiendacredencialerp_fecha_actualizacion?: string
   locations?: NetsuiteLocation[] // New field for multiple locations
@@ -49,6 +50,7 @@ export interface SaveNetsuiteCredentialsRequest {
   price_level_id?: number
   customer_category_id?: string
   autosync_enabled: boolean
+  delegate_billing?: boolean
   estado: number
   locations?: NetsuiteLocation[] // New field for multiple locations
 }
