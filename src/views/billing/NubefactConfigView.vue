@@ -204,16 +204,16 @@
               <div>
                 <div class="flex items-center justify-between p-4 bg-secondary-50 rounded-lg">
                   <div>
-                    <label for="blocked" class="font-medium text-secondary-800 cursor-pointer">
-                      Desactivar emisión automática
+                    <label for="auto_emission" class="font-medium text-secondary-800 cursor-pointer">
+                      Emisión automática de comprobantes
                     </label>
                     <p class="text-sm text-secondary-600 mt-1">
-                      Cuando está activado, no se emitirán comprobantes automáticamente al aprobar pagos.
+                      Emitir comprobantes automáticamente al aprobar pagos.
                     </p>
                   </div>
                   <InputSwitch
-                    id="blocked"
-                    v-model="formData.blocked"
+                    id="auto_emission"
+                    v-model="autoEmissionEnabled"
                   />
                 </div>
               </div>
@@ -324,7 +324,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { useBillingStore } from '@/stores/billing.store'
@@ -357,6 +357,11 @@ const formData = reactive<SaveNubefactCredentialsRequest>({
   environment: 'prueba',
   pdf_format: 'A4',
   blocked: false
+})
+
+const autoEmissionEnabled = computed({
+  get: () => !formData.blocked,
+  set: (val: boolean) => { formData.blocked = !val }
 })
 
 const errors = reactive({
