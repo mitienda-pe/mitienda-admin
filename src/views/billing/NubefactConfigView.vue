@@ -199,6 +199,25 @@
                 </small>
               </div>
 
+              <!-- Auto-emisión -->
+              <Divider />
+              <div>
+                <div class="flex items-center justify-between p-4 bg-secondary-50 rounded-lg">
+                  <div>
+                    <label for="blocked" class="font-medium text-secondary-800 cursor-pointer">
+                      Desactivar emisión automática
+                    </label>
+                    <p class="text-sm text-secondary-600 mt-1">
+                      Cuando está activado, no se emitirán comprobantes automáticamente al aprobar pagos.
+                    </p>
+                  </div>
+                  <InputSwitch
+                    id="blocked"
+                    v-model="formData.blocked"
+                  />
+                </div>
+              </div>
+
               <!-- Mensajes de error/éxito -->
               <Message v-if="billingStore.error" severity="error" :closable="false">
                 {{ billingStore.error }}
@@ -317,6 +336,7 @@ import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import InputNumber from 'primevue/inputnumber'
 import RadioButton from 'primevue/radiobutton'
+import InputSwitch from 'primevue/inputswitch'
 import Divider from 'primevue/divider'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
@@ -335,7 +355,8 @@ const formData = reactive<SaveNubefactCredentialsRequest>({
   serie_boleta: '',
   numero_boleta: null as any,
   environment: 'prueba',
-  pdf_format: 'A4'
+  pdf_format: 'A4',
+  blocked: false
 })
 
 const errors = reactive({
@@ -358,7 +379,8 @@ onMounted(async () => {
       serie_boleta: config.value.credentials.serie_boleta || '',
       numero_boleta: config.value.credentials.numero_boleta ? parseInt(String(config.value.credentials.numero_boleta)) : undefined,
       environment: config.value.credentials.environment || 'prueba',
-      pdf_format: config.value.credentials.pdf_format || 'A4'
+      pdf_format: config.value.credentials.pdf_format || 'A4',
+      blocked: config.value.blocked ?? false
     })
   }
 })
@@ -395,7 +417,8 @@ async function handleSubmit() {
     nubefact_url: formData.nubefact_url,
     api_token: formData.api_token,
     environment: formData.environment,
-    pdf_format: formData.pdf_format
+    pdf_format: formData.pdf_format,
+    blocked: formData.blocked
   }
 
   // Only add optional fields if they have values
