@@ -356,7 +356,7 @@ const formData = reactive<SaveNubefactCredentialsRequest>({
   numero_boleta: null as any,
   environment: 'prueba',
   pdf_format: 'A4',
-  blocked: false
+  blocked: true
 })
 
 const autoEmissionEnabled = computed({
@@ -385,7 +385,7 @@ onMounted(async () => {
       numero_boleta: config.value.credentials.numero_boleta ? parseInt(String(config.value.credentials.numero_boleta)) : undefined,
       environment: config.value.credentials.environment || 'prueba',
       pdf_format: config.value.credentials.pdf_format || 'A4',
-      blocked: config.value.blocked ?? false
+      blocked: config.value.blocked ?? true
     })
   }
 })
