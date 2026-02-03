@@ -33,51 +33,72 @@
       {{ catalogStore.error }}
     </Message>
 
-    <!-- Lista de Categorías -->
-    <div v-else-if="filteredCategories.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <Card v-for="category in filteredCategories" :key="category.id" class="hover:shadow-lg transition-shadow">
-        <template #content>
-          <div class="space-y-3">
-            <!-- Nombre -->
-            <div class="flex items-start justify-between">
-              <div>
-                <h3 class="text-lg font-semibold text-secondary">{{ category.name }}</h3>
-                <p class="text-sm text-secondary-400">{{ category.slug }}</p>
-              </div>
-              <div class="flex gap-2">
-                <Button
-                  icon="pi pi-pencil"
-                  text
-                  rounded
-                  size="small"
-                  severity="secondary"
-                  @click="$router.push({ name: 'category-edit', params: { id: category.id } })"
-                />
-                <Button
-                  icon="pi pi-trash"
-                  text
-                  rounded
-                  size="small"
-                  severity="danger"
-                  @click="confirmDelete(category)"
-                />
-              </div>
+    <!-- Árbol de Categorías -->
+    <div v-else-if="treeNodes.length > 0" class="bg-white rounded-lg shadow">
+      <TreeTable
+        :value="filteredTreeNodes"
+        :expandedKeys="expandedKeys"
+        class="w-full"
+        :pt="{
+          table: { class: 'w-full' },
+          column: { bodycell: { class: 'py-3 px-4' }, headercell: { class: 'py-3 px-4 bg-gray-50 font-semibold text-secondary-700' } }
+        }"
+      >
+        <Column field="name" header="Nombre" expander class="w-1/2">
+          <template #body="{ node }">
+            <div class="flex items-center gap-2">
+              <i class="pi pi-folder text-primary"></i>
+              <span class="font-medium text-secondary">{{ node.data.name }}</span>
+              <span v-if="node.children && node.children.length > 0" class="text-xs text-secondary-400">
+                ({{ node.children.length }} sub)
+              </span>
             </div>
-
-            <!-- Parent -->
-            <div v-if="category.parent_id && category.parent_id > 0" class="flex items-center gap-2 text-sm text-secondary-500">
-              <i class="pi pi-folder"></i>
-              <span>Subcategoría de: {{ getParentName(category.parent_id) }}</span>
+          </template>
+        </Column>
+        <Column field="slug" header="Slug" class="w-1/4">
+          <template #body="{ node }">
+            <span class="text-sm text-secondary-500 font-mono">{{ node.data.slug }}</span>
+          </template>
+        </Column>
+        <Column field="order" header="Orden" class="w-20 text-center">
+          <template #body="{ node }">
+            <span class="text-sm text-secondary-500">{{ node.data.order || '-' }}</span>
+          </template>
+        </Column>
+        <Column header="Acciones" class="w-32 text-right">
+          <template #body="{ node }">
+            <div class="flex justify-end gap-1">
+              <Button
+                icon="pi pi-pencil"
+                text
+                rounded
+                size="small"
+                severity="secondary"
+                @click="$router.push({ name: 'category-edit', params: { id: node.data.id } })"
+                v-tooltip.top="'Editar'"
+              />
+              <Button
+                icon="pi pi-plus"
+                text
+                rounded
+                size="small"
+                severity="secondary"
+                @click="$router.push({ name: 'category-create', query: { parent_id: node.data.id } })"
+                v-tooltip.top="'Agregar subcategoría'"
+              />
+              <Button
+                icon="pi pi-trash"
+                text
+                rounded
+                size="small"
+                severity="danger"
+                @click="confirmDelete(node.data)"
+                v-tooltip.top="'Eliminar'"
+              />
             </div>
-
-            <!-- Orden -->
-            <div v-if="category.order !== undefined && category.order > 0" class="flex items-center gap-2 text-sm text-secondary-500">
-              <i class="pi pi-sort-amount-up"></i>
-              <span>Orden: {{ category.order }}</span>
-            </div>
-          </div>
-        </template>
-      </Card>
+          </template>
+        </Column>
+      </TreeTable>
     </div>
 
     <!-- Empty State -->
@@ -124,13 +145,20 @@
 import { ref, computed, onMounted } from 'vue'
 import { useCatalogStore } from '@/stores/catalog.store'
 import { useToast } from 'primevue/usetoast'
-import Card from 'primevue/card'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
+import TreeTable from 'primevue/treetable'
+import Column from 'primevue/column'
 import SearchBar from '@/components/common/SearchBar.vue'
 import type { Category } from '@/types/product.types'
+
+interface TreeNode {
+  key: string
+  data: Category
+  children?: TreeNode[]
+}
 
 const catalogStore = useCatalogStore()
 const toast = useToast()
@@ -140,20 +168,59 @@ const showDeleteDialog = ref(false)
 const categoryToDelete = ref<Category | null>(null)
 const isDeleting = ref(false)
 
-const filteredCategories = computed(() => {
-  if (!searchQuery.value) return catalogStore.flatCategories
+// All nodes expanded by default
+const expandedKeys = ref<Record<string, boolean>>({})
 
-  const query = searchQuery.value.toLowerCase()
-  return catalogStore.flatCategories.filter(cat =>
-    cat.name.toLowerCase().includes(query) ||
-    cat.slug?.toLowerCase().includes(query)
-  )
+// Convert categories to TreeTable format
+const convertToTreeNodes = (categories: Category[]): TreeNode[] => {
+  return categories.map(cat => {
+    const node: TreeNode = {
+      key: String(cat.id),
+      data: cat
+    }
+    if (cat.sub && cat.sub.length > 0) {
+      node.children = convertToTreeNodes(cat.sub)
+      // Expand all nodes by default
+      expandedKeys.value[node.key] = true
+    }
+    return node
+  })
+}
+
+const treeNodes = computed(() => {
+  return convertToTreeNodes(catalogStore.categories)
 })
 
-const getParentName = (parentId: number) => {
-  const parent = catalogStore.flatCategories.find(cat => cat.id === parentId)
-  return parent?.name || 'Sin nombre'
+// Filter tree nodes based on search
+const filterTreeNodes = (nodes: TreeNode[], query: string): TreeNode[] => {
+  const result: TreeNode[] = []
+
+  for (const node of nodes) {
+    const matchesQuery =
+      node.data.name.toLowerCase().includes(query) ||
+      (node.data.slug?.toLowerCase().includes(query) ?? false)
+
+    let filteredChildren: TreeNode[] = []
+    if (node.children && node.children.length > 0) {
+      filteredChildren = filterTreeNodes(node.children, query)
+    }
+
+    // Include node if it matches or has matching children
+    if (matchesQuery || filteredChildren.length > 0) {
+      result.push({
+        ...node,
+        children: filteredChildren.length > 0 ? filteredChildren : node.children
+      })
+    }
+  }
+
+  return result
 }
+
+const filteredTreeNodes = computed(() => {
+  if (!searchQuery.value) return treeNodes.value
+  return filterTreeNodes(treeNodes.value, searchQuery.value.toLowerCase())
+})
 
 const confirmDelete = (category: Category) => {
   categoryToDelete.value = category
@@ -194,3 +261,29 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style scoped>
+/* Ajustes para TreeTable */
+:deep(.p-treetable) {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+:deep(.p-treetable-thead > tr > th) {
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+:deep(.p-treetable-tbody > tr) {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+:deep(.p-treetable-tbody > tr:hover) {
+  background-color: #f9fafb;
+}
+
+:deep(.p-treetable-toggler) {
+  margin-right: 0.5rem;
+  color: var(--primary-500);
+}
+</style>

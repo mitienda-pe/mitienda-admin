@@ -273,6 +273,12 @@ onMounted(async () => {
   // If editing, load category data
   if (isEditMode.value) {
     await loadCategory()
+  } else {
+    // Check if parent_id is passed as query param (creating subcategory)
+    const parentIdParam = route.query.parent_id
+    if (parentIdParam) {
+      formData.value.parent_id = parseInt(parentIdParam as string)
+    }
   }
 })
 </script>
