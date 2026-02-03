@@ -155,6 +155,7 @@ import ProgressSpinner from 'primevue/progressspinner'
 import { categoryApi } from '@/api/category.api'
 import { brandApi } from '@/api/brand.api'
 import { gammaApi } from '@/api/gamma.api'
+import { productListApi } from '@/api/product-list.api'
 
 interface ProductItem {
   id: number
@@ -165,7 +166,7 @@ interface ProductItem {
 
 interface Props {
   visible: boolean
-  entityType: 'category' | 'brand' | 'gamma'
+  entityType: 'category' | 'brand' | 'gamma' | 'product-list'
   entityId: number
   entityName: string
 }
@@ -184,6 +185,7 @@ const entityTypeLabel = computed(() => {
     case 'category': return 'categoría'
     case 'brand': return 'marca'
     case 'gamma': return 'gamma'
+    case 'product-list': return 'lista'
     default: return props.entityType
   }
 })
@@ -193,6 +195,7 @@ const getApi = () => {
     case 'category': return categoryApi
     case 'brand': return brandApi
     case 'gamma': return gammaApi
+    case 'product-list': return productListApi
   }
 }
 

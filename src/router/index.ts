@@ -190,6 +190,21 @@ const routes: RouteRecordRaw[] = [
         path: 'gammas/:id/edit',
         name: 'gamma-edit',
         component: () => import('@/views/catalog/GammaFormView.vue')
+      },
+      {
+        path: 'product-lists',
+        name: 'product-lists',
+        component: () => import('@/views/catalog/ProductListsView.vue')
+      },
+      {
+        path: 'product-lists/new',
+        name: 'product-list-create',
+        component: () => import('@/views/catalog/ProductListFormView.vue')
+      },
+      {
+        path: 'product-lists/:id/edit',
+        name: 'product-list-edit',
+        component: () => import('@/views/catalog/ProductListFormView.vue')
       }
     ]
   },
