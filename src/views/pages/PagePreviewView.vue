@@ -66,7 +66,7 @@
           <div
             v-if="page.content"
             class="prose prose-sm sm:prose max-w-none"
-            v-html="page.content"
+            v-html="sanitize(page.content)"
           ></div>
           <div v-else class="text-center py-12">
             <i class="pi pi-file text-4xl text-secondary-300 mb-3"></i>
@@ -86,6 +86,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import DOMPurify from 'dompurify'
 import { useRoute } from 'vue-router'
 import { usePagesStore } from '@/stores/pages.store'
 import Button from 'primevue/button'
@@ -95,6 +96,8 @@ import type { Page } from '@/types/page.types'
 
 const route = useRoute()
 const pagesStore = usePagesStore()
+
+const sanitize = (html: string) => DOMPurify.sanitize(html)
 
 const page = ref<Page | null>(null)
 const isLoading = ref(true)

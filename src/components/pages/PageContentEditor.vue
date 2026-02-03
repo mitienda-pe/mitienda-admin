@@ -19,8 +19,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import Editor from '@tinymce/tinymce-vue'
-import * as monaco from 'monaco-editor'
-import loader from '@monaco-editor/loader'
+import type * as MonacoTypes from 'monaco-editor'
 
 // Import TinyMCE
 import 'tinymce/tinymce'
@@ -48,9 +47,6 @@ import 'tinymce/plugins/wordcount'
 
 import type { PageEditorType } from '@/types/page.types'
 
-// Configure Monaco loader
-loader.config({ monaco })
-
 interface Props {
   modelValue: string
   editorType: PageEditorType
@@ -63,7 +59,7 @@ const emit = defineEmits<{
 
 const localContent = ref(props.modelValue)
 const monacoContainer = ref<HTMLElement | null>(null)
-let monacoEditor: monaco.editor.IStandaloneCodeEditor | null = null
+let monacoEditor: MonacoTypes.editor.IStandaloneCodeEditor | null = null
 
 // TinyMCE Configuration (extended for full pages)
 const tinyConfig = {
@@ -90,10 +86,15 @@ const tinyConfig = {
   branding: false,
 }
 
-// Initialize Monaco Editor
+// Initialize Monaco Editor (lazy loaded)
 const initMonaco = async () => {
   if (props.editorType === 'code' && monacoContainer.value && !monacoEditor) {
     await nextTick()
+
+    const monaco = await import('monaco-editor')
+    const loader = (await import('@monaco-editor/loader')).default
+    loader.config({ monaco })
+
     monacoEditor = monaco.editor.create(monacoContainer.value, {
       value: localContent.value,
       language: 'html',

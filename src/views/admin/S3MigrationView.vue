@@ -234,6 +234,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useToast } from 'primevue/usetoast'
+import apiClient from '@/api/axios'
 
 interface S3Image {
   id: number
@@ -303,28 +304,12 @@ const loadImages = async () => {
   error.value = null
 
   try {
-    const token = localStorage.getItem('access_token')
-    if (!token) {
-      throw new Error('No hay token de autenticación. Por favor inicia sesión.')
-    }
-
     const productsOnlyParam = productsOnly.value ? '&products_only=1' : ''
-    const response = await fetch(
-      `https://api2.mitienda.pe/api/v1/superadmin/s3-images?store_id=${selectedStoreId.value}&page=${pagination.value.page}&per_page=${pagination.value.per_page}${productsOnlyParam}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      }
+    const response = await apiClient.get(
+      `/superadmin/s3-images?store_id=${selectedStoreId.value}&page=${pagination.value.page}&per_page=${pagination.value.per_page}${productsOnlyParam}`
     )
 
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.messages?.error || 'Error al cargar imágenes')
-    }
-
-    const data = await response.json()
+    const data = response.data
 
     store.value = data.data.store
     images.value = data.data.images
@@ -388,35 +373,11 @@ const migrateImage = async (image: S3Image) => {
   migratingImages.value[image.id] = true
 
   try {
-    const token = localStorage.getItem('access_token')
-    if (!token) {
-      throw new Error('No hay token de autenticación')
-    }
-
-    const response = await fetch('https://api2.mitienda.pe/api/v1/superadmin/migrate-image', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        image_id: image.id
-      })
+    const response = await apiClient.post('/superadmin/migrate-image', {
+      image_id: image.id
     })
 
-    // Verificar si la respuesta es HTML (error del servidor)
-    const contentType = response.headers.get('content-type')
-    if (contentType && contentType.includes('text/html')) {
-      const htmlText = await response.text()
-      console.error('Server returned HTML instead of JSON:', htmlText.substring(0, 500))
-      throw new Error('Error del servidor. Verifica los logs del API.')
-    }
-
-    const data = await response.json()
-
-    if (!response.ok || data.error !== 0) {
-      throw new Error(data.message || 'Error al migrar imagen')
-    }
+    const data = response.data
 
     // Actualizar el estado de la imagen
     const imageIndex = images.value.findIndex(img => img.id === image.id)

@@ -23,8 +23,7 @@ import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import Editor from '@tinymce/tinymce-vue'
-import * as monaco from 'monaco-editor'
-import loader from '@monaco-editor/loader'
+import type * as MonacoTypes from 'monaco-editor'
 
 // Import TinyMCE
 import 'tinymce/tinymce'
@@ -51,9 +50,6 @@ import 'tinymce/plugins/table'
 import 'tinymce/plugins/help'
 import 'tinymce/plugins/wordcount'
 
-// Configure Monaco loader
-loader.config({ monaco })
-
 interface Props {
   modelValue: boolean
   content: string
@@ -74,7 +70,7 @@ const visible = computed({
 const editorMode = ref(props.mode)
 const localContent = ref(props.content)
 const monacoContainer = ref<HTMLElement | null>(null)
-let monacoEditor: monaco.editor.IStandaloneCodeEditor | null = null
+let monacoEditor: MonacoTypes.editor.IStandaloneCodeEditor | null = null
 
 const dialogTitle = computed(() => {
   return editorMode.value === 'wysiwyg' ? 'Editar Descripción (Texto)' : 'Editar Descripción (Código HTML)'
@@ -104,6 +100,11 @@ const tinyConfig = {
 const initMonaco = async () => {
   if (editorMode.value === 'code' && monacoContainer.value && !monacoEditor) {
     await nextTick()
+
+    const monaco = await import('monaco-editor')
+    const loader = (await import('@monaco-editor/loader')).default
+    loader.config({ monaco })
+
     monacoEditor = monaco.editor.create(monacoContainer.value, {
       value: localContent.value,
       language: 'html',

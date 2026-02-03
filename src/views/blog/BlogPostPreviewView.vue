@@ -49,7 +49,7 @@
           <Divider />
 
           <!-- Content -->
-          <div v-if="post.content" class="prose prose-sm sm:prose max-w-none" v-html="post.content"></div>
+          <div v-if="post.content" class="prose prose-sm sm:prose max-w-none" v-html="sanitize(post.content)"></div>
           <div v-else class="text-center py-12">
             <i class="pi pi-file text-4xl text-secondary-300 mb-3"></i>
             <p class="text-secondary-500">Esta entrada aún no tiene contenido.</p>
@@ -63,6 +63,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import DOMPurify from 'dompurify'
 import { useRoute } from 'vue-router'
 import { useBlogStore } from '@/stores/blog.store'
 import Button from 'primevue/button'
@@ -73,6 +74,8 @@ import type { BlogPost } from '@/types/blog.types'
 
 const route = useRoute()
 const blogStore = useBlogStore()
+
+const sanitize = (html: string) => DOMPurify.sanitize(html)
 
 const post = ref<BlogPost | null>(null)
 const isLoading = ref(true)

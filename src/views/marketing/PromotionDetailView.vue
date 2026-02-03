@@ -460,7 +460,8 @@ async function handleToggleChange(newValue: boolean) {
 
 // Get image URL
 function getImageUrl(imageName: string) {
-  return `https://cdn.mitienda.pe/images/${imageName}`
+  const cdnUrl = import.meta.env.VITE_CDN_URL || 'https://cdn.mitienda.pe'
+  return `${cdnUrl}/images/${imageName}`
 }
 
 // Format date

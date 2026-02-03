@@ -486,7 +486,7 @@ const routes: RouteRecordRaw[] = [
     path: '/debug/superadmin',
     name: 'SuperAdminDebug',
     component: () => import('@/views/debug/SuperAdminDebug.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, requiresSuperAdmin: true }
   },
   {
     path: '/:pathMatch(.*)*',

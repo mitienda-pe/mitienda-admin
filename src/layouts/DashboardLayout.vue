@@ -20,6 +20,7 @@
             icon="pi pi-bars"
             class="lg:hidden"
             text
+            aria-label="Abrir menú de navegación"
             @click="sidebarVisible = true"
           />
           <img src="@/assets/images/logo-mitienda.svg" alt="MiTienda" class="h-8" />
@@ -47,7 +48,7 @@
 
     <div class="flex">
       <!-- Sidebar Desktop -->
-      <aside class="hidden lg:block w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-60px)]">
+      <aside class="hidden lg:block w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-60px)]" role="navigation" aria-label="Navegación principal">
         <nav class="p-4">
           <!-- Sidebar para SuperAdmin SIN impersonación -->
           <ul v-if="isSuperAdminWithoutImpersonation" class="space-y-1">
@@ -112,6 +113,7 @@
             <li>
               <button
                 @click="salesExpanded = !salesExpanded"
+                :aria-expanded="salesExpanded"
                 class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isSalesActive }"
               >
@@ -141,6 +143,7 @@
             <li>
               <button
                 @click="reportsExpanded = !reportsExpanded"
+                :aria-expanded="reportsExpanded"
                 class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isReportsActive }"
               >
@@ -170,6 +173,7 @@
             <li>
               <button
                 @click="catalogExpanded = !catalogExpanded"
+                :aria-expanded="catalogExpanded"
                 class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isCatalogActive }"
               >
@@ -199,6 +203,7 @@
             <li>
               <button
                 @click="marketingExpanded = !marketingExpanded"
+                :aria-expanded="marketingExpanded"
                 class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isMarketingActive }"
               >
@@ -228,6 +233,7 @@
             <li>
               <button
                 @click="contentExpanded = !contentExpanded"
+                :aria-expanded="contentExpanded"
                 class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isContentActive }"
               >
@@ -257,6 +263,7 @@
             <li>
               <button
                 @click="billingExpanded = !billingExpanded"
+                :aria-expanded="billingExpanded"
                 class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isBillingActive }"
               >
@@ -286,6 +293,7 @@
             <li>
               <button
                 @click="paymentGatewaysExpanded = !paymentGatewaysExpanded"
+                :aria-expanded="paymentGatewaysExpanded"
                 class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isPaymentGatewaysActive }"
               >
@@ -315,6 +323,7 @@
             <li>
               <button
                 @click="shippingExpanded = !shippingExpanded"
+                :aria-expanded="shippingExpanded"
                 class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isShippingActive }"
               >
@@ -344,6 +353,7 @@
             <li>
               <button
                 @click="apiExpanded = !apiExpanded"
+                :aria-expanded="apiExpanded"
                 class="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-primary-50 hover:text-primary transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isApiActive }"
               >
@@ -373,6 +383,7 @@
             <li>
               <button
                 @click="configExpanded = !configExpanded"
+                :aria-expanded="configExpanded"
                 class="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-primary-50 hover:text-primary transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isConfigActive }"
               >
@@ -440,6 +451,7 @@
             <li>
               <button
                 @click="salesExpanded = !salesExpanded"
+                :aria-expanded="salesExpanded"
                 class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isSalesActive }"
               >
@@ -470,6 +482,7 @@
             <li>
               <button
                 @click="reportsExpanded = !reportsExpanded"
+                :aria-expanded="reportsExpanded"
                 class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isReportsActive }"
               >
@@ -500,6 +513,7 @@
             <li>
               <button
                 @click="catalogExpanded = !catalogExpanded"
+                :aria-expanded="catalogExpanded"
                 class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isCatalogActive }"
               >
@@ -530,6 +544,7 @@
             <li>
               <button
                 @click="marketingExpanded = !marketingExpanded"
+                :aria-expanded="marketingExpanded"
                 class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isMarketingActive }"
               >
@@ -560,6 +575,7 @@
             <li>
               <button
                 @click="contentExpanded = !contentExpanded"
+                :aria-expanded="contentExpanded"
                 class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isContentActive }"
               >
@@ -590,6 +606,7 @@
             <li>
               <button
                 @click="billingExpanded = !billingExpanded"
+                :aria-expanded="billingExpanded"
                 class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isBillingActive }"
               >
@@ -620,6 +637,7 @@
             <li>
               <button
                 @click="paymentGatewaysExpanded = !paymentGatewaysExpanded"
+                :aria-expanded="paymentGatewaysExpanded"
                 class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isPaymentGatewaysActive }"
               >
@@ -650,6 +668,7 @@
             <li>
               <button
                 @click="shippingExpanded = !shippingExpanded"
+                :aria-expanded="shippingExpanded"
                 class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isShippingActive }"
               >
@@ -680,6 +699,7 @@
             <li>
               <button
                 @click="apiExpanded = !apiExpanded"
+                :aria-expanded="apiExpanded"
                 class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isApiActive }"
               >
@@ -710,6 +730,7 @@
             <li>
               <button
                 @click="configExpanded = !configExpanded"
+                :aria-expanded="configExpanded"
                 class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
                 :class="{ 'bg-primary-50 text-primary font-medium': isConfigActive }"
               >

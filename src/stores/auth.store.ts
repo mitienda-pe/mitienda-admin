@@ -176,15 +176,36 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  function isTokenExpired(token: string): boolean {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      if (!payload.exp) return false
+      return payload.exp * 1000 < Date.now()
+    } catch {
+      return true
+    }
+  }
+
   function restoreSession() {
-    // Restaurar sesión desde localStorage
     const token = localStorage.getItem('access_token')
     const refresh = localStorage.getItem('refresh_token')
     const savedUser = localStorage.getItem('user')
     const savedStore = localStorage.getItem('selected_store')
     const savedSuperAdminInfo = localStorage.getItem('superadmin_info')
 
-    if (token && savedUser) {
+    if (!token || !savedUser) return
+
+    if (isTokenExpired(token)) {
+      // Token expired — clear everything and force re-login
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('refresh_token')
+      localStorage.removeItem('user')
+      localStorage.removeItem('selected_store')
+      localStorage.removeItem('superadmin_info')
+      return
+    }
+
+    try {
       accessToken.value = token
       refreshToken.value = refresh
       user.value = JSON.parse(savedUser)
@@ -194,16 +215,25 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       if (savedSuperAdminInfo) {
-        try {
-          superAdminInfo.value = JSON.parse(savedSuperAdminInfo)
-        } catch (err) {
-          console.error('Error al parsear superadmin_info:', err)
-        }
+        superAdminInfo.value = JSON.parse(savedSuperAdminInfo)
       }
-
-      // Obtener tiendas actualizadas
-      fetchStores()
+    } catch {
+      // Corrupted localStorage — reset state and clear storage
+      accessToken.value = null
+      refreshToken.value = null
+      user.value = null
+      selectedStore.value = null
+      superAdminInfo.value = null
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('refresh_token')
+      localStorage.removeItem('user')
+      localStorage.removeItem('selected_store')
+      localStorage.removeItem('superadmin_info')
+      return
     }
+
+    // Fetch updated stores in background
+    fetchStores()
   }
 
   return {

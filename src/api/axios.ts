@@ -42,6 +42,30 @@ apiClient.interceptors.request.use(
   }
 )
 
+// Token refresh queue to handle concurrent 401s
+let isRefreshing = false
+let refreshSubscribers: Array<(token: string) => void> = []
+
+function onTokenRefreshed(token: string) {
+  refreshSubscribers.forEach(callback => callback(token))
+  refreshSubscribers = []
+}
+
+function addRefreshSubscriber(callback: (token: string) => void) {
+  refreshSubscribers.push(callback)
+}
+
+function clearAuthAndRedirect() {
+  localStorage.removeItem('access_token')
+  localStorage.removeItem('refresh_token')
+  localStorage.removeItem('user')
+  localStorage.removeItem('selected_store')
+  localStorage.removeItem('superadmin_info')
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login'
+  }
+}
+
 // Response interceptor - Manejo de errores y renovación de tokens
 apiClient.interceptors.response.use(
   response => {
@@ -66,52 +90,55 @@ apiClient.interceptors.response.use(
   async (error: AxiosError<ApiResponse>) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
 
-    // Si es error 401 y no es la petición de login/refresh
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
 
-      const refreshToken = localStorage.getItem('refresh_token')
+      const refreshTokenValue = localStorage.getItem('refresh_token')
 
-      if (refreshToken && !originalRequest.url?.includes('/auth/refresh')) {
-        try {
-          // Intentar renovar el token
-          const response = await axios.post(
-            `${import.meta.env.VITE_API_BASE_URL}/auth/refresh`,
-            { refresh_token: refreshToken }
-          )
+      if (!refreshTokenValue || originalRequest.url?.includes('/auth/refresh')) {
+        clearAuthAndRedirect()
+        return Promise.reject(error)
+      }
 
-          const { access_token, refresh_token: newRefreshToken } = response.data.data
+      // If already refreshing, queue this request
+      if (isRefreshing) {
+        return new Promise(resolve => {
+          addRefreshSubscriber((newToken: string) => {
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${newToken}`
+            }
+            resolve(apiClient(originalRequest))
+          })
+        })
+      }
 
-          // Guardar nuevos tokens
-          localStorage.setItem('access_token', access_token)
-          localStorage.setItem('refresh_token', newRefreshToken)
+      isRefreshing = true
 
-          // Reintentar la petición original con el nuevo token
-          if (originalRequest.headers) {
-            originalRequest.headers.Authorization = `Bearer ${access_token}`
-          }
+      try {
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL}/auth/refresh`,
+          { refresh_token: refreshTokenValue }
+        )
 
-          return apiClient(originalRequest)
-        } catch (refreshError) {
-          // Si falla la renovación, limpiar tokens y redirigir a login
-          localStorage.removeItem('access_token')
-          localStorage.removeItem('refresh_token')
-          localStorage.removeItem('user')
-          localStorage.removeItem('selected_store')
+        const { access_token, refresh_token: newRefreshToken } = response.data.data
 
-          // Redirigir a login
-          if (window.location.pathname !== '/login') {
-            window.location.href = '/login'
-          }
+        localStorage.setItem('access_token', access_token)
+        localStorage.setItem('refresh_token', newRefreshToken)
 
-          return Promise.reject(refreshError)
+        if (originalRequest.headers) {
+          originalRequest.headers.Authorization = `Bearer ${access_token}`
         }
-      } else {
-        // No hay refresh token, limpiar y redirigir
-        localStorage.clear()
-        if (window.location.pathname !== '/login') {
-          window.location.href = '/login'
-        }
+
+        // Resolve all queued requests with the new token
+        onTokenRefreshed(access_token)
+
+        return apiClient(originalRequest)
+      } catch (refreshError) {
+        refreshSubscribers = []
+        clearAuthAndRedirect()
+        return Promise.reject(refreshError)
+      } finally {
+        isRefreshing = false
       }
     }
 

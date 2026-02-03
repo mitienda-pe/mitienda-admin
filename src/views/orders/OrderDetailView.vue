@@ -11,6 +11,7 @@ import Timeline from 'primevue/timeline'
 import EmitDocumentDialog from '@/components/billing/EmitDocumentDialog.vue'
 import DeliveryMap from '@/components/map/DeliveryMap.vue'
 import FraudRiskCard from '@/components/fraud/FraudRiskCard.vue'
+import apiClient from '@/api/axios'
 import type { Order, OrderStatus } from '@/types/order.types'
 
 const route = useRoute()
@@ -397,14 +398,9 @@ const handleDebugPayments = async () => {
     debugPaymentError.value = null
     debugPaymentData.value = null
 
-    const response = await fetch(`https://api2.mitienda.pe/debug/order-payments/${orderId}`)
-    const data = await response.json()
+    const response = await apiClient.get(`/debug/order-payments/${orderId}`)
 
-    if (!response.ok) {
-      throw new Error(data.message || 'Error al consultar pagos')
-    }
-
-    debugPaymentData.value = data
+    debugPaymentData.value = response.data
   } catch (error: any) {
     debugPaymentError.value = error.message || 'Error desconocido'
     toast.add({
