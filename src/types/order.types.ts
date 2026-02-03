@@ -27,6 +27,7 @@ export interface Order {
   tiendaventa_estado_notif_erp?: number // 0 = success, 1 = error
   tiendaventa_mensaje_notif_erp?: string
   tiendaventa_payload_notif_erp?: string // Request payload sent to NetSuite
+  erp_sync?: ErpSync
   billing_document?: BillingDocument
   promotions?: OrderPromotion[] // Applied promotions (2x1, discounts, etc.)
   promotions_discount?: number // Total discount from promotions
@@ -63,6 +64,13 @@ export interface BillingDocument {
   document_type?: string // factura, boleta
   pdf_url?: string
   xml_url?: string
+}
+
+export interface ErpSync {
+  status: 'synced' | 'error' | 'not_synced'
+  netsuite_invoice_id?: string | null
+  netsuite_document_number?: string | null
+  error_message?: string | null
 }
 
 export interface ShippingDetails {

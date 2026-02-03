@@ -344,6 +344,20 @@ const erpPaymentIds = computed(() => {
   return erpSyncData.value.payment_ids
 })
 
+const netsuiteDocumentNumber = computed(() => {
+  // Try erp_sync first (new clean field), then erpSyncData (parsed JSON)
+  return order.value?.erp_sync?.netsuite_document_number
+    || erpSyncData.value?.netsuite_document_number
+    || null
+})
+
+const netsuiteInvoiceId = computed(() => {
+  return order.value?.erp_sync?.netsuite_invoice_id
+    || erpSyncData.value?.invoice_id
+    || erpSyncData.value?.netsuite_invoice_id
+    || null
+})
+
 const handleSendInvoiceEmail = async () => {
   if (!order.value) return
 
@@ -1024,6 +1038,28 @@ const handleDebugPayments = async () => {
               </template>
               <template #content>
                 <div class="space-y-4">
+                  <!-- NetSuite Document Number (prominent) -->
+                  <div v-if="netsuiteDocumentNumber" class="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <p class="text-xs text-gray-500 mb-1">Documento NetSuite</p>
+                        <p class="font-mono text-lg font-bold text-gray-900">{{ netsuiteDocumentNumber }}</p>
+                      </div>
+                      <div v-if="netsuiteInvoiceId" class="text-right">
+                        <p class="text-xs text-gray-500 mb-1">Invoice ID</p>
+                        <p class="font-mono text-sm text-gray-700">{{ netsuiteInvoiceId }}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Invoice ID (when no document number yet) -->
+                  <div v-else-if="netsuiteInvoiceId" class="flex items-center gap-3">
+                    <div>
+                      <p class="text-xs text-gray-500 mb-1">Invoice ID</p>
+                      <p class="font-mono text-sm font-semibold text-gray-900">{{ netsuiteInvoiceId }}</p>
+                    </div>
+                  </div>
+
                   <!-- Success/Error Status -->
                   <div v-if="erpSyncData">
                     <div v-if="!erpSyncData.success && erpSyncData.error" class="mb-3">
@@ -1062,12 +1098,6 @@ const handleDebugPayments = async () => {
                     <div v-if="erpSyncData.failed_at" class="mt-3">
                       <p class="text-sm text-gray-500">Fecha de error</p>
                       <p class="text-gray-900 text-sm">{{ erpSyncData.failed_at }}</p>
-                    </div>
-
-                    <!-- Success Data (if applicable) -->
-                    <div v-if="erpSyncData.success && erpSyncData.invoice_id">
-                      <p class="text-sm text-gray-500">Invoice ID</p>
-                      <p class="font-mono text-sm text-gray-900">{{ erpSyncData.invoice_id }}</p>
                     </div>
 
                     <!-- Payment IDs / Transactions -->
