@@ -16,15 +16,27 @@ const transformCategory = (raw: any): Category => ({
 })
 
 // Transform Category form data to API format
-const transformToApi = (data: CategoryFormData): Record<string, any> => ({
-  name: data.name,
-  slug: data.slug,
-  parent_id: data.parent_id,
-  image: data.image,
-  order: data.order,
-  meta_title: data.meta_title,
-  meta_description: data.meta_description
-})
+const transformToApi = (data: CategoryFormData): Record<string, any> => {
+  const result: Record<string, any> = {
+    name: data.name,
+    slug: data.slug,
+    order: data.order,
+    meta_title: data.meta_title,
+    meta_description: data.meta_description
+  }
+
+  // Only include parent_id if it has a valid value (not null/undefined/0)
+  if (data.parent_id && data.parent_id > 0) {
+    result.parent_id = data.parent_id
+  }
+
+  // Only include image if provided
+  if (data.image) {
+    result.image = data.image
+  }
+
+  return result
+}
 
 // Flatten nested categories into a flat array
 const flattenCategories = (categories: Category[]): Category[] => {
