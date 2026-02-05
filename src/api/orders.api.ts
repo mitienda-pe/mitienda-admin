@@ -254,7 +254,7 @@ export const ordersApi = {
           zip_code: receiverAddress.zip_code || undefined,
           latitude: receiverAddress.latitude || undefined,
           longitude: receiverAddress.longitud || undefined,
-          reference: receiverAddress.comment || undefined,
+          reference: receiverAddress.reference || undefined,
           courier: shipping.courrier?.name || undefined,
           tracking_url: shipping.url_traking || undefined,
           recipient_name: shipping.recipient_name || undefined,
@@ -280,6 +280,12 @@ export const ordersApi = {
         promotions: rawData.discount?.promotions || rawData.promotions || undefined,
         promotions_discount: rawData.discount?.promotions_discount || rawData.promotions_discount || undefined,
         coupon_discount: rawData.discount?.coupon_discount || rawData.coupon_discount || undefined,
+        // Coupon details
+        coupon_code: rawData.coupon_code || rawData.discount?.discount_type?.discount_cupon || undefined,
+        coupon_value: rawData.coupon_value || undefined,
+        coupon_type: rawData.coupon_type || undefined,
+        // Referrer info
+        referrer_code: rawData.referrer_code || undefined,
         // Billing document info
         billing_document: billingInfo['e-billing'] ? {
           id: billingInfo['e-billing'].id || 0,

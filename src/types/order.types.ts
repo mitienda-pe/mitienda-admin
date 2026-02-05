@@ -32,6 +32,10 @@ export interface Order {
   promotions?: OrderPromotion[] // Applied promotions (2x1, discounts, etc.)
   promotions_discount?: number // Total discount from promotions
   coupon_discount?: number // Total discount from coupon
+  coupon_code?: string | null // Coupon code used
+  coupon_value?: number // Coupon value (percentage or fixed amount)
+  coupon_type?: 'percentage' | 'fixed' // Coupon discount type
+  referrer_code?: string | null // Referrer/affiliate code
   created_at: string
   updated_at: string
 }

@@ -740,9 +740,13 @@ const handleDebugPayments = async () => {
                     {{ order.shipping_details.address }}{{ order.shipping_details.address_line2 ? ', ' + order.shipping_details.address_line2 : '' }}
                   </p>
                   <p class="text-gray-900 text-sm">
-                    {{ [order.shipping_details.district, order.shipping_details.province, order.shipping_details.department, order.shipping_details.country].filter(Boolean).join(', ') }}{{ order.shipping_details.ubigeo_code ? ', ' + order.shipping_details.ubigeo_code : '' }}
+                    {{ [order.shipping_details.district, order.shipping_details.province, order.shipping_details.department, order.shipping_details.country].filter(Boolean).join(', ') }}{{ order.shipping_details.ubigeo_code ? ' (UBIGEO: ' + order.shipping_details.ubigeo_code + ')' : '' }}
                   </p>
                 </div>
+              </div>
+              <div v-if="order.shipping_details?.reference">
+                <p class="text-sm text-gray-500">Referencia de envío</p>
+                <p class="text-gray-900">{{ order.shipping_details.reference }}</p>
               </div>
               <div v-if="order.shipping_details?.date_delivered">
                 <p class="text-sm text-gray-500">Fecha de entrega</p>
@@ -821,27 +825,44 @@ const handleDebugPayments = async () => {
           </Card>
       </div>
 
-      <!-- Observaciones (ancho completo) -->
-      <Card v-if="order.notes || order.store_notes">
-        <template #title>
-          <div class="flex items-center gap-2">
-            <i class="pi pi-comment text-primary"></i>
-            Observaciones
-          </div>
-        </template>
-        <template #content>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div v-if="order.notes">
-              <p class="text-sm text-gray-500 font-medium mb-2">Cliente</p>
-              <p class="text-gray-900">{{ order.notes }}</p>
+      <!-- Observaciones y Referidor (ancho completo) -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" v-if="order.notes || order.store_notes || order.referrer_code">
+        <Card v-if="order.notes || order.store_notes" class="lg:col-span-2">
+          <template #title>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-comment text-primary"></i>
+              Observaciones
             </div>
-            <div v-if="order.store_notes">
-              <p class="text-sm text-gray-500 font-medium mb-2">Tienda (Interno)</p>
-              <p class="text-gray-900 font-semibold">{{ order.store_notes }}</p>
+          </template>
+          <template #content>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div v-if="order.notes">
+                <p class="text-sm text-gray-500 font-medium mb-2">Cliente</p>
+                <p class="text-gray-900">{{ order.notes }}</p>
+              </div>
+              <div v-if="order.store_notes">
+                <p class="text-sm text-gray-500 font-medium mb-2">Tienda (Interno)</p>
+                <p class="text-gray-900 font-semibold">{{ order.store_notes }}</p>
+              </div>
             </div>
-          </div>
-        </template>
-      </Card>
+          </template>
+        </Card>
+
+        <Card v-if="order.referrer_code">
+          <template #title>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-share-alt text-primary"></i>
+              Referidor
+            </div>
+          </template>
+          <template #content>
+            <div class="space-y-2">
+              <p class="text-sm text-gray-500">Código de referido</p>
+              <p class="font-semibold text-gray-900 font-mono bg-gray-50 px-3 py-2 rounded">{{ order.referrer_code }}</p>
+            </div>
+          </template>
+        </Card>
+      </div>
 
       <!-- Fila 2: Resumen/Mapa/Timeline y Análisis/Comprobante (2 columnas) -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1054,7 +1075,9 @@ const handleDebugPayments = async () => {
                       <tr v-if="order.coupon_discount && order.coupon_discount > 0" class="bg-green-50">
                         <td class="px-6 py-3 text-sm text-green-700">
                           <i class="pi pi-ticket mr-1"></i>
-                          Cupón de descuento:
+                          Cupón de descuento
+                          <span v-if="order.coupon_code" class="font-mono text-xs ml-1">({{ order.coupon_code }})</span>
+                          <span v-if="order.coupon_type === 'percentage'" class="text-xs ml-1">- {{ order.coupon_value }}%</span>
                         </td>
                         <td class="px-6 py-3 text-sm text-right font-medium text-green-700">
                           -{{ formatCurrency(order.coupon_discount) }}
