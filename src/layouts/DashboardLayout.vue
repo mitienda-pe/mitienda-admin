@@ -109,6 +109,36 @@
               </router-link>
             </li>
 
+            <!-- Grupo Tu Tienda -->
+            <li>
+              <button
+                @click="storeExpanded = !storeExpanded"
+                :aria-expanded="storeExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isStoreActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-shop"></i>
+                  <span>Tu Tienda</span>
+                </div>
+                <i :class="storeExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="storeExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in storeMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+
             <!-- Grupo Ventas -->
             <li>
               <button
@@ -445,6 +475,37 @@
                 <i :class="item.icon"></i>
                 <span>{{ item.label }}</span>
               </router-link>
+            </li>
+
+            <!-- Grupo Tu Tienda -->
+            <li>
+              <button
+                @click="storeExpanded = !storeExpanded"
+                :aria-expanded="storeExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isStoreActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-shop"></i>
+                  <span>Tu Tienda</span>
+                </div>
+                <i :class="storeExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="storeExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in storeMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                    @click="sidebarVisible = false"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
             </li>
 
             <!-- Grupo Ventas -->
@@ -799,6 +860,7 @@ const apiExpandedRef = ref(false)
 const configExpandedRef = ref(false)
 const contentExpandedRef = ref(false)
 const shippingExpandedRef = ref(false)
+const storeExpandedRef = ref(false)
 
 // Computar dinámicamente qué menú debe estar expandido según la ruta
 const salesExpanded = computed({
@@ -851,10 +913,21 @@ const shippingExpanded = computed({
   set: (val) => { shippingExpandedRef.value = val }
 })
 
+const storeExpanded = computed({
+  get: () => storeExpandedRef.value || route.path.startsWith('/store'),
+  set: (val) => { storeExpandedRef.value = val }
+})
+
 // Items simples del menú
 const simpleMenuItems = [
   { label: 'Dashboard', icon: 'pi pi-home', to: '/dashboard' },
   { label: 'Clientes', icon: 'pi pi-users', to: '/customers' }
+]
+
+// Items del grupo Tu Tienda
+const storeMenuItems = [
+  { label: 'Información', icon: 'pi pi-info-circle', to: '/store/info' },
+  { label: 'Direcciones', icon: 'pi pi-map-marker', to: '/store/addresses' }
 ]
 
 // Items del grupo Contenido
@@ -925,6 +998,11 @@ const configMenuItems = [
   { label: 'Stock', icon: 'pi pi-box', to: '/configuracion/netsuite/stock' },
   { label: 'Cola de Sincronización', icon: 'pi pi-list', to: '/configuracion/netsuite/cola' }
 ]
+
+// Detectar si estamos en alguna ruta de Tu Tienda
+const isStoreActive = computed(() => {
+  return route.path.startsWith('/store')
+})
 
 // Detectar si estamos en alguna ruta de reparto
 const isShippingActive = computed(() => {

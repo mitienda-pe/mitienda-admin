@@ -146,7 +146,7 @@ onUnmounted(() => {
             <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Nota de Crédito</label>
             <Dropdown
               v-model="store.creditNoteType"
-              :options="CREDIT_NOTE_TYPES"
+              :options="[...CREDIT_NOTE_TYPES]"
               optionLabel="label"
               optionValue="code"
               placeholder="Seleccionar tipo"
@@ -182,7 +182,7 @@ onUnmounted(() => {
               <label class="block text-xs text-gray-500 mb-1">Serie</label>
               <InputText
                 :modelValue="store.referenceDocument?.serie || ''"
-                @update:modelValue="(v: string) => store.setReferenceDocument({ ...(store.referenceDocument || { type: 1, correlativo: 0 }), serie: v })"
+                @update:modelValue="(v: string | undefined) => store.setReferenceDocument({ ...(store.referenceDocument || { type: 1, correlativo: 0 }), serie: v || '' })"
                 placeholder="F001"
                 class="w-full"
               />
@@ -191,7 +191,7 @@ onUnmounted(() => {
               <label class="block text-xs text-gray-500 mb-1">Correlativo</label>
               <InputText
                 :modelValue="store.referenceDocument?.correlativo?.toString() || ''"
-                @update:modelValue="(v: string) => store.setReferenceDocument({ ...(store.referenceDocument || { type: 1, serie: '' }), correlativo: parseInt(v) || 0 })"
+                @update:modelValue="(v: string | undefined) => store.setReferenceDocument({ ...(store.referenceDocument || { type: 1, serie: '' }), correlativo: parseInt(v || '0') || 0 })"
                 placeholder="123"
                 class="w-full"
               />

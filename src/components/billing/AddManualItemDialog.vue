@@ -105,7 +105,7 @@ function handleAdd() {
   if (!isValid.value) return
 
   const item: Omit<ManualDocumentItem, 'id'> = {
-    code: code.value || undefined,
+    code: code.value,
     description: description.value,
     unit: unit.value,
     quantity: quantity.value || 1,

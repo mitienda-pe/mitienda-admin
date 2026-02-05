@@ -63,8 +63,8 @@ async function searchProducts() {
 }
 
 // Handle search input with debounce
-function onSearchInput(value: string) {
-  searchQuery.value = value
+function onSearchInput(value: string | undefined) {
+  searchQuery.value = value || ''
   if (searchTimeout) {
     clearTimeout(searchTimeout)
   }

@@ -63,9 +63,9 @@ function onDocumentTypeChange(type: ClientDocumentType) {
 }
 
 // Handle document number input
-function onDocumentNumberInput(value: string) {
+function onDocumentNumberInput(value: string | undefined) {
   // Only allow numbers
-  const cleaned = value.replace(/\D/g, '')
+  const cleaned = (value || '').replace(/\D/g, '')
   emit('update:client', { document_number: cleaned })
 }
 

@@ -58,8 +58,8 @@ import 'tinymce/plugins/wordcount'
 
 import type { PageEditorType } from '@/types/page.types'
 
-// Import MTBuilder Web Component
-import '@carlosvidalperu/mtbuilder'
+// Import MTBuilder Web Component (TODO: install package when available)
+// import '@carlosvidalperu/mtbuilder'
 
 interface Props {
   modelValue: string

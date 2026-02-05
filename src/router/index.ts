@@ -425,6 +425,33 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/store',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: 'info',
+        name: 'store-info',
+        component: () => import('@/views/store/StoreInfoView.vue')
+      },
+      {
+        path: 'addresses',
+        name: 'store-addresses',
+        component: () => import('@/views/store/StoreAddressesView.vue')
+      },
+      {
+        path: 'addresses/new',
+        name: 'store-address-create',
+        component: () => import('@/views/store/StoreAddressFormView.vue')
+      },
+      {
+        path: 'addresses/:id/edit',
+        name: 'store-address-edit',
+        component: () => import('@/views/store/StoreAddressFormView.vue')
+      }
+    ]
+  },
+  {
     path: '/profile',
     component: DashboardLayout,
     meta: { requiresAuth: true },
