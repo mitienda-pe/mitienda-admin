@@ -340,6 +340,36 @@ const routes: RouteRecordRaw[] = [
         path: 'referrals',
         name: 'Referrals',
         component: () => import('@/views/marketing/referrals/ReferralsView.vue')
+      },
+      {
+        path: 'upsales',
+        name: 'marketing-upsales',
+        component: () => import('@/views/marketing/upsales/UpsalesView.vue')
+      },
+      {
+        path: 'upsales/new',
+        name: 'marketing-upsale-create',
+        component: () => import('@/views/marketing/upsales/UpsaleFormView.vue')
+      },
+      {
+        path: 'upsales/:id/edit',
+        name: 'marketing-upsale-edit',
+        component: () => import('@/views/marketing/upsales/UpsaleFormView.vue')
+      },
+      {
+        path: 'combos',
+        name: 'marketing-combos',
+        component: () => import('@/views/marketing/combos/CombosView.vue')
+      },
+      {
+        path: 'combos/new',
+        name: 'marketing-combo-create',
+        component: () => import('@/views/marketing/combos/ComboFormView.vue')
+      },
+      {
+        path: 'combos/:id/edit',
+        name: 'marketing-combo-edit',
+        component: () => import('@/views/marketing/combos/ComboFormView.vue')
       }
     ]
   },
