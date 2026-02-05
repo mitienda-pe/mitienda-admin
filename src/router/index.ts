@@ -335,6 +335,11 @@ const routes: RouteRecordRaw[] = [
         path: 'abandoned-carts',
         name: 'AbandonedCarts',
         component: () => import('@/views/abandoned-carts/AbandonedCartsListView.vue')
+      },
+      {
+        path: 'referrals',
+        name: 'Referrals',
+        component: () => import('@/views/marketing/referrals/ReferralsView.vue')
       }
     ]
   },
