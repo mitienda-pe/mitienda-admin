@@ -29,6 +29,24 @@
             class="w-full"
             size="small"
           />
+          <div v-if="filteredUnlinked.length > 0" class="flex justify-end mt-2">
+            <button
+              v-if="selectedUnlinked.length < filteredUnlinked.length"
+              type="button"
+              class="text-xs text-primary hover:underline"
+              @click="selectAllUnlinked"
+            >
+              Seleccionar todos ({{ filteredUnlinked.length }})
+            </button>
+            <button
+              v-else
+              type="button"
+              class="text-xs text-secondary-500 hover:underline"
+              @click="deselectAllUnlinked"
+            >
+              Deseleccionar todos
+            </button>
+          </div>
         </div>
 
         <!-- List -->
@@ -88,6 +106,24 @@
             class="w-full"
             size="small"
           />
+          <div v-if="filteredLinked.length > 0" class="flex justify-end mt-2">
+            <button
+              v-if="selectedLinked.length < filteredLinked.length"
+              type="button"
+              class="text-xs text-primary hover:underline"
+              @click="selectAllLinked"
+            >
+              Seleccionar todos ({{ filteredLinked.length }})
+            </button>
+            <button
+              v-else
+              type="button"
+              class="text-xs text-secondary-500 hover:underline"
+              @click="deselectAllLinked"
+            >
+              Deseleccionar todos
+            </button>
+          </div>
         </div>
 
         <!-- List -->
@@ -226,6 +262,23 @@ const filteredUnlinked = computed(() => {
     p.sku?.toLowerCase().includes(query)
   )
 })
+
+// Select/Deselect all functions
+function selectAllUnlinked() {
+  selectedUnlinked.value = filteredUnlinked.value.map(p => p.id)
+}
+
+function deselectAllUnlinked() {
+  selectedUnlinked.value = []
+}
+
+function selectAllLinked() {
+  selectedLinked.value = filteredLinked.value.map(p => p.id)
+}
+
+function deselectAllLinked() {
+  selectedLinked.value = []
+}
 
 // Load products when dialog opens
 watch(() => props.visible, async (isVisible) => {
