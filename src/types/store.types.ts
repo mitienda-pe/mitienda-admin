@@ -56,6 +56,7 @@ export interface StoreAddress {
   tiendadireccion_ubigeo: number | null
   tiendadireccion_swpublicado: number
   tiendadireccion_swalmacen: number
+  tiendadireccion_swremitente: number
 }
 
 export interface StoreAddressCreateRequest {
@@ -73,6 +74,7 @@ export interface StoreAddressCreateRequest {
   tiendadireccion_ubigeo?: number | null
   tiendadireccion_swpublicado?: number
   tiendadireccion_swalmacen?: number
+  tiendadireccion_swremitente?: number
 }
 
 export type StoreAddressUpdateRequest = Partial<StoreAddressCreateRequest>
@@ -80,4 +82,16 @@ export type StoreAddressUpdateRequest = Partial<StoreAddressCreateRequest>
 export interface Rubro {
   rubro_id: number
   rubro_nombre: string
+}
+
+// Info del remitente para etiquetas de envío
+export interface SenderInfo {
+  businessName: string // Razón social
+  commercialName: string // Nombre comercial
+  ruc: string // RUC
+  phone: string // Teléfono
+  address: string // Dirección completa
+  district?: string
+  province?: string
+  department?: string
 }

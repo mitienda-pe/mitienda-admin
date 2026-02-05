@@ -88,6 +88,32 @@
           </template>
         </Column>
 
+        <Column field="tiendadireccion_swremitente" header="Remitente" sortable style="width: 130px">
+          <template #body="{ data }">
+            <Button
+              v-if="data.tiendadireccion_swremitente == 1"
+              icon="pi pi-check"
+              label="Remitente"
+              size="small"
+              severity="success"
+              outlined
+              v-tooltip.top="'Dirección para etiquetas de envío. Clic para desmarcar'"
+              :loading="isTogglingSender"
+              @click="toggleSender(data)"
+            />
+            <Button
+              v-else
+              icon="pi pi-tag"
+              size="small"
+              text
+              severity="secondary"
+              v-tooltip.top="'Marcar como remitente para etiquetas'"
+              :loading="isTogglingSender"
+              @click="toggleSender(data)"
+            />
+          </template>
+        </Column>
+
         <Column header="Acciones" style="width: 120px">
           <template #body="{ data }">
             <div class="flex gap-2">
@@ -186,6 +212,7 @@ const toast = useToast()
 const showDeleteDialog = ref(false)
 const addressToDelete = ref<StoreAddress | null>(null)
 const isDeleting = ref(false)
+const isTogglingSender = ref(false)
 
 // Map
 const mapContainer = ref<HTMLElement | null>(null)
@@ -241,6 +268,39 @@ watch(addressesWithCoords, async (newVal) => {
 const confirmDelete = (address: StoreAddress) => {
   addressToDelete.value = address
   showDeleteDialog.value = true
+}
+
+const toggleSender = async (address: StoreAddress) => {
+  try {
+    isTogglingSender.value = true
+
+    if (address.tiendadireccion_swremitente == 1) {
+      await storeInfoStore.unsetSenderAddress(address.tiendadireccion_id)
+      toast.add({
+        severity: 'info',
+        summary: 'Actualizado',
+        detail: 'La dirección ya no es remitente',
+        life: 3000
+      })
+    } else {
+      await storeInfoStore.setSenderAddress(address.tiendadireccion_id)
+      toast.add({
+        severity: 'success',
+        summary: 'Actualizado',
+        detail: 'Dirección marcada como remitente para etiquetas de envío',
+        life: 3000
+      })
+    }
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error.message || 'Error al actualizar la dirección',
+      life: 5000
+    })
+  } finally {
+    isTogglingSender.value = false
+  }
 }
 
 const deleteAddress = async () => {

@@ -1,6 +1,7 @@
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import type { Order } from '@/types/order.types'
+import type { SenderInfo } from '@/types/store.types'
 import { useFormatters } from './useFormatters'
 
 export function useOrderDownloads() {
@@ -438,6 +439,257 @@ export function useOrderDownloads() {
   }
 
   /**
+   * Generate Shipping Label PDF (4x6 inches / 100x150mm standard)
+   * @param order - The order to generate the label for
+   * @param senderInfo - Complete sender information (business name, RUC, address, etc.)
+   */
+  function downloadShippingLabel(order: Order, senderInfo?: SenderInfo) {
+    // 4x6 inches = 101.6 x 152.4 mm (industry standard shipping label)
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: [101.6, 152.4]
+    })
+
+    const pageWidth = 101.6
+    const pageHeight = 152.4
+    const margin = 5
+    let y = margin
+
+    // Border around entire label
+    doc.setDrawColor(0)
+    doc.setLineWidth(0.5)
+    doc.rect(2, 2, pageWidth - 4, pageHeight - 4)
+
+    // === SENDER SECTION (FROM) ===
+    // Calculate sender section height based on content
+    const senderSectionHeight = senderInfo?.ruc ? 30 : 25
+    doc.setFillColor(240, 240, 240)
+    doc.rect(margin, y, pageWidth - margin * 2, senderSectionHeight, 'F')
+
+    doc.setFontSize(7)
+    doc.setFont('helvetica', 'bold')
+    doc.text('REMITENTE / FROM:', margin + 2, y + 4)
+
+    // Business name (razón social) or commercial name
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(9)
+    const displayName = senderInfo?.businessName || senderInfo?.commercialName || 'Mi Tienda'
+    doc.text(displayName, margin + 2, y + 10)
+
+    let senderY = y + 14
+
+    // RUC
+    if (senderInfo?.ruc) {
+      doc.setFontSize(8)
+      doc.text(`RUC: ${senderInfo.ruc}`, margin + 2, senderY)
+      senderY += 4
+    }
+
+    // Address
+    if (senderInfo?.address) {
+      doc.setFontSize(7)
+      const senderLines = doc.splitTextToSize(senderInfo.address, pageWidth - margin * 2 - 4)
+      doc.text(senderLines, margin + 2, senderY)
+      senderY += senderLines.length * 3
+
+      // Location (district, province, department)
+      const senderLocation = [
+        senderInfo.district,
+        senderInfo.province,
+        senderInfo.department
+      ].filter(Boolean).join(', ')
+      if (senderLocation) {
+        doc.text(senderLocation, margin + 2, senderY)
+      }
+    }
+
+    // Phone on the right side
+    if (senderInfo?.phone) {
+      doc.setFontSize(7)
+      doc.text(`Tel: ${senderInfo.phone}`, pageWidth - margin - 2, y + 10, { align: 'right' })
+    }
+
+    y += senderSectionHeight + 3
+
+    // Separator line
+    doc.setLineWidth(1)
+    doc.line(margin, y, pageWidth - margin, y)
+    y += 3
+
+    // === RECIPIENT SECTION (TO) ===
+    doc.setFontSize(8)
+    doc.setFont('helvetica', 'bold')
+    doc.text('DESTINATARIO / TO:', margin + 2, y + 4)
+    y += 8
+
+    // Recipient name (large)
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    const recipientName = order.shipping_details?.recipient_name ||
+                          order.customer?.name ||
+                          'Sin nombre'
+    const nameLines = doc.splitTextToSize(recipientName.toUpperCase(), pageWidth - margin * 2 - 4)
+    doc.text(nameLines, margin + 2, y)
+    y += nameLines.length * 6 + 2
+
+    // Phone
+    const recipientPhone = order.shipping_details?.recipient_phone || order.customer?.phone
+    if (recipientPhone) {
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`TEL: ${recipientPhone}`, margin + 2, y)
+      y += 5
+    }
+
+    // Address
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'normal')
+    let address = order.shipping_details?.address || ''
+    if (!address && order.shipping_address) {
+      // shipping_address can be string or Address object
+      if (typeof order.shipping_address === 'string') {
+        address = order.shipping_address
+      } else {
+        address = [
+          order.shipping_address.street,
+          order.shipping_address.city,
+          order.shipping_address.state
+        ].filter(Boolean).join(', ')
+      }
+    }
+    if (address) {
+      const addressLines = doc.splitTextToSize(address, pageWidth - margin * 2 - 4)
+      doc.text(addressLines, margin + 2, y)
+      y += addressLines.length * 5 + 2
+    }
+
+    // Address line 2
+    if (order.shipping_details?.address_line2) {
+      const addr2Lines = doc.splitTextToSize(order.shipping_details.address_line2, pageWidth - margin * 2 - 4)
+      doc.text(addr2Lines, margin + 2, y)
+      y += addr2Lines.length * 5 + 2
+    }
+
+    // District, Province, Department
+    const locationParts = [
+      order.shipping_details?.district,
+      order.shipping_details?.province,
+      order.shipping_details?.department
+    ].filter(Boolean)
+
+    if (locationParts.length > 0) {
+      doc.setFontSize(10)
+      doc.setFont('helvetica', 'bold')
+      const locationText = locationParts.join(' - ')
+      const locationLines = doc.splitTextToSize(locationText.toUpperCase(), pageWidth - margin * 2 - 4)
+      doc.text(locationLines, margin + 2, y)
+      y += locationLines.length * 5 + 2
+    }
+
+    // UBIGEO code
+    if (order.shipping_details?.ubigeo_code) {
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`UBIGEO: ${order.shipping_details.ubigeo_code}`, margin + 2, y)
+      y += 4
+    }
+
+    // Coordinates (latitude/longitude) - useful for delivery drivers
+    const lat = order.shipping_details?.latitude
+    const lng = order.shipping_details?.longitude
+    if (lat && lng && lat !== '0' && lng !== '0') {
+      doc.setFontSize(7)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`GPS: ${lat}, ${lng}`, margin + 2, y)
+      y += 4
+    }
+
+    // Reference/Comment
+    const reference = order.shipping_details?.reference || order.notes
+    if (reference) {
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'italic')
+      const refLines = doc.splitTextToSize(`Ref: ${reference}`, pageWidth - margin * 2 - 4)
+      doc.text(refLines, margin + 2, y)
+      y += refLines.length * 4 + 2
+    }
+
+    // === ORDER INFO SECTION ===
+    // Position this at a fixed location from bottom
+    const bottomSection = pageHeight - 45
+
+    // Separator line
+    doc.setLineWidth(0.5)
+    doc.line(margin, bottomSection, pageWidth - margin, bottomSection)
+
+    // Order number in large text (simulates barcode visually)
+    doc.setFontSize(8)
+    doc.setFont('helvetica', 'normal')
+    doc.text('PEDIDO / ORDER:', margin + 2, bottomSection + 5)
+
+    doc.setFontSize(18)
+    doc.setFont('helvetica', 'bold')
+    doc.text(order.order_number, pageWidth / 2, bottomSection + 14, { align: 'center' })
+
+    // Barcode representation using Code 128 style bars (visual simulation)
+    const barcodeY = bottomSection + 18
+    const barcodeHeight = 12
+    const barcodeWidth = pageWidth - margin * 4
+    const barcodeX = margin * 2
+
+    // Draw barcode-like pattern based on order number
+    doc.setFillColor(0, 0, 0)
+    const orderStr = order.order_number.replace(/[^A-Z0-9]/gi, '')
+    const barWidth = barcodeWidth / (orderStr.length * 11 + 35) // Code128 has ~11 modules per char
+
+    let xPos = barcodeX
+    // Start pattern
+    for (let i = 0; i < 3; i++) {
+      doc.rect(xPos, barcodeY, barWidth * 2, barcodeHeight, 'F')
+      xPos += barWidth * 3
+    }
+
+    // Data pattern (simplified visual representation)
+    for (const char of orderStr) {
+      const charCode = char.charCodeAt(0)
+      // Create varying bar widths based on character
+      for (let i = 0; i < 6; i++) {
+        const width = ((charCode + i) % 3 + 1) * barWidth
+        if ((charCode + i) % 2 === 0) {
+          doc.rect(xPos, barcodeY, width, barcodeHeight, 'F')
+        }
+        xPos += width
+        if (xPos > barcodeX + barcodeWidth - 10) break
+      }
+      if (xPos > barcodeX + barcodeWidth - 10) break
+    }
+
+    // End pattern
+    xPos = Math.min(xPos, barcodeX + barcodeWidth - 10)
+    for (let i = 0; i < 3; i++) {
+      doc.rect(xPos, barcodeY, barWidth * 2, barcodeHeight, 'F')
+      xPos += barWidth * 3
+    }
+
+    // Order number text below barcode
+    doc.setFontSize(8)
+    doc.setFont('helvetica', 'normal')
+    doc.text(order.order_number, pageWidth / 2, barcodeY + barcodeHeight + 4, { align: 'center' })
+
+    // Date
+    doc.setFontSize(7)
+    doc.text(`Fecha: ${formatDateTime(order.created_at)}`, margin + 2, pageHeight - 8)
+
+    // Items count
+    const totalItems = order.items.reduce((sum, item) => sum + item.quantity, 0)
+    doc.text(`${totalItems} artículo(s)`, pageWidth - margin - 2, pageHeight - 8, { align: 'right' })
+
+    // Save
+    doc.save(`etiqueta-envio-${order.order_number}.pdf`)
+  }
+
+  /**
    * Get status text for display
    */
   function getStatusText(status: string): string {
@@ -456,6 +708,7 @@ export function useOrderDownloads() {
     downloadPDF,
     downloadTicket,
     downloadPickingList,
-    downloadCSV
+    downloadCSV,
+    downloadShippingLabel
   }
 }

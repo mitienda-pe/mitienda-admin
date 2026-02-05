@@ -64,5 +64,22 @@ export const storeApi = {
   async deleteAddress(id: number): Promise<ApiResponse<void>> {
     await apiClient.delete(`/store-addresses/${id}`)
     return { success: true }
+  },
+
+  // ─── Sender Address (Dirección Remitente) ───
+
+  async getSenderAddress(): Promise<ApiResponse<StoreAddress>> {
+    const response = await apiClient.get('/store-addresses/sender')
+    return { success: true, data: response.data }
+  },
+
+  async setSenderAddress(id: number): Promise<ApiResponse<StoreAddress>> {
+    const response = await apiClient.patch(`/store-addresses/${id}/set-sender`)
+    return { success: true, data: response.data.data || response.data }
+  },
+
+  async unsetSenderAddress(id: number): Promise<ApiResponse<StoreAddress>> {
+    const response = await apiClient.patch(`/store-addresses/${id}/unset-sender`)
+    return { success: true, data: response.data.data || response.data }
   }
 }

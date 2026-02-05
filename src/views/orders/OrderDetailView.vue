@@ -2,6 +2,7 @@
 import { onMounted, computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useOrdersStore } from '@/stores/orders.store'
+import { useStoreInfoStore } from '@/stores/store-info.store'
 import { useFormatters } from '@/composables/useFormatters'
 import { useOrderDownloads } from '@/composables/useOrderDownloads'
 import { useToast } from 'primevue/usetoast'
@@ -16,14 +17,16 @@ import DeliveryMap from '@/components/map/DeliveryMap.vue'
 import FraudRiskCard from '@/components/fraud/FraudRiskCard.vue'
 import apiClient from '@/api/axios'
 import type { Order, OrderStatus } from '@/types/order.types'
+import type { SenderInfo } from '@/types/store.types'
 
 const route = useRoute()
 const router = useRouter()
 const ordersStore = useOrdersStore()
+const storeInfoStore = useStoreInfoStore()
 const authStore = useAuthStore()
 const toast = useToast()
 const { formatCurrency, formatDate, formatTime, formatDateTime } = useFormatters()
-const { downloadPDF, downloadTicket, downloadPickingList, downloadCSV } = useOrderDownloads()
+const { downloadPDF, downloadTicket, downloadPickingList, downloadCSV, downloadShippingLabel } = useOrderDownloads()
 
 const orderId = Number(route.params.id)
 const showEmitDialog = ref(false)
@@ -32,6 +35,7 @@ const isDebugLoading = ref(false)
 const debugPaymentData = ref<any>(null)
 const debugPaymentError = ref<string | null>(null)
 const downloadMenu = ref()
+const senderInfo = ref<SenderInfo | undefined>(undefined)
 
 // Store name for documents
 const storeName = computed(() => authStore.selectedStore?.name || 'Mi Tienda')
@@ -60,6 +64,11 @@ const downloadMenuItems = ref([
     label: 'Picking List',
     icon: 'pi pi-box',
     command: () => handleDownloadPickingList()
+  },
+  {
+    label: 'Etiqueta de Envío',
+    icon: 'pi pi-tag',
+    command: () => handleDownloadShippingLabel()
   }
 ])
 
@@ -108,6 +117,17 @@ const handleDownloadPickingList = () => {
   })
 }
 
+const handleDownloadShippingLabel = () => {
+  if (!order.value) return
+  downloadShippingLabel(order.value, senderInfo.value)
+  toast.add({
+    severity: 'success',
+    summary: 'Descarga iniciada',
+    detail: 'La etiqueta de envío se está descargando',
+    life: 2000
+  })
+}
+
 const toggleDownloadMenu = (event: Event) => {
   downloadMenu.value.toggle(event)
 }
@@ -116,7 +136,46 @@ onMounted(async () => {
   console.log('🔍 [OrderDetailView] Cargando orden:', orderId)
   await ordersStore.fetchOrder(orderId)
   console.log('✅ [OrderDetailView] Orden cargada:', ordersStore.currentOrder)
+
+  // Load sender info for shipping labels
+  await loadSenderInfo()
 })
+
+// Load sender info (store info + sender address)
+const loadSenderInfo = async () => {
+  try {
+    // Fetch store info and sender address in parallel
+    const [, senderAddress] = await Promise.all([
+      storeInfoStore.fetchInfo(),
+      storeInfoStore.getSenderAddress()
+    ])
+
+    const info = storeInfoStore.info
+
+    if (info) {
+      senderInfo.value = {
+        businessName: info.tienda_razonsocial || '',
+        commercialName: info.tienda_nombre_comercial || '',
+        ruc: info.tienda_ruc || '',
+        phone: info.tienda_telefonocelular1 || info.tienda_telefonofijo1 || '',
+        address: senderAddress?.tiendadireccion_direccion || '',
+        district: senderAddress?.tiendadireccion_dist || '',
+        province: senderAddress?.tiendadireccion_prov || '',
+        department: senderAddress?.tiendadireccion_dpto || ''
+      }
+    }
+  } catch (error) {
+    console.error('Error loading sender info:', error)
+    // Use fallback with store name
+    senderInfo.value = {
+      businessName: storeName.value,
+      commercialName: storeName.value,
+      ruc: '',
+      phone: '',
+      address: ''
+    }
+  }
+}
 
 const order = computed<Order | null>(() => {
   const currentOrder = ordersStore.currentOrder

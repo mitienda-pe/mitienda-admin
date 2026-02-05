@@ -173,6 +173,71 @@ export const useStoreInfoStore = defineStore('storeInfo', () => {
     }
   }
 
+  // ─── Sender Address Actions ───
+
+  async function getSenderAddress() {
+    try {
+      const response = await storeApi.getSenderAddress()
+      if (response.success && response.data) {
+        return response.data
+      }
+      return null
+    } catch (err: any) {
+      console.error('Error al obtener dirección remitente:', err)
+      return null
+    }
+  }
+
+  async function setSenderAddress(id: number) {
+    try {
+      isSaving.value = true
+      error.value = null
+
+      const response = await storeApi.setSenderAddress(id)
+
+      if (response.success) {
+        // Actualizar el estado local
+        addresses.value = addresses.value.map(addr => ({
+          ...addr,
+          tiendadireccion_swremitente: addr.tiendadireccion_id === id ? 1 : 0
+        }))
+        return true
+      }
+      return false
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Error al marcar como remitente'
+      console.error('Error al marcar como remitente:', err)
+      throw err
+    } finally {
+      isSaving.value = false
+    }
+  }
+
+  async function unsetSenderAddress(id: number) {
+    try {
+      isSaving.value = true
+      error.value = null
+
+      const response = await storeApi.unsetSenderAddress(id)
+
+      if (response.success) {
+        // Actualizar el estado local
+        addresses.value = addresses.value.map(addr => ({
+          ...addr,
+          tiendadireccion_swremitente: addr.tiendadireccion_id === id ? 0 : addr.tiendadireccion_swremitente
+        }))
+        return true
+      }
+      return false
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Error al desmarcar como remitente'
+      console.error('Error al desmarcar como remitente:', err)
+      throw err
+    } finally {
+      isSaving.value = false
+    }
+  }
+
   return {
     // State
     info,
@@ -189,6 +254,9 @@ export const useStoreInfoStore = defineStore('storeInfo', () => {
     fetchAddress,
     createAddress,
     updateAddress,
-    deleteAddress
+    deleteAddress,
+    getSenderAddress,
+    setSenderAddress,
+    unsetSenderAddress
   }
 })
