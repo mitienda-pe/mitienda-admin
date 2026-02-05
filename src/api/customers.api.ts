@@ -48,7 +48,8 @@ export const customersApi = {
           verified: customer.verified || false,
           blocked: customer.blocked || false,
           total_orders: customer.total_orders || 0,
-          total_spent: customer.total_spent || 0
+          total_spent: customer.total_spent || 0,
+          last_order_date: customer.last_order_date || null
         })),
         meta: {
           page: rawData.pagination?.current_page || filters.page || 1,

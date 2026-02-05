@@ -15,6 +15,7 @@ export interface Customer {
   blocked: boolean
   total_orders?: number
   total_spent?: number
+  last_order_date?: string | null
 }
 
 export interface CustomerDetail extends Customer {
