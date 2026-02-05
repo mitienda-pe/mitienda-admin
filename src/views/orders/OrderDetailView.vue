@@ -3,11 +3,14 @@ import { onMounted, computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useOrdersStore } from '@/stores/orders.store'
 import { useFormatters } from '@/composables/useFormatters'
+import { useOrderDownloads } from '@/composables/useOrderDownloads'
 import { useToast } from 'primevue/usetoast'
+import { useAuthStore } from '@/stores/auth.store'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import ProgressSpinner from 'primevue/progressspinner'
 import Timeline from 'primevue/timeline'
+import Menu from 'primevue/menu'
 import EmitDocumentDialog from '@/components/billing/EmitDocumentDialog.vue'
 import DeliveryMap from '@/components/map/DeliveryMap.vue'
 import FraudRiskCard from '@/components/fraud/FraudRiskCard.vue'
@@ -17,8 +20,10 @@ import type { Order, OrderStatus } from '@/types/order.types'
 const route = useRoute()
 const router = useRouter()
 const ordersStore = useOrdersStore()
+const authStore = useAuthStore()
 const toast = useToast()
 const { formatCurrency, formatDate, formatTime, formatDateTime } = useFormatters()
+const { downloadPDF, downloadTicket, downloadPickingList, downloadCSV } = useOrderDownloads()
 
 const orderId = Number(route.params.id)
 const showEmitDialog = ref(false)
@@ -26,6 +31,86 @@ const isSendingEmail = ref(false)
 const isDebugLoading = ref(false)
 const debugPaymentData = ref<any>(null)
 const debugPaymentError = ref<string | null>(null)
+const downloadMenu = ref()
+
+// Store name for documents
+const storeName = computed(() => authStore.selectedStore?.name || 'Mi Tienda')
+
+// Download menu items
+const downloadMenuItems = ref([
+  {
+    label: 'Descargar PDF',
+    icon: 'pi pi-file-pdf',
+    command: () => handleDownloadPDF()
+  },
+  {
+    label: 'Descargar CSV',
+    icon: 'pi pi-file-excel',
+    command: () => handleDownloadCSV()
+  },
+  {
+    separator: true
+  },
+  {
+    label: 'Ticket (80mm)',
+    icon: 'pi pi-receipt',
+    command: () => handleDownloadTicket()
+  },
+  {
+    label: 'Picking List',
+    icon: 'pi pi-box',
+    command: () => handleDownloadPickingList()
+  }
+])
+
+// Download handlers
+const handleDownloadPDF = () => {
+  if (!order.value) return
+  downloadPDF(order.value, storeName.value)
+  toast.add({
+    severity: 'success',
+    summary: 'Descarga iniciada',
+    detail: 'El PDF se está descargando',
+    life: 2000
+  })
+}
+
+const handleDownloadCSV = () => {
+  if (!order.value) return
+  downloadCSV(order.value)
+  toast.add({
+    severity: 'success',
+    summary: 'Descarga iniciada',
+    detail: 'El CSV se está descargando',
+    life: 2000
+  })
+}
+
+const handleDownloadTicket = () => {
+  if (!order.value) return
+  downloadTicket(order.value, storeName.value)
+  toast.add({
+    severity: 'success',
+    summary: 'Descarga iniciada',
+    detail: 'El ticket se está descargando',
+    life: 2000
+  })
+}
+
+const handleDownloadPickingList = () => {
+  if (!order.value) return
+  downloadPickingList(order.value, storeName.value)
+  toast.add({
+    severity: 'success',
+    summary: 'Descarga iniciada',
+    detail: 'El picking list se está descargando',
+    life: 2000
+  })
+}
+
+const toggleDownloadMenu = (event: Event) => {
+  downloadMenu.value.toggle(event)
+}
 
 onMounted(async () => {
   console.log('🔍 [OrderDetailView] Cargando orden:', orderId)
@@ -450,6 +535,24 @@ const handleDebugPayments = async () => {
         </div>
       </div>
       <div class="flex items-center gap-3">
+        <!-- Download Menu -->
+        <Button
+          v-if="order"
+          icon="pi pi-download"
+          label="Descargar"
+          severity="secondary"
+          outlined
+          @click="toggleDownloadMenu"
+          aria-haspopup="true"
+          aria-controls="download_menu"
+        />
+        <Menu
+          ref="downloadMenu"
+          id="download_menu"
+          :model="downloadMenuItems"
+          :popup="true"
+        />
+
         <Button
           v-if="canSendEmail"
           label="Enviar Email"
