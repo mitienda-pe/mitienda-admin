@@ -15,6 +15,9 @@ import Menu from 'primevue/menu'
 import EmitDocumentDialog from '@/components/billing/EmitDocumentDialog.vue'
 import DeliveryMap from '@/components/map/DeliveryMap.vue'
 import FraudRiskCard from '@/components/fraud/FraudRiskCard.vue'
+import StarRating from '@/components/reviews/StarRating.vue'
+import { reviewsApi } from '@/api/reviews.api'
+import type { OrderItemReview } from '@/types/review.types'
 import apiClient from '@/api/axios'
 import type { Order, OrderStatus } from '@/types/order.types'
 import type { SenderInfo } from '@/types/store.types'
@@ -36,6 +39,7 @@ const debugPaymentData = ref<any>(null)
 const debugPaymentError = ref<string | null>(null)
 const downloadMenu = ref()
 const senderInfo = ref<SenderInfo | undefined>(undefined)
+const orderReviews = ref<OrderItemReview[]>([])
 
 // Store name for documents
 const storeName = computed(() => authStore.selectedStore?.name || 'Mi Tienda')
@@ -137,9 +141,27 @@ onMounted(async () => {
   await ordersStore.fetchOrder(orderId)
   console.log('✅ [OrderDetailView] Orden cargada:', ordersStore.currentOrder)
 
-  // Load sender info for shipping labels
-  await loadSenderInfo()
+  // Load sender info and order reviews in parallel
+  await Promise.all([
+    loadSenderInfo(),
+    loadOrderReviews(),
+  ])
 })
+
+const loadOrderReviews = async () => {
+  try {
+    const response = await reviewsApi.getOrderReviews(orderId)
+    if (response.success && response.data) {
+      orderReviews.value = response.data
+    }
+  } catch (err) {
+    // Non-critical, silently fail
+  }
+}
+
+const getProductReview = (productId: number) => {
+  return orderReviews.value.find((r) => r.product_id === productId)
+}
 
 // Load sender info (store info + sender address)
 const loadSenderInfo = async () => {
@@ -943,6 +965,12 @@ const handleDebugPayments = async () => {
                             </p>
                             <p v-if="item.product_sku" class="text-xs text-gray-500 mt-0.5">
                               SKU: {{ item.product_sku }}
+                            </p>
+                            <div v-if="getProductReview(item.product_id)?.has_review" class="mt-1">
+                              <StarRating :rating="getProductReview(item.product_id)!.review!.rating" size="sm" />
+                            </div>
+                            <p v-else-if="orderReviews.length > 0" class="text-xs text-gray-400 mt-1">
+                              Sin opinión
                             </p>
                           </div>
                         </td>

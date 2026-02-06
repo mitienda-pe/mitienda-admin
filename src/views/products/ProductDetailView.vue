@@ -384,6 +384,9 @@
           </template>
         </Card>
 
+        <!-- Opiniones del producto -->
+        <ProductReviewsCard v-if="product" :product-id="product.id" />
+
         <!-- Etiquetas del producto -->
         <ProductTagAssignment v-if="product" :product-id="product.id" />
       </div>
@@ -438,6 +441,7 @@ import ProductDocumentUploader from '@/components/products/ProductDocumentUpload
 import ProductDocumentList from '@/components/products/ProductDocumentList.vue'
 import ProductDescriptionEditor from '@/components/products/ProductDescriptionEditor.vue'
 import ProductTagAssignment from '@/components/ProductTagAssignment.vue'
+import ProductReviewsCard from '@/components/reviews/ProductReviewsCard.vue'
 import ProductPrice from '@/components/products/ProductPrice.vue'
 import type { ProductQuickEditData } from '@/components/products/ProductQuickEditDialog.vue'
 

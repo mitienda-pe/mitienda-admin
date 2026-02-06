@@ -105,6 +105,18 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/reviews',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: '',
+        name: 'Reviews',
+        component: () => import('@/views/reviews/ReviewsListView.vue')
+      }
+    ]
+  },
+  {
     path: '/reports',
     component: DashboardLayout,
     meta: { requiresAuth: true, requiresStore: true },
