@@ -3,11 +3,12 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCustomersStore } from '@/stores/customers.store'
 import { useFormatters } from '@/composables/useFormatters'
-import DataTable from 'primevue/datatable'
+import DataTable, { type DataTableSortEvent } from 'primevue/datatable'
 import Column from 'primevue/column'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
+import Dropdown from 'primevue/dropdown'
 import ProgressSpinner from 'primevue/progressspinner'
 import type { Customer } from '@/types/customer.types'
 
@@ -17,6 +18,18 @@ const { formatCurrency, formatDate } = useFormatters()
 
 const searchQuery = ref('')
 let searchTimeout: NodeJS.Timeout | null = null
+
+// Filter options for customers with/without orders
+const orderFilterOptions = [
+  { label: 'Con compras', value: true },
+  { label: 'Sin compras', value: false },
+  { label: 'Todos', value: null }
+]
+
+const selectedOrderFilter = computed({
+  get: () => customersStore.hasOrders,
+  set: (value: boolean | null) => customersStore.setHasOrders(value)
+})
 
 onMounted(() => {
   customersStore.fetchCustomers()
@@ -46,6 +59,27 @@ const onPage = (event: { page: number; rows: number }) => {
   customersStore.fetchCustomers()
 }
 
+const onSort = (event: DataTableSortEvent) => {
+  // Map frontend field names to backend field names
+  const fieldMap: Record<string, string> = {
+    name: 'name',
+    document_number: 'document_number',
+    phone: 'phone',
+    total_orders: 'total_orders',
+    total_spent: 'total_spent',
+    last_order_date: 'last_order_date'
+  }
+  // sortField can be string or function, we only use string
+  const sortFieldValue = typeof event.sortField === 'string' ? event.sortField : 'name'
+  const field = fieldMap[sortFieldValue] || 'name'
+  const order = event.sortOrder === 1 ? 'asc' : 'desc'
+  customersStore.setSort(field, order)
+}
+
+// Computed for sort state
+const sortField = computed(() => customersStore.sorting.field)
+const sortOrder = computed(() => customersStore.sorting.order === 'asc' ? 1 : -1)
+
 const totalCustomers = computed(() => customersStore.pagination.total)
 </script>
 
@@ -61,8 +95,8 @@ const totalCustomers = computed(() => customersStore.pagination.total)
       </div>
     </div>
 
-    <!-- Búsqueda -->
-    <div class="flex gap-3">
+    <!-- Búsqueda y Filtros -->
+    <div class="flex flex-wrap gap-3 items-center">
       <div class="relative flex-1 max-w-md">
         <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
         <InputText
@@ -72,6 +106,14 @@ const totalCustomers = computed(() => customersStore.pagination.total)
           @input="handleSearch"
         />
       </div>
+      <Dropdown
+        v-model="selectedOrderFilter"
+        :options="orderFilterOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Filtrar por compras"
+        class="w-40"
+      />
       <Button
         v-if="searchQuery"
         icon="pi pi-times"
@@ -134,13 +176,17 @@ const totalCustomers = computed(() => customersStore.pagination.total)
         :lazy="true"
         :first="(customersStore.pagination.page - 1) * customersStore.pagination.limit"
         :rowsPerPageOptions="[10, 20, 50]"
+        :sortField="sortField"
+        :sortOrder="sortOrder"
         @page="onPage"
+        @sort="onSort"
         @row-click="handleRowClick"
         selectionMode="single"
         :rowHover="true"
         class="cursor-pointer"
         responsiveLayout="scroll"
         stripedRows
+        removableSort
       >
         <Column field="name" header="Cliente" sortable style="min-width: 200px">
           <template #body="{ data }">

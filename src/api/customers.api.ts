@@ -10,6 +10,9 @@ export interface CustomersFilters {
   blocked?: boolean
   date_from?: string
   date_to?: string
+  has_orders?: boolean
+  sort?: string
+  order?: 'asc' | 'desc'
 }
 
 export const customersApi = {
@@ -26,6 +29,9 @@ export const customersApi = {
     if (filters.blocked !== undefined) params.append('blocked', filters.blocked ? '1' : '0')
     if (filters.date_from) params.append('date_from', filters.date_from)
     if (filters.date_to) params.append('date_to', filters.date_to)
+    if (filters.has_orders !== undefined) params.append('has_orders', filters.has_orders ? '1' : '0')
+    if (filters.sort) params.append('sort', filters.sort)
+    if (filters.order) params.append('order', filters.order)
 
     const response = await apiClient.get(`/customers?${params.toString()}`)
 

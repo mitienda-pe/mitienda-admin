@@ -18,6 +18,14 @@ export const useCustomersStore = defineStore('customers', () => {
     hasMore: true
   })
 
+  const sorting = ref({
+    field: 'last_order_date',
+    order: 'desc' as 'asc' | 'desc'
+  })
+
+  // Filter for customers with orders (default: true = only show customers with purchases)
+  const hasOrders = ref<boolean | null>(true)
+
   const filters = ref<CustomerFilters>({
     search: '',
     verified: null,
@@ -53,7 +61,10 @@ export const useCustomersStore = defineStore('customers', () => {
         verified: filters.value.verified !== null ? filters.value.verified : undefined,
         blocked: filters.value.blocked !== null ? filters.value.blocked : undefined,
         date_from: filters.value.dateFrom || undefined,
-        date_to: filters.value.dateTo || undefined
+        date_to: filters.value.dateTo || undefined,
+        has_orders: hasOrders.value !== null ? hasOrders.value : undefined,
+        sort: sorting.value.field,
+        order: sorting.value.order
       }
 
       const response = await customersApi.getCustomers(apiFilters)
@@ -241,6 +252,20 @@ export const useCustomersStore = defineStore('customers', () => {
       dateFrom: null,
       dateTo: null
     }
+    hasOrders.value = true // Reset to default: only customers with orders
+    pagination.value.page = 1
+    fetchCustomers()
+  }
+
+  function setHasOrders(value: boolean | null) {
+    hasOrders.value = value
+    pagination.value.page = 1
+    fetchCustomers()
+  }
+
+  function setSort(field: string, order: 'asc' | 'desc') {
+    sorting.value.field = field
+    sorting.value.order = order
     pagination.value.page = 1
     fetchCustomers()
   }
@@ -264,6 +289,8 @@ export const useCustomersStore = defineStore('customers', () => {
     error,
     pagination,
     filters,
+    sorting,
+    hasOrders,
     stats,
 
     // Getters
@@ -283,7 +310,9 @@ export const useCustomersStore = defineStore('customers', () => {
     setVerified,
     setBlocked,
     setDateRange,
+    setHasOrders,
     resetFilters,
+    setSort,
     loadMore,
     clearCurrentCustomer
   }
