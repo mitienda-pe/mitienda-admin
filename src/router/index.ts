@@ -117,6 +117,23 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/complaints',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: '',
+        name: 'Complaints',
+        component: () => import('@/views/complaints/ComplaintsListView.vue')
+      },
+      {
+        path: ':id',
+        name: 'ComplaintDetail',
+        component: () => import('@/views/complaints/ComplaintDetailView.vue')
+      }
+    ]
+  },
+  {
     path: '/reports',
     component: DashboardLayout,
     meta: { requiresAuth: true, requiresStore: true },

@@ -864,7 +864,7 @@ const storeExpandedRef = ref(false)
 
 // Computar dinámicamente qué menú debe estar expandido según la ruta
 const salesExpanded = computed({
-  get: () => salesExpandedRef.value || route.path.startsWith('/orders') || route.path.startsWith('/reviews') || route.path.includes('abandoned-carts'),
+  get: () => salesExpandedRef.value || route.path.startsWith('/orders') || route.path.startsWith('/reviews') || route.path.startsWith('/complaints') || route.path.includes('abandoned-carts'),
   set: (val) => { salesExpandedRef.value = val }
 })
 
@@ -942,6 +942,7 @@ const contentMenuItems = [
 const salesMenuItems = [
   { label: 'Pedidos', icon: 'pi pi-shopping-cart', to: '/orders' },
   { label: 'Opiniones', icon: 'pi pi-star', to: '/reviews' },
+  { label: 'Reclamaciones', icon: 'pi pi-book', to: '/complaints' },
   { label: 'Carritos Abandonados', icon: 'pi pi-shopping-bag', to: '/marketing/abandoned-carts' }
 ]
 
@@ -1020,7 +1021,7 @@ const isContentActive = computed(() => {
 
 // Detectar si estamos en alguna ruta de ventas
 const isSalesActive = computed(() => {
-  return route.path.startsWith('/orders') || route.path.startsWith('/reviews') || route.path.includes('abandoned-carts')
+  return route.path.startsWith('/orders') || route.path.startsWith('/reviews') || route.path.startsWith('/complaints') || route.path.includes('abandoned-carts')
 })
 
 // Detectar si estamos en alguna ruta de reportes
