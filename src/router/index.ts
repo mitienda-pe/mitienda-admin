@@ -309,6 +309,18 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/appearance',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: 'menu',
+        name: 'appearance-menu',
+        component: () => import('@/views/appearance/MenuView.vue')
+      }
+    ]
+  },
+  {
     path: '/legal',
     component: DashboardLayout,
     meta: { requiresAuth: true, requiresStore: true },

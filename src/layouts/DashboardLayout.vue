@@ -289,6 +289,36 @@
               </ul>
             </li>
 
+            <!-- Grupo Apariencia -->
+            <li>
+              <button
+                @click="appearanceExpanded = !appearanceExpanded"
+                :aria-expanded="appearanceExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isAppearanceActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-palette"></i>
+                  <span>Apariencia</span>
+                </div>
+                <i :class="appearanceExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="appearanceExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in appearanceMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+
             <!-- Grupo Facturación -->
             <li>
               <button
@@ -663,6 +693,37 @@
               </ul>
             </li>
 
+            <!-- Grupo Apariencia (móvil) -->
+            <li>
+              <button
+                @click="appearanceExpanded = !appearanceExpanded"
+                :aria-expanded="appearanceExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isAppearanceActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-palette"></i>
+                  <span>Apariencia</span>
+                </div>
+                <i :class="appearanceExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="appearanceExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in appearanceMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                    @click="sidebarVisible = false"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+
             <!-- Grupo Facturación -->
             <li>
               <button
@@ -859,6 +920,7 @@ const paymentGatewaysExpandedRef = ref(false)
 const apiExpandedRef = ref(false)
 const configExpandedRef = ref(false)
 const contentExpandedRef = ref(false)
+const appearanceExpandedRef = ref(false)
 const shippingExpandedRef = ref(false)
 const storeExpandedRef = ref(false)
 
@@ -908,6 +970,11 @@ const contentExpanded = computed({
   set: (val) => { contentExpandedRef.value = val }
 })
 
+const appearanceExpanded = computed({
+  get: () => appearanceExpandedRef.value || route.path.startsWith('/appearance'),
+  set: (val) => { appearanceExpandedRef.value = val }
+})
+
 const shippingExpanded = computed({
   get: () => shippingExpandedRef.value || route.path.startsWith('/shipping'),
   set: (val) => { shippingExpandedRef.value = val }
@@ -936,6 +1003,11 @@ const contentMenuItems = [
   { label: 'Blog', icon: 'pi pi-pencil', to: '/blog' },
   { label: 'Legal', icon: 'pi pi-shield', to: '/legal' },
   { label: 'Imágenes', icon: 'pi pi-images', to: '/content/images' }
+]
+
+// Items del grupo Apariencia
+const appearanceMenuItems = [
+  { label: 'Menú', icon: 'pi pi-bars', to: '/appearance/menu' }
 ]
 
 // Items del grupo Ventas
@@ -1017,6 +1089,11 @@ const isShippingActive = computed(() => {
 // Detectar si estamos en alguna ruta de contenido
 const isContentActive = computed(() => {
   return route.path.startsWith('/pages') || route.path.startsWith('/blog') || route.path.startsWith('/content') || route.path.startsWith('/legal')
+})
+
+// Detectar si estamos en alguna ruta de apariencia
+const isAppearanceActive = computed(() => {
+  return route.path.startsWith('/appearance')
 })
 
 // Detectar si estamos en alguna ruta de ventas
