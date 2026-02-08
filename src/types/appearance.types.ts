@@ -151,3 +151,49 @@ export const PRESET_CATEGORIES: PresetCategoryOption[] = [
   { id: 'dark', label: 'Modo Oscuro' },
   { id: 'luxury', label: 'Lujo' },
 ]
+
+// ── Typography Types ──
+
+export interface SectionTypography {
+  headingFont: string
+  bodyFont: string
+}
+
+export interface StoreTypographyConfig {
+  header: SectionTypography
+  navbar: SectionTypography
+  body: SectionTypography
+  footer: SectionTypography
+  scale: number
+}
+
+export type FontCategory = 'sans-serif' | 'serif' | 'display' | 'handwriting' | 'monospace'
+
+export interface FontDef {
+  family: string
+  category: FontCategory
+  weights: number[]
+}
+
+export interface FontPreset {
+  id: string
+  name: string
+  description: string
+  headingFont: string
+  bodyFont: string
+}
+
+export const DEFAULT_TYPOGRAPHY: StoreTypographyConfig = {
+  header: { headingFont: 'Inter', bodyFont: 'Inter' },
+  navbar: { headingFont: 'Inter', bodyFont: 'Inter' },
+  body: { headingFont: 'Inter', bodyFont: 'Inter' },
+  footer: { headingFont: 'Inter', bodyFont: 'Inter' },
+  scale: 1.0,
+}
+
+export const TYPOGRAPHY_SECTIONS: { id: keyof Omit<StoreTypographyConfig, 'scale'>; title: string; icon: string }[] = [
+  { id: 'header', title: 'Encabezado', icon: 'pi pi-window-maximize' },
+  { id: 'navbar', title: 'Barra de Navegación', icon: 'pi pi-bars' },
+  { id: 'body', title: 'Contenido', icon: 'pi pi-file' },
+  { id: 'footer', title: 'Pie de Página', icon: 'pi pi-window-minimize' },
+]

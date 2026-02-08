@@ -324,6 +324,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/appearance/ColorsPresetsView.vue')
       },
       {
+        path: 'typography',
+        name: 'appearance-typography',
+        component: () => import('@/views/appearance/TypographyView.vue')
+      },
+      {
+        path: 'typography/presets',
+        name: 'appearance-typography-presets',
+        component: () => import('@/views/appearance/FontPresetsView.vue')
+      },
+      {
         path: 'menu',
         name: 'appearance-menu',
         component: () => import('@/views/appearance/MenuView.vue')
