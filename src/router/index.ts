@@ -314,6 +314,16 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, requiresStore: true },
     children: [
       {
+        path: 'colors',
+        name: 'appearance-colors',
+        component: () => import('@/views/appearance/ColorsView.vue')
+      },
+      {
+        path: 'colors/presets',
+        name: 'appearance-colors-presets',
+        component: () => import('@/views/appearance/ColorsPresetsView.vue')
+      },
+      {
         path: 'menu',
         name: 'appearance-menu',
         component: () => import('@/views/appearance/MenuView.vue')
