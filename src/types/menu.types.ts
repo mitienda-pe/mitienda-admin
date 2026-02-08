@@ -6,6 +6,7 @@ export type MenuLinkType =
   | 'gamma'
   | 'lista'
   | 'pagina'
+  | 'blogcategoria'
   | 'blog'
   | 'url'
 
@@ -55,7 +56,8 @@ export const MENU_LINK_TYPE_LABELS: Record<MenuLinkType, string> = {
   gamma: 'Gamma',
   lista: 'Lista',
   pagina: 'Página',
-  blog: 'Blog',
+  blogcategoria: 'Categoría Blog',
+  blog: 'Entrada Blog',
   url: 'URL Externa'
 }
 
@@ -67,6 +69,7 @@ export const MENU_LINK_TYPE_OPTIONS: { label: string; value: MenuLinkType }[] = 
   { label: 'Gamma', value: 'gamma' },
   { label: 'Lista', value: 'lista' },
   { label: 'Página', value: 'pagina' },
-  { label: 'Blog', value: 'blog' },
+  { label: 'Categoría Blog', value: 'blogcategoria' },
+  { label: 'Entrada Blog', value: 'blog' },
   { label: 'URL Externa', value: 'url' }
 ]
