@@ -1007,6 +1007,7 @@ const contentMenuItems = [
 
 // Items del grupo Apariencia
 const appearanceMenuItems = [
+  { label: 'Configuración', icon: 'pi pi-cog', to: '/appearance/config' },
   { label: 'Colores', icon: 'pi pi-palette', to: '/appearance/colors' },
   { label: 'Tipografía', icon: 'pi pi-language', to: '/appearance/typography' },
   { label: 'Menú', icon: 'pi pi-bars', to: '/appearance/menu' }

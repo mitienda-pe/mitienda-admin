@@ -44,6 +44,24 @@ export const IMAGE_VALIDATION_RULES: Record<string, ImageValidationRules> = {
     maxFileSize: 1 * 1024 * 1024, // 1MB
     allowedFormats: ['image/jpeg', 'image/png', 'image/webp'],
     aspectRatio: 1 // Force square
+  },
+
+  // Store logo
+  logo: {
+    minWidth: 100,
+    minHeight: 100,
+    maxFileSize: 5 * 1024 * 1024, // 5MB
+    allowedFormats: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
+    aspectRatio: null
+  },
+
+  // Store favicon
+  favicon: {
+    minWidth: 32,
+    minHeight: 32,
+    maxFileSize: 2 * 1024 * 1024, // 2MB
+    allowedFormats: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
+    aspectRatio: 1 // Square
   }
 }
 

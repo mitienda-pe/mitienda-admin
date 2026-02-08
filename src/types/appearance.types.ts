@@ -197,3 +197,10 @@ export const TYPOGRAPHY_SECTIONS: { id: keyof Omit<StoreTypographyConfig, 'scale
   { id: 'body', title: 'Contenido', icon: 'pi pi-file' },
   { id: 'footer', title: 'Pie de Página', icon: 'pi pi-window-minimize' },
 ]
+
+// ── Branding / Config Types ──
+
+export interface BrandingConfig {
+  logo_url: string | null
+  favicon_url: string | null
+}
