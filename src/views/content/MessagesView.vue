@@ -4,44 +4,66 @@ import { useStoreMessagesStore } from '@/stores/store-messages.store'
 import { AppButton } from '@/components/ui'
 import ProgressSpinner from 'primevue/progressspinner'
 import { useToast } from 'primevue/usetoast'
+import Editor from '@tinymce/tinymce-vue'
+
+// TinyMCE core + minimal plugins
+import 'tinymce/tinymce'
+import 'tinymce/themes/silver'
+import 'tinymce/icons/default'
+import 'tinymce/models/dom'
+import 'tinymce/plugins/autolink'
+import 'tinymce/plugins/lists'
+import 'tinymce/plugins/link'
+import 'tinymce/plugins/image'
 
 const store = useStoreMessagesStore()
 const toast = useToast()
+
+const tinyConfig = {
+  skin_url: '/tinymce/skins/ui/oxide',
+  content_css: '/tinymce/skins/content/default/content.min.css',
+  height: 200,
+  menubar: false,
+  statusbar: false,
+  plugins: ['autolink', 'lists', 'link', 'image'],
+  toolbar: 'bold italic | bullist numlist | link image | removeformat',
+  content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+  language: 'es',
+  language_url: '/tinymce/langs/es.js',
+  branding: false,
+  promotion: false
+}
 
 const MESSAGE_FIELDS = [
   {
     key: 'tiendageneral_texto_entregadomicilio' as const,
     label: 'Entrega a Domicilio',
     icon: 'pi pi-truck',
-    hint: 'Mensaje que aparece en la sección de envío a domicilio del checkout.',
-    placeholder: 'Ej: Los envíos se realizan de lunes a viernes...',
-    maxLength: undefined
+    hint: 'Mensaje que aparece en la sección de envío a domicilio del checkout.'
   },
   {
     key: 'tiendageneral_texto_recojoentienda' as const,
     label: 'Recojo en Tienda',
     icon: 'pi pi-map-marker',
-    hint: 'Mensaje que aparece en la sección de recojo en tienda del checkout.',
-    placeholder: 'Ej: Puedes recoger tu pedido en nuestra tienda...',
-    maxLength: undefined
+    hint: 'Mensaje que aparece en la sección de recojo en tienda del checkout.'
   },
   {
     key: 'tiendageneral_texto_paginaconfirmacion' as const,
     label: 'Página de Confirmación',
     icon: 'pi pi-check-circle',
-    hint: 'Mensaje en la página después de confirmar el pedido. Máximo 250 caracteres.',
-    placeholder: 'Ej: ¡Gracias por tu compra! Te enviaremos un correo con los detalles...',
-    maxLength: 250
+    hint: 'Mensaje en la página después de confirmar el pedido.'
   },
   {
     key: 'tiendageneral_texto_desactivado' as const,
     label: 'Tienda Desactivada',
     icon: 'pi pi-ban',
-    hint: 'Texto que se muestra a los visitantes cuando la tienda está fuera de servicio.',
-    placeholder: 'Ej: Estamos en mantenimiento, volvemos pronto...',
-    maxLength: undefined
+    hint: 'Texto que se muestra a los visitantes cuando la tienda está fuera de servicio.'
   }
 ]
+
+function onEditorUpdate(key: keyof typeof store.draftMessages, value: string) {
+  store.updateField(key, value || null)
+}
 
 async function save() {
   const ok = await store.saveMessages()
@@ -86,20 +108,11 @@ onMounted(() => {
           {{ field.label }}
         </h2>
         <p class="text-xs text-gray-400 mb-3">{{ field.hint }}</p>
-        <textarea
-          :value="store.draftMessages[field.key] || ''"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-          rows="3"
-          :placeholder="field.placeholder"
-          :maxlength="field.maxLength"
-          @input="store.updateField(field.key, ($event.target as HTMLTextAreaElement).value || null)"
+        <Editor
+          :modelValue="store.draftMessages[field.key] || ''"
+          :init="tinyConfig"
+          @update:modelValue="onEditorUpdate(field.key, $event)"
         />
-        <p
-          v-if="field.maxLength"
-          class="text-xs text-gray-400 mt-1 text-right"
-        >
-          {{ (store.draftMessages[field.key] || '').length }} / {{ field.maxLength }}
-        </p>
       </div>
 
       <!-- Save button -->
