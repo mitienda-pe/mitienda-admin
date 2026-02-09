@@ -204,3 +204,45 @@ export interface BrandingConfig {
   logo_url: string | null
   favicon_url: string | null
 }
+
+// ── Catalog Preferences Types ──
+
+export interface CatalogPreferences {
+  desktop_columns: number
+  mobile_columns: number
+  cart_icon: number
+}
+
+export const DEFAULT_CATALOG_PREFERENCES: CatalogPreferences = {
+  desktop_columns: 4,
+  mobile_columns: 2,
+  cart_icon: 0,
+}
+
+export interface CatalogOption {
+  value: number
+  label: string
+}
+
+export interface CartIconOption {
+  value: number
+  label: string
+  icon: string
+}
+
+export const DESKTOP_COLUMN_OPTIONS: CatalogOption[] = [
+  { value: 3, label: '3 columnas' },
+  { value: 4, label: '4 columnas' },
+  { value: 6, label: '6 columnas' },
+]
+
+export const MOBILE_COLUMN_OPTIONS: CatalogOption[] = [
+  { value: 1, label: '1 columna' },
+  { value: 2, label: '2 columnas' },
+]
+
+export const CART_ICON_OPTIONS: CartIconOption[] = [
+  { value: 0, label: 'Carrito', icon: 'pi pi-shopping-cart' },
+  { value: 1, label: 'Canasta', icon: 'basket' },
+  { value: 2, label: 'Bolsa', icon: 'pi pi-shopping-bag' },
+]

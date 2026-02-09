@@ -1,8 +1,15 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import appearanceApi from '@/api/appearance.api'
+import type { CatalogPreferences } from '@/types/appearance.types'
+import { DEFAULT_CATALOG_PREFERENCES } from '@/types/appearance.types'
+
+function deepClone<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj))
+}
 
 export const useAppearanceConfigStore = defineStore('appearance-config', () => {
+  // ── Branding state ──
   const logoUrl = ref<string | null>(null)
   const faviconUrl = ref<string | null>(null)
   const isLoading = ref(false)
@@ -10,6 +17,20 @@ export const useAppearanceConfigStore = defineStore('appearance-config', () => {
   const isUploadingFavicon = ref(false)
   const error = ref<string | null>(null)
   const isLoaded = ref(false)
+
+  // ── Catalog preferences state ──
+  const savedCatalog = ref<CatalogPreferences>(deepClone(DEFAULT_CATALOG_PREFERENCES))
+  const draftCatalog = ref<CatalogPreferences>(deepClone(DEFAULT_CATALOG_PREFERENCES))
+  const isCatalogLoading = ref(false)
+  const isCatalogSaving = ref(false)
+  const catalogError = ref<string | null>(null)
+  const isCatalogLoaded = ref(false)
+
+  const hasCatalogChanges = computed(() => {
+    return JSON.stringify(draftCatalog.value) !== JSON.stringify(savedCatalog.value)
+  })
+
+  // ── Branding methods ──
 
   async function fetchConfig() {
     isLoading.value = true
@@ -99,7 +120,62 @@ export const useAppearanceConfigStore = defineStore('appearance-config', () => {
     }
   }
 
+  // ── Catalog preferences methods ──
+
+  async function fetchCatalogPreferences() {
+    isCatalogLoading.value = true
+    catalogError.value = null
+    try {
+      const response = await appearanceApi.getCatalogPreferences()
+      if (response.success && response.data) {
+        savedCatalog.value = response.data
+        draftCatalog.value = deepClone(response.data)
+      }
+      isCatalogLoaded.value = true
+    } catch (e: unknown) {
+      const message =
+        e instanceof Error ? e.message : 'Error al cargar preferencias de catálogo'
+      catalogError.value = message
+    } finally {
+      isCatalogLoading.value = false
+    }
+  }
+
+  async function saveCatalogPreferences(): Promise<boolean> {
+    isCatalogSaving.value = true
+    catalogError.value = null
+    try {
+      const response = await appearanceApi.updateCatalogPreferences(draftCatalog.value)
+      if (response.success && response.data) {
+        savedCatalog.value = response.data
+        draftCatalog.value = deepClone(response.data)
+      } else {
+        savedCatalog.value = deepClone(draftCatalog.value)
+      }
+      return true
+    } catch (e: unknown) {
+      const message =
+        e instanceof Error ? e.message : 'Error al guardar preferencias de catálogo'
+      catalogError.value = message
+      return false
+    } finally {
+      isCatalogSaving.value = false
+    }
+  }
+
+  function updateCatalogField<K extends keyof CatalogPreferences>(
+    field: K,
+    value: CatalogPreferences[K]
+  ) {
+    draftCatalog.value[field] = value
+  }
+
+  function resetCatalog() {
+    draftCatalog.value = deepClone(savedCatalog.value)
+  }
+
   return {
+    // Branding
     logoUrl,
     faviconUrl,
     isLoading,
@@ -112,5 +188,17 @@ export const useAppearanceConfigStore = defineStore('appearance-config', () => {
     uploadFavicon,
     deleteLogo,
     deleteFavicon,
+    // Catalog
+    savedCatalog,
+    draftCatalog,
+    isCatalogLoading,
+    isCatalogSaving,
+    catalogError,
+    isCatalogLoaded,
+    hasCatalogChanges,
+    fetchCatalogPreferences,
+    saveCatalogPreferences,
+    updateCatalogField,
+    resetCatalog,
   }
 })

@@ -1,6 +1,11 @@
 import apiClient from './axios'
 import type { ApiResponse } from '@/types/api.types'
-import type { StoreColorConfig, StoreTypographyConfig, BrandingConfig } from '@/types/appearance.types'
+import type {
+  StoreColorConfig,
+  StoreTypographyConfig,
+  BrandingConfig,
+  CatalogPreferences,
+} from '@/types/appearance.types'
 
 interface ColorsResponseData {
   colors: StoreColorConfig
@@ -59,6 +64,18 @@ const appearanceApi = {
 
   async deleteFavicon(): Promise<ApiResponse<BrandingConfig>> {
     const response = await apiClient.delete('/appearance/config/favicon')
+    return response.data
+  },
+
+  async getCatalogPreferences(): Promise<ApiResponse<CatalogPreferences>> {
+    const response = await apiClient.get('/appearance/catalog')
+    return response.data
+  },
+
+  async updateCatalogPreferences(
+    preferences: CatalogPreferences
+  ): Promise<ApiResponse<CatalogPreferences>> {
+    const response = await apiClient.put('/appearance/catalog', preferences)
     return response.data
   },
 }
