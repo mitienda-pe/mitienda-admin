@@ -994,7 +994,8 @@ const simpleMenuItems = [
 // Items del grupo Tu Tienda
 const storeMenuItems = [
   { label: 'Información', icon: 'pi pi-info-circle', to: '/store/info' },
-  { label: 'Direcciones', icon: 'pi pi-map-marker', to: '/store/addresses' }
+  { label: 'Direcciones', icon: 'pi pi-map-marker', to: '/store/addresses' },
+  { label: 'Configuración', icon: 'pi pi-cog', to: '/store/config' }
 ]
 
 // Items del grupo Contenido
@@ -1002,7 +1003,8 @@ const contentMenuItems = [
   { label: 'Páginas', icon: 'pi pi-file-edit', to: '/pages' },
   { label: 'Blog', icon: 'pi pi-pencil', to: '/blog' },
   { label: 'Legal', icon: 'pi pi-shield', to: '/legal' },
-  { label: 'Imágenes', icon: 'pi pi-images', to: '/content/images' }
+  { label: 'Imágenes', icon: 'pi pi-images', to: '/content/images' },
+  { label: 'Mensajes', icon: 'pi pi-comment', to: '/content/messages' }
 ]
 
 // Items del grupo Apariencia

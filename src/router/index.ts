@@ -305,6 +305,11 @@ const routes: RouteRecordRaw[] = [
         path: 'images',
         name: 'image-gallery',
         component: () => import('@/views/content/ImageGalleryView.vue')
+      },
+      {
+        path: 'messages',
+        name: 'content-messages',
+        component: () => import('@/views/content/MessagesView.vue')
       }
     ]
   },
@@ -549,6 +554,11 @@ const routes: RouteRecordRaw[] = [
         path: 'addresses/:id/edit',
         name: 'store-address-edit',
         component: () => import('@/views/store/StoreAddressFormView.vue')
+      },
+      {
+        path: 'config',
+        name: 'store-config',
+        component: () => import('@/views/store/StoreConfigView.vue')
       }
     ]
   },

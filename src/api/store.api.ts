@@ -6,7 +6,12 @@ import type {
   StoreAddress,
   StoreAddressCreateRequest,
   StoreAddressUpdateRequest,
-  Rubro
+  Rubro,
+  StoreConfig,
+  StoreConfigUpdate,
+  Currency,
+  Country,
+  StoreMessages
 } from '@/types/store.types'
 
 export const storeApi = {
@@ -80,6 +85,60 @@ export const storeApi = {
 
   async unsetSenderAddress(id: number): Promise<ApiResponse<StoreAddress>> {
     const response = await apiClient.patch(`/store-addresses/${id}/unset-sender`)
+    return { success: true, data: response.data.data || response.data }
+  },
+
+  // ─── Store Configuration ───
+
+  async getConfig(): Promise<ApiResponse<StoreConfig>> {
+    const response = await apiClient.get('/store-config')
+    return { success: true, data: response.data.data || response.data }
+  },
+
+  async updateConfig(data: StoreConfigUpdate): Promise<ApiResponse<StoreConfig>> {
+    const response = await apiClient.put('/store-config', data)
+    return { success: true, data: response.data.data || response.data }
+  },
+
+  async getCurrencies(): Promise<ApiResponse<Currency[]>> {
+    const response = await apiClient.get('/store-config/currencies')
+    const rawData = response.data.data || response.data
+    if (Array.isArray(rawData)) {
+      return { success: true, data: rawData }
+    }
+    return { success: false, data: [] }
+  },
+
+  async getCountries(): Promise<ApiResponse<Country[]>> {
+    const response = await apiClient.get('/ubigeo/countries')
+    const rawData = response.data.data || response.data
+    if (Array.isArray(rawData)) {
+      return { success: true, data: rawData }
+    }
+    return { success: false, data: [] }
+  },
+
+  async uploadConfigBanner(file: File): Promise<ApiResponse<{ banner_url: string }>> {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await apiClient.post('/store-config/banner', formData)
+    return { success: true, data: response.data.data || response.data }
+  },
+
+  async deleteConfigBanner(): Promise<ApiResponse<{ banner_url: null }>> {
+    const response = await apiClient.delete('/store-config/banner')
+    return { success: true, data: response.data.data || response.data }
+  },
+
+  // ─── Store Messages ───
+
+  async getMessages(): Promise<ApiResponse<StoreMessages>> {
+    const response = await apiClient.get('/store-messages')
+    return { success: true, data: response.data.data || response.data }
+  },
+
+  async updateMessages(data: Partial<StoreMessages>): Promise<ApiResponse<StoreMessages>> {
+    const response = await apiClient.put('/store-messages', data)
     return { success: true, data: response.data.data || response.data }
   }
 }

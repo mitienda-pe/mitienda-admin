@@ -55,6 +55,15 @@ export const IMAGE_VALIDATION_RULES: Record<string, ImageValidationRules> = {
     aspectRatio: null
   },
 
+  // Store disabled banner (shown when store is deactivated)
+  storeDisabledBanner: {
+    minWidth: 300,
+    minHeight: 200,
+    maxFileSize: 5 * 1024 * 1024, // 5MB
+    allowedFormats: ['image/jpeg', 'image/png', 'image/webp'],
+    aspectRatio: null
+  },
+
   // Store favicon
   favicon: {
     minWidth: 32,

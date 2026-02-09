@@ -84,6 +84,66 @@ export interface Rubro {
   rubro_nombre: string
 }
 
+// ── Store Configuration Types ──
+
+export interface StoreConfig {
+  tiendageneral_idioma: string
+  moneda_id: number
+  moneda_nombre: string
+  moneda_simbolo: string
+  moneda_iso: string
+  tiendageneral_paisorigen: number
+  tiendageneral_montominimo: number | null
+  tiendageneral_montomaximo: number
+  sw_tienda_visible: number
+  tiendageneral_banner_desactivado_url: string | null
+  tiendageneral_texto_desactivado: string | null
+  tiendageneral_sw_horarioActivo: number
+  tiendageneral_json_horarioActivo: string | null
+  sw_logincliente: number
+}
+
+export interface StoreConfigUpdate {
+  tiendageneral_idioma?: string
+  moneda_id?: number
+  tiendageneral_paisorigen?: number
+  tiendageneral_montominimo?: number | null
+  tiendageneral_montomaximo?: number
+  sw_tienda_visible?: number
+  tiendageneral_sw_horarioActivo?: number
+  tiendageneral_json_horarioActivo?: string | null
+  sw_logincliente?: number
+}
+
+export interface Currency {
+  moneda_id: number
+  moneda_nombre: string
+  moneda_simbolo: string
+  moneda_iso: string
+}
+
+export interface Country {
+  id: number
+  name: string
+  codPais: number
+}
+
+export interface StoreScheduleDay {
+  day: string
+  active: boolean
+  open: string
+  close: string
+}
+
+// ── Store Messages Types ──
+
+export interface StoreMessages {
+  tiendageneral_texto_entregadomicilio: string | null
+  tiendageneral_texto_recojoentienda: string | null
+  tiendageneral_texto_paginaconfirmacion: string | null
+  tiendageneral_texto_desactivado: string | null
+}
+
 // Info del remitente para etiquetas de envío
 export interface SenderInfo {
   businessName: string // Razón social
