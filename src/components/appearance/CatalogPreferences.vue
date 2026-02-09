@@ -166,14 +166,16 @@ const emit = defineEmits<{
                 preferences.cart_icon === option.value ? '#00b2a6' : '#6B7280',
             }"
           />
-          <!-- Basket SVG (no PrimeIcons basket available) -->
+          <!-- Basket SVG (Lucide shopping-basket) -->
           <svg
             v-else
             xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            stroke-width="1.5"
+            stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
             class="w-7 h-7 mx-auto mb-2"
@@ -182,9 +184,13 @@ const emit = defineEmits<{
                 preferences.cart_icon === option.value ? '#00b2a6' : '#6B7280',
             }"
           >
-            <path d="M5.2 9h13.6l-1.2 7.2a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8L5.2 9Z" />
-            <path d="M3 5h2.2l.9 4M21 5h-2.2l-.9 4" />
-            <path d="M9 22v-1a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" />
+            <path d="m15 11-1 9" />
+            <path d="m19 11-4-7" />
+            <path d="M2 11h20" />
+            <path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8a2 2 0 0 0 2-1.6l1.7-7.4" />
+            <path d="M4.5 15.5h15" />
+            <path d="m5 11 4-7" />
+            <path d="m9 11 1 9" />
           </svg>
           <div
             class="text-sm font-medium"
