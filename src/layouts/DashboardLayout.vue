@@ -1058,6 +1058,7 @@ const billingMenuItems = [
 
 // Items del grupo Reparto
 const shippingMenuItems = [
+  { label: 'Configuración', icon: 'pi pi-cog', to: '/shipping/config' },
   { label: 'Tarifas de Envío', icon: 'pi pi-money-bill', to: '/shipping/rates' },
   { label: 'Zonas de Reparto', icon: 'pi pi-map', to: '/shipping/zones' },
   { label: 'Proveedores', icon: 'pi pi-truck', to: '/shipping/couriers' }

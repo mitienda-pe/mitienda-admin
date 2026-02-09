@@ -527,6 +527,11 @@ const routes: RouteRecordRaw[] = [
         path: 'couriers/:code',
         name: 'courier-provider-config',
         component: () => import('@/views/shipping/CourierProviderConfigView.vue')
+      },
+      {
+        path: 'config',
+        name: 'shipping-config',
+        component: () => import('@/views/shipping/ShippingConfigView.vue')
       }
     ]
   },

@@ -7,7 +7,8 @@ import type {
   RateTreeNode,
   SaveShippingRateRequest,
   UpdateShippingRateRequest,
-  Country
+  Country,
+  ShippingConfig
 } from '@/types/shipping.types'
 import { SUPPORTED_COUNTRIES } from '@/types/shipping.types'
 
@@ -635,5 +636,99 @@ export const shippingApi = {
 
     const response = await apiClient.get('/shipping/countries')
     return response.data
+  },
+
+  /**
+   * Obtiene la configuración de envío de la tienda
+   */
+  async getConfig(): Promise<ApiResponse<ShippingConfig>> {
+    const response = await apiClient.get('/shipping-config')
+    if (response.data?.success && response.data?.data) {
+      return { success: true, data: mapConfigFromApi(response.data.data) }
+    }
+    return response.data
+  },
+
+  /**
+   * Actualiza la configuración de envío de la tienda
+   */
+  async updateConfig(data: Partial<ShippingConfig>): Promise<ApiResponse<ShippingConfig>> {
+    const apiData = mapConfigToApi(data)
+    const response = await apiClient.put('/shipping-config', apiData)
+    if (response.data?.success && response.data?.data) {
+      return {
+        success: true,
+        data: mapConfigFromApi(response.data.data),
+        message: response.data.message
+      }
+    }
+    return response.data
   }
+}
+
+// Map API response (DB column names) to frontend ShippingConfig
+function mapConfigFromApi(raw: Record<string, unknown>): ShippingConfig {
+  return {
+    swEntregaADomicilio: raw.tiendageneral_swentregaadomicilio === 1 || raw.tiendageneral_swentregaadomicilio === '1',
+    swRecojoEnTienda: raw.tiendageneral_swrecojoentienda === 1 || raw.tiendageneral_swrecojoentienda === '1',
+    swRepartoGratis: raw.tiendageneral_swrepartogratis === 1 || raw.tiendageneral_swrepartogratis === '1',
+    montoRepartoGratis: Number(raw.tiendageneral_montorepartogratis) || 0,
+    zonaRepartoGratis: raw.tiendageneral_zonarepartogratis != null
+      ? Number(raw.tiendageneral_zonarepartogratis)
+      : null,
+    swHabilitarEstadoEnvio: raw.tiendageneral_swhabilitarestadoenvio === 1 || raw.tiendageneral_swhabilitarestadoenvio === '1',
+    envioporProducto: Number(raw.tiendageneral_sw_envioporproducto) || 0,
+    swMostrarHorarioEnvio: raw.tiendageneral_sw_mostrarhorarioenvio === 1 || raw.tiendageneral_sw_mostrarhorarioenvio === '1',
+    horarioEnvio: (raw.tiendageneral_horarioenvio as ShippingConfig['horarioEnvio']) || null,
+    tipoMostrarFecha: (Number(raw.tiendageneral_tipomostrarfecha) || 1) as 1 | 2,
+    swRepartoHoy: Number(raw.sw_repartohoy) || 0,
+    diasBloqueados: (raw.tiendageneral_dias_bloqueados as ShippingConfig['diasBloqueados']) || [],
+    swMostrarHorarioRecojoTienda: raw.tiendageneral_sw_mostrarhorariorecojoTienda === 1 || raw.tiendageneral_sw_mostrarhorariorecojoTienda === '1',
+    horarioRecojoTienda: (raw.tiendageneral_horariorecojoTienda as ShippingConfig['horarioRecojoTienda']) || null,
+    tipoMostrarFechaRecojoTienda: (Number(raw.tiendageneral_tipomostrarfechaRecojoTienda) || 1) as 1 | 2,
+    swRecojoTiendaHoy: Number(raw.sw_recojoTiendaHoy) || 0,
+    plazoMaximoRecojoTienda: Number(raw.tiendageneral_plazomaximoRecojoTienda) || 30
+  }
+}
+
+// Map frontend ShippingConfig to API format (DB column names)
+function mapConfigToApi(config: Partial<ShippingConfig>): Record<string, unknown> {
+  const map: Record<string, unknown> = {}
+
+  if (config.swEntregaADomicilio !== undefined)
+    map.tiendageneral_swentregaadomicilio = config.swEntregaADomicilio ? 1 : 0
+  if (config.swRecojoEnTienda !== undefined)
+    map.tiendageneral_swrecojoentienda = config.swRecojoEnTienda ? 1 : 0
+  if (config.swRepartoGratis !== undefined)
+    map.tiendageneral_swrepartogratis = config.swRepartoGratis ? 1 : 0
+  if (config.montoRepartoGratis !== undefined)
+    map.tiendageneral_montorepartogratis = config.montoRepartoGratis
+  if (config.zonaRepartoGratis !== undefined)
+    map.tiendageneral_zonarepartogratis = config.zonaRepartoGratis
+  if (config.swHabilitarEstadoEnvio !== undefined)
+    map.tiendageneral_swhabilitarestadoenvio = config.swHabilitarEstadoEnvio ? 1 : 0
+  if (config.envioporProducto !== undefined)
+    map.tiendageneral_sw_envioporproducto = config.envioporProducto
+  if (config.swMostrarHorarioEnvio !== undefined)
+    map.tiendageneral_sw_mostrarhorarioenvio = config.swMostrarHorarioEnvio ? 1 : 0
+  if (config.horarioEnvio !== undefined)
+    map.tiendageneral_horarioenvio = config.horarioEnvio
+  if (config.tipoMostrarFecha !== undefined)
+    map.tiendageneral_tipomostrarfecha = config.tipoMostrarFecha
+  if (config.swRepartoHoy !== undefined)
+    map.sw_repartohoy = config.swRepartoHoy
+  if (config.diasBloqueados !== undefined)
+    map.tiendageneral_dias_bloqueados = config.diasBloqueados
+  if (config.swMostrarHorarioRecojoTienda !== undefined)
+    map.tiendageneral_sw_mostrarhorariorecojoTienda = config.swMostrarHorarioRecojoTienda ? 1 : 0
+  if (config.horarioRecojoTienda !== undefined)
+    map.tiendageneral_horariorecojoTienda = config.horarioRecojoTienda
+  if (config.tipoMostrarFechaRecojoTienda !== undefined)
+    map.tiendageneral_tipomostrarfechaRecojoTienda = config.tipoMostrarFechaRecojoTienda
+  if (config.swRecojoTiendaHoy !== undefined)
+    map.sw_recojoTiendaHoy = config.swRecojoTiendaHoy
+  if (config.plazoMaximoRecojoTienda !== undefined)
+    map.tiendageneral_plazomaximoRecojoTienda = config.plazoMaximoRecojoTienda
+
+  return map
 }

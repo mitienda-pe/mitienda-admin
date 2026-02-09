@@ -130,3 +130,44 @@ export function formatPrice(price: number, countryCode: CountryCode): string {
   const symbol = country?.currencySymbol || 'S/'
   return `${symbol} ${price.toFixed(2)}`
 }
+
+// --- Shipping Config Types ---
+
+export interface ShippingScheduleDay {
+  enabled: boolean
+  start: string // "09:00"
+  end: string // "18:00"
+}
+
+// Legacy format: { "1": { enabled, start, end }, ..., "7": {...} }
+export type ShippingSchedule = Record<string, ShippingScheduleDay>
+
+// [year, month, day]
+export type BlockedDate = [number, number, number]
+
+export interface ShippingConfig {
+  // Delivery methods
+  swEntregaADomicilio: boolean
+  swRecojoEnTienda: boolean
+  // Free shipping
+  swRepartoGratis: boolean
+  montoRepartoGratis: number
+  zonaRepartoGratis: number | null
+  // Dispatch
+  swHabilitarEstadoEnvio: boolean
+  // Shipping cost method: 0=single price, 1=highest, 2=sum
+  envioporProducto: number
+  // Delivery schedule
+  swMostrarHorarioEnvio: boolean
+  horarioEnvio: ShippingSchedule | null
+  tipoMostrarFecha: 1 | 2 // 1=dropdown, 2=calendar
+  swRepartoHoy: number // 0-10 days in advance
+  // Blocked dates
+  diasBloqueados: BlockedDate[]
+  // Pickup schedule
+  swMostrarHorarioRecojoTienda: boolean
+  horarioRecojoTienda: ShippingSchedule | null
+  tipoMostrarFechaRecojoTienda: 1 | 2
+  swRecojoTiendaHoy: number
+  plazoMaximoRecojoTienda: number
+}
