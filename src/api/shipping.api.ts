@@ -14,6 +14,13 @@ import { SUPPORTED_COUNTRIES } from '@/types/shipping.types'
 // Flag para usar mocks mientras el backend no esté listo
 const USE_MOCKS = true
 
+// Mapping from ISO country code to ubigeo codPais
+const COUNTRY_COD_PAIS: Record<CountryCode, number> = {
+  PE: 1,
+  EC: 58,
+  CO: 46
+}
+
 // Mock: países habilitados para la tienda actual (normalmente viene del backend)
 // Cambiar esto para simular diferentes configuraciones de tienda
 const MOCK_STORE_ENABLED_COUNTRIES: CountryCode[] = ['PE', 'EC', 'CO']  // Los 3 países
@@ -408,96 +415,6 @@ const MOCK_ECUADOR_TREE: RateTreeNode[] = []
 // Mock data para Colombia - Vacío (sin tarifas configuradas)
 const MOCK_COLOMBIA_TREE: RateTreeNode[] = []
 
-// Mock ubicaciones para dropdown de agregar (Perú - Departamentos)
-const MOCK_PERU_DEPARTMENTS: Location[] = [
-  { id: 1, code: '01', name: 'Amazonas', level: 1, countryCode: 'PE' },
-  { id: 2, code: '02', name: 'Áncash', level: 1, countryCode: 'PE' },
-  { id: 3, code: '03', name: 'Apurímac', level: 1, countryCode: 'PE' },
-  { id: 4, code: '04', name: 'Arequipa', level: 1, countryCode: 'PE' },
-  { id: 5, code: '05', name: 'Ayacucho', level: 1, countryCode: 'PE' },
-  { id: 6, code: '06', name: 'Cajamarca', level: 1, countryCode: 'PE' },
-  { id: 7, code: '07', name: 'Callao', level: 1, countryCode: 'PE' },
-  { id: 8, code: '08', name: 'Cusco', level: 1, countryCode: 'PE' },
-  { id: 9, code: '09', name: 'Huancavelica', level: 1, countryCode: 'PE' },
-  { id: 10, code: '10', name: 'Huánuco', level: 1, countryCode: 'PE' },
-  { id: 11, code: '11', name: 'Ica', level: 1, countryCode: 'PE' },
-  { id: 12, code: '12', name: 'Junín', level: 1, countryCode: 'PE' },
-  { id: 13, code: '13', name: 'La Libertad', level: 1, countryCode: 'PE' },
-  { id: 14, code: '14', name: 'Lambayeque', level: 1, countryCode: 'PE' },
-  { id: 15, code: '15', name: 'Lima', level: 1, countryCode: 'PE' },
-  { id: 16, code: '16', name: 'Loreto', level: 1, countryCode: 'PE' },
-  { id: 17, code: '17', name: 'Madre de Dios', level: 1, countryCode: 'PE' },
-  { id: 18, code: '18', name: 'Moquegua', level: 1, countryCode: 'PE' },
-  { id: 19, code: '19', name: 'Pasco', level: 1, countryCode: 'PE' },
-  { id: 20, code: '20', name: 'Piura', level: 1, countryCode: 'PE' },
-  { id: 21, code: '21', name: 'Puno', level: 1, countryCode: 'PE' },
-  { id: 22, code: '22', name: 'San Martín', level: 1, countryCode: 'PE' },
-  { id: 23, code: '23', name: 'Tacna', level: 1, countryCode: 'PE' },
-  { id: 24, code: '24', name: 'Tumbes', level: 1, countryCode: 'PE' },
-  { id: 25, code: '25', name: 'Ucayali', level: 1, countryCode: 'PE' }
-]
-
-// Mock provincias de Lima
-const MOCK_LIMA_PROVINCES: Location[] = [
-  { id: 100, code: '1501', name: 'Lima', level: 2, parentCode: '15', countryCode: 'PE' },
-  { id: 101, code: '1502', name: 'Barranca', level: 2, parentCode: '15', countryCode: 'PE' },
-  { id: 102, code: '1503', name: 'Cajatambo', level: 2, parentCode: '15', countryCode: 'PE' },
-  { id: 103, code: '1504', name: 'Canta', level: 2, parentCode: '15', countryCode: 'PE' },
-  { id: 104, code: '1505', name: 'Cañete', level: 2, parentCode: '15', countryCode: 'PE' },
-  { id: 105, code: '1506', name: 'Huaral', level: 2, parentCode: '15', countryCode: 'PE' },
-  { id: 106, code: '1507', name: 'Huarochirí', level: 2, parentCode: '15', countryCode: 'PE' },
-  { id: 107, code: '1508', name: 'Huaura', level: 2, parentCode: '15', countryCode: 'PE' },
-  { id: 108, code: '1509', name: 'Oyón', level: 2, parentCode: '15', countryCode: 'PE' },
-  { id: 109, code: '1510', name: 'Yauyos', level: 2, parentCode: '15', countryCode: 'PE' }
-]
-
-// Mock distritos de Lima provincia
-const MOCK_LIMA_DISTRICTS: Location[] = [
-  { id: 200, code: '150101', name: 'Lima', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 201, code: '150102', name: 'Ancón', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 202, code: '150103', name: 'Ate', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 203, code: '150104', name: 'Barranco', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 204, code: '150105', name: 'Breña', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 205, code: '150106', name: 'Carabayllo', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 206, code: '150107', name: 'Chaclacayo', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 207, code: '150108', name: 'Chorrillos', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 208, code: '150109', name: 'Cieneguilla', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 209, code: '150110', name: 'Comas', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 210, code: '150111', name: 'El Agustino', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 211, code: '150112', name: 'Independencia', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 212, code: '150113', name: 'Jesús María', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 213, code: '150114', name: 'La Molina', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 214, code: '150115', name: 'La Victoria', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 215, code: '150116', name: 'Lince', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 216, code: '150117', name: 'Los Olivos', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 217, code: '150118', name: 'Lurigancho', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 218, code: '150119', name: 'Lurín', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 219, code: '150120', name: 'Magdalena del Mar', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 220, code: '150121', name: 'Miraflores', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 221, code: '150122', name: 'Pachacámac', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 222, code: '150123', name: 'Pucusana', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 223, code: '150124', name: 'Pueblo Libre', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 224, code: '150125', name: 'Puente Piedra', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 225, code: '150126', name: 'Punta Hermosa', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 226, code: '150127', name: 'Punta Negra', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 227, code: '150128', name: 'Rímac', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 228, code: '150129', name: 'San Bartolo', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 229, code: '150130', name: 'San Borja', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 230, code: '150131', name: 'San Isidro', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 231, code: '150132', name: 'San Juan de Lurigancho', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 232, code: '150133', name: 'San Juan de Miraflores', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 233, code: '150134', name: 'San Luis', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 234, code: '150135', name: 'San Martín de Porres', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 235, code: '150136', name: 'San Miguel', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 236, code: '150137', name: 'Santa Anita', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 237, code: '150138', name: 'Santa María del Mar', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 238, code: '150139', name: 'Santa Rosa', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 239, code: '150140', name: 'Santiago de Surco', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 240, code: '150141', name: 'Surquillo', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 241, code: '150142', name: 'Villa El Salvador', level: 3, parentCode: '1501', countryCode: 'PE' },
-  { id: 242, code: '150143', name: 'Villa María del Triunfo', level: 3, parentCode: '1501', countryCode: 'PE' }
-]
-
 // Simular delay de red
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -531,36 +448,95 @@ export const shippingApi = {
   },
 
   /**
-   * Obtiene ubicaciones por país y código padre (para dropdowns en cascada)
+   * Obtiene ubicaciones por país y código padre (para dropdowns en cascada).
+   * Uses real ubigeo API endpoints for all countries.
+   * Code format: "codDpto" for level 1, "codDpto-codProv" for level 2,
+   * "codDpto-codProv-codDist" for level 3.
    */
   async getLocations(countryCode: CountryCode, parentCode?: string): Promise<ApiResponse<Location[]>> {
-    if (USE_MOCKS) {
-      await delay(200)
+    const codPais = COUNTRY_COD_PAIS[countryCode]
+    if (!codPais) return { success: true, data: [] }
 
-      if (countryCode === 'PE') {
-        if (!parentCode) {
-          return { success: true, data: MOCK_PERU_DEPARTMENTS }
+    try {
+      if (!parentCode) {
+        // Level 1: departments/regions
+        const { data } = await apiClient.get('/ubigeo/regions', { params: { codPais } })
+        const items = (data.data || data) as Array<{
+          id: number
+          name: string
+          codDpto: number
+        }>
+        return {
+          success: true,
+          data: items.map(r => ({
+            id: r.id,
+            code: String(r.codDpto),
+            name: r.name,
+            level: 1 as const,
+            countryCode
+          }))
         }
-        if (parentCode === '15') {
-          return { success: true, data: MOCK_LIMA_PROVINCES }
-        }
-        if (parentCode === '1501') {
-          return { success: true, data: MOCK_LIMA_DISTRICTS }
-        }
-        // Otras provincias/distritos - retornar vacío por ahora
-        return { success: true, data: [] }
       }
 
-      // Para otros países retornar vacío por ahora
+      const parts = parentCode.split('-')
+
+      if (parts.length === 1) {
+        // Parent is a department → get provinces
+        const codDpto = parseInt(parts[0])
+        const { data } = await apiClient.get('/ubigeo/provinces', {
+          params: { codPais, codDpto }
+        })
+        const items = (data.data || data) as Array<{
+          id: number
+          name: string
+          codDpto: number
+          codProv: number
+        }>
+        return {
+          success: true,
+          data: items.map(p => ({
+            id: p.id,
+            code: `${p.codDpto}-${p.codProv}`,
+            name: p.name,
+            level: 2 as const,
+            parentCode,
+            countryCode
+          }))
+        }
+      }
+
+      if (parts.length === 2) {
+        // Parent is a province → get districts
+        const codDpto = parseInt(parts[0])
+        const codProv = parseInt(parts[1])
+        const { data } = await apiClient.get('/ubigeo/districts', {
+          params: { codPais, codDpto, codProv }
+        })
+        const items = (data.data || data) as Array<{
+          id: number
+          name: string
+          codDpto: number
+          codProv: number
+          codDist: number
+        }>
+        return {
+          success: true,
+          data: items.map(d => ({
+            id: d.id,
+            code: `${d.codDpto}-${d.codProv}-${d.codDist}`,
+            name: d.name,
+            level: 3 as const,
+            parentCode,
+            countryCode
+          }))
+        }
+      }
+
+      return { success: true, data: [] }
+    } catch (err) {
+      console.error('Error fetching locations:', err)
       return { success: true, data: [] }
     }
-
-    const params = new URLSearchParams({ country: countryCode })
-    if (parentCode) {
-      params.append('parentCode', parentCode)
-    }
-    const response = await apiClient.get(`/shipping/locations?${params}`)
-    return response.data
   },
 
   /**
