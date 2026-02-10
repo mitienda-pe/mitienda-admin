@@ -1,0 +1,26 @@
+diff --git a/node_modules/@carlosvidalperu/mtbuilder/dist/page-builder.js b/node_modules/@carlosvidalperu/mtbuilder/dist/page-builder.js
+index 0e4ac7b..a266034 100644
+--- a/node_modules/@carlosvidalperu/mtbuilder/dist/page-builder.js
++++ b/node_modules/@carlosvidalperu/mtbuilder/dist/page-builder.js
+@@ -870,8 +870,8 @@ const v = class v {
+   }
+   // En i18n.js
+   async loadTranslations(e) {
++    const t = this.normalizeLocale(e);
+     try {
+-      const t = this.normalizeLocale(e);
+       if (this.translations[t])
+         return !0;
+       const s = `${window.location.hostname === "carlosvidal.github.io" ? "/mtbuilder" : ""}/src/locales/${t}.json`, o = await fetch(s);
+@@ -881,9 +881,9 @@ const v = class v {
+       return this.translations[t] = this.flattenTranslations(n), !0;
+     } catch {
+       const i = await this.getBuiltInTranslations(
+-        normalizedLocale
++        t
+       );
+-      return this.translations[normalizedLocale] = this.flattenTranslations(i), !0;
++      return this.translations[t] = this.flattenTranslations(i), !0;
+     }
+   }
+   // Método para obtener las traducciones incorporadas
