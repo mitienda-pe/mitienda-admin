@@ -1,0 +1,282 @@
+{
+    "builder": {
+        "sidebar": {
+            "tabs": {
+                "elements": "Elementos",
+                "rows": "Filas",
+                "settings": "Ajustes"
+            },
+            "elements": {
+                "heading": "Encabezado",
+                "text": "Texto",
+                "image": "Imagen",
+                "button": "Botón",
+                "link": "Enlace",
+                "table": "Tabla",
+                "list": "Lista",
+                "video": "Video",
+                "divider": "Divisor",
+                "spacer": "Espacio",
+                "html": "HTML",
+                "container": "Contenedor"
+            },
+            "rows": {
+                "columns": "Columnas",
+                "oneColumn": "1 Columna",
+                "twoColumns": "2 Columnas",
+                "threeColumns": "3 Columnas",
+                "fourColumns": "4 Columnas",
+                "sixColumns": "6 Columnas",
+                "group1col": "1 columna en móvil",
+                "group2col": "2 columnas en móvil",
+                "group3col": "3 columnas en móvil",
+                "mobileCols": "Columnas en móvil"
+            },
+            "principal": {
+                "title": "Ajustes Principales",
+                "description": "Ajusta la configuración principal de tu página",
+                "layout": "Ajustes de Diseño"
+            },
+            "dropHint": "Arrastra y suelta elementos aquí",
+            "back": "Regresar"
+        },
+        "canvas": {
+            "empty": {
+                "title": "Comienza tu diseño",
+                "subtitle": "Arrastra elementos desde el panel lateral"
+            },
+            "dropzone": {
+                "hint": "Arrastra elementos aquí"
+            },
+            "views": {
+                "design": "Diseño",
+                "preview": "Vista previa",
+                "html": "HTML",
+                "json": "JSON"
+            },
+            "actions": {
+                "undo": "Deshacer",
+                "redo": "Rehacer",
+                "copy": "Copiar",
+                "download": "Descargar",
+                "save": "Guardar",
+                "copyHtml": "Copiar HTML",
+                "copyJson": "Copiar JSON",
+                "downloadHtml": "Descargar HTML"
+            },
+            "preview": {
+                "devices": {
+                    "desktop": "Escritorio",
+                    "tablet": "Tableta",
+                    "mobile": "Móvil"
+                }
+            },
+            "empty": {
+                "title": "Comienza tu diseño",
+                "subtitle": "Arrastra elementos desde el panel lateral",
+                "dropHint": "Suelta los elementos aquí"
+            },
+            "confirmations": {
+                "copySuccess": "Copiado al portapapeles",
+                "downloadStart": "Iniciando descarga..."
+            }
+        },
+        "editor": {
+            "common": {
+                "styles": {
+                    "title": "Estilos",
+                    "color": "Color",
+                    "background": "Fondo",
+                    "border": "Borde",
+                    "spacing": "Espaciado"
+                }
+            },
+            "elements": {
+                "heading": {
+                    "title": "Editar encabezado",
+                    "level": "Nivel",
+                    "content": "Contenido"
+                },
+                "text": {
+                    "title": "Editar texto",
+                    "content": "Contenido"
+                },
+                "button": {
+                    "title": "Editar botón",
+                    "text": "Texto",
+                    "link": "Enlace",
+                    "type": "Tipo"
+                },
+                "image": {
+                    "title": "Editar imagen",
+                    "source": "URL de la imagen",
+                    "alt": "Texto alternativo",
+                    "dimensions": "Dimensiones"
+                },
+                "video": {
+                    "title": "Editar video",
+                    "source": "URL del video",
+                    "ratio": "Relación de aspecto"
+                },
+                "table": {
+                    "title": "Editar tabla",
+                    "rows": "Filas",
+                    "columns": "Columnas",
+                    "header": "Estilo de encabezado",
+                    "cellPadding": "Relleno de celdas"
+                },
+                "list": {
+                    "title": "Editar lista",
+                    "type": "Tipo de lista",
+                    "items": "Elementos",
+                    "itemsHint": "Un elemento por línea"
+                },
+                "spacer": {
+                    "title": "Editar espacio",
+                    "height": "Altura",
+                    "mobileVisibility": "Visibilidad en móvil"
+                },
+                "html": {
+                    "title": "HTML Personalizado",
+                    "code": "Código HTML"
+                },
+                "container": {
+                    "title": "Editar contenedor",
+                    "direction": "Dirección",
+                    "vertical": "Vertical",
+                    "horizontal": "Horizontal",
+                    "justifyContent": "Justify content",
+                    "alignItems": "Align items",
+                    "gap": "Gap",
+                    "minHeight": "Altura mínima",
+                    "placeholder": "Arrastra elementos aquí"
+                }
+            }
+        },
+        "actions": {
+            "add": "Añadir",
+            "remove": "Eliminar",
+            "moveUp": "Subir",
+            "moveDown": "Bajar",
+            "duplicate": "Duplicar"
+        },
+        "settings": {
+            "page": {
+                "title": "Ajustes de página",
+                "maxWidth": "Ancho máximo",
+                "background": "Color de fondo",
+                "font": "Tipo de letra"
+            },
+            "responsive": {
+                "title": "Ajustes responsivos",
+                "breakpoints": "Puntos de quiebre",
+                "mobile": "Móvil",
+                "tablet": "Tableta",
+                "desktop": "Escritorio"
+            }
+        },
+        "untitled": "Página sin título"
+    },
+    "pages": {
+        "list": {
+            "title": "Mis páginas",
+            "empty": "No hay páginas creadas",
+            "empty.description": "Comienza creando tu primera página",
+            "create": "Crear nueva página",
+            "actions": {
+                "edit": "Editar",
+                "delete": "Eliminar",
+                "duplicate": "Duplicar",
+                "preview": "Vista previa"
+            }
+        },
+        "count": {
+            "one": "{count} página",
+            "other": "{count} páginas"
+        },
+        "status": {
+            "draft": "Borrador",
+            "published": "Publicado",
+            "archived": "Archivado"
+        },
+        "lastModified": "Última modificación",
+        "sorting": {
+            "title": "Ordenar por",
+            "name": "Nombre",
+            "date": "Fecha",
+            "status": "Estado"
+        },
+        "filters": {
+            "title": "Filtros",
+            "all": "Todas las páginas",
+            "drafts": "Borradores",
+            "published": "Publicadas",
+            "archived": "Archivadas"
+        }
+    },
+    "common": {
+        "save": "Guardar",
+        "cancel": "Cancelar",
+        "delete": "Eliminar",
+        "edit": "Editar",
+        "back": "Volver",
+        "next": "Siguiente",
+        "previous": "Anterior",
+        "loading": "Cargando...",
+        "search": "Buscar",
+        "filter": "Filtrar",
+        "sort": "Ordenar",
+        "confirmation": {
+            "delete": "¿Estás seguro de que deseas eliminar esto?",
+            "discard": "¿Estás seguro de que deseas descartar los cambios?"
+        },
+        "errors": {
+            "required": "Este campo es obligatorio",
+            "invalid": "Este valor no es válido",
+            "save": "Error al guardar los cambios",
+            "load": "Error al cargar el contenido",
+            "delete": "Error al eliminar el elemento",
+            "network": "Error de red",
+            "unknown": "Ha ocurrido un error desconocido"
+        },
+        "success": {
+            "save": "Cambios guardados exitosamente",
+            "delete": "Elemento eliminado exitosamente",
+            "create": "Creado exitosamente"
+        },
+        "buttons": {
+            "apply": "Aplicar",
+            "reset": "Restablecer",
+            "clear": "Limpiar",
+            "close": "Cerrar",
+            "done": "Hecho",
+            "confirm": "Confirmar"
+        }
+    },
+    "preview": {
+        "title": "Vista previa",
+        "devices": {
+            "desktop": "Escritorio",
+            "tablet": "Tableta",
+            "mobile": "Móvil"
+        },
+        "actions": {
+            "refresh": "Actualizar",
+            "open": "Abrir en nueva pestaña",
+            "download": "Descargar HTML"
+        }
+    },
+    "export": {
+        "title": "Exportar",
+        "formats": {
+            "html": "HTML",
+            "json": "JSON"
+        },
+        "options": {
+            "title": "Opciones de exportación",
+            "styles": "Incluir estilos",
+            "assets": "Incluir recursos",
+            "minify": "Minificar salida"
+        }
+    }
+}

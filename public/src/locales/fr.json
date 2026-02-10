@@ -1,0 +1,281 @@
+{
+    "builder": {
+        "sidebar": {
+            "tabs": {
+                "elements": "Éléments",
+                "rows": "Lignes",
+                "settings": "Paramètres"
+            },
+            "elements": {
+                "heading": "Titre",
+                "text": "Texte",
+                "image": "Image",
+                "button": "Bouton",
+                "link": "Lien",
+                "table": "Tableau",
+                "list": "Liste",
+                "video": "Vidéo",
+                "divider": "Séparateur",
+                "spacer": "Espace",
+                "html": "HTML",
+                "container": "Conteneur"
+            },
+            "rows": {
+                "columns": "Colonnes",
+                "oneColumn": "1 Colonne",
+                "twoColumns": "2 Colonnes",
+                "threeColumns": "3 Colonnes",
+                "fourColumns": "4 Colonnes",
+                "sixColumns": "6 Colonnes",
+                "group1col": "1 colonne sur mobile",
+                "group2col": "2 colonnes sur mobile",
+                "group3col": "3 colonnes sur mobile",
+                "mobileCols": "Colonnes sur mobile"
+            },
+            "principal": {
+                "title": "Paramètres Principaux",
+                "description": "Ajustez les paramètres principaux de votre page",
+                "layout": "Paramètres de Mise en Page"
+            },
+            "dropHint": "Glissez et déposez les éléments ici",
+            "back": "Retour"
+        },
+        "canvas": {
+            "empty": {
+                "title": "Commencez votre design",
+                "subtitle": "Faites glisser les éléments depuis la barre latérale"
+            },
+            "dropzone": {
+                "hint": "Déposez les éléments ici"
+            },
+            "views": {
+                "design": "Conception",
+                "preview": "Aperçu",
+                "html": "HTML",
+                "json": "JSON"
+            },
+            "actions": {
+                "undo": "Annuler",
+                "redo": "Rétablir",
+                "copy": "Copier",
+                "download": "Télécharger",
+                "save": "Enregistrer",
+                "copyHtml": "Copier HTML",
+                "copyJson": "Copier JSON",
+                "downloadHtml": "Télécharger HTML"
+            },
+            "preview": {
+                "devices": {
+                    "desktop": "Bureau",
+                    "tablet": "Tablette",
+                    "mobile": "Mobile"
+                }
+            },
+            "empty": {
+                "title": "Commencez votre design",
+                "subtitle": "Faites glisser les éléments depuis la barre latérale",
+                "dropHint": "Déposez les éléments ici"
+            },
+            "confirmations": {
+                "copySuccess": "Copié dans le presse-papiers",
+                "downloadStart": "Démarrage du téléchargement..."
+            }
+        },
+        "editor": {
+            "common": {
+                "styles": {
+                    "title": "Styles",
+                    "color": "Couleur",
+                    "background": "Arrière-plan",
+                    "border": "Bordure",
+                    "spacing": "Espacement"
+                }
+            },
+            "elements": {
+                "heading": {
+                    "title": "Modifier le titre",
+                    "level": "Niveau",
+                    "content": "Contenu"
+                },
+                "text": {
+                    "title": "Modifier le texte",
+                    "content": "Contenu"
+                },
+                "button": {
+                    "title": "Modifier le bouton",
+                    "text": "Texte",
+                    "link": "Lien",
+                    "type": "Type"
+                },
+                "image": {
+                    "title": "Modifier l'image",
+                    "source": "URL de l'image",
+                    "alt": "Texte alternatif",
+                    "dimensions": "Dimensions"
+                },
+                "video": {
+                    "title": "Modifier la vidéo",
+                    "source": "URL de la vidéo",
+                    "ratio": "Format d'image"
+                },
+                "table": {
+                    "title": "Modifier le tableau",
+                    "rows": "Lignes",
+                    "columns": "Colonnes",
+                    "header": "Style d'en-tête",
+                    "cellPadding": "Marge des cellules"
+                },
+                "list": {
+                    "title": "Modifier la liste",
+                    "type": "Type de liste",
+                    "items": "Éléments",
+                    "itemsHint": "Un élément par ligne"
+                },
+                "spacer": {
+                    "title": "Modifier l'espace",
+                    "height": "Hauteur",
+                    "mobileVisibility": "Visibilité mobile"
+                },
+                "html": {
+                    "title": "HTML Personnalisé",
+                    "code": "Code HTML"
+                },
+                "container": {
+                    "title": "Modifier le conteneur",
+                    "direction": "Direction",
+                    "vertical": "Vertical",
+                    "horizontal": "Horizontal",
+                    "justifyContent": "Justify content",
+                    "alignItems": "Align items",
+                    "gap": "Gap",
+                    "minHeight": "Hauteur minimale",
+                    "placeholder": "Déposez les éléments ici"
+                }
+            }
+        },
+        "actions": {
+            "add": "Ajouter",
+            "remove": "Supprimer",
+            "moveUp": "Monter",
+            "moveDown": "Descendre",
+            "duplicate": "Dupliquer"
+        },
+        "settings": {
+            "page": {
+                "title": "Paramètres de la page",
+                "maxWidth": "Largeur maximale",
+                "background": "Couleur de fond",
+                "font": "Police"
+            },
+            "responsive": {
+                "title": "Paramètres responsifs",
+                "breakpoints": "Points de rupture",
+                "mobile": "Mobile",
+                "tablet": "Tablette",
+                "desktop": "Bureau"
+            }
+        },
+        "untitled": "Page sans titre"
+    },
+    "pages": {
+        "list": {
+            "title": "Mes pages",
+            "empty": "Aucune page créée",
+            "empty.description": "Commencez par créer votre première page",
+            "create": "Créer une nouvelle page",
+            "actions": {
+                "edit": "Modifier",
+                "delete": "Supprimer",
+                "duplicate": "Dupliquer",
+                "preview": "Aperçu"
+            }
+        },
+        "count": {
+            "one": "{count} page",
+            "other": "{count} pages"
+        },
+        "status": {
+            "draft": "Brouillon",
+            "published": "Publié",
+            "archived": "Archivé"
+        },
+        "lastModified": "Dernière modification",
+        "sorting": {
+            "title": "Trier par",
+            "name": "Nom",
+            "date": "Date",
+            "status": "État"
+        },
+        "filters": {
+            "title": "Filtres",
+            "all": "Toutes les pages",
+            "drafts": "Brouillons",
+            "published": "Publiées",
+            "archived": "Archivées"
+        }
+    },
+    "common": {
+        "save": "Enregistrer",
+        "cancel": "Annuler",
+        "delete": "Supprimer",
+        "edit": "Modifier",
+        "back": "Retour",
+        "next": "Suivant",
+        "previous": "Précédent",
+        "loading": "Chargement...",
+        "search": "Rechercher",
+        "filter": "Filtrer",
+        "sort": "Trier",
+        "confirmation": {
+            "delete": "Êtes-vous sûr de vouloir supprimer ceci ?",
+            "discard": "Êtes-vous sûr de vouloir abandonner les modifications ?"
+        },
+        "errors": {
+            "required": "Ce champ est obligatoire",
+            "invalid": "Cette valeur n'est pas valide",
+            "save": "Erreur lors de l'enregistrement",
+            "load": "Erreur lors du chargement",
+            "delete": "Erreur lors de la suppression",
+            "network": "Erreur de réseau",
+            "unknown": "Une erreur inconnue est survenue"
+        },
+        "success": {
+            "save": "Modifications enregistrées avec succès",
+            "delete": "Suppression effectuée avec succès",
+            "create": "Création réussie"
+        },
+        "buttons": {
+            "apply": "Appliquer",
+            "reset": "Réinitialiser",
+            "clear": "Effacer",
+            "close": "Fermer",
+            "done": "Terminé",
+            "confirm": "Confirmer"
+        }
+    },
+    "preview": {
+        "title": "Aperçu",
+        "devices": {
+            "desktop": "Bureau",
+            "tablet": "Tablette",
+            "mobile": "Mobile"
+        },
+        "actions": {
+            "refresh": "Actualiser",
+            "open": "Ouvrir dans un nouvel onglet",
+            "download": "Télécharger HTML"
+        }
+    },
+    "export": {
+        "title": "Exporter",
+        "formats": {
+            "html": "HTML",
+            "json": "JSON"
+        },
+        "options": {
+            "title": "Options d'exportation",
+            "styles": "Inclure les styles",
+            "assets": "Inclure les ressources",
+            "minify": "Minifier la sortie"
+        }
+    }
