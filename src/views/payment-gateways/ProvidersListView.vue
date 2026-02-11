@@ -15,29 +15,20 @@
 
     <!-- Providers Grid -->
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      <Card
-        v-for="gateway in store.gateways"
-        :key="gateway.code"
-        class="cursor-pointer hover:shadow-lg transition-shadow border-2"
-        :class="[
+      <Card v-for="gateway in store.gateways" :key="gateway.code"
+        class="cursor-pointer hover:shadow-lg transition-shadow border-2" :class="[
           gateway.configured && gateway.enabled
             ? 'border-green-200 hover:border-green-400'
             : gateway.configured
               ? 'border-yellow-200 hover:border-yellow-400'
               : 'border-transparent hover:border-primary'
-        ]"
-        @click="goToGatewayConfig(gateway.code)"
-      >
+        ]" @click="goToGatewayConfig(gateway.code)">
         <template #header>
           <div class="flex items-center justify-center p-6 bg-gradient-to-br from-gray-50 to-gray-100">
             <!-- Logo placeholder -->
             <div class="h-16 w-32 flex items-center justify-center">
-              <img
-                v-if="gatewayLogos[gateway.code]"
-                :src="gatewayLogos[gateway.code]"
-                :alt="gateway.name"
-                class="max-h-16 max-w-full object-contain"
-              />
+              <img v-if="gatewayLogos[gateway.code]" :src="gatewayLogos[gateway.code]" :alt="gateway.name"
+                class="max-h-16 max-w-full object-contain" />
               <div v-else class="text-4xl font-bold text-gray-300">
                 {{ gateway.name.charAt(0) }}
               </div>
@@ -55,18 +46,13 @@
           </p>
           <!-- Status badges -->
           <div v-if="gateway.configured" class="mt-3 flex flex-wrap gap-2">
-            <span
-              class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-              :class="gateway.enabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'"
-            >
+            <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+              :class="gateway.enabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'">
               <i :class="gateway.enabled ? 'pi pi-check-circle' : 'pi pi-pause-circle'" class="mr-1"></i>
               {{ gateway.enabled ? 'Activo' : 'Inactivo' }}
             </span>
-            <span
-              v-if="gateway.environment"
-              class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-              :class="getEnvironmentBadgeClass(gateway.environment)"
-            >
+            <span v-if="gateway.environment" class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+              :class="getEnvironmentBadgeClass(gateway.environment)">
               <i :class="isProductionEnvironment(gateway.environment) ? 'pi pi-shield' : 'pi pi-code'" class="mr-1"></i>
               {{ getEnvironmentLabel(gateway.environment) }}
             </span>
@@ -110,7 +96,7 @@ import ProgressSpinner from 'primevue/progressspinner'
 
 // Logos de las pasarelas
 import logoIzipay from '@/assets/images/logo_izipay.png'
-import logoNiubiz from '@/assets/images/logo_niubiz.png'
+import logoNiubiz from '@/assets/images/logo-niubiz.svg'
 import logoCulqi from '@/assets/images/Logo-Culqi.png'
 import logoMercadopago from '@/assets/images/logo_mercadopago.svg'
 import logoOpenpay from '@/assets/images/logo_Openpay.png'
