@@ -86,45 +86,43 @@ export const customersApi = {
   async getCustomer(id: number): Promise<ApiResponse<CustomerDetail>> {
     const response = await apiClient.get(`/customers/${id}`)
 
-    // La API puede devolver el cliente directamente o en response.data
-    const rawData = response.data?.data || response.data
+    // Después del interceptor: response.data = { success, data: customerObj }
+    const normalized = response.data
+    if (!normalized?.success || !normalized?.data) {
+      console.error('getCustomer: respuesta inesperada', response.data)
+      return { success: false, data: undefined }
+    }
 
-    if (rawData) {
-      const recentOrders = rawData.recent_orders || rawData.orders || []
+    const rawData = normalized.data
+    const recentOrders = rawData.recent_orders || rawData.orders || []
 
-      const customer: CustomerDetail = {
-        id: parseInt(rawData.id),
-        name: rawData.name,
-        email: rawData.email,
-        phone: rawData.phone || '',
-        address: rawData.address || '',
-        document_type: rawData.document_type,
-        document_number: rawData.document_number,
-        birthdate: rawData.birthdate,
-        created_at: rawData.created_at,
-        verified: rawData.verified || false,
-        blocked: rawData.blocked || false,
+    const customer: CustomerDetail = {
+      id: parseInt(rawData.id),
+      name: rawData.name,
+      email: rawData.email,
+      phone: rawData.phone || '',
+      address: rawData.address || '',
+      document_type: rawData.document_type,
+      document_number: rawData.document_number,
+      birthdate: rawData.birthdate,
+      created_at: rawData.created_at,
+      verified: rawData.verified || false,
+      blocked: rawData.blocked || false,
+      total_orders: rawData.total_orders || 0,
+      total_spent: parseFloat(rawData.total_spent || '0'),
+      recent_orders: recentOrders,
+      orders: recentOrders,
+      stats: rawData.stats || {
         total_orders: rawData.total_orders || 0,
         total_spent: parseFloat(rawData.total_spent || '0'),
-        recent_orders: recentOrders,
-        orders: recentOrders,  // Alias para compatibilidad con la vista
-        stats: rawData.stats || {
-          total_orders: rawData.total_orders || 0,
-          total_spent: parseFloat(rawData.total_spent || '0'),
-          average_order_value: 0,
-          last_order_date: rawData.last_order_date || null
-        }
-      }
-
-      return {
-        success: true,
-        data: customer
+        average_order_value: 0,
+        last_order_date: rawData.last_order_date || null
       }
     }
 
     return {
-      success: false,
-      data: undefined
+      success: true,
+      data: customer
     }
   },
 
