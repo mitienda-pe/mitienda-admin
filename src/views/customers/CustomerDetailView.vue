@@ -30,6 +30,20 @@ const goBack = () => {
 const goToOrder = (orderId: number) => {
   router.push(`/orders/${orderId}`)
 }
+
+const whatsappUrl = (phone: string) => {
+  const cleaned = phone.replace(/\D/g, '')
+  const number = cleaned.startsWith('51') ? cleaned : `51${cleaned}`
+  return `https://wa.me/${number}`
+}
+
+const formatFullAddress = (addr: any) => {
+  const parts = [addr.address]
+  if (addr.interior) parts.push(`Int. ${addr.interior}`)
+  const geo = [addr.district, addr.province, addr.department].filter(Boolean).join(', ')
+  if (geo) parts.push(geo)
+  return parts.join(' - ')
+}
 </script>
 
 <template>
@@ -167,11 +181,25 @@ const goToOrder = (orderId: number) => {
               </div>
               <div v-if="customer.email">
                 <p class="text-sm text-gray-500">Email</p>
-                <p class="font-semibold text-gray-900">{{ customer.email }}</p>
+                <a
+                  :href="`mailto:${customer.email}`"
+                  class="font-semibold text-primary hover:underline inline-flex items-center gap-1"
+                >
+                  <i class="pi pi-envelope text-sm"></i>
+                  {{ customer.email }}
+                </a>
               </div>
               <div v-if="customer.phone">
                 <p class="text-sm text-gray-500">Teléfono</p>
-                <p class="font-semibold text-gray-900">{{ customer.phone }}</p>
+                <a
+                  :href="whatsappUrl(customer.phone)"
+                  target="_blank"
+                  rel="noopener"
+                  class="font-semibold text-primary hover:underline inline-flex items-center gap-1"
+                >
+                  <i class="pi pi-whatsapp text-sm"></i>
+                  {{ customer.phone }}
+                </a>
               </div>
               <div v-if="customer.document_number">
                 <p class="text-sm text-gray-500">Documento</p>
@@ -185,16 +213,36 @@ const goToOrder = (orderId: number) => {
           </template>
         </Card>
 
-        <!-- Dirección -->
-        <Card v-if="customer.address">
+        <!-- Direcciones -->
+        <Card v-if="customer.addresses && customer.addresses.length > 0">
           <template #title>
             <div class="flex items-center gap-2">
               <i class="pi pi-map-marker text-primary"></i>
-              Dirección
+              Direcciones ({{ customer.addresses.length }})
             </div>
           </template>
           <template #content>
-            <p class="text-gray-900">{{ customer.address }}</p>
+            <div class="space-y-3">
+              <div
+                v-for="addr in customer.addresses"
+                :key="addr.id"
+                class="border border-gray-100 rounded-lg p-3"
+                :class="{ 'border-primary bg-primary/5': addr.is_default }"
+              >
+                <div class="flex items-start justify-between gap-2">
+                  <p class="text-sm text-gray-900">{{ formatFullAddress(addr) }}</p>
+                  <Tag
+                    v-if="addr.is_default"
+                    severity="info"
+                    value="Principal"
+                    class="shrink-0"
+                  />
+                </div>
+                <p v-if="addr.reference" class="text-xs text-gray-500 mt-1">
+                  Ref: {{ addr.reference }}
+                </p>
+              </div>
+            </div>
           </template>
         </Card>
 

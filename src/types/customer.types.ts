@@ -18,9 +18,24 @@ export interface Customer {
   last_order_date?: string | null
 }
 
+export interface CustomerAddress {
+  id: number
+  address: string
+  interior: string
+  reference: string
+  department: string
+  province: string
+  district: string
+  country: string
+  latitude: string
+  longitude: string
+  is_default: boolean
+}
+
 export interface CustomerDetail extends Customer {
   recent_orders?: Order[]
   orders?: Order[]  // Alias para compatibilidad
+  addresses?: CustomerAddress[]
   stats?: {
     total_orders: number
     total_spent: number

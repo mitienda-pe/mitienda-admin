@@ -112,6 +112,7 @@ export const customersApi = {
       total_spent: parseFloat(rawData.total_spent || '0'),
       recent_orders: recentOrders,
       orders: recentOrders,
+      addresses: rawData.addresses || [],
       stats: rawData.stats || {
         total_orders: rawData.total_orders || 0,
         total_spent: parseFloat(rawData.total_spent || '0'),
