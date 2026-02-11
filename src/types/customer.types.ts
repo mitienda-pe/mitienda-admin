@@ -72,3 +72,32 @@ export interface CustomerStats {
   blocked: number
   new_this_month: number
 }
+
+export interface CustomerFormData {
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  document_type: string // '1' = DNI, '2' = RUC
+  document_number: string
+  birthdate: string | null
+}
+
+export interface CustomerAddressFormData {
+  address: string
+  interior: string
+  reference: string
+  department: string
+  province: string
+  district: string
+  country: string
+  is_default: boolean
+}
+
+export interface DocumentLookupResult {
+  first_name: string
+  last_name: string
+  full_name: string
+  document_number: string
+  document_type: string
+}

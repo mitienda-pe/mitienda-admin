@@ -1,7 +1,15 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { customersApi, type CustomersFilters } from '@/api/customers.api'
-import type { Customer, CustomerDetail, CustomerFilters, CustomerStats } from '@/types/customer.types'
+import type {
+  Customer,
+  CustomerDetail,
+  CustomerFilters,
+  CustomerStats,
+  CustomerFormData,
+  CustomerAddressFormData,
+  DocumentLookupResult
+} from '@/types/customer.types'
 
 export const useCustomersStore = defineStore('customers', () => {
   // State
@@ -80,8 +88,7 @@ export const useCustomersStore = defineStore('customers', () => {
 
         // Actualizar paginación
         pagination.value.total = response.meta?.total || 0
-        pagination.value.hasMore =
-          customers.value.length < (response.meta?.total || 0)
+        pagination.value.hasMore = customers.value.length < (response.meta?.total || 0)
       } else {
         throw new Error('Error al cargar clientes')
       }
@@ -125,12 +132,12 @@ export const useCustomersStore = defineStore('customers', () => {
     }
   }
 
-  async function createCustomer(customerData: Partial<Customer>) {
+  async function createCustomer(formData: CustomerFormData) {
     try {
       isLoading.value = true
       error.value = null
 
-      const response = await customersApi.createCustomer(customerData)
+      const response = await customersApi.createCustomer(formData)
 
       if (response.success && response.data) {
         // Recargar lista
@@ -149,16 +156,16 @@ export const useCustomersStore = defineStore('customers', () => {
     }
   }
 
-  async function updateCustomer(id: number, customerData: Partial<Customer>) {
+  async function updateCustomer(id: number, formData: Partial<CustomerFormData>) {
     try {
       isLoading.value = true
       error.value = null
 
-      const response = await customersApi.updateCustomer(id, customerData)
+      const response = await customersApi.updateCustomer(id, formData)
 
       if (response.success && response.data) {
         // Actualizar en la lista
-        const index = customers.value.findIndex((c) => c.id === id)
+        const index = customers.value.findIndex(c => c.id === id)
         if (index !== -1) {
           customers.value[index] = response.data
         }
@@ -190,7 +197,7 @@ export const useCustomersStore = defineStore('customers', () => {
 
       if (response.success && response.data) {
         // Actualizar en la lista
-        const index = customers.value.findIndex((c) => c.id === id)
+        const index = customers.value.findIndex(c => c.id === id)
         if (index !== -1) {
           customers.value[index].blocked = blocked
         }
@@ -212,6 +219,95 @@ export const useCustomersStore = defineStore('customers', () => {
       isLoading.value = false
     }
   }
+
+  // ==========================================
+  // Document Lookup
+  // ==========================================
+
+  async function lookupDocument(
+    documentNumber: string,
+    type: 'dni' | 'ruc'
+  ): Promise<DocumentLookupResult | null> {
+    try {
+      const response = await customersApi.lookupDocument(documentNumber, type)
+      if (response.success && response.data) {
+        return response.data
+      }
+      return null
+    } catch (err) {
+      console.error('Error looking up document:', err)
+      return null
+    }
+  }
+
+  // ==========================================
+  // Address Management
+  // ==========================================
+
+  async function addAddress(customerId: number, data: CustomerAddressFormData) {
+    try {
+      const response = await customersApi.createCustomerAddress(customerId, data)
+      if (response.success && response.data) {
+        // Recargar cliente para obtener direcciones actualizadas
+        await fetchCustomer(customerId)
+        return response.data
+      }
+      throw new Error(response.message || 'Error al crear dirección')
+    } catch (err) {
+      console.error('Error adding address:', err)
+      throw err
+    }
+  }
+
+  async function updateAddress(
+    customerId: number,
+    addressId: number,
+    data: Partial<CustomerAddressFormData>
+  ) {
+    try {
+      const response = await customersApi.updateCustomerAddress(customerId, addressId, data)
+      if (response.success && response.data) {
+        await fetchCustomer(customerId)
+        return response.data
+      }
+      throw new Error(response.message || 'Error al actualizar dirección')
+    } catch (err) {
+      console.error('Error updating address:', err)
+      throw err
+    }
+  }
+
+  async function deleteAddress(customerId: number, addressId: number) {
+    try {
+      const response = await customersApi.deleteCustomerAddress(customerId, addressId)
+      if (response.success) {
+        await fetchCustomer(customerId)
+        return true
+      }
+      throw new Error(response.message || 'Error al eliminar dirección')
+    } catch (err) {
+      console.error('Error deleting address:', err)
+      throw err
+    }
+  }
+
+  async function setDefaultAddress(customerId: number, addressId: number) {
+    try {
+      const response = await customersApi.setDefaultAddress(customerId, addressId)
+      if (response.success && response.data) {
+        await fetchCustomer(customerId)
+        return response.data
+      }
+      throw new Error(response.message || 'Error al establecer dirección predeterminada')
+    } catch (err) {
+      console.error('Error setting default address:', err)
+      throw err
+    }
+  }
+
+  // ==========================================
+  // Filter Actions
+  // ==========================================
 
   function setFilters(newFilters: Partial<CustomerFilters>) {
     filters.value = { ...filters.value, ...newFilters }
@@ -305,6 +401,11 @@ export const useCustomersStore = defineStore('customers', () => {
     createCustomer,
     updateCustomer,
     toggleBlockCustomer,
+    lookupDocument,
+    addAddress,
+    updateAddress,
+    deleteAddress,
+    setDefaultAddress,
     setFilters,
     setSearch,
     setVerified,

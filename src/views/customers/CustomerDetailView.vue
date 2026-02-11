@@ -1,18 +1,24 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCustomersStore } from '@/stores/customers.store'
 import { useFormatters } from '@/composables/useFormatters'
+import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Tag from 'primevue/tag'
 import ProgressSpinner from 'primevue/progressspinner'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
+import Dialog from 'primevue/dialog'
+import InputText from 'primevue/inputtext'
+import Checkbox from 'primevue/checkbox'
+import type { CustomerAddress, CustomerAddressFormData } from '@/types/customer.types'
 
 const route = useRoute()
 const router = useRouter()
 const customersStore = useCustomersStore()
+const toast = useToast()
 const { formatCurrency, formatDate } = useFormatters()
 
 const customerId = Number(route.params.id)
@@ -23,8 +29,34 @@ onMounted(() => {
 
 const customer = computed(() => customersStore.currentCustomer)
 
+// Address dialog state
+const showAddressDialog = ref(false)
+const isEditingAddress = ref(false)
+const editingAddressId = ref<number | null>(null)
+const isSavingAddress = ref(false)
+const addressForm = ref<CustomerAddressFormData>({
+  address: '',
+  interior: '',
+  reference: '',
+  department: '',
+  province: '',
+  district: '',
+  country: 'Perú',
+  is_default: false
+})
+const addressErrors = ref<Record<string, string>>({})
+
+// Delete confirmation
+const showDeleteConfirm = ref(false)
+const deletingAddressId = ref<number | null>(null)
+const isDeletingAddress = ref(false)
+
 const goBack = () => {
   router.push('/customers')
+}
+
+const goToEdit = () => {
+  router.push({ name: 'CustomerEdit', params: { id: customerId } })
 }
 
 const goToOrder = (orderId: number) => {
@@ -43,6 +75,137 @@ const formatFullAddress = (addr: any) => {
   const geo = [addr.district, addr.province, addr.department].filter(Boolean).join(', ')
   if (geo) parts.push(geo)
   return parts.join(' - ')
+}
+
+// Address management
+const resetAddressForm = () => {
+  addressForm.value = {
+    address: '',
+    interior: '',
+    reference: '',
+    department: '',
+    province: '',
+    district: '',
+    country: 'Perú',
+    is_default: false
+  }
+  addressErrors.value = {}
+  isEditingAddress.value = false
+  editingAddressId.value = null
+}
+
+const openAddAddress = () => {
+  resetAddressForm()
+  showAddressDialog.value = true
+}
+
+const openEditAddress = (addr: CustomerAddress) => {
+  isEditingAddress.value = true
+  editingAddressId.value = addr.id
+  addressForm.value = {
+    address: addr.address || '',
+    interior: addr.interior || '',
+    reference: addr.reference || '',
+    department: addr.department || '',
+    province: addr.province || '',
+    district: addr.district || '',
+    country: addr.country || 'Perú',
+    is_default: addr.is_default || false
+  }
+  addressErrors.value = {}
+  showAddressDialog.value = true
+}
+
+const validateAddressForm = (): boolean => {
+  addressErrors.value = {}
+  if (!addressForm.value.address.trim()) {
+    addressErrors.value.address = 'La dirección es obligatoria'
+  }
+  return Object.keys(addressErrors.value).length === 0
+}
+
+const saveAddress = async () => {
+  if (!validateAddressForm()) return
+
+  try {
+    isSavingAddress.value = true
+    if (isEditingAddress.value && editingAddressId.value) {
+      await customersStore.updateAddress(customerId, editingAddressId.value, addressForm.value)
+      toast.add({
+        severity: 'success',
+        summary: 'Actualizada',
+        detail: 'Dirección actualizada exitosamente',
+        life: 3000
+      })
+    } else {
+      await customersStore.addAddress(customerId, addressForm.value)
+      toast.add({
+        severity: 'success',
+        summary: 'Agregada',
+        detail: 'Dirección agregada exitosamente',
+        life: 3000
+      })
+    }
+    showAddressDialog.value = false
+  } catch (err: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: err.message || 'Error al guardar dirección',
+      life: 5000
+    })
+  } finally {
+    isSavingAddress.value = false
+  }
+}
+
+const confirmDeleteAddress = (addressId: number) => {
+  deletingAddressId.value = addressId
+  showDeleteConfirm.value = true
+}
+
+const deleteAddress = async () => {
+  if (!deletingAddressId.value) return
+
+  try {
+    isDeletingAddress.value = true
+    await customersStore.deleteAddress(customerId, deletingAddressId.value)
+    toast.add({
+      severity: 'success',
+      summary: 'Eliminada',
+      detail: 'Dirección eliminada exitosamente',
+      life: 3000
+    })
+    showDeleteConfirm.value = false
+  } catch (err: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: err.message || 'Error al eliminar dirección',
+      life: 5000
+    })
+  } finally {
+    isDeletingAddress.value = false
+  }
+}
+
+const setDefaultAddress = async (addressId: number) => {
+  try {
+    await customersStore.setDefaultAddress(customerId, addressId)
+    toast.add({
+      severity: 'success',
+      summary: 'Actualizada',
+      detail: 'Dirección predeterminada actualizada',
+      life: 3000
+    })
+  } catch (err: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: err.message || 'Error al actualizar dirección',
+      life: 5000
+    })
+  }
 }
 </script>
 
@@ -66,9 +229,16 @@ const formatFullAddress = (addr: any) => {
           </p>
         </div>
       </div>
-      <div v-if="customer" class="flex gap-2">
+      <div v-if="customer" class="flex items-center gap-2">
         <Tag v-if="customer.verified" severity="success" value="Verificado" icon="pi pi-check-circle" />
         <Tag v-if="customer.blocked" severity="danger" value="Bloqueado" icon="pi pi-ban" />
+        <Button
+          label="Editar"
+          icon="pi pi-pencil"
+          severity="secondary"
+          outlined
+          @click="goToEdit"
+        />
       </div>
     </div>
 
@@ -189,9 +359,10 @@ const formatFullAddress = (addr: any) => {
                   {{ customer.email }}
                 </a>
               </div>
-              <div v-if="customer.phone">
+              <div>
                 <p class="text-sm text-gray-500">Teléfono</p>
                 <a
+                  v-if="customer.phone"
                   :href="whatsappUrl(customer.phone)"
                   target="_blank"
                   rel="noopener"
@@ -200,6 +371,7 @@ const formatFullAddress = (addr: any) => {
                   <i class="pi pi-whatsapp text-sm"></i>
                   {{ customer.phone }}
                 </a>
+                <p v-else class="text-gray-400 italic">No registrado</p>
               </div>
               <div v-if="customer.document_number">
                 <p class="text-sm text-gray-500">Documento</p>
@@ -214,15 +386,28 @@ const formatFullAddress = (addr: any) => {
         </Card>
 
         <!-- Direcciones -->
-        <Card v-if="customer.addresses && customer.addresses.length > 0">
+        <Card>
           <template #title>
-            <div class="flex items-center gap-2">
-              <i class="pi pi-map-marker text-primary"></i>
-              Direcciones ({{ customer.addresses.length }})
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-map-marker text-primary"></i>
+                Direcciones
+                <span v-if="customer.addresses?.length" class="text-sm font-normal text-gray-500">
+                  ({{ customer.addresses.length }})
+                </span>
+              </div>
+              <Button
+                icon="pi pi-plus"
+                text
+                rounded
+                size="small"
+                v-tooltip.top="'Agregar dirección'"
+                @click="openAddAddress"
+              />
             </div>
           </template>
           <template #content>
-            <div class="space-y-3">
+            <div v-if="customer.addresses && customer.addresses.length > 0" class="space-y-3">
               <div
                 v-for="addr in customer.addresses"
                 :key="addr.id"
@@ -230,18 +415,60 @@ const formatFullAddress = (addr: any) => {
                 :class="{ 'border-primary bg-primary/5': addr.is_default }"
               >
                 <div class="flex items-start justify-between gap-2">
-                  <p class="text-sm text-gray-900">{{ formatFullAddress(addr) }}</p>
-                  <Tag
-                    v-if="addr.is_default"
-                    severity="info"
-                    value="Principal"
-                    class="shrink-0"
-                  />
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm text-gray-900">{{ formatFullAddress(addr) }}</p>
+                    <p v-if="addr.reference" class="text-xs text-gray-500 mt-1">
+                      Ref: {{ addr.reference }}
+                    </p>
+                  </div>
+                  <div class="flex items-center gap-1 shrink-0">
+                    <Tag
+                      v-if="addr.is_default"
+                      severity="info"
+                      value="Principal"
+                      class="shrink-0"
+                    />
+                    <Button
+                      v-if="!addr.is_default"
+                      icon="pi pi-star"
+                      text
+                      rounded
+                      size="small"
+                      severity="secondary"
+                      v-tooltip.top="'Establecer como principal'"
+                      @click="setDefaultAddress(addr.id)"
+                    />
+                    <Button
+                      icon="pi pi-pencil"
+                      text
+                      rounded
+                      size="small"
+                      severity="secondary"
+                      v-tooltip.top="'Editar'"
+                      @click="openEditAddress(addr)"
+                    />
+                    <Button
+                      icon="pi pi-trash"
+                      text
+                      rounded
+                      size="small"
+                      severity="danger"
+                      v-tooltip.top="'Eliminar'"
+                      @click="confirmDeleteAddress(addr.id)"
+                    />
+                  </div>
                 </div>
-                <p v-if="addr.reference" class="text-xs text-gray-500 mt-1">
-                  Ref: {{ addr.reference }}
-                </p>
               </div>
+            </div>
+            <div v-else class="text-center py-4">
+              <p class="text-gray-400 italic mb-2">Sin direcciones registradas</p>
+              <Button
+                label="Agregar Dirección"
+                icon="pi pi-plus"
+                size="small"
+                outlined
+                @click="openAddAddress"
+              />
             </div>
           </template>
         </Card>
@@ -273,5 +500,147 @@ const formatFullAddress = (addr: any) => {
         </Card>
       </div>
     </div>
+
+    <!-- Address Dialog -->
+    <Dialog
+      v-model:visible="showAddressDialog"
+      :header="isEditingAddress ? 'Editar Dirección' : 'Nueva Dirección'"
+      modal
+      :style="{ width: '500px' }"
+      :closable="!isSavingAddress"
+    >
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-secondary-700 mb-2">
+            Dirección <span class="text-red-500">*</span>
+          </label>
+          <InputText
+            v-model="addressForm.address"
+            class="w-full"
+            :class="{ 'p-invalid': addressErrors.address }"
+            placeholder="Av. Ejemplo 123"
+          />
+          <small v-if="addressErrors.address" class="text-red-500">
+            {{ addressErrors.address }}
+          </small>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-secondary-700 mb-2">
+              Interior / Oficina
+            </label>
+            <InputText
+              v-model="addressForm.interior"
+              class="w-full"
+              placeholder="Piso 2, Of. 201"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary-700 mb-2">
+              Referencia
+            </label>
+            <InputText
+              v-model="addressForm.reference"
+              class="w-full"
+              placeholder="Frente al parque"
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-secondary-700 mb-2">
+              Departamento
+            </label>
+            <InputText
+              v-model="addressForm.department"
+              class="w-full"
+              placeholder="Lima"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary-700 mb-2">
+              Provincia
+            </label>
+            <InputText
+              v-model="addressForm.province"
+              class="w-full"
+              placeholder="Lima"
+            />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary-700 mb-2">
+              Distrito
+            </label>
+            <InputText
+              v-model="addressForm.district"
+              class="w-full"
+              placeholder="Miraflores"
+            />
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <Checkbox
+            v-model="addressForm.is_default"
+            :binary="true"
+            input-id="is_default"
+          />
+          <label for="is_default" class="text-sm text-secondary-700 cursor-pointer">
+            Establecer como dirección principal
+          </label>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <Button
+            label="Cancelar"
+            severity="secondary"
+            outlined
+            :disabled="isSavingAddress"
+            @click="showAddressDialog = false"
+          />
+          <Button
+            :label="isEditingAddress ? 'Guardar' : 'Agregar'"
+            icon="pi pi-check"
+            :loading="isSavingAddress"
+            @click="saveAddress"
+          />
+        </div>
+      </template>
+    </Dialog>
+
+    <!-- Delete Confirmation Dialog -->
+    <Dialog
+      v-model:visible="showDeleteConfirm"
+      header="Confirmar eliminación"
+      modal
+      :style="{ width: '400px' }"
+      :closable="!isDeletingAddress"
+    >
+      <p class="text-gray-700">
+        ¿Estás seguro de que deseas eliminar esta dirección? Esta acción no se puede deshacer.
+      </p>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <Button
+            label="Cancelar"
+            severity="secondary"
+            outlined
+            :disabled="isDeletingAddress"
+            @click="showDeleteConfirm = false"
+          />
+          <Button
+            label="Eliminar"
+            severity="danger"
+            icon="pi pi-trash"
+            :loading="isDeletingAddress"
+            @click="deleteAddress"
+          />
+        </div>
+      </template>
+    </Dialog>
   </div>
 </template>

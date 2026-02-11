@@ -92,6 +92,11 @@ const totalCustomers = computed(() => customersStore.pagination.total)
           {{ totalCustomers }} {{ totalCustomers === 1 ? 'cliente registrado' : 'clientes registrados' }}
         </p>
       </div>
+      <Button
+        label="Nuevo Cliente"
+        icon="pi pi-plus"
+        @click="router.push({ name: 'CustomerCreate' })"
+      />
     </div>
 
     <!-- Búsqueda y Filtros -->
