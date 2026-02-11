@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useCustomersStore } from '@/stores/customers.store'
 import { useFormatters } from '@/composables/useFormatters'
 import { useToast } from 'primevue/usetoast'
+import { shippingZonesApi } from '@/api/shipping-zones.api'
+import type { UbigeoOption } from '@/types/shipping-zone.types'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Tag from 'primevue/tag'
@@ -12,6 +14,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
+import Dropdown from 'primevue/dropdown'
 import Checkbox from 'primevue/checkbox'
 import type { CustomerAddress, CustomerAddressFormData } from '@/types/customer.types'
 
@@ -22,6 +25,9 @@ const toast = useToast()
 const { formatCurrency, formatDate } = useFormatters()
 
 const customerId = Number(route.params.id)
+
+// Peru codPais constant
+const PERU_COD_PAIS = 1
 
 onMounted(() => {
   customersStore.fetchCustomer(customerId)
@@ -45,6 +51,17 @@ const addressForm = ref<CustomerAddressFormData>({
   is_default: false
 })
 const addressErrors = ref<Record<string, string>>({})
+
+// Ubigeo cascading dropdown state
+const departments = ref<UbigeoOption[]>([])
+const provinces = ref<UbigeoOption[]>([])
+const districts = ref<UbigeoOption[]>([])
+const selectedDepartmentId = ref<number | null>(null)
+const selectedProvinceId = ref<number | null>(null)
+const selectedDistrictId = ref<number | null>(null)
+const loadingDepartments = ref(false)
+const loadingProvinces = ref(false)
+const loadingDistricts = ref(false)
 
 // Delete confirmation
 const showDeleteConfirm = ref(false)
@@ -77,6 +94,111 @@ const formatFullAddress = (addr: any) => {
   return parts.join(' - ')
 }
 
+// Ubigeo helpers
+const getSelectedDepartment = () =>
+  departments.value.find(d => d.id === selectedDepartmentId.value)
+const getSelectedProvince = () =>
+  provinces.value.find(p => p.id === selectedProvinceId.value)
+
+const loadDepartments = async () => {
+  if (departments.value.length > 0) return
+  loadingDepartments.value = true
+  try {
+    departments.value = await shippingZonesApi.getRegions(PERU_COD_PAIS)
+  } finally {
+    loadingDepartments.value = false
+  }
+}
+
+const onDepartmentChange = async () => {
+  selectedProvinceId.value = null
+  selectedDistrictId.value = null
+  provinces.value = []
+  districts.value = []
+  addressForm.value.province = ''
+  addressForm.value.district = ''
+
+  const dept = getSelectedDepartment()
+  if (!dept) return
+  addressForm.value.department = dept.name
+
+  loadingProvinces.value = true
+  try {
+    provinces.value = await shippingZonesApi.getProvinces(PERU_COD_PAIS, dept.codDpto!)
+  } finally {
+    loadingProvinces.value = false
+  }
+}
+
+const onProvinceChange = async () => {
+  selectedDistrictId.value = null
+  districts.value = []
+  addressForm.value.district = ''
+
+  const dept = getSelectedDepartment()
+  const prov = getSelectedProvince()
+  if (!dept || !prov) return
+  addressForm.value.province = prov.name
+
+  loadingDistricts.value = true
+  try {
+    districts.value = await shippingZonesApi.getDistricts(PERU_COD_PAIS, dept.codDpto!, prov.codProv!)
+  } finally {
+    loadingDistricts.value = false
+  }
+}
+
+const onDistrictChange = () => {
+  const dist = districts.value.find(d => d.id === selectedDistrictId.value)
+  if (dist) {
+    addressForm.value.district = dist.name
+  }
+}
+
+// Pre-populate ubigeo dropdowns from stored text (for editing)
+const cascadeUbigeoFromText = async (department: string, province: string, district: string) => {
+  await loadDepartments()
+
+  if (!department) return
+
+  const deptMatch = departments.value.find(
+    d => d.name.toLowerCase() === department.toLowerCase()
+  )
+  if (!deptMatch) return
+  selectedDepartmentId.value = deptMatch.id
+
+  loadingProvinces.value = true
+  try {
+    provinces.value = await shippingZonesApi.getProvinces(PERU_COD_PAIS, deptMatch.codDpto!)
+  } finally {
+    loadingProvinces.value = false
+  }
+
+  if (!province) return
+  const provMatch = provinces.value.find(
+    p => p.name.toLowerCase() === province.toLowerCase()
+  )
+  if (!provMatch) return
+  selectedProvinceId.value = provMatch.id
+
+  loadingDistricts.value = true
+  try {
+    districts.value = await shippingZonesApi.getDistricts(
+      PERU_COD_PAIS, deptMatch.codDpto!, provMatch.codProv!
+    )
+  } finally {
+    loadingDistricts.value = false
+  }
+
+  if (!district) return
+  const distMatch = districts.value.find(
+    d => d.name.toLowerCase() === district.toLowerCase()
+  )
+  if (distMatch) {
+    selectedDistrictId.value = distMatch.id
+  }
+}
+
 // Address management
 const resetAddressForm = () => {
   addressForm.value = {
@@ -92,14 +214,20 @@ const resetAddressForm = () => {
   addressErrors.value = {}
   isEditingAddress.value = false
   editingAddressId.value = null
+  selectedDepartmentId.value = null
+  selectedProvinceId.value = null
+  selectedDistrictId.value = null
+  provinces.value = []
+  districts.value = []
 }
 
-const openAddAddress = () => {
+const openAddAddress = async () => {
   resetAddressForm()
   showAddressDialog.value = true
+  await loadDepartments()
 }
 
-const openEditAddress = (addr: CustomerAddress) => {
+const openEditAddress = async (addr: CustomerAddress) => {
   isEditingAddress.value = true
   editingAddressId.value = addr.id
   addressForm.value = {
@@ -113,7 +241,15 @@ const openEditAddress = (addr: CustomerAddress) => {
     is_default: addr.is_default || false
   }
   addressErrors.value = {}
+  selectedDepartmentId.value = null
+  selectedProvinceId.value = null
+  selectedDistrictId.value = null
+  provinces.value = []
+  districts.value = []
   showAddressDialog.value = true
+
+  // Deduce ubigeo IDs from stored text
+  await cascadeUbigeoFromText(addr.department, addr.province, addr.district)
 }
 
 const validateAddressForm = (): boolean => {
@@ -506,7 +642,7 @@ const setDefaultAddress = async (addressId: number) => {
       v-model:visible="showAddressDialog"
       :header="isEditingAddress ? 'Editar Dirección' : 'Nueva Dirección'"
       modal
-      :style="{ width: '500px' }"
+      :style="{ width: '550px' }"
       :closable="!isSavingAddress"
     >
       <div class="space-y-4">
@@ -548,35 +684,57 @@ const setDefaultAddress = async (addressId: number) => {
           </div>
         </div>
 
-        <div class="grid grid-cols-3 gap-4">
-          <div>
-            <label class="block text-sm font-medium text-secondary-700 mb-2">
-              Departamento
-            </label>
-            <InputText
-              v-model="addressForm.department"
-              class="w-full"
-              placeholder="Lima"
-            />
-          </div>
+        <!-- Ubigeo cascading dropdowns -->
+        <div>
+          <label class="block text-sm font-medium text-secondary-700 mb-2">
+            Departamento
+          </label>
+          <Dropdown
+            v-model="selectedDepartmentId"
+            :options="departments"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="Seleccionar departamento"
+            class="w-full"
+            :loading="loadingDepartments"
+            filter
+            @change="onDepartmentChange"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-secondary-700 mb-2">
               Provincia
             </label>
-            <InputText
-              v-model="addressForm.province"
+            <Dropdown
+              v-model="selectedProvinceId"
+              :options="provinces"
+              optionLabel="name"
+              optionValue="id"
+              placeholder="Seleccionar provincia"
               class="w-full"
-              placeholder="Lima"
+              :loading="loadingProvinces"
+              :disabled="!selectedDepartmentId"
+              filter
+              @change="onProvinceChange"
             />
           </div>
           <div>
             <label class="block text-sm font-medium text-secondary-700 mb-2">
               Distrito
             </label>
-            <InputText
-              v-model="addressForm.district"
+            <Dropdown
+              v-model="selectedDistrictId"
+              :options="districts"
+              optionLabel="name"
+              optionValue="id"
+              placeholder="Seleccionar distrito"
               class="w-full"
-              placeholder="Miraflores"
+              :loading="loadingDistricts"
+              :disabled="!selectedProvinceId"
+              filter
+              @change="onDistrictChange"
             />
           </div>
         </div>
