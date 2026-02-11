@@ -1,6 +1,15 @@
 import apiClient from './axios'
 import type { ApiResponse } from '@/types/api.types'
-import type { LoginCredentials, LoginResponse, User, Store } from '@/types/auth.types'
+import type {
+  LoginCredentials,
+  LoginResponse,
+  User,
+  Store,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
+  ValidateTokenRequest,
+  ValidateTokenResponse
+} from '@/types/auth.types'
 
 export const authApi = {
   // Login con email y password
@@ -62,6 +71,24 @@ export const authApi = {
   // Seleccionar tienda activa - devuelve un nuevo token con permisos de tienda
   async selectStore(storeId: number): Promise<ApiResponse<{ access_token: string; expires_in: number; store_id: number }>> {
     const response = await apiClient.post('/user/store/select', { store_id: storeId })
+    return response.data
+  },
+
+  // Solicitar restablecimiento de contraseña
+  async forgotPassword(data: ForgotPasswordRequest): Promise<ApiResponse<void>> {
+    const response = await apiClient.post('/auth/forgot-password', data)
+    return response.data
+  },
+
+  // Validar token de restablecimiento
+  async validateResetToken(data: ValidateTokenRequest): Promise<ApiResponse<ValidateTokenResponse>> {
+    const response = await apiClient.post('/auth/validate-reset-token', data)
+    return response.data
+  },
+
+  // Restablecer contraseña con token
+  async resetPassword(data: ResetPasswordRequest): Promise<ApiResponse<void>> {
+    const response = await apiClient.post('/auth/reset-password', data)
     return response.data
   }
 }

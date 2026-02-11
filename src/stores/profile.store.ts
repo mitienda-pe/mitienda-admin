@@ -4,7 +4,6 @@ import { profileApi } from '@/api/profile.api'
 import type {
   UserProfile,
   UpdateProfileRequest,
-  ChangePasswordRequest,
   DocumentValidationRequest,
   DocumentValidationResponse,
   SocialProvider
@@ -85,29 +84,6 @@ export const useProfileStore = defineStore('profile', () => {
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Error de conexión al actualizar el perfil'
       console.error('Error updating profile:', err)
-      return { success: false, error: error.value }
-    } finally {
-      isSaving.value = false
-    }
-  }
-
-  async function changePassword(data: ChangePasswordRequest) {
-    isSaving.value = true
-    error.value = null
-    successMessage.value = null
-
-    try {
-      const result = await profileApi.changePassword(data)
-      if (result.success) {
-        successMessage.value = result.message || 'Contraseña actualizada correctamente'
-        return { success: true }
-      } else {
-        error.value = result.message || 'Error al cambiar la contraseña'
-        return { success: false, error: error.value }
-      }
-    } catch (err: any) {
-      error.value = err.response?.data?.message || 'Error de conexión al cambiar la contraseña'
-      console.error('Error changing password:', err)
       return { success: false, error: error.value }
     } finally {
       isSaving.value = false
@@ -224,7 +200,6 @@ export const useProfileStore = defineStore('profile', () => {
     clearDocumentValidation,
     fetchProfile,
     updateProfile,
-    changePassword,
     validateDocument,
     linkSocialAccount,
     unlinkSocialAccount,

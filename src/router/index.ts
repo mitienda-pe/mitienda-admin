@@ -42,6 +42,30 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/forgot-password',
+    component: AuthLayout,
+    children: [
+      {
+        path: '',
+        name: 'ForgotPassword',
+        component: () => import('@/views/auth/ForgotPasswordView.vue'),
+        meta: { requiresAuth: false }
+      }
+    ]
+  },
+  {
+    path: '/reset-password',
+    component: AuthLayout,
+    children: [
+      {
+        path: '',
+        name: 'ResetPassword',
+        component: () => import('@/views/auth/ResetPasswordView.vue'),
+        meta: { requiresAuth: false }
+      }
+    ]
+  },
+  {
     path: '/dashboard',
     component: DashboardLayout,
     meta: { requiresAuth: true, requiresStore: true },

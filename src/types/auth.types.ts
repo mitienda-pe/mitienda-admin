@@ -40,3 +40,23 @@ export interface AuthState {
   refreshToken: string | null
   isAuthenticated: boolean
 }
+
+// Password reset types
+export interface ForgotPasswordRequest {
+  email: string
+}
+
+export interface ResetPasswordRequest {
+  token: string
+  password: string
+  password_confirmation: string
+}
+
+export interface ValidateTokenRequest {
+  token: string
+}
+
+export interface ValidateTokenResponse {
+  valid: boolean
+  message?: string
+}

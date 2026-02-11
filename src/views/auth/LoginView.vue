@@ -97,9 +97,11 @@
       </Button>
     </div>
 
-    <!-- Enlace para olvidé contraseña (futuro) -->
+    <!-- Enlace para olvidé contraseña -->
     <div class="mt-6 text-center">
-      <a href="#" class="text-sm text-primary hover:underline">¿Olvidaste tu contraseña?</a>
+      <router-link to="/forgot-password" class="text-sm text-primary hover:underline">
+        ¿Olvidaste tu contraseña?
+      </router-link>
     </div>
   </div>
 </template>

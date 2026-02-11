@@ -3,7 +3,6 @@ import type { ApiResponse } from '@/types/api.types'
 import type {
   UserProfile,
   UpdateProfileRequest,
-  ChangePasswordRequest,
   DocumentValidationRequest,
   DocumentValidationResponse,
   SocialAccount,
@@ -95,26 +94,6 @@ export const profileApi = {
     }
 
     const response = await apiClient.put('/user/profile', payload)
-    return response.data
-  },
-
-  // Cambiar contraseña
-  async changePassword(data: ChangePasswordRequest): Promise<ApiResponse> {
-    if (USE_MOCKS) {
-      await new Promise(resolve => setTimeout(resolve, 500))
-      if (data.currentPassword === 'wrongpassword') {
-        return { success: false, message: 'Contraseña actual incorrecta' }
-      }
-      return { success: true, message: 'Contraseña actualizada correctamente' }
-    }
-
-    const payload = {
-      current_password: data.currentPassword,
-      new_password: data.newPassword,
-      new_password_confirmation: data.confirmPassword
-    }
-
-    const response = await apiClient.post('/user/password/change', payload)
     return response.data
   },
 

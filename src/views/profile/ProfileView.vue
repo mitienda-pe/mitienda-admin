@@ -194,70 +194,22 @@
           </div>
         </template>
         <template #content>
-          <form @submit.prevent="handleChangePassword" class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <!-- Contraseña actual -->
-              <div>
-                <label for="currentPassword" class="block text-sm font-medium text-secondary-700 mb-2">
-                  Contraseña actual
-                </label>
-                <Password
-                  id="currentPassword"
-                  v-model="passwordForm.currentPassword"
-                  :feedback="false"
-                  toggleMask
-                  class="w-full"
-                  inputClass="w-full"
-                  placeholder="********"
-                />
-              </div>
+          <p class="text-secondary-500 mb-4">
+            Por seguridad, el cambio de contraseña se realiza mediante un enlace enviado a tu correo electrónico.
+          </p>
 
-              <!-- Nueva contraseña -->
-              <div>
-                <label for="newPassword" class="block text-sm font-medium text-secondary-700 mb-2">
-                  Nueva contraseña
-                </label>
-                <Password
-                  id="newPassword"
-                  v-model="passwordForm.newPassword"
-                  :feedback="true"
-                  toggleMask
-                  class="w-full"
-                  inputClass="w-full"
-                  placeholder="********"
-                />
-              </div>
+          <Message v-if="passwordEmailSent" severity="success" :closable="true" @close="passwordEmailSent = false" class="mb-4">
+            Hemos enviado un enlace a tu correo electrónico para cambiar tu contraseña.
+          </Message>
 
-              <!-- Confirmar contraseña -->
-              <div>
-                <label for="confirmPassword" class="block text-sm font-medium text-secondary-700 mb-2">
-                  Confirmar contraseña
-                </label>
-                <Password
-                  id="confirmPassword"
-                  v-model="passwordForm.confirmPassword"
-                  :feedback="false"
-                  toggleMask
-                  class="w-full"
-                  inputClass="w-full"
-                  placeholder="********"
-                />
-              </div>
-            </div>
-
-            <small v-if="passwordError" class="text-red-500">{{ passwordError }}</small>
-
-            <div class="flex justify-end pt-4">
-              <Button
-                type="submit"
-                label="Cambiar contraseña"
-                icon="pi pi-key"
-                severity="warning"
-                :loading="profileStore.isSaving"
-                :disabled="!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword"
-              />
-            </div>
-          </form>
+          <Button
+            label="Enviar enlace de cambio de contraseña"
+            icon="pi pi-envelope"
+            severity="warning"
+            :loading="isSendingPasswordEmail"
+            :disabled="!profileStore.profile?.email"
+            @click="handleRequestPasswordChange"
+          />
         </template>
       </Card>
 
@@ -348,11 +300,11 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { useProfileStore } from '@/stores/profile.store'
+import { authApi } from '@/api/auth.api'
 import type { DocumentType } from '@/types/profile.types'
 
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
-import Password from 'primevue/password'
 import Button from 'primevue/button'
 import Dropdown from 'primevue/dropdown'
 import Message from 'primevue/message'
@@ -375,13 +327,8 @@ const documentForm = ref({
   documentNumber: ''
 })
 
-const passwordForm = ref({
-  currentPassword: '',
-  newPassword: '',
-  confirmPassword: ''
-})
-
-const passwordError = ref('')
+const isSendingPasswordEmail = ref(false)
+const passwordEmailSent = ref(false)
 
 // Options
 const documentTypes = [
@@ -453,39 +400,30 @@ async function handleSaveDocument() {
   }
 }
 
-async function handleChangePassword() {
-  passwordError.value = ''
+async function handleRequestPasswordChange() {
+  const email = profileStore.profile?.email
+  if (!email) return
 
-  // Validaciones
-  if (passwordForm.value.newPassword.length < 8) {
-    passwordError.value = 'La contraseña debe tener al menos 8 caracteres'
-    return
-  }
+  isSendingPasswordEmail.value = true
 
-  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-    passwordError.value = 'Las contraseñas no coinciden'
-    return
-  }
-
-  const result = await profileStore.changePassword({
-    currentPassword: passwordForm.value.currentPassword,
-    newPassword: passwordForm.value.newPassword,
-    confirmPassword: passwordForm.value.confirmPassword
-  })
-
-  if (result.success) {
-    // Limpiar formulario
-    passwordForm.value = {
-      currentPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    }
+  try {
+    await authApi.forgotPassword({ email })
+    passwordEmailSent.value = true
     toast.add({
       severity: 'success',
-      summary: 'Contraseña actualizada',
-      detail: 'Tu contraseña ha sido cambiada exitosamente',
-      life: 3000
+      summary: 'Enlace enviado',
+      detail: 'Revisa tu correo electrónico para cambiar tu contraseña',
+      life: 5000
     })
+  } catch {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'No se pudo enviar el enlace. Intenta de nuevo.',
+      life: 5000
+    })
+  } finally {
+    isSendingPasswordEmail.value = false
   }
 }
 
