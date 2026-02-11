@@ -150,6 +150,12 @@
                 <div class="flex items-center gap-3">
                   <i class="pi pi-chart-line"></i>
                   <span>Ventas</span>
+                  <span
+                    v-if="badgeCountsStore.totalSalesCount > 0 && !salesExpanded"
+                    class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full"
+                  >
+                    {{ badgeCountsStore.totalSalesCount > 99 ? '99+' : badgeCountsStore.totalSalesCount }}
+                  </span>
                 </div>
                 <i :class="salesExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
               </button>
@@ -159,11 +165,19 @@
                 <li v-for="item in salesMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    class="flex items-center justify-between px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
                     active-class="bg-primary-50 text-primary font-medium"
                   >
-                    <i :class="item.icon"></i>
-                    <span>{{ item.label }}</span>
+                    <div class="flex items-center gap-3">
+                      <i :class="item.icon"></i>
+                      <span>{{ item.label }}</span>
+                    </div>
+                    <span
+                      v-if="salesBadgeMap[item.to] > 0"
+                      class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full"
+                    >
+                      {{ salesBadgeMap[item.to] > 99 ? '99+' : salesBadgeMap[item.to] }}
+                    </span>
                   </router-link>
                 </li>
               </ul>
@@ -549,6 +563,12 @@
                 <div class="flex items-center gap-3">
                   <i class="pi pi-chart-line"></i>
                   <span>Ventas</span>
+                  <span
+                    v-if="badgeCountsStore.totalSalesCount > 0 && !salesExpanded"
+                    class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full"
+                  >
+                    {{ badgeCountsStore.totalSalesCount > 99 ? '99+' : badgeCountsStore.totalSalesCount }}
+                  </span>
                 </div>
                 <i :class="salesExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
               </button>
@@ -558,12 +578,20 @@
                 <li v-for="item in salesMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    class="flex items-center justify-between px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
                     active-class="bg-primary-50 text-primary font-medium"
                     @click="sidebarVisible = false"
                   >
-                    <i :class="item.icon"></i>
-                    <span>{{ item.label }}</span>
+                    <div class="flex items-center gap-3">
+                      <i :class="item.icon"></i>
+                      <span>{{ item.label }}</span>
+                    </div>
+                    <span
+                      v-if="salesBadgeMap[item.to] > 0"
+                      class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full"
+                    >
+                      {{ salesBadgeMap[item.to] > 99 ? '99+' : salesBadgeMap[item.to] }}
+                    </span>
                   </router-link>
                 </li>
               </ul>
@@ -891,10 +919,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAdminStore } from '@/stores/admin.store'
+import { useBadgeCountsStore } from '@/stores/badge-counts.store'
 import Button from 'primevue/button'
 import Sidebar from 'primevue/sidebar'
 import Menu from 'primevue/menu'
@@ -904,6 +933,15 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const adminStore = useAdminStore()
+const badgeCountsStore = useBadgeCountsStore()
+
+onMounted(() => {
+  badgeCountsStore.startPolling()
+})
+
+onUnmounted(() => {
+  badgeCountsStore.stopPolling()
+})
 
 const exitingImpersonation = ref(false)
 
@@ -1022,6 +1060,14 @@ const salesMenuItems = [
   { label: 'Reclamaciones', icon: 'pi pi-book', to: '/complaints' },
   { label: 'Carritos Abandonados', icon: 'pi pi-shopping-bag', to: '/marketing/abandoned-carts' }
 ]
+
+// Badge count mapping for sales menu items
+const salesBadgeMap = computed<Record<string, number>>(() => ({
+  '/orders': badgeCountsStore.ordersCount,
+  '/reviews': badgeCountsStore.reviewsCount,
+  '/complaints': badgeCountsStore.complaintsCount,
+  '/marketing/abandoned-carts': badgeCountsStore.abandonedCartsCount
+}))
 
 // Items del grupo Reportes
 const reportsMenuItems = [
