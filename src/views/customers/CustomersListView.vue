@@ -14,7 +14,7 @@ import type { Customer } from '@/types/customer.types'
 
 const router = useRouter()
 const customersStore = useCustomersStore()
-const { formatCurrency, formatDate } = useFormatters()
+const { formatDate } = useFormatters()
 
 const searchQuery = ref('')
 let searchTimeout: NodeJS.Timeout | null = null
@@ -66,7 +66,6 @@ const onSort = (event: DataTableSortEvent) => {
     document_number: 'document_number',
     phone: 'phone',
     total_orders: 'total_orders',
-    total_spent: 'total_spent',
     last_order_date: 'last_order_date'
   }
   // sortField can be string or function, we only use string
@@ -217,14 +216,6 @@ const totalCustomers = computed(() => customersStore.pagination.total)
         <Column field="total_orders" header="Pedidos" sortable style="width: 100px">
           <template #body="{ data }">
             <span class="font-semibold text-gray-900">{{ data.total_orders || 0 }}</span>
-          </template>
-        </Column>
-
-        <Column field="total_spent" header="Total Gastado" sortable style="width: 140px">
-          <template #body="{ data }">
-            <span class="font-semibold text-gray-900">
-              {{ data.total_spent ? formatCurrency(data.total_spent) : '-' }}
-            </span>
           </template>
         </Column>
 
