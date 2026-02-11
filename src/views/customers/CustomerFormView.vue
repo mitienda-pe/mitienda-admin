@@ -98,7 +98,7 @@ const lookupDocument = async () => {
 
     if (result) {
       formData.value.first_name = result.first_name
-      formData.value.last_name = result.last_name
+      if (result.last_name) formData.value.last_name = result.last_name
       toast.add({
         severity: 'success',
         summary: 'Encontrado',
@@ -331,7 +331,7 @@ onMounted(() => {
         </h2>
         <form @submit.prevent="saveCustomer" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div :class="{ 'md:col-span-2': isRuc }">
+            <div>
               <label class="block text-sm font-medium text-secondary-700 mb-2">
                 {{ isRuc ? 'Razón Social' : 'Nombres' }} <span class="text-red-500">*</span>
               </label>
@@ -345,15 +345,16 @@ onMounted(() => {
                 {{ errors.first_name }}
               </small>
             </div>
-            <div v-if="!isRuc">
+            <div>
               <label class="block text-sm font-medium text-secondary-700 mb-2">
-                Apellidos <span class="text-red-500">*</span>
+                {{ isRuc ? 'Nombre de Contacto' : 'Apellidos' }}
+                <span v-if="!isRuc" class="text-red-500">*</span>
               </label>
               <InputText
                 v-model="formData.last_name"
                 class="w-full"
                 :class="{ 'p-invalid': errors.last_name }"
-                placeholder="Pérez García"
+                :placeholder="isRuc ? 'Juan Pérez (opcional)' : 'Pérez García'"
               />
               <small v-if="errors.last_name" class="text-red-500">
                 {{ errors.last_name }}
