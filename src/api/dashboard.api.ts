@@ -121,6 +121,17 @@ export const dashboardApi = {
     })
 
     const response = await apiClient.get(`/util/dashboard-analytics?${params.toString()}`)
-    return response.data
+    const result = response.data
+
+    // Normalize: backend may still return cancellation_rate (pre-migration)
+    if (result?.success && result?.data?.scorecards) {
+      const sc = result.data.scorecards
+      if (sc.cancellation_rate && !sc.rejection_rate) {
+        sc.rejection_rate = sc.cancellation_rate
+        delete sc.cancellation_rate
+      }
+    }
+
+    return result
   }
 }

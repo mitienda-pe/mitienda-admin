@@ -88,9 +88,9 @@
         icon-color="info"
       />
       <MetricsCard
-        title="Tasa Cancelación"
-        :value="`${scorecards.cancellation_rate.value}%`"
-        :change="buildChange(scorecards.cancellation_rate, true)"
+        title="Tasa Rechazo"
+        :value="`${scorecards.rejection_rate?.value ?? 0}%`"
+        :change="buildChange(scorecards.rejection_rate, true)"
         icon="pi-times-circle"
         icon-color="danger"
       />
@@ -112,10 +112,10 @@ const props = defineProps<Props>()
 const { formatCurrency } = useFormatters()
 
 function buildChange(
-  scorecard: Scorecard,
+  scorecard: Scorecard | undefined,
   invertPositive = false
 ): { value: number; percentage: number; isPositive: boolean } | undefined {
-  if (!props.showComparison || scorecard.previous === undefined) return undefined
+  if (!scorecard || !props.showComparison || scorecard.previous === undefined) return undefined
 
   const diff = scorecard.value - scorecard.previous
   const pct =

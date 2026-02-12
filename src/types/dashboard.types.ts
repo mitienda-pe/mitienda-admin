@@ -73,7 +73,7 @@ export interface Scorecards {
   new_customers: Scorecard
   returning_customers: Scorecard
   returning_pct: Scorecard
-  cancellation_rate: Scorecard
+  rejection_rate: Scorecard
   avg_items_per_order: Scorecard
   orders_with_discount_pct: Scorecard
 }
