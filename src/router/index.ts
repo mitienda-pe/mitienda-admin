@@ -598,6 +598,26 @@ const routes: RouteRecordRaw[] = [
         path: 'config',
         name: 'store-config',
         component: () => import('@/views/store/StoreConfigView.vue')
+      },
+      {
+        path: 'seo',
+        name: 'store-seo',
+        component: () => import('@/views/store/StoreSeoView.vue')
+      },
+      {
+        path: 'facebook',
+        name: 'store-facebook',
+        component: () => import('@/views/store/StoreFacebookView.vue')
+      },
+      {
+        path: 'tiktok',
+        name: 'store-tiktok',
+        component: () => import('@/views/store/StoreTiktokView.vue')
+      },
+      {
+        path: 'domain',
+        name: 'store-domain',
+        component: () => import('@/views/store/StoreDomainView.vue')
       }
     ]
   },

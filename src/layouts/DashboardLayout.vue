@@ -1037,7 +1037,11 @@ const simpleMenuItems = [
 const storeMenuItems = [
   { label: 'Información', icon: 'pi pi-info-circle', to: '/store/info' },
   { label: 'Direcciones', icon: 'pi pi-map-marker', to: '/store/addresses' },
-  { label: 'Configuración', icon: 'pi pi-cog', to: '/store/config' }
+  { label: 'Configuración', icon: 'pi pi-cog', to: '/store/config' },
+  { label: 'Dominio propio', icon: 'pi pi-link', to: '/store/domain' },
+  { label: 'Google y SEO', icon: 'pi pi-globe', to: '/store/seo' },
+  { label: 'Facebook', icon: 'pi pi-facebook', to: '/store/facebook' },
+  { label: 'TikTok', icon: 'pi pi-video', to: '/store/tiktok' }
 ]
 
 // Items del grupo Contenido
