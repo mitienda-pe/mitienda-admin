@@ -928,15 +928,18 @@ import Button from 'primevue/button'
 import Sidebar from 'primevue/sidebar'
 import Menu from 'primevue/menu'
 import ImpersonationBanner from '@/components/admin/ImpersonationBanner.vue'
+import { useOneSignal } from '@/composables/useOneSignal'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const adminStore = useAdminStore()
 const badgeCountsStore = useBadgeCountsStore()
+const { initOneSignal } = useOneSignal()
 
 onMounted(() => {
   badgeCountsStore.startPolling()
+  initOneSignal({ autoPrompt: true })
 })
 
 onUnmounted(() => {

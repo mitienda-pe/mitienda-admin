@@ -238,76 +238,29 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useNotificationsStore } from '@/stores/notifications.store'
+import { useOneSignal } from '@/composables/useOneSignal'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 
-declare global {
-  interface Window {
-    OneSignalDeferred?: Array<(OneSignal: any) => void | Promise<void>>
-  }
-}
-
-const ONESIGNAL_APP_ID = import.meta.env.VITE_ONESIGNAL_APP_ID as string
-
 const store = useNotificationsStore()
+const {
+  isSubscribed,
+  pushSupported,
+  pushPermission,
+  subscribing,
+  promptSubscribe,
+  unsubscribe
+} = useOneSignal()
 
 // Email form
 const emailForm = ref('')
 
-// Push state
-const pushSupported = ref(true)
-const pushPermission = ref<NotificationPermission>('default')
-const isSubscribed = ref(false)
-const subscribing = ref(false)
-const currentPlayerId = ref<string | null>(null)
-
 onMounted(async () => {
   await store.fetchNotifications()
-
-  // Initialize OneSignal
-  await initOneSignal()
 })
-
-async function initOneSignal() {
-  if (!('Notification' in window) || !('serviceWorker' in navigator)) {
-    pushSupported.value = false
-    return
-  }
-
-  if (!ONESIGNAL_APP_ID) {
-    pushSupported.value = false
-    return
-  }
-
-  pushPermission.value = Notification.permission
-
-  // Load OneSignal SDK if not already loaded
-  if (!window.OneSignalDeferred) {
-    window.OneSignalDeferred = []
-    const script = document.createElement('script')
-    script.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js'
-    script.defer = true
-    document.head.appendChild(script)
-  }
-
-  window.OneSignalDeferred.push(async function (OneSignal: any) {
-    await OneSignal.init({ appId: ONESIGNAL_APP_ID })
-
-    // Check current subscription state
-    const subscription = OneSignal.User?.PushSubscription
-    if (subscription?.id) {
-      currentPlayerId.value = subscription.id
-      const status = await store.checkOneSignalStatus(subscription.id)
-      isSubscribed.value = status.subscribed
-    }
-
-    // Update permission state after init
-    pushPermission.value = Notification.permission
-  })
-}
 
 async function handleAddEmail() {
   const email = emailForm.value.trim()
@@ -336,49 +289,14 @@ async function handleRemoveEmail(id: number) {
 }
 
 async function handleSubscribe() {
-  subscribing.value = true
-
-  try {
-    window.OneSignalDeferred?.push(async function (OneSignal: any) {
-      try {
-        await OneSignal.Slidedown.promptPush()
-
-        // Wait a moment for subscription to register
-        await new Promise(resolve => setTimeout(resolve, 1000))
-
-        const playerId = OneSignal.User?.PushSubscription?.id
-        if (playerId) {
-          const browser = detectBrowser()
-          await store.subscribeOneSignal(playerId, browser)
-          currentPlayerId.value = playerId
-          isSubscribed.value = true
-        }
-      } catch (err) {
-        console.error('OneSignal subscribe error:', err)
-      } finally {
-        subscribing.value = false
-      }
-    })
-  } catch {
-    subscribing.value = false
-  }
+  await promptSubscribe()
+  // Refresh store to update subscriptions list
+  await store.fetchNotifications()
 }
 
 async function handleUnsubscribe() {
-  if (!currentPlayerId.value) return
-  const result = await store.unsubscribeOneSignal(currentPlayerId.value)
-  if (result?.success) {
-    isSubscribed.value = false
-  }
-}
-
-function detectBrowser(): string {
-  const ua = navigator.userAgent
-  if (ua.includes('Edg')) return 'Edge'
-  if (ua.includes('OPR') || ua.includes('Opera')) return 'Opera'
-  if (ua.includes('Chrome')) return 'Chrome'
-  if (ua.includes('Firefox')) return 'Firefox'
-  if (ua.includes('Safari')) return 'Safari'
-  return 'Otro'
+  await unsubscribe()
+  // Refresh store to update subscriptions list
+  await store.fetchNotifications()
 }
 </script>
