@@ -378,6 +378,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/appearance/FontPresetsView.vue')
       },
       {
+        path: 'product-card',
+        name: 'appearance-product-card',
+        component: () => import('@/views/appearance/ProductCardView.vue')
+      },
+      {
         path: 'menu',
         name: 'appearance-menu',
         component: () => import('@/views/appearance/MenuView.vue')

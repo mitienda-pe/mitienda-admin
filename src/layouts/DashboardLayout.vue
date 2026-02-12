@@ -109,36 +109,6 @@
               </router-link>
             </li>
 
-            <!-- Grupo Tu Tienda -->
-            <li>
-              <button
-                @click="storeExpanded = !storeExpanded"
-                :aria-expanded="storeExpanded"
-                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
-                :class="{ 'bg-primary-50 text-primary font-medium': isStoreActive }"
-              >
-                <div class="flex items-center gap-3">
-                  <i class="pi pi-shop"></i>
-                  <span>Tu Tienda</span>
-                </div>
-                <i :class="storeExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
-              </button>
-
-              <!-- Submenú -->
-              <ul v-show="storeExpanded" class="ml-4 mt-1 space-y-1">
-                <li v-for="item in storeMenuItems" :key="item.to">
-                  <router-link
-                    :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
-                  >
-                    <i :class="item.icon"></i>
-                    <span>{{ item.label }}</span>
-                  </router-link>
-                </li>
-              </ul>
-            </li>
-
             <!-- Grupo Ventas -->
             <li>
               <button
@@ -363,36 +333,6 @@
               </ul>
             </li>
 
-            <!-- Grupo Configuración -->
-            <li>
-              <button
-                @click="paymentGatewaysExpanded = !paymentGatewaysExpanded"
-                :aria-expanded="paymentGatewaysExpanded"
-                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
-                :class="{ 'bg-primary-50 text-primary font-medium': isPaymentGatewaysActive }"
-              >
-                <div class="flex items-center gap-3">
-                  <i class="pi pi-cog"></i>
-                  <span>Configuración</span>
-                </div>
-                <i :class="paymentGatewaysExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
-              </button>
-
-              <!-- Submenú -->
-              <ul v-show="paymentGatewaysExpanded" class="ml-4 mt-1 space-y-1">
-                <li v-for="item in paymentGatewaysMenuItems" :key="item.to">
-                  <router-link
-                    :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
-                  >
-                    <i :class="item.icon"></i>
-                    <span>{{ item.label }}</span>
-                  </router-link>
-                </li>
-              </ul>
-            </li>
-
             <!-- Grupo Reparto -->
             <li>
               <button
@@ -411,6 +351,36 @@
               <!-- Submenú -->
               <ul v-show="shippingExpanded" class="ml-4 mt-1 space-y-1">
                 <li v-for="item in shippingMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Grupo Tu Tienda -->
+            <li>
+              <button
+                @click="storeExpanded = !storeExpanded"
+                :aria-expanded="storeExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isStoreActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-shop"></i>
+                  <span>Tu Tienda</span>
+                </div>
+                <i :class="storeExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="storeExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in storeMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
                     class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
@@ -519,37 +489,6 @@
                 <i :class="item.icon"></i>
                 <span>{{ item.label }}</span>
               </router-link>
-            </li>
-
-            <!-- Grupo Tu Tienda -->
-            <li>
-              <button
-                @click="storeExpanded = !storeExpanded"
-                :aria-expanded="storeExpanded"
-                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
-                :class="{ 'bg-primary-50 text-primary font-medium': isStoreActive }"
-              >
-                <div class="flex items-center gap-3">
-                  <i class="pi pi-shop"></i>
-                  <span>Tu Tienda</span>
-                </div>
-                <i :class="storeExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
-              </button>
-
-              <!-- Submenú -->
-              <ul v-show="storeExpanded" class="ml-4 mt-1 space-y-1">
-                <li v-for="item in storeMenuItems" :key="item.to">
-                  <router-link
-                    :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
-                    @click="sidebarVisible = false"
-                  >
-                    <i :class="item.icon"></i>
-                    <span>{{ item.label }}</span>
-                  </router-link>
-                </li>
-              </ul>
             </li>
 
             <!-- Grupo Ventas -->
@@ -783,37 +722,6 @@
               </ul>
             </li>
 
-            <!-- Grupo Configuración (móvil) -->
-            <li>
-              <button
-                @click="paymentGatewaysExpanded = !paymentGatewaysExpanded"
-                :aria-expanded="paymentGatewaysExpanded"
-                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
-                :class="{ 'bg-primary-50 text-primary font-medium': isPaymentGatewaysActive }"
-              >
-                <div class="flex items-center gap-3">
-                  <i class="pi pi-cog"></i>
-                  <span>Configuración</span>
-                </div>
-                <i :class="paymentGatewaysExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
-              </button>
-
-              <!-- Submenú -->
-              <ul v-show="paymentGatewaysExpanded" class="ml-4 mt-1 space-y-1">
-                <li v-for="item in paymentGatewaysMenuItems" :key="item.to">
-                  <router-link
-                    :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
-                    @click="sidebarVisible = false"
-                  >
-                    <i :class="item.icon"></i>
-                    <span>{{ item.label }}</span>
-                  </router-link>
-                </li>
-              </ul>
-            </li>
-
             <!-- Grupo Reparto (móvil) -->
             <li>
               <button
@@ -832,6 +740,37 @@
               <!-- Submenú -->
               <ul v-show="shippingExpanded" class="ml-4 mt-1 space-y-1">
                 <li v-for="item in shippingMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                    @click="sidebarVisible = false"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Grupo Tu Tienda (móvil) -->
+            <li>
+              <button
+                @click="storeExpanded = !storeExpanded"
+                :aria-expanded="storeExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isStoreActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-shop"></i>
+                  <span>Tu Tienda</span>
+                </div>
+                <i :class="storeExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="storeExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in storeMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
                     class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
@@ -957,7 +896,6 @@ const reportsExpandedRef = ref(false)
 const catalogExpandedRef = ref(false)
 const marketingExpandedRef = ref(false)
 const billingExpandedRef = ref(false)
-const paymentGatewaysExpandedRef = ref(false)
 const apiExpandedRef = ref(false)
 const configExpandedRef = ref(false)
 const contentExpandedRef = ref(false)
@@ -991,10 +929,6 @@ const billingExpanded = computed({
   set: (val) => { billingExpandedRef.value = val }
 })
 
-const paymentGatewaysExpanded = computed({
-  get: () => paymentGatewaysExpandedRef.value || route.path.startsWith('/payment-gateways'),
-  set: (val) => { paymentGatewaysExpandedRef.value = val }
-})
 
 const apiExpanded = computed({
   get: () => apiExpandedRef.value || route.path.startsWith('/api'),
@@ -1022,15 +956,14 @@ const shippingExpanded = computed({
 })
 
 const storeExpanded = computed({
-  get: () => storeExpandedRef.value || route.path.startsWith('/store'),
+  get: () => storeExpandedRef.value || route.path.startsWith('/store') || route.path.startsWith('/notifications') || route.path.startsWith('/payment-gateways'),
   set: (val) => { storeExpandedRef.value = val }
 })
 
 // Items simples del menú
 const simpleMenuItems = [
   { label: 'Dashboard', icon: 'pi pi-home', to: '/dashboard' },
-  { label: 'Clientes', icon: 'pi pi-users', to: '/customers' },
-  { label: 'Notificaciones', icon: 'pi pi-bell', to: '/notifications' }
+  { label: 'Clientes', icon: 'pi pi-users', to: '/customers' }
 ]
 
 // Items del grupo Tu Tienda
@@ -1041,7 +974,9 @@ const storeMenuItems = [
   { label: 'Dominio propio', icon: 'pi pi-link', to: '/store/domain' },
   { label: 'Google y SEO', icon: 'pi pi-globe', to: '/store/seo' },
   { label: 'Facebook', icon: 'pi pi-facebook', to: '/store/facebook' },
-  { label: 'TikTok', icon: 'pi pi-video', to: '/store/tiktok' }
+  { label: 'TikTok', icon: 'pi pi-video', to: '/store/tiktok' },
+  { label: 'Notificaciones', icon: 'pi pi-bell', to: '/notifications' },
+  { label: 'Formas de Pago', icon: 'pi pi-credit-card', to: '/payment-gateways' }
 ]
 
 // Items del grupo Contenido
@@ -1058,6 +993,7 @@ const appearanceMenuItems = [
   { label: 'Configuración', icon: 'pi pi-cog', to: '/appearance/config' },
   { label: 'Colores', icon: 'pi pi-palette', to: '/appearance/colors' },
   { label: 'Tipografía', icon: 'pi pi-language', to: '/appearance/typography' },
+  { label: 'Viñeta de Producto', icon: 'pi pi-th-large', to: '/appearance/product-card' },
   { label: 'Menú', icon: 'pi pi-bars', to: '/appearance/menu' }
 ]
 
@@ -1118,11 +1054,6 @@ const shippingMenuItems = [
   { label: 'Proveedores', icon: 'pi pi-truck', to: '/shipping/couriers' }
 ]
 
-// Items del grupo Formas de Pago
-const paymentGatewaysMenuItems = [
-  { label: 'Formas de Pago', icon: 'pi pi-credit-card', to: '/payment-gateways' }
-]
-
 // Items del grupo API
 const apiMenuItems = [
   { label: 'Credenciales', icon: 'pi pi-key', to: '/api/credentials' },
@@ -1138,7 +1069,7 @@ const configMenuItems = [
 
 // Detectar si estamos en alguna ruta de Tu Tienda
 const isStoreActive = computed(() => {
-  return route.path.startsWith('/store')
+  return route.path.startsWith('/store') || route.path.startsWith('/notifications') || route.path.startsWith('/payment-gateways')
 })
 
 // Detectar si estamos en alguna ruta de reparto
@@ -1179,11 +1110,6 @@ const isMarketingActive = computed(() => {
 // Detectar si estamos en alguna ruta de facturación
 const isBillingActive = computed(() => {
   return route.path.startsWith('/billing')
-})
-
-// Detectar si estamos en alguna ruta de formas de pago
-const isPaymentGatewaysActive = computed(() => {
-  return route.path.startsWith('/payment-gateways')
 })
 
 // Detectar si estamos en alguna ruta de API
