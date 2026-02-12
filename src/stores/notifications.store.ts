@@ -15,7 +15,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
   const successMessage = ref<string | null>(null)
 
   // Getters
-  const emailNotification = computed(() => data.value?.email || null)
+  const emailNotifications = computed(() => data.value?.emails || [])
   const onesignalSubscriptions = computed(() => data.value?.onesignal || [])
 
   // Actions
@@ -43,7 +43,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
     }
   }
 
-  async function saveEmail(email: string) {
+  async function addEmail(email: string) {
     isSaving.value = true
     error.value = null
     successMessage.value = null
@@ -52,35 +52,35 @@ export const useNotificationsStore = defineStore('notifications', () => {
       const result = await notificationsApi.saveEmail({ email })
       if (result.success && result.data) {
         if (data.value) {
-          data.value.email = result.data
+          data.value.emails = [...data.value.emails, result.data]
         }
-        successMessage.value = result.message || 'Email actualizado correctamente'
+        successMessage.value = result.message || 'Email agregado correctamente'
         return { success: true }
       } else {
-        error.value = result.message || 'Error al guardar el email'
+        error.value = result.message || 'Error al agregar el email'
         return { success: false }
       }
     } catch (err: any) {
       error.value =
-        err.response?.data?.message || 'Error de conexión al guardar el email'
-      console.error('Error saving email:', err)
+        err.response?.data?.message || 'Error de conexión al agregar el email'
+      console.error('Error adding email:', err)
       return { success: false }
     } finally {
       isSaving.value = false
     }
   }
 
-  async function deleteEmail() {
-    if (!data.value?.email) return { success: false }
-
+  async function removeEmail(id: number) {
     isSaving.value = true
     error.value = null
     successMessage.value = null
 
     try {
-      const result = await notificationsApi.deleteNotification(data.value.email.id)
+      const result = await notificationsApi.deleteNotification(id)
       if (result.success) {
-        if (data.value) data.value.email = null
+        if (data.value) {
+          data.value.emails = data.value.emails.filter(e => e.id !== id)
+        }
         successMessage.value = 'Email eliminado correctamente'
         return { success: true }
       } else {
@@ -90,7 +90,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
     } catch (err: any) {
       error.value =
         err.response?.data?.message || 'Error de conexión al eliminar el email'
-      console.error('Error deleting email:', err)
+      console.error('Error removing email:', err)
       return { success: false }
     } finally {
       isSaving.value = false
@@ -189,14 +189,14 @@ export const useNotificationsStore = defineStore('notifications', () => {
     successMessage,
 
     // Getters
-    emailNotification,
+    emailNotifications,
     onesignalSubscriptions,
 
     // Actions
     clearMessages,
     fetchNotifications,
-    saveEmail,
-    deleteEmail,
+    addEmail,
+    removeEmail,
     subscribeOneSignal,
     unsubscribeOneSignal,
     checkOneSignalStatus

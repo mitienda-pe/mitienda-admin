@@ -42,49 +42,51 @@
         </template>
         <template #content>
           <p class="text-secondary-500 mb-4">
-            Ingresa el correo electrónico donde quieres recibir avisos cuando llegue un nuevo
+            Ingresa los correos electrónicos donde quieres recibir avisos cuando llegue un nuevo
             pedido.
           </p>
-          <form @submit.prevent="handleSaveEmail" class="space-y-4">
-            <div>
-              <label for="notifEmail" class="block text-sm font-medium text-secondary-700 mb-2">
-                Correo electrónico
-              </label>
-              <div class="flex gap-3">
-                <InputText
-                  id="notifEmail"
-                  v-model="emailForm"
-                  type="email"
-                  class="flex-1"
-                  placeholder="ventas@tutienda.com"
-                  :disabled="store.isSaving"
-                />
-                <Button
-                  type="submit"
-                  label="Guardar"
-                  icon="pi pi-check"
-                  :loading="store.isSaving"
-                  :disabled="!emailForm.trim()"
-                />
-              </div>
-            </div>
-            <div
-              v-if="store.emailNotification"
-              class="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg"
+
+          <!-- Email pills -->
+          <div
+            v-if="store.emailNotifications.length > 0"
+            class="flex flex-wrap gap-2 mb-4"
+          >
+            <span
+              v-for="item in store.emailNotifications"
+              :key="item.id"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-full text-sm"
             >
-              <div class="flex items-center gap-2">
-                <i class="pi pi-check-circle text-green-600"></i>
-                <span class="text-green-700">{{ store.emailNotification.email }}</span>
-              </div>
-              <Button
-                icon="pi pi-trash"
-                severity="danger"
-                text
-                size="small"
-                @click="handleDeleteEmail"
-                :loading="store.isSaving"
-              />
-            </div>
+              <i class="pi pi-envelope text-xs"></i>
+              {{ item.email }}
+              <button
+                type="button"
+                class="ml-1 hover:text-red-600 transition-colors"
+                :disabled="store.isSaving"
+                @click="handleRemoveEmail(item.id)"
+              >
+                <i class="pi pi-times text-xs"></i>
+              </button>
+            </span>
+          </div>
+
+          <!-- Add email form -->
+          <form @submit.prevent="handleAddEmail" class="flex gap-3">
+            <InputText
+              id="notifEmail"
+              v-model="emailForm"
+              type="email"
+              class="flex-1"
+              placeholder="ventas@tutienda.com"
+              :disabled="store.isSaving"
+              @keydown.enter.prevent="handleAddEmail"
+            />
+            <Button
+              type="submit"
+              label="Agregar"
+              icon="pi pi-plus"
+              :loading="store.isSaving"
+              :disabled="!emailForm.trim()"
+            />
           </form>
         </template>
       </Card>
@@ -265,11 +267,6 @@ const currentPlayerId = ref<string | null>(null)
 onMounted(async () => {
   await store.fetchNotifications()
 
-  // Pre-fill email form if exists
-  if (store.emailNotification) {
-    emailForm.value = store.emailNotification.email
-  }
-
   // Initialize OneSignal
   await initOneSignal()
 })
@@ -312,17 +309,30 @@ async function initOneSignal() {
   })
 }
 
-async function handleSaveEmail() {
-  if (!emailForm.value.trim()) return
-  const result = await store.saveEmail(emailForm.value.trim())
-  if (result?.success && store.emailNotification) {
-    emailForm.value = store.emailNotification.email
+async function handleAddEmail() {
+  const email = emailForm.value.trim()
+  if (!email) return
+
+  // Basic validation
+  if (!email.includes('@')) {
+    store.error = 'Ingresa un correo electrónico válido'
+    return
+  }
+
+  // Check if already in list
+  if (store.emailNotifications.some(e => e.email === email)) {
+    store.error = 'Este correo ya está registrado'
+    return
+  }
+
+  const result = await store.addEmail(email)
+  if (result?.success) {
+    emailForm.value = ''
   }
 }
 
-async function handleDeleteEmail() {
-  await store.deleteEmail()
-  emailForm.value = ''
+async function handleRemoveEmail(id: number) {
+  await store.removeEmail(id)
 }
 
 async function handleSubscribe() {

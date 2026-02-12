@@ -12,7 +12,7 @@ export interface OneSignalSubscription {
 }
 
 export interface NotificationsData {
-  email: EmailNotification | null
+  emails: EmailNotification[]
   onesignal: OneSignalSubscription[]
 }
 
