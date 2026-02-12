@@ -1026,7 +1026,8 @@ const storeExpanded = computed({
 // Items simples del menú
 const simpleMenuItems = [
   { label: 'Dashboard', icon: 'pi pi-home', to: '/dashboard' },
-  { label: 'Clientes', icon: 'pi pi-users', to: '/customers' }
+  { label: 'Clientes', icon: 'pi pi-users', to: '/customers' },
+  { label: 'Notificaciones', icon: 'pi pi-bell', to: '/notifications' }
 ]
 
 // Items del grupo Tu Tienda

@@ -619,6 +619,18 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/notifications',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: '',
+        name: 'Notifications',
+        component: () => import('@/views/notifications/NotificationsView.vue')
+      }
+    ]
+  },
+  {
     path: '/api',
     component: DashboardLayout,
     meta: { requiresAuth: true, requiresStore: true },
