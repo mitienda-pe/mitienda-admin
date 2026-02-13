@@ -467,6 +467,55 @@ const setDefaultAddress = async (addressId: number) => {
             </div>
           </template>
         </Card>
+
+        <!-- Lista de Deseos -->
+        <Card>
+          <template #title>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-heart text-primary"></i>
+              Lista de Deseos
+              <span v-if="customer.wishlist?.length" class="text-sm font-normal text-gray-500">
+                ({{ customer.wishlist.length }})
+              </span>
+            </div>
+          </template>
+          <template #content>
+            <div v-if="customer.wishlist && customer.wishlist.length > 0">
+              <DataTable :value="customer.wishlist" striped-rows>
+                <Column header="Producto" style="min-width: 280px">
+                  <template #body="slotProps">
+                    <div class="flex items-center gap-3">
+                      <img
+                        v-if="slotProps.data.product_image"
+                        :src="slotProps.data.product_image"
+                        :alt="slotProps.data.product_name"
+                        class="w-10 h-10 rounded object-cover"
+                      />
+                      <div v-else class="w-10 h-10 rounded bg-gray-100 flex items-center justify-center">
+                        <i class="pi pi-image text-gray-400"></i>
+                      </div>
+                      <span class="font-medium text-gray-900">{{ slotProps.data.product_name }}</span>
+                    </div>
+                  </template>
+                </Column>
+                <Column field="product_price" header="Precio">
+                  <template #body="slotProps">
+                    {{ formatCurrency(slotProps.data.product_price) }}
+                  </template>
+                </Column>
+                <Column field="added_at" header="Fecha agregado">
+                  <template #body="slotProps">
+                    {{ formatDate(slotProps.data.added_at) }}
+                  </template>
+                </Column>
+              </DataTable>
+            </div>
+            <div v-else class="text-center py-8">
+              <i class="pi pi-heart text-4xl text-gray-300 mb-2"></i>
+              <p class="text-gray-500">Este cliente no tiene productos en su lista de deseos</p>
+            </div>
+          </template>
+        </Card>
       </div>
 
       <!-- Sidebar: Información del Cliente -->

@@ -32,10 +32,21 @@ export interface CustomerAddress {
   is_default: boolean
 }
 
+export interface CustomerWishlistItem {
+  id: number
+  product_id: number
+  product_name: string
+  product_price: number
+  product_slug: string
+  product_image?: string
+  added_at: string
+}
+
 export interface CustomerDetail extends Customer {
   recent_orders?: Order[]
   orders?: Order[]  // Alias para compatibilidad
   addresses?: CustomerAddress[]
+  wishlist?: CustomerWishlistItem[]
   stats?: {
     total_orders: number
     total_spent: number
