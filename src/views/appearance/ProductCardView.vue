@@ -7,12 +7,14 @@ import CardStyleSelector from '@/components/appearance/CardStyleSelector.vue'
 import BorderRadiusSelector from '@/components/appearance/BorderRadiusSelector.vue'
 import HoverEffectSelector from '@/components/appearance/HoverEffectSelector.vue'
 import ButtonTypeSelector from '@/components/appearance/ButtonTypeSelector.vue'
+import ImageDisplaySelector from '@/components/appearance/ImageDisplaySelector.vue'
 import ProductCardPreview from '@/components/appearance/ProductCardPreview.vue'
 import type {
   CardStyle,
   BorderRadius,
   HoverEffect,
-  ButtonType
+  ButtonType,
+  ImageDisplay
 } from '@/types/product-card.types'
 
 const toast = useToast()
@@ -139,32 +141,19 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Image Hover Swap -->
+        <!-- Image Display & Content -->
         <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
             <h2 class="text-base font-semibold text-gray-800">Contenido</h2>
             <p class="text-xs text-gray-500 mt-0.5">
-              Opciones de contenido adicional en la tarjeta
+              Imágenes múltiples y atributos en la tarjeta
             </p>
           </div>
           <div class="p-6">
-            <label class="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                :checked="store.draftConfig.image_hover_swap"
-                class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
-                @change="store.updateField('image_hover_swap', !store.draftConfig.image_hover_swap)"
-              />
-              <div>
-                <span class="text-sm font-medium text-gray-700">
-                  Cambiar imagen al pasar el cursor
-                </span>
-                <p class="text-xs text-gray-400 mt-0.5">
-                  Muestra la segunda imagen del producto al pasar el cursor.
-                  Solo aplica a productos con más de una imagen.
-                </p>
-              </div>
-            </label>
+            <ImageDisplaySelector
+              :modelValue="store.draftConfig.image_display"
+              @update:modelValue="store.updateField('image_display', $event as ImageDisplay)"
+            />
           </div>
         </div>
 

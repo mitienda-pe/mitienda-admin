@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { ProductCardConfig } from '@/types/product-card.types'
 
 interface Props {
@@ -7,6 +7,27 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
+const previewImages = [
+  'https://picsum.photos/seed/mitienda-preview/400/400',
+  'https://picsum.photos/seed/mitienda-preview2/400/400',
+  'https://picsum.photos/seed/mitienda-preview3/400/400'
+]
+
+const currentImageIndex = ref(0)
+
+function nextImage() {
+  currentImageIndex.value = (currentImageIndex.value + 1) % previewImages.length
+}
+
+function prevImage() {
+  currentImageIndex.value =
+    (currentImageIndex.value - 1 + previewImages.length) % previewImages.length
+}
+
+function goToImage(index: number) {
+  currentImageIndex.value = index
+}
 
 const cardClasses = computed(() => {
   const classes: string[] = ['pc-preview']
@@ -40,8 +61,8 @@ const cardClasses = computed(() => {
     classes.push(hoverMap[props.config.hover_effect])
   }
 
-  // Image hover swap
-  if (props.config.image_hover_swap) {
+  // Image display mode
+  if (props.config.image_display === 'hover-swap') {
     classes.push('pc-hover-swap')
   }
 
@@ -68,19 +89,75 @@ const buttonLabel = computed(() => {
     <div :class="cardClasses">
       <!-- Image -->
       <div class="pc-image-wrapper">
-        <img
-          src="https://picsum.photos/seed/mitienda-preview/400/400"
-          alt="Producto de ejemplo"
-          class="pc-img pc-img-default"
-        />
-        <img
-          v-if="config.image_hover_swap"
-          src="https://picsum.photos/seed/mitienda-preview2/400/400"
-          alt="Producto de ejemplo (hover)"
-          class="pc-img pc-img-hover"
-        />
+        <!-- Default / hover-swap -->
+        <template v-if="config.image_display === 'none' || config.image_display === 'hover-swap'">
+          <img
+            :src="previewImages[0]"
+            alt="Producto de ejemplo"
+            class="pc-img pc-img-default"
+          />
+          <img
+            v-if="config.image_display === 'hover-swap'"
+            :src="previewImages[1]"
+            alt="Producto de ejemplo (hover)"
+            class="pc-img pc-img-hover"
+          />
+        </template>
+
+        <!-- Carousel -->
+        <template v-else-if="config.image_display === 'carousel'">
+          <img
+            v-for="(src, i) in previewImages"
+            :key="i"
+            :src="src"
+            alt="Producto de ejemplo"
+            class="pc-img pc-carousel-img"
+            :class="{ 'pc-carousel-active': i === currentImageIndex }"
+          />
+          <button class="pc-carousel-nav pc-carousel-prev" @click.stop="prevImage">
+            ‹
+          </button>
+          <button class="pc-carousel-nav pc-carousel-next" @click.stop="nextImage">
+            ›
+          </button>
+          <div class="pc-carousel-dots">
+            <span
+              v-for="(_, i) in previewImages"
+              :key="i"
+              class="pc-carousel-dot"
+              :class="{ 'pc-carousel-dot-active': i === currentImageIndex }"
+              @click.stop="goToImage(i)"
+            />
+          </div>
+        </template>
+
+        <!-- Thumbnails -->
+        <template v-else-if="config.image_display === 'thumbnails'">
+          <img
+            :src="previewImages[currentImageIndex]"
+            alt="Producto de ejemplo"
+            class="pc-img pc-img-default"
+          />
+        </template>
+
         <!-- Discount badge -->
         <span class="pc-badge">-20%</span>
+      </div>
+
+      <!-- Thumbnails strip -->
+      <div
+        v-if="config.image_display === 'thumbnails'"
+        class="pc-thumbnails"
+      >
+        <div
+          v-for="(src, i) in previewImages"
+          :key="i"
+          class="pc-thumb"
+          :class="{ 'pc-thumb-active': i === currentImageIndex }"
+          @click.stop="goToImage(i)"
+        >
+          <img :src="src" alt="" />
+        </div>
       </div>
 
       <!-- Info -->
@@ -463,5 +540,97 @@ const buttonLabel = computed(() => {
   background: #eee;
   min-width: 0;
   outline: none;
+}
+
+/* ── Carousel ── */
+.pc-carousel-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.pc-carousel-img.pc-carousel-active {
+  opacity: 1;
+  position: relative;
+}
+
+.pc-carousel-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  color: #333;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  line-height: 1;
+}
+.pc-carousel-nav:hover {
+  background: #fff;
+}
+.pc-carousel-prev { left: 6px; }
+.pc-carousel-next { right: 6px; }
+
+.pc-carousel-dots {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  z-index: 10;
+}
+.pc-carousel-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.pc-carousel-dot-active {
+  background: #fff;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Thumbnails ── */
+.pc-thumbnails {
+  display: flex;
+  gap: 4px;
+  padding: 6px 8px;
+}
+.pc-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+  flex-shrink: 0;
+}
+.pc-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.pc-thumb-active {
+  border-color: #00b2a6;
+}
+.pc-thumb:hover:not(.pc-thumb-active) {
+  border-color: #ccc;
 }
 </style>

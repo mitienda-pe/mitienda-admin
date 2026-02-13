@@ -17,12 +17,14 @@ export type BorderRadius = 0 | 4 | 8 | 12
 
 export type ButtonType = 0 | 1 | 2 | 3 | 4
 
+export type ImageDisplay = 'none' | 'hover-swap' | 'carousel' | 'thumbnails'
+
 export interface ProductCardConfig {
   card_style: CardStyle
   border_radius: BorderRadius
   hover_effect: HoverEffect
   button_type: ButtonType
-  image_hover_swap: boolean
+  image_display: ImageDisplay
 }
 
 export const DEFAULT_PRODUCT_CARD_CONFIG: ProductCardConfig = {
@@ -30,7 +32,7 @@ export const DEFAULT_PRODUCT_CARD_CONFIG: ProductCardConfig = {
   border_radius: 12,
   hover_effect: 'translate-y',
   button_type: 0,
-  image_hover_swap: false
+  image_display: 'none'
 }
 
 export interface CardStyleOption {
@@ -123,6 +125,40 @@ export const BORDER_RADIUS_OPTIONS: BorderRadiusOption[] = [
   { value: 4, label: 'Sutil (4px)' },
   { value: 8, label: 'Moderado (8px)' },
   { value: 12, label: 'Redondeado (12px)' }
+]
+
+export interface ImageDisplayOption {
+  value: ImageDisplay
+  label: string
+  description: string
+  icon: string
+}
+
+export const IMAGE_DISPLAY_OPTIONS: ImageDisplayOption[] = [
+  {
+    value: 'none',
+    label: 'Sin efecto',
+    description: 'Solo muestra la imagen principal',
+    icon: 'pi pi-image'
+  },
+  {
+    value: 'hover-swap',
+    label: 'Cambiar en hover',
+    description: 'Muestra la 2da imagen al pasar el cursor',
+    icon: 'pi pi-replay'
+  },
+  {
+    value: 'carousel',
+    label: 'Carrusel',
+    description: 'Navega entre imágenes con flechas',
+    icon: 'pi pi-chevron-circle-right'
+  },
+  {
+    value: 'thumbnails',
+    label: 'Miniaturas',
+    description: 'Muestra miniaturas debajo de la imagen',
+    icon: 'pi pi-th-large'
+  }
 ]
 
 export const BUTTON_TYPE_OPTIONS: ButtonTypeOption[] = [
