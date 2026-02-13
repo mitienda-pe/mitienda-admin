@@ -11,9 +11,12 @@ interface Props {
   preferences: CatalogPreferences
   isSaving: boolean
   hasChanges: boolean
+  showCartIcon?: boolean
 }
 
-defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  showCartIcon: true,
+})
 
 const emit = defineEmits<{
   'update:field': [field: keyof CatalogPreferences, value: number]
@@ -133,10 +136,10 @@ const emit = defineEmits<{
     </div>
 
     <!-- Divider -->
-    <hr class="border-gray-100" />
+    <hr v-if="props.showCartIcon" class="border-gray-100" />
 
     <!-- Cart Icon -->
-    <div>
+    <div v-if="props.showCartIcon">
       <label class="block text-sm font-medium text-gray-700 mb-1">
         Icono del carrito
       </label>

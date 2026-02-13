@@ -268,6 +268,11 @@ const routes: RouteRecordRaw[] = [
         path: 'product-lists/:id/edit',
         name: 'product-list-edit',
         component: () => import('@/views/catalog/ProductListFormView.vue')
+      },
+      {
+        path: 'config',
+        name: 'catalog-config',
+        component: () => import('@/views/catalog/CatalogConfigView.vue')
       }
     ]
   },
