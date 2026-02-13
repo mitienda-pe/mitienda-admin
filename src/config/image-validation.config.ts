@@ -80,6 +80,24 @@ export const IMAGE_VALIDATION_RULES: Record<string, ImageValidationRules> = {
     maxFileSize: 2 * 1024 * 1024, // 2MB
     allowedFormats: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
     aspectRatio: 1 // Square
+  },
+
+  // Carousel desktop images (16:9 or 21:9, enforced by cropper)
+  carouselDesktop: {
+    minWidth: 1920,
+    minHeight: 823,
+    maxFileSize: 10 * 1024 * 1024, // 10MB
+    allowedFormats: ['image/jpeg', 'image/png', 'image/webp'],
+    aspectRatio: null // Enforced by cropper per selected preset
+  },
+
+  // Carousel mobile images (4:5 or 1:1, enforced by cropper)
+  carouselMobile: {
+    minWidth: 1080,
+    minHeight: 1080,
+    maxFileSize: 10 * 1024 * 1024, // 10MB
+    allowedFormats: ['image/jpeg', 'image/png', 'image/webp'],
+    aspectRatio: null // Enforced by cropper per selected preset
   }
 }
 

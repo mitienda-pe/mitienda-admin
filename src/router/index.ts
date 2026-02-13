@@ -336,6 +336,11 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, requiresStore: true },
     children: [
       {
+        path: 'carousel',
+        name: 'content-carousel',
+        component: () => import('@/views/content/CarouselView.vue')
+      },
+      {
         path: 'images',
         name: 'image-gallery',
         component: () => import('@/views/content/ImageGalleryView.vue')
