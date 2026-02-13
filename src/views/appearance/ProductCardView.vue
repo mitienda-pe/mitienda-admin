@@ -187,7 +187,7 @@ onMounted(() => {
           <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
             <h2 class="text-base font-semibold text-gray-800">Vista previa</h2>
           </div>
-          <div class="p-6 bg-gray-50/50">
+          <div class="p-6 bg-gray-200/60">
             <ProductCardPreview :config="store.draftConfig" />
           </div>
         </div>

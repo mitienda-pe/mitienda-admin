@@ -3,7 +3,6 @@ export type CardStyle =
   | 'bordered'
   | 'border-image'
   | 'transparent-info'
-  | 'shadow-image'
 
 export type HoverEffect =
   | 'translate-y'
@@ -15,7 +14,7 @@ export type HoverEffect =
 
 export type BorderRadius = 0 | 4 | 8 | 12
 
-export type ButtonType = 0 | 1 | 2 | 3 | 4
+export type ButtonType = 0 | 1 | 2 | 4
 
 export type ImageDisplay = 'none' | 'hover-swap' | 'carousel' | 'thumbnails'
 
@@ -73,17 +72,12 @@ export const CARD_STYLE_OPTIONS: CardStyleOption[] = [
   {
     value: 'border-image',
     label: 'Borde en foto',
-    description: 'Borde solo en la imagen'
+    description: 'Borde en la imagen con esquinas redondeadas'
   },
   {
     value: 'transparent-info',
-    label: 'Info transparente',
-    description: 'Fondo transparente, sombra en foto'
-  },
-  {
-    value: 'shadow-image',
     label: 'Sombra en foto',
-    description: 'Sombra solo en la imagen'
+    description: 'Sombra en foto, info transparente, esquinas redondeadas'
   }
 ]
 
@@ -176,20 +170,14 @@ export const BUTTON_TYPE_OPTIONS: ButtonTypeOption[] = [
   },
   {
     value: 2,
-    label: 'Cantidad',
-    description: 'Selector de cantidad + agregar',
-    icon: 'pi pi-sort-numeric-up'
-  },
-  {
-    value: 3,
-    label: 'Sumar',
-    description: 'Botón "+" para agregar rápido',
-    icon: 'pi pi-plus-circle'
+    label: 'Agregar al carrito',
+    description: 'Botón que se convierte en stepper al agregar',
+    icon: 'pi pi-shopping-cart'
   },
   {
     value: 4,
-    label: 'Agregar al carrito',
-    description: 'Botón completo de agregar al carrito',
-    icon: 'pi pi-shopping-cart'
+    label: 'Comprar ahora',
+    description: 'Lleva directo al carrito de compras',
+    icon: 'pi pi-bolt'
   }
 ]

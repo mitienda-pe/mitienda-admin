@@ -37,8 +37,7 @@ const cardClasses = computed(() => {
     const styleMap: Record<string, string> = {
       bordered: 'pc-bordered',
       'border-image': 'pc-border-image',
-      'transparent-info': 'pc-transparent-info',
-      'shadow-image': 'pc-shadow-image'
+      'transparent-info': 'pc-transparent-info'
     }
     if (styleMap[props.config.card_style]) {
       classes.push(styleMap[props.config.card_style])
@@ -73,9 +72,8 @@ const buttonLabel = computed(() => {
   const labels: Record<number, string> = {
     0: '',
     1: 'Ver más',
-    2: '',
-    3: '+',
-    4: 'Agregar al carrito'
+    2: 'Agregar al carrito',
+    4: 'Comprar ahora'
   }
   return labels[props.config.button_type] ?? ''
 })
@@ -177,29 +175,20 @@ const buttonLabel = computed(() => {
           {{ buttonLabel }}
         </button>
 
-        <!-- Button type 2: Quantity -->
-        <div
-          v-else-if="config.button_type === 2"
-          class="pc-quantity"
-        >
-          <button class="pc-qty-btn">−</button>
-          <input type="text" value="1" readonly class="pc-qty-input" />
-          <button class="pc-qty-btn">+</button>
-        </div>
-
-        <!-- Button type 3: Quick add (+) -->
+        <!-- Button type 2: Agregar al carrito (becomes stepper after adding) -->
         <button
-          v-else-if="config.button_type === 3"
-          class="pc-btn pc-btn-primary pc-btn-icon"
+          v-else-if="config.button_type === 2"
+          class="pc-btn pc-btn-primary"
         >
-          <i class="pi pi-plus" />
+          {{ buttonLabel }}
         </button>
 
-        <!-- Button type 4: Add to cart -->
+        <!-- Button type 4: Comprar ahora -->
         <button
           v-else-if="config.button_type === 4"
           class="pc-btn pc-btn-primary"
         >
+          <i class="pi pi-bolt" style="margin-right: 4px; font-size: 12px" />
           {{ buttonLabel }}
         </button>
       </div>
@@ -244,6 +233,7 @@ const buttonLabel = computed(() => {
 }
 .pc-border-image .pc-image-wrapper {
   border: 2px solid #bbb;
+  border-radius: inherit;
 }
 .pc-border-image:hover {
   box-shadow: none;
@@ -255,25 +245,12 @@ const buttonLabel = computed(() => {
 }
 .pc-transparent-info .pc-image-wrapper {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border-radius: inherit;
 }
 .pc-transparent-info:hover {
   box-shadow: none;
 }
 .pc-transparent-info:hover .pc-image-wrapper {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.pc-shadow-image {
-  background: transparent;
-  box-shadow: none;
-}
-.pc-shadow-image .pc-image-wrapper {
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-.pc-shadow-image:hover {
-  box-shadow: none;
-}
-.pc-shadow-image:hover .pc-image-wrapper {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 

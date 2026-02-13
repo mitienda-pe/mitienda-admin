@@ -22,8 +22,6 @@ function previewClasses(style: CardStyle): string {
       return 'bg-transparent rounded-lg'
     case 'transparent-info':
       return 'bg-transparent rounded-lg'
-    case 'shadow-image':
-      return 'bg-transparent rounded-lg'
     default:
       return 'bg-white shadow-sm rounded-lg'
   }
@@ -33,10 +31,9 @@ function previewImageClasses(style: CardStyle): string {
   const base = 'bg-gray-100'
   switch (style) {
     case 'border-image':
-      return `${base} border border-gray-300`
+      return `${base} border border-gray-300 rounded`
     case 'transparent-info':
-    case 'shadow-image':
-      return `${base} shadow-sm`
+      return `${base} shadow-sm rounded`
     default:
       return base
   }
@@ -51,7 +48,7 @@ function previewImageClasses(style: CardStyle): string {
     <p class="text-xs text-gray-400 mb-3">
       Define la apariencia general de la tarjeta de producto
     </p>
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
       <button
         v-for="option in CARD_STYLE_OPTIONS"
         :key="option.value"

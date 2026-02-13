@@ -21,7 +21,7 @@ const emit = defineEmits<{
     <p class="text-xs text-gray-400 mb-3">
       Botón de acción que aparece en la tarjeta de producto
     </p>
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
       <button
         v-for="option in BUTTON_TYPE_OPTIONS"
         :key="option.value"
