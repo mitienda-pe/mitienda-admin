@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import InputSwitch from 'primevue/inputswitch'
 import { AppButton } from '@/components/ui'
 import {
   DESKTOP_COLUMN_OPTIONS,
   MOBILE_COLUMN_OPTIONS,
   CART_ICON_OPTIONS,
+  PRODUCT_ORDER_OPTIONS,
 } from '@/types/appearance.types'
 import type { CatalogPreferences } from '@/types/appearance.types'
 
@@ -12,16 +15,25 @@ interface Props {
   isSaving: boolean
   hasChanges: boolean
   showCartIcon?: boolean
+  showProductOrder?: boolean
+  showHideOutOfStock?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   showCartIcon: true,
+  showProductOrder: true,
+  showHideOutOfStock: true,
 })
 
 const emit = defineEmits<{
   'update:field': [field: keyof CatalogPreferences, value: number]
   save: []
 }>()
+
+const hideOutOfStockBool = computed({
+  get: () => props.preferences.hide_out_of_stock === 1,
+  set: (val: boolean) => emit('update:field', 'hide_out_of_stock', val ? 1 : 0),
+})
 </script>
 
 <template>
@@ -210,6 +222,87 @@ const emit = defineEmits<{
             class="pi pi-check-circle absolute top-2 right-2 text-primary text-sm"
           />
         </button>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <hr v-if="props.showProductOrder" class="border-gray-100" />
+
+    <!-- Product Order -->
+    <div v-if="props.showProductOrder">
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Orden de los productos
+      </label>
+      <p class="text-xs text-gray-400 mb-3">
+        Define el orden por defecto de los productos en tu catalogo
+      </p>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <button
+          v-for="option in PRODUCT_ORDER_OPTIONS"
+          :key="option.value"
+          type="button"
+          class="relative p-4 border-2 rounded-lg text-center transition-all cursor-pointer"
+          :class="
+            preferences.product_order === option.value
+              ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+              : 'border-gray-200 bg-white hover:border-gray-300'
+          "
+          @click="emit('update:field', 'product_order', option.value)"
+        >
+          <i
+            :class="option.icon"
+            class="text-xl mb-2 block"
+            :style="{
+              color:
+                preferences.product_order === option.value ? '#00b2a6' : '#6B7280',
+            }"
+          />
+          <div
+            class="text-sm font-medium"
+            :class="
+              preferences.product_order === option.value
+                ? 'text-primary'
+                : 'text-gray-600'
+            "
+          >
+            {{ option.label }}
+          </div>
+          <p class="text-xs text-gray-400 mt-1">{{ option.description }}</p>
+          <i
+            v-if="preferences.product_order === option.value"
+            class="pi pi-check-circle absolute top-2 right-2 text-primary text-sm"
+          />
+        </button>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <hr v-if="props.showHideOutOfStock" class="border-gray-100" />
+
+    <!-- Hide Out-of-Stock -->
+    <div v-if="props.showHideOutOfStock">
+      <div class="flex items-center justify-between">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">
+            Ocultar productos agotados
+          </label>
+          <p class="text-xs text-gray-400 mt-0.5">
+            Los productos sin stock no se mostraran en el catalogo
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span
+            class="text-xs font-medium px-2 py-0.5 rounded-full"
+            :class="
+              hideOutOfStockBool
+                ? 'bg-green-100 text-green-700'
+                : 'bg-amber-100 text-amber-700'
+            "
+          >
+            {{ hideOutOfStockBool ? 'Ocultos' : 'Visibles' }}
+          </span>
+          <InputSwitch v-model="hideOutOfStockBool" />
+        </div>
       </div>
     </div>
 

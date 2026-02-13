@@ -213,6 +213,8 @@ onMounted(() => {
             :preferences="store.draftCatalog"
             :isSaving="store.isCatalogSaving"
             :hasChanges="store.hasCatalogChanges"
+            :showProductOrder="false"
+            :showHideOutOfStock="false"
             @update:field="onCatalogFieldUpdate"
             @save="onSaveCatalog"
           />

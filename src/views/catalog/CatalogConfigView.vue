@@ -50,7 +50,7 @@ onMounted(() => {
       <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
         <h2 class="text-base font-semibold text-gray-800">Catálogo</h2>
         <p class="text-xs text-gray-500 mt-0.5">
-          Cantidad de columnas en la grilla de productos
+          Columnas, orden de productos y visibilidad
         </p>
       </div>
 

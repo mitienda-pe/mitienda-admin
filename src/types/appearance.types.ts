@@ -211,12 +211,16 @@ export interface CatalogPreferences {
   desktop_columns: number
   mobile_columns: number
   cart_icon: number
+  product_order: number
+  hide_out_of_stock: number
 }
 
 export const DEFAULT_CATALOG_PREFERENCES: CatalogPreferences = {
   desktop_columns: 4,
   mobile_columns: 2,
   cart_icon: 0,
+  product_order: 1,
+  hide_out_of_stock: 1,
 }
 
 export interface CatalogOption {
@@ -245,4 +249,51 @@ export const CART_ICON_OPTIONS: CartIconOption[] = [
   { value: 0, label: 'Carrito', icon: 'pi pi-shopping-cart' },
   { value: 1, label: 'Canasta', icon: 'basket' },
   { value: 2, label: 'Bolsa', icon: 'pi pi-shopping-bag' },
+]
+
+export interface ProductOrderOption {
+  value: number
+  label: string
+  description: string
+  icon: string
+}
+
+export const PRODUCT_ORDER_OPTIONS: ProductOrderOption[] = [
+  { value: 1, label: 'Alfabetico', description: 'Nombre A-Z', icon: 'pi pi-sort-alpha-down' },
+  {
+    value: 5,
+    label: 'Categoria y Subcategoria',
+    description: 'Agrupados por categoria',
+    icon: 'pi pi-sitemap',
+  },
+  {
+    value: 4,
+    label: 'Mas nuevo',
+    description: 'Mas recientes primero',
+    icon: 'pi pi-calendar',
+  },
+  {
+    value: 6,
+    label: 'Orden manual',
+    description: 'Orden personalizado',
+    icon: 'pi pi-arrows-v',
+  },
+  {
+    value: 2,
+    label: 'Precio menor',
+    description: 'De menor a mayor',
+    icon: 'pi pi-sort-amount-up',
+  },
+  {
+    value: 3,
+    label: 'Precio mayor',
+    description: 'De mayor a menor',
+    icon: 'pi pi-sort-amount-down',
+  },
+  {
+    value: 7,
+    label: 'Marcas y Gammas',
+    description: 'Agrupados por marca y gama',
+    icon: 'pi pi-tags',
+  },
 ]
