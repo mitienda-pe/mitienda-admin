@@ -64,6 +64,15 @@ export const IMAGE_VALIDATION_RULES: Record<string, ImageValidationRules> = {
     aspectRatio: null
   },
 
+  // OpenGraph image (social sharing)
+  ogImage: {
+    minWidth: 1200,
+    minHeight: 630,
+    maxFileSize: 5 * 1024 * 1024, // 5MB
+    allowedFormats: ['image/jpeg', 'image/png', 'image/webp'],
+    aspectRatio: null // Recommended 1.91:1 but not forced
+  },
+
   // Store favicon
   favicon: {
     minWidth: 32,
