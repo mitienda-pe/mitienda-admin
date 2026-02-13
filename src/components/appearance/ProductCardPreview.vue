@@ -275,6 +275,12 @@ const buttonLabel = computed(() => {
 .pc-radius-12 .pc-btn,
 .pc-radius-12 .pc-quantity { border-radius: 8px; }
 
+/* Styles with all 4 rounded corners on image (must come after radius rules) */
+.pc-border-image .pc-image-wrapper,
+.pc-transparent-info .pc-image-wrapper {
+  border-radius: inherit;
+}
+
 /* ── Hover Effects ── */
 .pc-hover-translate:hover {
   transform: translateY(-3px);
