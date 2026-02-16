@@ -354,6 +354,16 @@ const routes: RouteRecordRaw[] = [
         path: 'messages',
         name: 'content-messages',
         component: () => import('@/views/content/MessagesView.vue')
+      },
+      {
+        path: 'components',
+        name: 'content-components',
+        component: () => import('@/views/content/ComponentsListView.vue')
+      },
+      {
+        path: 'components/:id/edit',
+        name: 'component-edit',
+        component: () => import('@/views/content/ComponentEditView.vue')
       }
     ]
   },
