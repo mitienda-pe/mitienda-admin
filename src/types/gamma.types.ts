@@ -3,6 +3,9 @@ export interface Gamma {
   tienda_id: number
   tiendamarca_id: number
   tiendagamma_nombre: string
+  square_r2_url?: string
+  cover_r2_url?: string
+  og_r2_url?: string
   tiendagamma_descripcion?: string
   tiendagamma_swpublicado: number
   tiendagamma_orden: number

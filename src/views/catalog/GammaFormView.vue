@@ -117,6 +117,71 @@
         </div>
       </form>
     </div>
+
+    <!-- Imágenes (solo en modo edición) -->
+    <div v-if="isEditMode && !isLoading && currentGamma" class="bg-white rounded-lg shadow p-6 mt-6">
+      <h3 class="text-lg font-semibold text-secondary mb-4">
+        <i class="pi pi-images mr-2"></i>Imágenes
+      </h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div v-for="img in imageConfigs" :key="img.type" class="border rounded-lg p-4">
+          <h4 class="text-sm font-medium text-secondary-700 mb-3">{{ img.label }}</h4>
+
+          <div v-if="currentGamma[img.urlField]">
+            <img
+              :src="currentGamma[img.urlField]!"
+              :alt="img.label"
+              class="w-full rounded object-cover"
+              :class="img.aspectClass"
+            />
+            <div class="flex gap-2 mt-3">
+              <Button
+                label="Reemplazar"
+                icon="pi pi-refresh"
+                size="small"
+                outlined
+                @click="openUploader(img.type)"
+              />
+              <Button
+                label="Eliminar"
+                icon="pi pi-trash"
+                size="small"
+                severity="danger"
+                outlined
+                @click="handleDeleteImage(img.type)"
+              />
+            </div>
+          </div>
+
+          <div
+            v-else
+            class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary hover:bg-gray-50 transition-colors"
+            :class="img.aspectClass"
+            @click="openUploader(img.type)"
+          >
+            <i class="pi pi-image text-3xl text-gray-400"></i>
+            <span class="text-sm text-gray-500 mt-2">Subir imagen</span>
+            <span class="text-xs text-gray-400">{{ img.dimensions }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hint en modo creación -->
+    <div v-if="!isEditMode && !isLoading" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+      <div class="flex items-center gap-2 text-blue-700">
+        <i class="pi pi-info-circle"></i>
+        <span class="text-sm">Guarda primero la gamma para poder agregar imágenes.</span>
+      </div>
+    </div>
+
+    <!-- Image Uploader Dialog -->
+    <CatalogImageUploader
+      v-model:visible="showImageUploader"
+      :image-type="activeImageType"
+      @upload-success="handleImageUploadSuccess"
+    />
   </div>
 </template>
 
@@ -133,7 +198,9 @@ import InputNumber from 'primevue/inputnumber'
 import InputSwitch from 'primevue/inputswitch'
 import Textarea from 'primevue/textarea'
 import ProgressSpinner from 'primevue/progressspinner'
-import type { GammaFormData } from '@/types/gamma.types'
+import CatalogImageUploader from '@/components/catalog/CatalogImageUploader.vue'
+import type { CatalogImageType } from '@/components/catalog/CatalogImageUploader.vue'
+import type { Gamma, GammaFormData } from '@/types/gamma.types'
 
 const route = useRoute()
 const router = useRouter()
@@ -144,6 +211,21 @@ const toast = useToast()
 const isLoading = ref(false)
 const isSaving = ref(false)
 const errors = ref<Record<string, string>>({})
+const currentGamma = ref<Gamma | null>(null)
+const showImageUploader = ref(false)
+const activeImageType = ref<CatalogImageType>('square')
+
+const imageConfigs: {
+  type: CatalogImageType
+  label: string
+  dimensions: string
+  urlField: 'square_r2_url' | 'cover_r2_url' | 'og_r2_url'
+  aspectClass: string
+}[] = [
+  { type: 'square', label: 'Cuadrada (1:1)', dimensions: '400x400 px', urlField: 'square_r2_url', aspectClass: 'aspect-square' },
+  { type: 'cover', label: 'Cover (820x360)', dimensions: '820x360 px', urlField: 'cover_r2_url', aspectClass: 'aspect-[820/360]' },
+  { type: 'og', label: 'OpenGraph (1200x630)', dimensions: '1200x630 px', urlField: 'og_r2_url', aspectClass: 'aspect-[1200/630]' }
+]
 
 const formData = ref<GammaFormData>({
   tiendamarca_id: null,
@@ -244,6 +326,7 @@ const loadGamma = async () => {
     const gamma = await gammaStore.fetchById(gammaId.value)
 
     if (gamma) {
+      currentGamma.value = gamma
       formData.value = {
         tiendamarca_id: gamma.tiendamarca_id,
         tiendagamma_nombre: gamma.tiendagamma_nombre,
@@ -263,6 +346,58 @@ const loadGamma = async () => {
     router.push({ name: 'gammas-list' })
   } finally {
     isLoading.value = false
+  }
+}
+
+const openUploader = (type: CatalogImageType) => {
+  activeImageType.value = type
+  showImageUploader.value = true
+}
+
+const handleImageUploadSuccess = async (data: { blob: Blob; fileName: string }) => {
+  if (!gammaId.value) return
+
+  try {
+    const file = new File([data.blob], data.fileName, { type: data.blob.type })
+    const updated = await gammaStore.uploadImage(gammaId.value, file, activeImageType.value)
+    currentGamma.value = updated
+
+    toast.add({
+      severity: 'success',
+      summary: 'Imagen subida',
+      detail: 'La imagen se ha subido correctamente',
+      life: 3000
+    })
+  } catch (err: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: err.response?.data?.message || 'Error al subir la imagen',
+      life: 5000
+    })
+  }
+}
+
+const handleDeleteImage = async (type: CatalogImageType) => {
+  if (!gammaId.value) return
+
+  try {
+    const updated = await gammaStore.deleteImage(gammaId.value, type)
+    currentGamma.value = updated
+
+    toast.add({
+      severity: 'success',
+      summary: 'Imagen eliminada',
+      detail: 'La imagen se ha eliminado correctamente',
+      life: 3000
+    })
+  } catch (err: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: err.response?.data?.message || 'Error al eliminar la imagen',
+      life: 5000
+    })
   }
 }
 

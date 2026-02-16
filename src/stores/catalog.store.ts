@@ -99,6 +99,22 @@ export const useCatalogStore = defineStore('catalog', () => {
     }
   }
 
+  async function uploadCategoryImage(id: number, file: File, imageType: string): Promise<Category> {
+    const response = await categoryApi.uploadImage(id, file, imageType)
+    if (response.success && response.data) {
+      return response.data
+    }
+    throw new Error('Error al subir imagen de categoría')
+  }
+
+  async function deleteCategoryImage(id: number, imageType: string): Promise<Category> {
+    const response = await categoryApi.deleteImage(id, imageType)
+    if (response.success && response.data) {
+      return response.data
+    }
+    throw new Error('Error al eliminar imagen de categoría')
+  }
+
   // === Brands Actions ===
 
   async function fetchBrands() {
@@ -170,6 +186,22 @@ export const useCatalogStore = defineStore('catalog', () => {
     }
   }
 
+  async function uploadBrandImage(id: number, file: File, imageType: string): Promise<Brand> {
+    const response = await brandApi.uploadImage(id, file, imageType)
+    if (response.success && response.data) {
+      return response.data
+    }
+    throw new Error('Error al subir imagen de marca')
+  }
+
+  async function deleteBrandImage(id: number, imageType: string): Promise<Brand> {
+    const response = await brandApi.deleteImage(id, imageType)
+    if (response.success && response.data) {
+      return response.data
+    }
+    throw new Error('Error al eliminar imagen de marca')
+  }
+
   // === Combined Actions ===
 
   async function fetchAll() {
@@ -189,12 +221,16 @@ export const useCatalogStore = defineStore('catalog', () => {
     createCategory,
     updateCategory,
     deleteCategory,
+    uploadCategoryImage,
+    deleteCategoryImage,
     // Brand Actions
     fetchBrands,
     fetchBrandById,
     createBrand,
     updateBrand,
     deleteBrand,
+    uploadBrandImage,
+    deleteBrandImage,
     // Combined
     fetchAll
   }

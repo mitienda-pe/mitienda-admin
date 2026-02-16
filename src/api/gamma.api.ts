@@ -68,5 +68,22 @@ export const gammaApi = {
   async unlinkProducts(id: number, productIds: number[]): Promise<ApiResponse<{ unlinked_count: number }>> {
     const response = await apiClient.post(`/gammas/${id}/unlink-products`, { product_ids: productIds })
     return { success: true, data: response.data }
+  },
+
+  // Upload image (square, cover, or og) for a gamma
+  async uploadImage(id: number, file: File, imageType: string): Promise<ApiResponse<Gamma>> {
+    const formData = new FormData()
+    formData.append('image', file)
+    formData.append('image_type', imageType)
+    const response = await apiClient.post(`/gammas/${id}/upload-image`, formData)
+    const raw = response.data?.data ?? response.data
+    return { success: true, data: raw }
+  },
+
+  // Delete image from a gamma
+  async deleteImage(id: number, imageType: string): Promise<ApiResponse<Gamma>> {
+    const response = await apiClient.delete(`/gammas/${id}/delete-image/${imageType}`)
+    const raw = response.data?.data ?? response.data
+    return { success: true, data: raw }
   }
 }

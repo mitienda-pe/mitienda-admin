@@ -83,6 +83,9 @@ export interface Category {
   parent_id?: number
   image?: string
   image_id?: number
+  square_r2_url?: string
+  cover_r2_url?: string
+  og_r2_url?: string
   order?: number
   meta_title?: string
   meta_description?: string
@@ -106,6 +109,9 @@ export interface Brand {
   slug: string
   logo?: string
   image_id?: number
+  square_r2_url?: string
+  cover_r2_url?: string
+  og_r2_url?: string
   meta_title?: string
   meta_description?: string
   product_count?: number // Cantidad de productos con esta marca

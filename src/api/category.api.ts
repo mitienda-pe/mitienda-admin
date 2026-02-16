@@ -9,6 +9,9 @@ const transformCategory = (raw: any): Category => ({
   slug: raw.tiendacategoria_nombreurl,
   parent_id: raw.parent_id ? parseInt(raw.parent_id) : undefined,
   image_id: raw.tiendaimagen_id ? parseInt(raw.tiendaimagen_id) : undefined,
+  square_r2_url: raw.square_r2_url || undefined,
+  cover_r2_url: raw.cover_r2_url || undefined,
+  og_r2_url: raw.og_r2_url || undefined,
   order: raw.tiendacategoria_orden !== undefined ? parseInt(raw.tiendacategoria_orden) : undefined,
   meta_title: raw.tiendacategoria_meta_tittle || undefined,
   meta_description: raw.tiendacategoria_meta_description || undefined,
@@ -123,5 +126,24 @@ export const categoryApi = {
   async unlinkProducts(id: number, productIds: number[]): Promise<ApiResponse<{ unlinked_count: number }>> {
     const response = await apiClient.post(`/categories/${id}/unlink-products`, { product_ids: productIds })
     return { success: true, data: response.data }
+  },
+
+  // Upload image (square, cover, or og) for a category
+  async uploadImage(id: number, file: File, imageType: string): Promise<ApiResponse<Category>> {
+    const formData = new FormData()
+    formData.append('image', file)
+    formData.append('image_type', imageType)
+    const response = await apiClient.post(`/categories/${id}/upload-image`, formData)
+    const raw = response.data?.data ?? response.data
+    const category = transformCategory(raw)
+    return { success: true, data: category }
+  },
+
+  // Delete image from a category
+  async deleteImage(id: number, imageType: string): Promise<ApiResponse<Category>> {
+    const response = await apiClient.delete(`/categories/${id}/delete-image/${imageType}`)
+    const raw = response.data?.data ?? response.data
+    const category = transformCategory(raw)
+    return { success: true, data: category }
   }
 }

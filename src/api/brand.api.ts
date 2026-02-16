@@ -7,8 +7,11 @@ const transformBrand = (raw: any): Brand => ({
   id: parseInt(raw.tiendamarca_id),
   name: raw.tiendamarca_nombre,
   slug: raw.tiendamarca_nombreurl,
-  logo: raw.tiendaimagen_id ? undefined : undefined, // TODO: fetch image URL if needed
+  logo: raw.tiendaimagen_id ? undefined : undefined,
   image_id: raw.tiendaimagen_id ? parseInt(raw.tiendaimagen_id) : undefined,
+  square_r2_url: raw.square_r2_url || undefined,
+  cover_r2_url: raw.cover_r2_url || undefined,
+  og_r2_url: raw.og_r2_url || undefined,
   meta_title: raw.tiendamarca_meta_tittle || undefined,
   meta_description: raw.tiendamarca_meta_description || undefined,
   product_count: raw.product_count !== undefined ? parseInt(raw.product_count) : 0
@@ -86,5 +89,24 @@ export const brandApi = {
   async unlinkProducts(id: number, productIds: number[]): Promise<ApiResponse<{ unlinked_count: number }>> {
     const response = await apiClient.post(`/brands/${id}/unlink-products`, { product_ids: productIds })
     return { success: true, data: response.data }
+  },
+
+  // Upload image (square, cover, or og) for a brand
+  async uploadImage(id: number, file: File, imageType: string): Promise<ApiResponse<Brand>> {
+    const formData = new FormData()
+    formData.append('image', file)
+    formData.append('image_type', imageType)
+    const response = await apiClient.post(`/brands/${id}/upload-image`, formData)
+    const raw = response.data?.data ?? response.data
+    const brand = transformBrand(raw)
+    return { success: true, data: brand }
+  },
+
+  // Delete image from a brand
+  async deleteImage(id: number, imageType: string): Promise<ApiResponse<Brand>> {
+    const response = await apiClient.delete(`/brands/${id}/delete-image/${imageType}`)
+    const raw = response.data?.data ?? response.data
+    const brand = transformBrand(raw)
+    return { success: true, data: brand }
   }
 }

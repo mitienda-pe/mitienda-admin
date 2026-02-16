@@ -19,22 +19,31 @@ export const IMAGE_VALIDATION_RULES: Record<string, ImageValidationRules> = {
     aspectRatio: null // Any ratio allowed, but cropping to square is optional
   },
 
-  // Category images - Medium requirements (future implementation)
-  categories: {
-    minWidth: 300,
-    minHeight: 300,
+  // Catalog square image (1:1) — categories, brands, gammas
+  catalogSquare: {
+    minWidth: 400,
+    minHeight: 400,
     maxFileSize: 5 * 1024 * 1024, // 5MB
     allowedFormats: ['image/jpeg', 'image/png', 'image/webp'],
-    aspectRatio: 1 // Force square
+    aspectRatio: null // Enforced by cropper
   },
 
-  // Brand logos - Smaller requirements (future implementation)
-  brands: {
-    minWidth: 200,
-    minHeight: 200,
-    maxFileSize: 2 * 1024 * 1024, // 2MB
-    allowedFormats: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
-    aspectRatio: null // Logos can be any shape
+  // Catalog cover image (820x360) — categories, brands, gammas
+  catalogCover: {
+    minWidth: 820,
+    minHeight: 360,
+    maxFileSize: 5 * 1024 * 1024, // 5MB
+    allowedFormats: ['image/jpeg', 'image/png', 'image/webp'],
+    aspectRatio: null // Enforced by cropper
+  },
+
+  // Catalog OpenGraph image (1200x630) — categories, brands, gammas
+  catalogOg: {
+    minWidth: 1200,
+    minHeight: 630,
+    maxFileSize: 5 * 1024 * 1024, // 5MB
+    allowedFormats: ['image/jpeg', 'image/png', 'image/webp'],
+    aspectRatio: null // Enforced by cropper
   },
 
   // User avatars (future implementation)

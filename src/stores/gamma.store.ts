@@ -133,6 +133,22 @@ export const useGammaStore = defineStore('gamma', () => {
     }
   }
 
+  async function uploadImage(id: number, file: File, imageType: string): Promise<Gamma> {
+    const response = await gammaApi.uploadImage(id, file, imageType)
+    if (response.success && response.data) {
+      return response.data
+    }
+    throw new Error('Error al subir imagen de gamma')
+  }
+
+  async function deleteImage(id: number, imageType: string): Promise<Gamma> {
+    const response = await gammaApi.deleteImage(id, imageType)
+    if (response.success && response.data) {
+      return response.data
+    }
+    throw new Error('Error al eliminar imagen de gamma')
+  }
+
   function clearCurrentGamma() {
     currentGamma.value = null
   }
@@ -155,6 +171,8 @@ export const useGammaStore = defineStore('gamma', () => {
     create,
     update,
     remove,
+    uploadImage,
+    deleteImage,
     clearCurrentGamma,
     clearGammasByBrand
   }
