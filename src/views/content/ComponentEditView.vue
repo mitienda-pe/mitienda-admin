@@ -180,6 +180,7 @@ const loadComponent = async () => {
 
       component.value = result
       htmlContent.value = result.html_content || ''
+      isLoading.value = false
 
       await nextTick()
       await initMonaco()
