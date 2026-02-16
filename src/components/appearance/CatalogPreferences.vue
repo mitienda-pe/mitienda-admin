@@ -5,6 +5,7 @@ import { AppButton } from '@/components/ui'
 import {
   DESKTOP_COLUMN_OPTIONS,
   MOBILE_COLUMN_OPTIONS,
+  LOGO_POSITION_OPTIONS,
   CART_ICON_OPTIONS,
   PRODUCT_ORDER_OPTIONS,
 } from '@/types/appearance.types'
@@ -141,6 +142,56 @@ const hideOutOfStockBool = computed({
           </span>
           <i
             v-if="preferences.mobile_columns === option.value"
+            class="pi pi-check-circle absolute top-2 right-2 text-primary text-sm"
+          />
+        </button>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <hr class="border-gray-100" />
+
+    <!-- Logo Position -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Posición del logo
+      </label>
+      <p class="text-xs text-gray-400 mb-3">
+        Define la ubicación del logo en el encabezado de tu tienda
+      </p>
+      <div class="grid grid-cols-2 gap-3 max-w-sm">
+        <button
+          v-for="option in LOGO_POSITION_OPTIONS"
+          :key="option.value"
+          type="button"
+          class="relative p-4 border-2 rounded-lg text-center transition-all cursor-pointer"
+          :class="
+            preferences.logo_position === option.value
+              ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+              : 'border-gray-200 bg-white hover:border-gray-300'
+          "
+          @click="emit('update:field', 'logo_position', option.value)"
+        >
+          <i
+            :class="option.icon"
+            class="text-2xl mb-2 block"
+            :style="{
+              color:
+                preferences.logo_position === option.value ? '#00b2a6' : '#6B7280',
+            }"
+          />
+          <div
+            class="text-sm font-medium"
+            :class="
+              preferences.logo_position === option.value
+                ? 'text-primary'
+                : 'text-gray-600'
+            "
+          >
+            {{ option.label }}
+          </div>
+          <i
+            v-if="preferences.logo_position === option.value"
             class="pi pi-check-circle absolute top-2 right-2 text-primary text-sm"
           />
         </button>

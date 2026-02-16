@@ -210,6 +210,7 @@ export interface BrandingConfig {
 export interface CatalogPreferences {
   desktop_columns: number
   mobile_columns: number
+  logo_position: number
   cart_icon: number
   product_order: number
   hide_out_of_stock: number
@@ -218,6 +219,7 @@ export interface CatalogPreferences {
 export const DEFAULT_CATALOG_PREFERENCES: CatalogPreferences = {
   desktop_columns: 4,
   mobile_columns: 2,
+  logo_position: 0,
   cart_icon: 0,
   product_order: 1,
   hide_out_of_stock: 1,
@@ -243,6 +245,17 @@ export const DESKTOP_COLUMN_OPTIONS: CatalogOption[] = [
 export const MOBILE_COLUMN_OPTIONS: CatalogOption[] = [
   { value: 1, label: '1 columna' },
   { value: 2, label: '2 columnas' },
+]
+
+export interface LogoPositionOption {
+  value: number
+  label: string
+  icon: string
+}
+
+export const LOGO_POSITION_OPTIONS: LogoPositionOption[] = [
+  { value: 2, label: 'Izquierda', icon: 'pi pi-align-left' },
+  { value: 0, label: 'Centro', icon: 'pi pi-align-center' },
 ]
 
 export const CART_ICON_OPTIONS: CartIconOption[] = [
