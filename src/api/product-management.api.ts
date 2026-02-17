@@ -161,6 +161,15 @@ export const productManagementApi = {
     return response.data
   },
 
+  // ── Calculate missing prices ──
+
+  async calculateMissingPrices(): Promise<
+    ApiResponse<{ updated: number; without_tax_calculated: number; with_tax_calculated: number }>
+  > {
+    const response = await apiClient.post('/products/calculate-missing-prices')
+    return response.data
+  },
+
   // ── Product creation ──
 
   async createProduct(data: ProductCreatePayload): Promise<ApiResponse<any>> {

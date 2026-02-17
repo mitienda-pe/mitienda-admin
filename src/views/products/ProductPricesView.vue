@@ -126,6 +126,44 @@ const handleExport = async () => {
   }
 }
 
+// ── Calculate missing prices ──
+
+const calculating = ref(false)
+
+const handleCalculateMissing = async () => {
+  calculating.value = true
+  try {
+    const { productManagementApi } = await import('@/api/product-management.api')
+    const response = await productManagementApi.calculateMissingPrices()
+    if (response.success && response.data) {
+      const { updated, without_tax_calculated, with_tax_calculated } = response.data
+      if (updated === 0) {
+        toast.add({
+          severity: 'info',
+          summary: 'Sin cambios',
+          detail: 'Todos los productos ya tienen ambos precios calculados',
+          life: 3000,
+        })
+      } else {
+        const parts = []
+        if (without_tax_calculated > 0) parts.push(`${without_tax_calculated} sin IGV`)
+        if (with_tax_calculated > 0) parts.push(`${with_tax_calculated} con IGV`)
+        toast.add({
+          severity: 'success',
+          summary: `${updated} precios calculados`,
+          detail: `Se calcularon: ${parts.join(', ')}`,
+          life: 5000,
+        })
+        store.fetchPrices({ search: searchQuery.value })
+      }
+    }
+  } catch {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron calcular los precios', life: 3000 })
+  } finally {
+    calculating.value = false
+  }
+}
+
 // ── Helpers ──
 
 const taxLabel = (affectation: number) => {
@@ -181,6 +219,14 @@ const first = computed(
           @search="onSearch"
         />
       </div>
+      <Button
+        label="Calcular faltantes"
+        icon="pi pi-calculator"
+        outlined
+        size="small"
+        :loading="calculating"
+        @click="handleCalculateMissing"
+      />
       <Button
         label="Exportar CSV"
         icon="pi pi-download"
