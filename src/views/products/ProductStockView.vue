@@ -279,17 +279,19 @@ const first = computed(
         <!-- Imagen -->
         <Column header="" style="width: 50px">
           <template #body="{ data }">
-            <img
-              v-if="data.image"
-              :src="data.image"
-              :alt="data.name"
-              class="w-10 h-10 object-cover rounded"
-            />
-            <div
-              v-else
-              class="w-10 h-10 bg-gray-100 rounded flex items-center justify-center"
-            >
-              <i class="pi pi-image text-gray-400"></i>
+            <div class="w-10 aspect-square">
+              <img
+                v-if="data.image"
+                :src="data.image"
+                :alt="data.name"
+                class="w-full h-full object-cover rounded"
+              />
+              <div
+                v-else
+                class="w-full h-full bg-gray-100 rounded flex items-center justify-center"
+              >
+                <i class="pi pi-image text-gray-400"></i>
+              </div>
             </div>
           </template>
         </Column>
