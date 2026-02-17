@@ -272,7 +272,10 @@ const first = computed(
         dataKey="id"
         size="small"
       >
-        <!-- Expander (manual, solo para productos con variantes) -->
+        <!-- Hidden expander (PrimeVue needs this for #expansion to render) -->
+        <Column expander class="hidden-expander" />
+
+        <!-- Visible toggle (only for products with variants) -->
         <Column style="width: 40px">
           <template #body="{ data }">
             <Button
@@ -457,11 +460,8 @@ const first = computed(
   padding: 0;
 }
 
-:deep(.p-row-toggler) {
-  transition: transform 0.2s;
-}
-
-:deep(.p-row-toggler[aria-expanded='true']) {
-  transform: rotate(90deg);
+/* Hide the PrimeVue built-in expander column (we use a manual toggle) */
+:deep(.hidden-expander) {
+  display: none !important;
 }
 </style>
