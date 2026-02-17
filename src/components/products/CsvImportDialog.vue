@@ -152,14 +152,15 @@ const handleClose = () => {
       <div class="text-xs text-gray-500 bg-gray-50 rounded p-3">
         <p class="font-semibold mb-1">Columnas esperadas:</p>
         <template v-if="mode === 'prices'">
-          <code>sku, precio_sin_igv, precio_con_igv</code>
-          <p class="mt-1">Para variantes: <code>variante_sku, ...</code></p>
+          <code>producto_id, sku, precio_sin_igv, precio_con_igv</code>
+          <p class="mt-1">Para variantes: <code>variante_id, variante_precio</code></p>
           <p class="mt-1">Si solo incluyes una columna de precio, el otro se calculara automaticamente.</p>
         </template>
         <template v-else>
-          <code>sku, stock</code>
-          <p class="mt-1">Para variantes: <code>variante_sku, stock</code></p>
+          <code>producto_id, sku, stock</code>
+          <p class="mt-1">Para variantes: <code>variante_id, variante_stock</code></p>
         </template>
+        <p class="mt-1 text-gray-400">Tip: usa "Exportar CSV" como plantilla. Los IDs permiten identificar productos y variantes sin SKU.</p>
       </div>
 
       <FileUpload
@@ -224,7 +225,16 @@ const handleClose = () => {
       >
         <Column field="sku" header="SKU" style="min-width: 80px" />
         <Column field="name" header="Producto" style="min-width: 150px" />
-        <Column v-if="previewData.preview.some(r => r.variant_sku)" field="variant_sku" header="Variante SKU" style="min-width: 80px" />
+        <Column
+          v-if="previewData.preview.some(r => r.variant_name || r.variant_sku)"
+          header="Variante"
+          style="min-width: 120px"
+        >
+          <template #body="{ data }">
+            <span v-if="data.variant_name" class="text-gray-700">{{ data.variant_name }}</span>
+            <span v-else-if="data.variant_sku" class="text-gray-500 font-mono text-xs">{{ data.variant_sku }}</span>
+          </template>
+        </Column>
         <Column header="Actual" style="min-width: 80px">
           <template #body="{ data }">
             <span class="text-gray-600">{{ data.current_value }}</span>

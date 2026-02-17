@@ -242,6 +242,7 @@ export interface CsvPreviewRow {
   current_value: number | string
   new_value: number | string
   variant_sku?: string
+  variant_name?: string
   has_change: boolean
 }
 
