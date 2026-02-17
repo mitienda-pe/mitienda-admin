@@ -128,8 +128,9 @@ export const useAppearanceConfigStore = defineStore('appearance-config', () => {
     try {
       const response = await appearanceApi.getCatalogPreferences()
       if (response.success && response.data) {
-        savedCatalog.value = response.data
-        draftCatalog.value = deepClone(response.data)
+        const merged = { ...deepClone(DEFAULT_CATALOG_PREFERENCES), ...response.data }
+        savedCatalog.value = merged
+        draftCatalog.value = deepClone(merged)
       }
       isCatalogLoaded.value = true
     } catch (e: unknown) {
@@ -147,8 +148,9 @@ export const useAppearanceConfigStore = defineStore('appearance-config', () => {
     try {
       const response = await appearanceApi.updateCatalogPreferences(draftCatalog.value)
       if (response.success && response.data) {
-        savedCatalog.value = response.data
-        draftCatalog.value = deepClone(response.data)
+        const merged = { ...deepClone(DEFAULT_CATALOG_PREFERENCES), ...response.data }
+        savedCatalog.value = merged
+        draftCatalog.value = deepClone(merged)
       } else {
         savedCatalog.value = deepClone(draftCatalog.value)
       }
