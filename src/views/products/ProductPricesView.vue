@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useProductManagementStore } from '@/stores/product-management.store'
 import DataTable, { type DataTableSortEvent } from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -164,16 +164,15 @@ const handleCalculateMissing = async () => {
   }
 }
 
-// ── Row expand toggle ──
+// ── Auto-expand rows with variants ──
 
-const toggleRow = (data: ProductPriceItem) => {
-  const idx = expandedRows.value.findIndex(r => r.id === data.id)
-  if (idx >= 0) {
-    expandedRows.value = expandedRows.value.filter(r => r.id !== data.id)
-  } else {
-    expandedRows.value = [...expandedRows.value, data]
-  }
-}
+watch(
+  () => store.priceItems,
+  items => {
+    expandedRows.value = items.filter(item => item.has_variants)
+  },
+  { immediate: true },
+)
 
 // ── Helpers ──
 
@@ -338,23 +337,8 @@ const first = computed(
         dataKey="id"
         size="small"
       >
-        <!-- Hidden expander (PrimeVue needs this for #expansion to render) -->
-        <Column expander class="hidden-expander" />
-
-        <!-- Visible toggle (only for products with variants) -->
-        <Column style="width: 40px">
-          <template #body="{ data }">
-            <Button
-              v-if="data.has_variants"
-              type="button"
-              :icon="expandedRows.some(r => r.id === data.id) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
-              text
-              rounded
-              size="small"
-              @click="toggleRow(data)"
-            />
-          </template>
-        </Column>
+        <!-- Expander column (hidden toggle, auto-expanded via watch) -->
+        <Column expander style="width: 0; padding: 0" />
 
         <!-- Imagen -->
         <Column header="" style="width: 50px">
@@ -542,8 +526,15 @@ const first = computed(
   padding: 0;
 }
 
-/* Hide the PrimeVue built-in expander column (we use a manual toggle) */
-:deep(.hidden-expander) {
+/* Hide the expander toggle button and column */
+:deep(.p-row-toggler) {
   display: none !important;
+}
+
+:deep(th.p-row-toggler-column),
+:deep(td.p-row-toggler-column) {
+  width: 0 !important;
+  padding: 0 !important;
+  border: none !important;
 }
 </style>
