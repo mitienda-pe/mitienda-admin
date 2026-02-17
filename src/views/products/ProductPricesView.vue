@@ -164,6 +164,17 @@ const handleCalculateMissing = async () => {
   }
 }
 
+// ── Row expand toggle ──
+
+const toggleRow = (data: ProductPriceItem) => {
+  const idx = expandedRows.value.findIndex(r => r.id === data.id)
+  if (idx >= 0) {
+    expandedRows.value = expandedRows.value.filter(r => r.id !== data.id)
+  } else {
+    expandedRows.value = [...expandedRows.value, data]
+  }
+}
+
 // ── Helpers ──
 
 const taxLabel = (affectation: number) => {
@@ -327,17 +338,17 @@ const first = computed(
         dataKey="id"
         size="small"
       >
-        <!-- Expander -->
-        <Column expander style="width: 40px">
+        <!-- Expander (manual, solo para productos con variantes) -->
+        <Column style="width: 40px">
           <template #body="{ data }">
             <Button
               v-if="data.has_variants"
               type="button"
-              icon="pi pi-chevron-right"
+              :icon="expandedRows.some(r => r.id === data.id) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
               text
               rounded
               size="small"
-              class="p-row-toggler"
+              @click="toggleRow(data)"
             />
           </template>
         </Column>
