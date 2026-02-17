@@ -151,3 +151,119 @@ export interface ProductsState {
   }
   filters: ProductFilters
 }
+
+// ── Product Management Views (lightweight items) ──
+
+export interface ProductPriceItem {
+  id: number
+  sku: string
+  name: string
+  image: string | null
+  price: number
+  price_without_tax: number | null
+  igv_percent: number
+  tax_affectation: number // 1=Gravado, 2=Exonerado, 3=Inafecto
+  published: boolean
+  has_variants: boolean
+  variants: VariantPriceItem[]
+}
+
+export interface VariantPriceItem {
+  id: number
+  sku: string
+  name: string
+  price: number
+  price_without_tax: number | null
+}
+
+export interface ProductStockItem {
+  id: number
+  sku: string
+  name: string
+  image: string | null
+  stock: number
+  unlimited_stock: boolean
+  published: boolean
+  has_variants: boolean
+  variants: VariantStockItem[]
+}
+
+export interface VariantStockItem {
+  id: number
+  sku: string
+  name: string
+  stock: number
+  unlimited_stock: boolean
+}
+
+export interface ProductOrderItem {
+  id: number
+  sku: string
+  name: string
+  image: string | null
+  order: number
+  published: boolean
+  categories: string[]
+}
+
+// ── Batch update payloads ──
+
+export interface BatchPriceUpdate {
+  id: number
+  price?: number
+  price_without_tax?: number
+  variants?: { id: number; price?: number; price_without_tax?: number }[]
+}
+
+export interface BatchStockUpdate {
+  id: number
+  stock?: number
+  unlimited_stock?: boolean
+  variants?: { id: number; stock?: number; unlimited_stock?: boolean }[]
+}
+
+export interface BatchOrderUpdate {
+  id: number
+  order: number
+}
+
+// ── CSV Import ──
+
+export interface CsvImportPreview {
+  preview: CsvPreviewRow[]
+  total_rows: number
+  errors: { row: number; message: string }[]
+}
+
+export interface CsvPreviewRow {
+  row_number: number
+  sku: string
+  name: string
+  current_value: number | string
+  new_value: number | string
+  variant_sku?: string
+  has_change: boolean
+}
+
+// ── Product creation ──
+
+export interface ProductCreatePayload {
+  name: string
+  sku?: string
+  price?: number
+  stock?: number
+  description?: string
+  brand_id?: number | null
+  categories?: number[]
+  published?: boolean
+}
+
+// ── Management view list filters ──
+
+export interface ProductManagementFilters {
+  page?: number
+  limit?: number
+  search?: string
+  sort_field?: string
+  sort_order?: 'ASC' | 'DESC'
+}

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from 'vue'
 import Dialog from 'primevue/dialog'
-import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
 import Checkbox from 'primevue/checkbox'
 import Button from 'primevue/button'
 import Dropdown from 'primevue/dropdown'
 import { useCatalogStore } from '@/stores/catalog.store'
 import { useGammaStore } from '@/stores/gamma.store'
+import { useFormatters } from '@/composables/useFormatters'
 import type { Product } from '@/types/product.types'
 
 interface Props {
@@ -21,12 +21,8 @@ interface Emits {
 }
 
 export interface ProductQuickEditData {
-  price?: number
-  stock?: number
   published?: boolean
-  order?: number
   barcode?: string
-  description_html?: string
   brand_id?: number | null
   gamma_id?: number | null
 }
@@ -36,20 +32,13 @@ const emit = defineEmits<Emits>()
 
 const catalogStore = useCatalogStore()
 const gammaStore = useGammaStore()
+const { formatCurrency } = useFormatters()
 
 const formData = ref<ProductQuickEditData>({
-  price: 0,
-  stock: 0,
   published: false,
-  order: undefined,
   barcode: undefined,
   brand_id: null,
   gamma_id: null
-})
-
-const errors = ref({
-  price: '',
-  stock: ''
 })
 
 // Computed para obtener gammas filtradas por marca seleccionada
@@ -59,7 +48,7 @@ const gammaOptions = computed(() => {
 
 // Cargar gammas cuando cambia la marca
 const handleBrandChange = async () => {
-  formData.value.gamma_id = null // Resetear gamma cuando cambia la marca
+  formData.value.gamma_id = null
   gammaStore.clearGammasByBrand()
 
   if (formData.value.brand_id) {
@@ -71,17 +60,12 @@ const handleBrandChange = async () => {
 watch(() => props.product, async (newProduct) => {
   if (newProduct) {
     formData.value = {
-      price: newProduct.price,
-      stock: newProduct.stock,
       published: newProduct.published,
-      order: newProduct.order,
       barcode: newProduct.barcode,
       brand_id: newProduct.brand?.id || null,
       gamma_id: newProduct.gamma?.id || null
     }
-    errors.value = { price: '', stock: '' }
 
-    // Cargar gammas si hay una marca seleccionada
     if (newProduct.brand?.id) {
       await gammaStore.fetchByBrand(newProduct.brand.id)
     } else {
@@ -97,27 +81,8 @@ onMounted(async () => {
   }
 })
 
-const validateForm = (): boolean => {
-  errors.value = { price: '', stock: '' }
-  let isValid = true
-
-  if (!formData.value.price || formData.value.price <= 0) {
-    errors.value.price = 'El precio debe ser mayor a 0'
-    isValid = false
-  }
-
-  if (formData.value.stock !== undefined && formData.value.stock < 0) {
-    errors.value.stock = 'El stock no puede ser negativo'
-    isValid = false
-  }
-
-  return isValid
-}
-
 const handleSave = () => {
-  if (validateForm()) {
-    emit('save', { ...formData.value })
-  }
+  emit('save', { ...formData.value })
 }
 
 const handleClose = () => {
@@ -131,7 +96,7 @@ const handleClose = () => {
     :modal="true"
     :closable="true"
     :draggable="false"
-    header="Edición Rápida"
+    header="Edicion Rapida"
     class="w-full md:w-[500px]"
     @update:visible="handleClose"
   >
@@ -143,46 +108,55 @@ const handleClose = () => {
         <p class="text-sm text-gray-500">SKU: {{ product.sku }}</p>
       </div>
 
-      <!-- Precio -->
-      <div>
-        <label for="price" class="block text-sm font-medium text-gray-700 mb-2">
-          Precio <span class="text-red-500">*</span>
-        </label>
-        <InputNumber
-          id="price"
-          v-model="formData.price"
-          mode="currency"
-          currency="PEN"
-          locale="es-PE"
-          :min="0"
-          :min-fraction-digits="2"
-          :max-fraction-digits="2"
-          class="w-full"
-          :class="{ 'p-invalid': errors.price }"
-        />
-        <small v-if="errors.price" class="text-red-500">{{ errors.price }}</small>
+      <!-- Precio (solo lectura + enlace) -->
+      <div class="bg-gray-50 rounded-lg p-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-sm text-gray-600">Precio:</span>
+            <span class="font-semibold ml-1">{{ formatCurrency(product.price) }}</span>
+          </div>
+          <router-link
+            to="/products/prices"
+            class="text-xs text-primary hover:underline"
+            @click="handleClose"
+          >
+            Editar en Precios
+          </router-link>
+        </div>
+        <div class="flex items-center justify-between mt-1">
+          <div>
+            <span class="text-sm text-gray-600">Stock:</span>
+            <span class="font-semibold ml-1">
+              {{ product.unlimited_stock ? 'Ilimitado' : product.stock }}
+            </span>
+          </div>
+          <router-link
+            to="/products/stock"
+            class="text-xs text-primary hover:underline"
+            @click="handleClose"
+          >
+            Editar en Stock
+          </router-link>
+        </div>
+        <div v-if="product.order != null" class="flex items-center justify-between mt-1">
+          <div>
+            <span class="text-sm text-gray-600">Orden:</span>
+            <span class="font-semibold ml-1">{{ product.order }}</span>
+          </div>
+          <router-link
+            to="/products/order"
+            class="text-xs text-primary hover:underline"
+            @click="handleClose"
+          >
+            Editar en Orden
+          </router-link>
+        </div>
       </div>
 
-      <!-- Stock -->
-      <div>
-        <label for="stock" class="block text-sm font-medium text-gray-700 mb-2">
-          Stock <span class="text-red-500">*</span>
-        </label>
-        <InputNumber
-          id="stock"
-          v-model="formData.stock"
-          :min="0"
-          :use-grouping="false"
-          class="w-full"
-          :class="{ 'p-invalid': errors.stock }"
-        />
-        <small v-if="errors.stock" class="text-red-500">{{ errors.stock }}</small>
-      </div>
-
-      <!-- Código de barras -->
+      <!-- Codigo de barras -->
       <div>
         <label for="barcode" class="block text-sm font-medium text-gray-700 mb-2">
-          Código de barras
+          Codigo de barras
         </label>
         <InputText
           id="barcode"
@@ -191,7 +165,7 @@ const handleClose = () => {
           :maxlength="50"
           class="w-full"
         />
-        <small class="text-gray-500">Código de barras del producto (EAN, UPC, etc.)</small>
+        <small class="text-gray-500">Codigo de barras del producto (EAN, UPC, etc.)</small>
       </div>
 
       <!-- Marca -->
@@ -233,23 +207,7 @@ const handleClose = () => {
         </small>
       </div>
 
-      <!-- Orden en catálogo -->
-      <div>
-        <label for="order" class="block text-sm font-medium text-gray-700 mb-2">
-          Orden en catálogo
-        </label>
-        <InputNumber
-          id="order"
-          v-model="formData.order"
-          :min="0"
-          :use-grouping="false"
-          class="w-full"
-          placeholder="Dejar vacío para orden automático"
-        />
-        <small class="text-gray-500">Número que define la posición del producto en el catálogo</small>
-      </div>
-
-      <!-- Estado de publicación -->
+      <!-- Estado de publicacion -->
       <div class="flex items-center gap-2">
         <Checkbox
           id="published"
@@ -280,7 +238,6 @@ const handleClose = () => {
 </template>
 
 <style scoped>
-/* Mejorar visibilidad de los botones del footer */
 :deep(.p-dialog-footer .p-button) {
   padding: 0.75rem 1.5rem;
   font-weight: 600;
@@ -289,7 +246,6 @@ const handleClose = () => {
   transition: all 0.2s;
 }
 
-/* Botón Cancelar */
 :deep(.p-dialog-footer .p-button-secondary) {
   background-color: #f3f4f6;
   border: 1px solid #d1d5db;
@@ -302,7 +258,6 @@ const handleClose = () => {
   color: #1f2937;
 }
 
-/* Botón Guardar Cambios */
 :deep(.p-dialog-footer .p-button-primary) {
   background-color: var(--primary-500);
   border-color: var(--primary-500);

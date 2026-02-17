@@ -214,6 +214,7 @@ export interface CatalogPreferences {
   cart_icon: number
   product_order: number
   hide_out_of_stock: number
+  pricing_mode: number // 0 = con IGV (default), 1 = sin IGV
 }
 
 export const DEFAULT_CATALOG_PREFERENCES: CatalogPreferences = {
@@ -223,7 +224,30 @@ export const DEFAULT_CATALOG_PREFERENCES: CatalogPreferences = {
   cart_icon: 0,
   product_order: 1,
   hide_out_of_stock: 1,
+  pricing_mode: 0,
 }
+
+export interface PricingModeOption {
+  value: number
+  label: string
+  description: string
+  icon: string
+}
+
+export const PRICING_MODE_OPTIONS: PricingModeOption[] = [
+  {
+    value: 0,
+    label: 'Con IGV incluido',
+    description: 'Ingresas el precio final (recomendado)',
+    icon: 'pi pi-wallet',
+  },
+  {
+    value: 1,
+    label: 'Sin IGV (base imponible)',
+    description: 'Ingresas el precio sin impuestos',
+    icon: 'pi pi-calculator',
+  },
+]
 
 export interface CatalogOption {
   value: number

@@ -72,18 +72,24 @@
                   <span v-if="product.compare_price" class="text-xl text-secondary-400 line-through">
                     {{ formatCurrency(product.compare_price) }}
                   </span>
+                  <router-link
+                    to="/products/prices"
+                    class="text-xs text-primary hover:underline ml-2"
+                  >
+                    Editar en vista de precios
+                  </router-link>
                 </div>
                 <div class="text-sm text-secondary-500 mt-2 space-y-1">
                   <p v-if="product.price_without_tax !== undefined && product.price_without_tax !== null">
                     <span class="font-medium">Precio sin IGV:</span>
                     <span class="font-mono">S/ {{ product.price_without_tax.toFixed(8) }}</span>
-                    <span class="text-xs text-gray-400 ml-1">(8 decimales de precisión)</span>
+                    <span class="text-xs text-gray-400 ml-1">(8 decimales de precision)</span>
                   </p>
                   <p v-if="product.cost">
                     <span class="font-medium">Costo:</span> {{ formatCurrency(product.cost) }}
                   </p>
                   <p v-if="product.price_range?.has_range" class="text-xs text-secondary-400">
-                    Precio varía entre S/ {{ product.price_range.min?.toFixed(2) }} y S/ {{ product.price_range.max?.toFixed(2) }}
+                    Precio varia entre S/ {{ product.price_range.min?.toFixed(2) }} y S/ {{ product.price_range.max?.toFixed(2) }}
                   </p>
                 </div>
               </div>
@@ -111,6 +117,12 @@
                     <span class="font-medium" :class="stockColorClass">
                       {{ product.unlimited_stock ? 'Ilimitado' : `${product.stock} unidades` }}
                     </span>
+                    <router-link
+                      to="/products/stock"
+                      class="text-xs text-primary hover:underline ml-2"
+                    >
+                      Editar en vista de stock
+                    </router-link>
                     <span v-if="netsuiteStock !== null" class="text-xs text-gray-500 ml-2">
                       (NetSuite: {{ netsuiteStock }} unidades)
                     </span>
@@ -151,6 +163,12 @@
               <div v-if="product.order != null">
                 <span class="text-secondary-600">Orden: </span>
                 <span class="font-medium">{{ product.order }}</span>
+                <router-link
+                  to="/products/order"
+                  class="text-xs text-primary hover:underline ml-2"
+                >
+                  Editar en vista de orden
+                </router-link>
               </div>
 
               <!-- Marca -->

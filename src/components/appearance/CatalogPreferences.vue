@@ -8,6 +8,7 @@ import {
   LOGO_POSITION_OPTIONS,
   CART_ICON_OPTIONS,
   PRODUCT_ORDER_OPTIONS,
+  PRICING_MODE_OPTIONS,
 } from '@/types/appearance.types'
 import type { CatalogPreferences } from '@/types/appearance.types'
 
@@ -354,6 +355,57 @@ const hideOutOfStockBool = computed({
           </span>
           <InputSwitch v-model="hideOutOfStockBool" />
         </div>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <hr class="border-gray-100" />
+
+    <!-- Pricing Mode -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Modo de precios
+      </label>
+      <p class="text-xs text-gray-400 mb-3">
+        Define cual precio ingresas normalmente. El otro se calculara automaticamente.
+      </p>
+      <div class="grid grid-cols-2 gap-3 max-w-md">
+        <button
+          v-for="option in PRICING_MODE_OPTIONS"
+          :key="option.value"
+          type="button"
+          class="relative p-4 border-2 rounded-lg text-center transition-all cursor-pointer"
+          :class="
+            preferences.pricing_mode === option.value
+              ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+              : 'border-gray-200 bg-white hover:border-gray-300'
+          "
+          @click="emit('update:field', 'pricing_mode', option.value)"
+        >
+          <i
+            :class="option.icon"
+            class="text-xl mb-2 block"
+            :style="{
+              color:
+                preferences.pricing_mode === option.value ? '#00b2a6' : '#6B7280',
+            }"
+          />
+          <div
+            class="text-sm font-medium"
+            :class="
+              preferences.pricing_mode === option.value
+                ? 'text-primary'
+                : 'text-gray-600'
+            "
+          >
+            {{ option.label }}
+          </div>
+          <p class="text-xs text-gray-400 mt-1">{{ option.description }}</p>
+          <i
+            v-if="preferences.pricing_mode === option.value"
+            class="pi pi-check-circle absolute top-2 right-2 text-primary text-sm"
+          />
+        </button>
       </div>
     </div>
 

@@ -1025,6 +1025,10 @@ const reportsMenuItems = [
 // Items del grupo Catálogo
 const catalogMenuItems = [
   { label: 'Productos', icon: 'pi pi-box', to: '/products' },
+  { label: 'Nuevo Producto', icon: 'pi pi-plus', to: '/products/create' },
+  { label: 'Precios', icon: 'pi pi-dollar', to: '/products/prices' },
+  { label: 'Stock', icon: 'pi pi-warehouse', to: '/products/stock' },
+  { label: 'Orden', icon: 'pi pi-sort-alt', to: '/products/order' },
   { label: 'Categorías', icon: 'pi pi-folder', to: '/catalog/categories' },
   { label: 'Marcas', icon: 'pi pi-tag', to: '/catalog/brands' },
   { label: 'Gammas', icon: 'pi pi-sitemap', to: '/catalog/gammas' },
