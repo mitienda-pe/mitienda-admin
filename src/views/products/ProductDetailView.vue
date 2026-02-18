@@ -73,9 +73,18 @@
 
               <!-- Descripcion corta -->
               <div>
-                <label for="edit-desc-short" class="block text-sm font-medium text-secondary-700 mb-1">
-                  Descripcion corta
-                </label>
+                <div class="flex items-center justify-between mb-1">
+                  <label for="edit-desc-short" class="block text-sm font-medium text-secondary-700">
+                    Descripcion corta
+                  </label>
+                  <AiFieldGenerator
+                    v-model="form.description_short"
+                    preset="short-description"
+                    :context="aiContext"
+                    :max-length="300"
+                    :button-id="AI_BUTTON_IDS.product.shortDescription"
+                  />
+                </div>
                 <Textarea
                   id="edit-desc-short"
                   v-model="form.description_short"
@@ -180,9 +189,18 @@
             <div class="space-y-4">
               <!-- Meta Title -->
               <div>
-                <label for="edit-meta-title" class="block text-sm font-medium text-secondary-700 mb-1">
-                  Meta Title
-                </label>
+                <div class="flex items-center justify-between mb-1">
+                  <label for="edit-meta-title" class="block text-sm font-medium text-secondary-700">
+                    Meta Title
+                  </label>
+                  <AiFieldGenerator
+                    v-model="form.meta_title"
+                    preset="meta-title"
+                    :context="aiContext"
+                    :max-length="150"
+                    :button-id="AI_BUTTON_IDS.product.metaTitle"
+                  />
+                </div>
                 <InputText
                   id="edit-meta-title"
                   v-model="form.meta_title"
@@ -198,9 +216,18 @@
 
               <!-- Meta Description -->
               <div>
-                <label for="edit-meta-desc" class="block text-sm font-medium text-secondary-700 mb-1">
-                  Meta Description
-                </label>
+                <div class="flex items-center justify-between mb-1">
+                  <label for="edit-meta-desc" class="block text-sm font-medium text-secondary-700">
+                    Meta Description
+                  </label>
+                  <AiFieldGenerator
+                    v-model="form.meta_description"
+                    preset="meta-description"
+                    :context="aiContext"
+                    :max-length="160"
+                    :button-id="AI_BUTTON_IDS.product.metaDescription"
+                  />
+                </div>
                 <Textarea
                   id="edit-meta-desc"
                   v-model="form.meta_description"
@@ -767,6 +794,7 @@
     <!-- Modal de edicion de descripcion -->
     <ProductDescriptionEditor v-if="product" v-model="showDescriptionEditor"
       :content="product.description_html || product.description || ''" :mode="editorMode"
+      :product-context="productAiContext"
       @save="handleSaveDescription" />
 
     <!-- Dialog de seleccion de categoria externa -->
@@ -857,6 +885,8 @@ import ProductVideoPlayer from '@/components/products/ProductVideoPlayer.vue'
 import ProductDocumentUploader from '@/components/products/ProductDocumentUploader.vue'
 import ProductDocumentList from '@/components/products/ProductDocumentList.vue'
 import ProductDescriptionEditor from '@/components/products/ProductDescriptionEditor.vue'
+import { AiFieldGenerator } from '@/components/ui'
+import { AI_BUTTON_IDS } from '@/config/ai-buttons.config'
 import ProductTagAssignment from '@/components/ProductTagAssignment.vue'
 import ProductReviewsCard from '@/components/reviews/ProductReviewsCard.vue'
 import type { ProductUpdatePayload, ExternalCategoryOption } from '@/types/product.types'
@@ -881,6 +911,29 @@ const showVideoUploader = ref(false)
 const showDocumentUploader = ref(false)
 const showDescriptionEditor = ref(false)
 const editorMode = ref<'wysiwyg' | 'code'>('wysiwyg')
+const productAiContext = computed(() => {
+  if (!product.value) return undefined
+  const p = product.value
+  const mainImage = p.images?.find(i => i.is_main) || p.images?.[0]
+  return {
+    name: p.name || '',
+    sku: p.sku || '',
+    barcode: p.barcode || '',
+    categories: p.categories?.map(c => c.name) || [],
+    brand: p.brand?.name || '',
+    price: p.price,
+    comparePrice: p.compare_price,
+    descriptionShort: p.description_short || '',
+    weight: p.weight,
+    weightUnit: p.weight_unit || 'kg',
+    height: p.height,
+    width: p.width,
+    length: p.length,
+    dimensionsUnit: p.dimensions_unit || 'cm',
+    hasVariants: p.has_variation_attributes || false,
+    imageUrl: mainImage?.url || ''
+  }
+})
 const isSyncingStock = ref(false)
 const netsuiteStock = ref<number | null>(null)
 const hasErpIntegration = ref(false)
@@ -929,6 +982,20 @@ const form = ref<FormState>({
   // Shipping per product
   shipping_conversion_factor: 1,
   shipping_per_unit: false,
+})
+
+// AI context for field generators
+const aiContext = computed(() => {
+  const f = form.value
+  const p = product.value
+  const parts: string[] = []
+  parts.push(`Nombre: ${f.name || 'Sin nombre'}`)
+  if (f.sku) parts.push(`SKU: ${f.sku}`)
+  if (p?.brand?.name) parts.push(`Marca: ${p.brand.name}`)
+  if (p?.categories?.length) parts.push(`Categoría: ${p.categories.map(c => c.name).join(', ')}`)
+  if (f.price) parts.push(`Precio: S/ ${Number(f.price).toFixed(2)}`)
+  if (f.description_short) parts.push(`Descripción corta: ${f.description_short}`)
+  return parts.join('\n')
 })
 
 const taxAffectationOptions = [

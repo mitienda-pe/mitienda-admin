@@ -103,6 +103,9 @@ onMounted(async () => {
     readOnly: props.readOnly
   })
 
+  // Expose Quill instance globally for AI Text Enhancer's QuillAdapter
+  ;(window as any).quillInstance = quill
+
   // Set initial content using clipboard API (not innerHTML which bypasses Quill's parser)
   if (props.modelValue) {
     const clipboard = quill.getModule('clipboard') as any
@@ -145,6 +148,9 @@ watch(
 )
 
 onBeforeUnmount(() => {
+  if ((window as any).quillInstance === quill) {
+    delete (window as any).quillInstance
+  }
   quill = null
 })
 </script>

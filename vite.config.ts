@@ -13,7 +13,7 @@ export default defineConfig({
       template: {
         compilerOptions: {
           // Cloudflare Stream player uses <stream> custom element
-          isCustomElement: (tag) => tag === 'stream' || tag === 'page-builder'
+          isCustomElement: (tag) => tag === 'stream' || tag === 'page-builder' || tag === 'ai-text-enhancer'
         }
       }
     })
@@ -38,6 +38,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         ws: true
+      },
+      '/llm-proxy': {
+        target: 'https://llmproxy.mitienda.host/index.php/api',
+        changeOrigin: true,
+        secure: false
       }
     }
   }
