@@ -1,10 +1,11 @@
 <template>
   <div class="h-full w-full">
-    <!-- TinyMCE WYSIWYG Editor -->
-    <Editor
+    <!-- Quill WYSIWYG Editor -->
+    <QuillEditor
       v-if="editorType === 'wysiwyg'"
       v-model="localContent"
-      :init="tinyConfig"
+      height="100%"
+      toolbar="full"
     />
 
     <!-- Monaco Code Editor -->
@@ -29,32 +30,8 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import Editor from '@tinymce/tinymce-vue'
+import { QuillEditor } from '@/components/ui'
 import type * as MonacoTypes from 'monaco-editor'
-
-// Import TinyMCE
-import 'tinymce/tinymce'
-import 'tinymce/themes/silver'
-import 'tinymce/icons/default'
-import 'tinymce/models/dom'
-// Import plugins
-import 'tinymce/plugins/advlist'
-import 'tinymce/plugins/autolink'
-import 'tinymce/plugins/lists'
-import 'tinymce/plugins/link'
-import 'tinymce/plugins/image'
-import 'tinymce/plugins/charmap'
-import 'tinymce/plugins/preview'
-import 'tinymce/plugins/anchor'
-import 'tinymce/plugins/searchreplace'
-import 'tinymce/plugins/visualblocks'
-import 'tinymce/plugins/code'
-import 'tinymce/plugins/fullscreen'
-import 'tinymce/plugins/insertdatetime'
-import 'tinymce/plugins/media'
-import 'tinymce/plugins/table'
-import 'tinymce/plugins/help'
-import 'tinymce/plugins/wordcount'
 
 import type { PageEditorType } from '@/types/page.types'
 
@@ -79,31 +56,6 @@ let monacoEditor: MonacoTypes.editor.IStandaloneCodeEditor | null = null
 // Visual Builder refs and state
 const pageBuilderRef = ref<HTMLElement | null>(null)
 let builderInitialized = false
-
-// TinyMCE Configuration (extended for full pages)
-const tinyConfig = {
-  skin_url: '/tinymce/skins/ui/oxide',
-  content_css: '/tinymce/skins/content/default/content.min.css',
-  height: '100%',
-  menubar: true,
-  plugins: [
-    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-    'insertdatetime', 'media', 'table', 'help', 'wordcount'
-  ],
-  toolbar:
-    'undo redo | blocks | ' +
-    'bold italic underline strikethrough forecolor backcolor | ' +
-    'alignleft aligncenter alignright alignjustify | ' +
-    'bullist numlist outdent indent | ' +
-    'link image media table | ' +
-    'code fullscreen | removeformat | help',
-  content_style: 'body { font-family: Helvetica, Arial, sans-serif; font-size: 14px; max-width: 900px; margin: 0 auto; padding: 16px; }',
-  language: 'es',
-  language_url: '/tinymce/langs/es.js',
-  promotion: false,
-  branding: false,
-}
 
 // Initialize Monaco Editor (lazy loaded)
 const initMonaco = async () => {

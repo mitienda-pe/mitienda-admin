@@ -2,10 +2,10 @@
   <Dialog v-model:visible="visible" modal :header="dialogTitle" :style="{ width: '90vw', maxHeight: '90vh' }"
     @hide="handleClose">
     <div class="h-[70vh]">
-      <!-- TinyMCE Editor -->
-      <Editor v-if="editorMode === 'wysiwyg'" v-model="localContent" :init="tinyConfig" />
+      <!-- Quill WYSIWYG Editor -->
+      <QuillEditor v-if="editorMode === 'wysiwyg'" v-model="localContent" height="100%" toolbar="full" />
 
-      <!-- Monaco Editor -->
+      <!-- Monaco Code Editor -->
       <div v-else ref="monacoContainer" class="h-full w-full border border-gray-300 rounded"></div>
     </div>
 
@@ -22,33 +22,8 @@
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
-import Editor from '@tinymce/tinymce-vue'
+import { QuillEditor } from '@/components/ui'
 import type * as MonacoTypes from 'monaco-editor'
-
-// Import TinyMCE
-import 'tinymce/tinymce'
-// Import TinyMCE theme and plugins
-import 'tinymce/themes/silver'
-import 'tinymce/icons/default'
-import 'tinymce/models/dom'
-// Import plugins
-import 'tinymce/plugins/advlist'
-import 'tinymce/plugins/autolink'
-import 'tinymce/plugins/lists'
-import 'tinymce/plugins/link'
-import 'tinymce/plugins/image'
-import 'tinymce/plugins/charmap'
-import 'tinymce/plugins/preview'
-import 'tinymce/plugins/anchor'
-import 'tinymce/plugins/searchreplace'
-import 'tinymce/plugins/visualblocks'
-import 'tinymce/plugins/code'
-import 'tinymce/plugins/fullscreen'
-import 'tinymce/plugins/insertdatetime'
-import 'tinymce/plugins/media'
-import 'tinymce/plugins/table'
-import 'tinymce/plugins/help'
-import 'tinymce/plugins/wordcount'
 
 interface Props {
   modelValue: boolean
@@ -73,28 +48,8 @@ const monacoContainer = ref<HTMLElement | null>(null)
 let monacoEditor: MonacoTypes.editor.IStandaloneCodeEditor | null = null
 
 const dialogTitle = computed(() => {
-  return editorMode.value === 'wysiwyg' ? 'Editar Descripción (Texto)' : 'Editar Descripción (Código HTML)'
+  return editorMode.value === 'wysiwyg' ? 'Editar Descripcion (Texto)' : 'Editar Descripcion (Codigo HTML)'
 })
-
-// TinyMCE Configuration
-const tinyConfig = {
-  skin_url: '/tinymce/skins/ui/oxide',
-  content_css: '/tinymce/skins/content/default/content.min.css',
-  height: '100%',
-  menubar: true,
-  plugins: [
-    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-    'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
-  ],
-  toolbar: 'undo redo | blocks | ' +
-    'bold italic forecolor | alignleft aligncenter ' +
-    'alignright alignjustify | bullist numlist outdent indent | ' +
-    'removeformat | help',
-  content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-  language: 'es',
-  language_url: '/tinymce/langs/es.js'
-}
 
 // Initialize Monaco Editor
 const initMonaco = async () => {
@@ -166,11 +121,16 @@ watch(() => props.mode, (newMode) => {
   }
 })
 
-// Watch for visible changes
+// Watch for visible changes — always reset content from props on dialog open
 watch(visible, (isVisible) => {
-  if (isVisible && editorMode.value === 'code') {
-    nextTick(() => initMonaco())
-  } else if (!isVisible && monacoEditor) {
+  if (isVisible) {
+    // Reset from fresh props every time the dialog opens
+    localContent.value = props.content
+    editorMode.value = props.mode
+    if (editorMode.value === 'code') {
+      nextTick(() => initMonaco())
+    }
+  } else if (monacoEditor) {
     monacoEditor.dispose()
     monacoEditor = null
   }

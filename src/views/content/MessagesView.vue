@@ -1,38 +1,12 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useStoreMessagesStore } from '@/stores/store-messages.store'
-import { AppButton } from '@/components/ui'
+import { AppButton, QuillEditor } from '@/components/ui'
 import ProgressSpinner from 'primevue/progressspinner'
 import { useToast } from 'primevue/usetoast'
-import Editor from '@tinymce/tinymce-vue'
-
-// TinyMCE core + minimal plugins
-import 'tinymce/tinymce'
-import 'tinymce/themes/silver'
-import 'tinymce/icons/default'
-import 'tinymce/models/dom'
-import 'tinymce/plugins/autolink'
-import 'tinymce/plugins/lists'
-import 'tinymce/plugins/link'
-import 'tinymce/plugins/image'
 
 const store = useStoreMessagesStore()
 const toast = useToast()
-
-const tinyConfig = {
-  skin_url: '/tinymce/skins/ui/oxide',
-  content_css: '/tinymce/skins/content/default/content.min.css',
-  height: 200,
-  menubar: false,
-  statusbar: false,
-  plugins: ['autolink', 'lists', 'link', 'image'],
-  toolbar: 'bold italic | bullist numlist | link image | removeformat',
-  content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-  language: 'es',
-  language_url: '/tinymce/langs/es.js',
-  branding: false,
-  promotion: false
-}
 
 const MESSAGE_FIELDS = [
   {
@@ -108,9 +82,10 @@ onMounted(() => {
           {{ field.label }}
         </h2>
         <p class="text-xs text-gray-400 mb-3">{{ field.hint }}</p>
-        <Editor
+        <QuillEditor
           :modelValue="store.draftMessages[field.key] || ''"
-          :init="tinyConfig"
+          height="200px"
+          toolbar="compact"
           @update:modelValue="onEditorUpdate(field.key, $event)"
         />
       </div>
