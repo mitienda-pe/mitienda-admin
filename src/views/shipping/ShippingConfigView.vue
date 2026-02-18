@@ -159,34 +159,52 @@ onMounted(() => {
 
         <!-- Cálculo de costo de envío -->
         <div class="border-t border-gray-100 pt-4">
-          <p class="font-medium text-gray-900 mb-1">Cálculo de costo de envío</p>
+          <p class="font-medium text-gray-900 mb-1">Como aplicar el precio de envío</p>
           <p class="text-sm text-gray-500 mb-3">
-            Cuando un pedido tiene varios productos con distintos costos de envío
+            Determina como se calcula el costo de envío cuando el carrito tiene varios productos
           </p>
-          <div class="space-y-2 ml-4">
-            <div class="flex items-center gap-2">
+          <div class="space-y-3 ml-4">
+            <div class="flex items-start gap-2">
               <RadioButton
                 v-model="draftConfig.envioporProducto"
                 :value="0"
                 inputId="envio-single"
+                class="mt-0.5"
               />
-              <label for="envio-single" class="text-sm">Precio único de envío</label>
+              <div>
+                <label for="envio-single" class="text-sm font-medium cursor-pointer">Precio único por destino</label>
+                <p class="text-xs text-gray-500">
+                  Se aplica la tarifa de envío del destino seleccionado, sin importar cuántos productos tenga el carrito
+                </p>
+              </div>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-start gap-2">
               <RadioButton
                 v-model="draftConfig.envioporProducto"
                 :value="1"
                 inputId="envio-highest"
+                class="mt-0.5"
               />
-              <label for="envio-highest" class="text-sm">Usar el costo más alto</label>
+              <div>
+                <label for="envio-highest" class="text-sm font-medium cursor-pointer">Calcular precio mayor</label>
+                <p class="text-xs text-gray-500">
+                  Cada producto tiene un factor de envío distinto y se aplica la tarifa más alta del carrito
+                </p>
+              </div>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-start gap-2">
               <RadioButton
                 v-model="draftConfig.envioporProducto"
                 :value="2"
                 inputId="envio-sum"
+                class="mt-0.5"
               />
-              <label for="envio-sum" class="text-sm">Sumar costos de cada producto</label>
+              <div>
+                <label for="envio-sum" class="text-sm font-medium cursor-pointer">Calcular sumatoria por productos</label>
+                <p class="text-xs text-gray-500">
+                  Cada producto tiene un factor de envío distinto y se suman las tarifas de todos los productos en el carrito
+                </p>
+              </div>
             </div>
           </div>
         </div>

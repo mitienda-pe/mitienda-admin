@@ -1,6 +1,6 @@
 import apiClient from './axios'
 import type { ApiResponse, PaginatedResponse } from '@/types/api.types'
-import type { Product } from '@/types/product.types'
+import type { Product, ProductUpdatePayload, ExternalCategoryOption } from '@/types/product.types'
 
 export interface ProductsFilters {
   page?: number
@@ -178,10 +178,13 @@ export const productsApi = {
         name: rawData.name,
         description: rawData.description || '',
         description_html: rawData.description_html || '',
+        description_short: rawData.description_short || '',
         price: parseFloat(rawData.price || '0'),
         price_without_tax: rawData.price_without_tax !== undefined && rawData.price_without_tax !== null ? parseFloat(rawData.price_without_tax) : undefined,
         compare_price: rawData.compare_price ? parseFloat(rawData.compare_price) : undefined,
         cost: rawData.cost ? parseFloat(rawData.cost) : undefined,
+        igv_percent: rawData.igv_percent !== undefined ? parseInt(rawData.igv_percent) : 18,
+        tax_affectation: rawData.tax_affectation !== undefined ? parseInt(rawData.tax_affectation) : 1,
         stock: rawData.stock || 0,
         unlimited_stock: rawData.unlimited_stock === 1 || rawData.unlimited_stock === true,
         min_stock: rawData.min_stock || undefined,
@@ -243,13 +246,31 @@ export const productsApi = {
     }
   },
 
-  // Actualizar producto (edición rápida: precio, stock, publicado)
-  async updateProduct(id: number, data: { price?: number; stock?: number; published?: boolean }): Promise<ApiResponse<Product>> {
-    const payload: any = {}
+  // Actualizar producto (soporta update parcial o completo)
+  async updateProduct(id: number, data: ProductUpdatePayload & Record<string, any>): Promise<ApiResponse<Product>> {
+    const payload: Record<string, any> = {}
 
-    if (data.price !== undefined) payload.price = data.price
-    if (data.stock !== undefined) payload.stock = data.stock
+    // Map all defined fields to payload
+    const directFields = [
+      'name', 'sku', 'barcode', 'price', 'price_without_tax', 'stock',
+      'description', 'description_html', 'description_short',
+      'brand_id', 'gamma_id', 'order', 'igv_percent', 'tax_affectation',
+      'meta_title', 'meta_description', 'meta_image', 'slug',
+      'height', 'width', 'length', 'dimensions_unit', 'weight', 'weight_unit',
+      'facebook_category_id', 'google_category_id',
+      'shipping_conversion_factor'
+    ] as const
+    for (const key of directFields) {
+      if ((data as any)[key] !== undefined) payload[key] = (data as any)[key]
+    }
+
+    // Boolean fields: convert to 0/1
     if (data.published !== undefined) payload.published = data.published ? 1 : 0
+    if (data.unlimited_stock !== undefined) payload.unlimited_stock = data.unlimited_stock ? 1 : 0
+    if (data.shipping_per_unit !== undefined) payload.shipping_per_unit = data.shipping_per_unit ? 1 : 0
+
+    // Array fields
+    if (data.categories !== undefined) payload.categories = data.categories
 
     const response = await apiClient.put(`/products/${id}`, payload)
 
@@ -261,13 +282,17 @@ export const productsApi = {
       const product: Product = {
         id: rawData.id,
         sku: rawData.sku,
+        barcode: rawData.barcode || undefined,
         name: rawData.name,
         description: rawData.description || '',
         description_html: rawData.description_html || '',
+        description_short: rawData.description_short || '',
         price: parseFloat(rawData.price || '0'),
         price_without_tax: rawData.price_without_tax !== undefined && rawData.price_without_tax !== null ? parseFloat(rawData.price_without_tax) : undefined,
         compare_price: rawData.compare_price ? parseFloat(rawData.compare_price) : undefined,
         cost: rawData.cost ? parseFloat(rawData.cost) : undefined,
+        igv_percent: rawData.igv_percent !== undefined ? parseInt(rawData.igv_percent) : 18,
+        tax_affectation: rawData.tax_affectation !== undefined ? parseInt(rawData.tax_affectation) : 1,
         stock: rawData.stock || 0,
         unlimited_stock: rawData.unlimited_stock === 1 || rawData.unlimited_stock === true,
         min_stock: rawData.min_stock || undefined,
@@ -277,6 +302,10 @@ export const productsApi = {
         images: rawData.images || [],
         categories: rawData.categories,
         brand: rawData.brand,
+        gamma: rawData.gamma || undefined,
+        seo: rawData.seo || undefined,
+        external_categories: rawData.external_categories || undefined,
+        order: rawData.order !== undefined && rawData.order !== null ? parseInt(rawData.order.toString()) : undefined,
         created_at: rawData.created_at || new Date().toISOString(),
         updated_at: rawData.updated_at || new Date().toISOString()
       }
@@ -373,6 +402,31 @@ export const productsApi = {
   // Eliminar imagen de producto
   async deleteImage(productId: number, imageId: number): Promise<ApiResponse<any>> {
     const response = await apiClient.delete(`/products/${productId}/images/${imageId}`)
+    return response.data
+  },
+
+  // Subir imagen OpenGraph
+  async uploadOgImage(id: number, imageFile: File): Promise<ApiResponse<{ meta_image: string }>> {
+    const formData = new FormData()
+    formData.append('image', imageFile)
+    const response = await apiClient.post(`/products/${id}/og-image`, formData)
+    return response.data
+  },
+
+  // Eliminar imagen OpenGraph
+  async deleteOgImage(id: number): Promise<ApiResponse<any>> {
+    const response = await apiClient.delete(`/products/${id}/og-image`)
+    return response.data
+  },
+
+  // Listar categorías externas (Facebook/Google) con navegación jerárquica
+  async getExternalCategories(
+    platform: 'facebook' | 'google',
+    parentId: number = 0
+  ): Promise<ApiResponse<ExternalCategoryOption[]>> {
+    const response = await apiClient.get(`/external-categories/${platform}`, {
+      params: { parent_id: parentId }
+    })
     return response.data
   }
 }

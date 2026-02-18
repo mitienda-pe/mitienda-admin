@@ -20,6 +20,13 @@ export interface ProductExternalCategories {
   mercadolibre?: ProductExternalCategory | null
 }
 
+export interface ExternalCategoryOption {
+  id: number
+  external_id: string
+  name: string
+  has_children: boolean
+}
+
 export interface PriceRange {
   min: number | null
   max: number | null
@@ -33,6 +40,7 @@ export interface Product {
   name: string
   description?: string
   description_html?: string
+  description_short?: string
   price: number
   price_without_tax?: number // Precio sin IGV (8 decimales de precisión)
   price_range?: PriceRange | null // Rango de precios para productos con variantes
@@ -49,6 +57,10 @@ export interface Product {
   length?: number
   dimensions_unit?: string
   volumetric_weight?: number
+  shipping_conversion_factor?: number
+  shipping_per_unit?: boolean
+  igv_percent?: number
+  tax_affectation?: number // 1=Gravado, 2=Exonerado, 3=Inafecto
   published: boolean
   featured: boolean
   images: ProductImage[]
@@ -251,12 +263,42 @@ export interface CsvPreviewRow {
 export interface ProductCreatePayload {
   name: string
   sku?: string
+  barcode?: string
   price?: number
+  price_without_tax?: number
   stock?: number
+  unlimited_stock?: boolean
   description?: string
+  description_short?: string
   brand_id?: number | null
+  gamma_id?: number | null
   categories?: number[]
   published?: boolean
+  order?: number
+  igv_percent?: number
+  tax_affectation?: number
+  // SEO
+  meta_title?: string
+  meta_description?: string
+  meta_image?: string | null
+  slug?: string
+  // Dimensiones y peso
+  height?: number | null
+  width?: number | null
+  length?: number | null
+  dimensions_unit?: string
+  weight?: number | null
+  weight_unit?: string
+  // External categories
+  facebook_category_id?: string | null
+  google_category_id?: string | null
+  // Shipping per product
+  shipping_conversion_factor?: number
+  shipping_per_unit?: boolean
+}
+
+export type ProductUpdatePayload = Partial<ProductCreatePayload> & {
+  description_html?: string
 }
 
 // ── Management view list filters ──

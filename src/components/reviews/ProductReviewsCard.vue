@@ -79,7 +79,7 @@ const goToAllReviews = () => {
             <StarRating :rating="Math.round(rating.avg_rating)" size="sm" />
             <p class="text-xs text-gray-500 mt-1">{{ rating.total }} opiniones</p>
           </div>
-          <div class="flex-1 space-y-1">
+          <div v-if="rating.distribution" class="flex-1 space-y-1">
             <div
               v-for="stars in [5, 4, 3, 2, 1]"
               :key="stars"
