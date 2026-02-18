@@ -19,6 +19,8 @@ export interface Order {
   payments?: OrderPayment[] // For POS sales with multiple payment methods
   gateway_code?: string
   gateway_message?: string
+  gateway_error_user?: string
+  gateway_error_store?: string
   shipping_address?: Address | string
   shipping_details?: ShippingDetails
   billing_address?: Address

@@ -240,6 +240,8 @@ export const ordersApi = {
         payments: rawData.payments || [], // POS sales may have multiple payments
         gateway_code: rawData.gateway_code || undefined,
         gateway_message: rawData.gateway_message || undefined,
+        gateway_error_user: rawData.gateway_error_user || undefined,
+        gateway_error_store: rawData.gateway_error_store || undefined,
         payment_status: mapPaymentStatusText(rawData.status), // Texto del estado de pago
         shipping_address: receiverAddress.address_line || '',
         shipping_details: {

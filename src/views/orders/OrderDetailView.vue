@@ -842,6 +842,27 @@ const handleDebugPayments = async () => {
                   <p class="text-sm text-gray-500">Mensaje de la pasarela</p>
                   <p class="text-gray-900">{{ order.gateway_message }}</p>
                 </div>
+
+                <!-- Motivo de rechazo -->
+                <div
+                  v-if="order.gateway_error_user || order.gateway_error_store || (order.status === 'cancelled' && !order.gateway_message)"
+                  class="mt-3 p-3 rounded-lg border"
+                  :class="order.status === 'cancelled' ? 'bg-red-50 border-red-200' : 'bg-yellow-50 border-yellow-200'"
+                >
+                  <p class="text-sm font-semibold mb-1" :class="order.status === 'cancelled' ? 'text-red-700' : 'text-yellow-700'">
+                    <i class="pi pi-exclamation-triangle mr-1"></i>
+                    Motivo del rechazo
+                  </p>
+                  <p v-if="order.gateway_error_user" class="text-sm" :class="order.status === 'cancelled' ? 'text-red-600' : 'text-yellow-600'">
+                    {{ order.gateway_error_user }}
+                  </p>
+                  <p v-if="order.gateway_error_store && order.gateway_error_store !== order.gateway_error_user" class="text-xs mt-1 text-gray-500">
+                    Detalle: {{ order.gateway_error_store }}
+                  </p>
+                  <p v-if="!order.gateway_error_user && !order.gateway_error_store" class="text-sm text-red-500 italic">
+                    Motivo no disponible
+                  </p>
+                </div>
               </div>
             </template>
           </Card>
