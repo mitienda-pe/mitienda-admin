@@ -294,6 +294,29 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Permalink de carrito -->
+              <div v-if="storeUrl && product" class="border-t border-gray-200 pt-4">
+                <h4 class="text-xs font-semibold text-secondary-500 uppercase mb-2">Permalink de carrito</h4>
+                <div class="flex items-center gap-2">
+                  <InputText
+                    :modelValue="cartPermalink"
+                    readonly
+                    class="w-full text-xs font-mono"
+                  />
+                  <Button
+                    icon="pi pi-copy"
+                    severity="secondary"
+                    outlined
+                    size="small"
+                    v-tooltip="'Copiar enlace'"
+                    @click="copyPermalink"
+                  />
+                </div>
+                <small class="text-gray-400 mt-1 block">
+                  Este enlace agrega el producto directamente al carrito de compras
+                </small>
+              </div>
             </div>
           </template>
         </Card>
@@ -1255,6 +1278,32 @@ const calculatedVolumetricWeight = computed(() => {
 })
 
 const storeUrl = computed(() => authStore.selectedStore?.url || null)
+
+// ── Permalink ──
+const cartPermalink = computed(() => {
+  if (!storeUrl.value || !product.value) return ''
+  const baseUrl = storeUrl.value.endsWith('/') ? storeUrl.value.slice(0, -1) : storeUrl.value
+  return `${baseUrl}/compra?items=${product.value.id}:0:1`
+})
+
+const copyPermalink = async () => {
+  try {
+    await navigator.clipboard.writeText(cartPermalink.value)
+    toast.add({
+      severity: 'success',
+      summary: 'Copiado',
+      detail: 'Permalink copiado al portapapeles',
+      life: 2000,
+    })
+  } catch {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: 'No se pudo copiar al portapapeles',
+      life: 3000,
+    })
+  }
+}
 
 // ── Store URL ──
 const openProductInStore = () => {
