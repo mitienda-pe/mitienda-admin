@@ -1,15 +1,20 @@
 <script setup lang="ts">
 import { IMAGE_DISPLAY_OPTIONS } from '@/types/product-card.types'
 import type { ImageDisplay } from '@/types/product-card.types'
+import InputSwitch from 'primevue/inputswitch'
 
 interface Props {
   modelValue: ImageDisplay
+  showColorSwatches: boolean
+  showSizeButtons: boolean
 }
 
 defineProps<Props>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: ImageDisplay]
+  'update:showColorSwatches': [value: boolean]
+  'update:showSizeButtons': [value: boolean]
 }>()
 </script>
 
@@ -56,42 +61,75 @@ const emit = defineEmits<{
       </button>
     </div>
 
-    <!-- Coming soon: Colors & Sizes -->
+    <!-- Product Attributes: Colors & Sizes -->
     <div class="mt-6">
       <label class="block text-sm font-medium text-gray-700 mb-1">
         Atributos del producto
       </label>
       <p class="text-xs text-gray-400 mb-3">
-        Muestra opciones como colores y tallas directamente en la tarjeta
+        Muestra opciones como colores y tallas directamente en la tarjeta.
+        Requiere que el producto tenga variantes con atributos configurados.
       </p>
-      <div class="grid grid-cols-2 gap-3 max-w-sm">
+      <div class="space-y-3 max-w-sm">
         <div
-          class="relative p-4 border-2 border-dashed border-gray-200 rounded-lg text-center opacity-60"
+          class="flex items-center justify-between p-4 border-2 rounded-lg transition-all"
+          :class="
+            showColorSwatches
+              ? 'border-primary bg-primary/5'
+              : 'border-gray-200 bg-white'
+          "
         >
-          <div
-            class="absolute -top-2 right-2 bg-amber-100 text-amber-700 text-[10px] font-semibold px-2 py-0.5 rounded-full"
-          >
-            Próximamente
+          <div class="flex items-center gap-3">
+            <i
+              class="pi pi-palette text-xl"
+              :class="showColorSwatches ? 'text-primary' : 'text-gray-400'"
+            />
+            <div>
+              <span
+                class="text-sm font-medium block"
+                :class="showColorSwatches ? 'text-primary' : 'text-gray-600'"
+              >
+                Colores
+              </span>
+              <span class="text-[10px] text-gray-400 block mt-0.5 leading-tight">
+                Selector de colores con cambio de imagen
+              </span>
+            </div>
           </div>
-          <i class="pi pi-palette text-xl mb-2 block text-gray-400" />
-          <span class="text-sm font-medium block text-gray-500">Colores</span>
-          <span class="text-[10px] text-gray-400 block mt-0.5 leading-tight">
-            Selector de colores con cambio de imagen
-          </span>
+          <InputSwitch
+            :modelValue="showColorSwatches"
+            @update:modelValue="emit('update:showColorSwatches', $event)"
+          />
         </div>
         <div
-          class="relative p-4 border-2 border-dashed border-gray-200 rounded-lg text-center opacity-60"
+          class="flex items-center justify-between p-4 border-2 rounded-lg transition-all"
+          :class="
+            showSizeButtons
+              ? 'border-primary bg-primary/5'
+              : 'border-gray-200 bg-white'
+          "
         >
-          <div
-            class="absolute -top-2 right-2 bg-amber-100 text-amber-700 text-[10px] font-semibold px-2 py-0.5 rounded-full"
-          >
-            Próximamente
+          <div class="flex items-center gap-3">
+            <i
+              class="pi pi-list text-xl"
+              :class="showSizeButtons ? 'text-primary' : 'text-gray-400'"
+            />
+            <div>
+              <span
+                class="text-sm font-medium block"
+                :class="showSizeButtons ? 'text-primary' : 'text-gray-600'"
+              >
+                Tallas
+              </span>
+              <span class="text-[10px] text-gray-400 block mt-0.5 leading-tight">
+                Botones de selección de tallas
+              </span>
+            </div>
           </div>
-          <i class="pi pi-list text-xl mb-2 block text-gray-400" />
-          <span class="text-sm font-medium block text-gray-500">Tallas</span>
-          <span class="text-[10px] text-gray-400 block mt-0.5 leading-tight">
-            Botones de selección de tallas
-          </span>
+          <InputSwitch
+            :modelValue="showSizeButtons"
+            @update:modelValue="emit('update:showSizeButtons', $event)"
+          />
         </div>
       </div>
     </div>

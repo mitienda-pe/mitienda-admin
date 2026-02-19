@@ -152,7 +152,11 @@ onMounted(() => {
           <div class="p-6">
             <ImageDisplaySelector
               :modelValue="store.draftConfig.image_display"
+              :showColorSwatches="store.draftConfig.show_color_swatches"
+              :showSizeButtons="store.draftConfig.show_size_buttons"
               @update:modelValue="store.updateField('image_display', $event as ImageDisplay)"
+              @update:showColorSwatches="store.updateField('show_color_swatches', $event)"
+              @update:showSizeButtons="store.updateField('show_size_buttons', $event)"
             />
           </div>
         </div>

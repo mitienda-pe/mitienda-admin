@@ -24,6 +24,8 @@ export interface ProductCardConfig {
   hover_effect: HoverEffect
   button_type: ButtonType
   image_display: ImageDisplay
+  show_color_swatches: boolean
+  show_size_buttons: boolean
 }
 
 export const DEFAULT_PRODUCT_CARD_CONFIG: ProductCardConfig = {
@@ -31,7 +33,9 @@ export const DEFAULT_PRODUCT_CARD_CONFIG: ProductCardConfig = {
   border_radius: 12,
   hover_effect: 'translate-y',
   button_type: 0,
-  image_display: 'none'
+  image_display: 'none',
+  show_color_swatches: false,
+  show_size_buttons: false
 }
 
 export interface CardStyleOption {
