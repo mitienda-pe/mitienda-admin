@@ -310,3 +310,65 @@ export interface ProductManagementFilters {
   sort_field?: string
   sort_order?: 'ASC' | 'DESC'
 }
+
+// ── Product Variants (Attribute Combinations) ──
+
+export interface VariantDetail {
+  store_attribute_id: number
+  store_attribute_name: string
+  option_id: number
+  option_text: string
+  global_attribute_id: number
+}
+
+export interface ProductVariant {
+  id: number | null
+  sku: string
+  names: string
+  price: number
+  offer_price: number | null
+  stock: number
+  unlimited_stock: boolean
+  image_id: number | null
+  image_url: string | null
+  details: VariantDetail[]
+}
+
+export interface ProductAttributeInfo {
+  id: number
+  name: string
+  slug: string
+  type: number
+  style: number
+  order: number
+}
+
+export interface VariantsData {
+  attributes: ProductAttributeInfo[]
+  variants: ProductVariant[]
+}
+
+export interface GenerateVariantsPayload {
+  attributes: {
+    store_attribute_id: number
+    option_ids: number[]
+  }[]
+}
+
+export interface SaveVariantsPayload {
+  variants: {
+    id: number | null
+    sku: string
+    price: number
+    offer_price: number | null
+    stock: number
+    unlimited_stock: boolean
+    image_id: number | null
+    details: {
+      store_attribute_id: number
+      option_id: number
+      global_attribute_id: number
+    }[]
+  }[]
+  deleted_ids: number[]
+}

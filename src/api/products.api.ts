@@ -1,6 +1,13 @@
 import apiClient from './axios'
 import type { ApiResponse, PaginatedResponse } from '@/types/api.types'
-import type { Product, ProductUpdatePayload, ExternalCategoryOption } from '@/types/product.types'
+import type {
+  Product,
+  ProductUpdatePayload,
+  ExternalCategoryOption,
+  VariantsData,
+  GenerateVariantsPayload,
+  SaveVariantsPayload,
+} from '@/types/product.types'
 
 export interface ProductsFilters {
   page?: number
@@ -428,5 +435,46 @@ export const productsApi = {
       params: { parent_id: parentId }
     })
     return response.data
-  }
+  },
+
+  // ── Product Variants ──
+
+  // Obtener variantes de un producto con detalle de atributos
+  async getVariants(productId: number): Promise<ApiResponse<VariantsData>> {
+    const response = await apiClient.get(`/products/${productId}/variants`)
+    return response.data
+  },
+
+  // Obtener atributos de la tienda para el editor de variantes
+  async getProductAttributes(productId: number): Promise<ApiResponse<any[]>> {
+    const response = await apiClient.get(`/products/${productId}/attributes`)
+    return response.data
+  },
+
+  // Generar combinaciones (preview, no guarda)
+  async generateVariants(
+    productId: number,
+    payload: GenerateVariantsPayload
+  ): Promise<ApiResponse<VariantsData & { count: number }>> {
+    const response = await apiClient.post(
+      `/products/${productId}/variants/generate`,
+      payload
+    )
+    return response.data
+  },
+
+  // Guardar variantes (bulk upsert + delete)
+  async saveVariants(
+    productId: number,
+    payload: SaveVariantsPayload
+  ): Promise<ApiResponse<{ count: number }>> {
+    const response = await apiClient.put(`/products/${productId}/variants`, payload)
+    return response.data
+  },
+
+  // Eliminar una variante individual
+  async deleteVariant(productId: number, variantId: number): Promise<ApiResponse<void>> {
+    const response = await apiClient.delete(`/products/${productId}/variants/${variantId}`)
+    return response.data
+  },
 }

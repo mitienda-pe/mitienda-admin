@@ -293,6 +293,16 @@ const routes: RouteRecordRaw[] = [
         path: 'config',
         name: 'catalog-config',
         component: () => import('@/views/catalog/CatalogConfigView.vue')
+      },
+      {
+        path: 'attributes',
+        name: 'attributes-list',
+        component: () => import('@/views/catalog/AttributesListView.vue')
+      },
+      {
+        path: 'attributes/:id',
+        name: 'attribute-detail',
+        component: () => import('@/views/catalog/AttributeDetailView.vue')
       }
     ]
   },

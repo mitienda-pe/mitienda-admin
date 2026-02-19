@@ -490,6 +490,16 @@
             </div>
           </template>
         </Card>
+
+        <!-- Variantes del Producto -->
+        <ProductVariantEditor
+          v-if="product"
+          :product-id="product.id"
+          :has-variants-prop="product.has_variation_attributes || false"
+          :default-price="form.price"
+          @variants-saved="reloadProduct"
+          @variants-toggle="handleVariantsToggle"
+        />
       </div>
 
       <!-- Columna Derecha: Sidebar 1/3 -->
@@ -885,6 +895,7 @@ import ProductVideoPlayer from '@/components/products/ProductVideoPlayer.vue'
 import ProductDocumentUploader from '@/components/products/ProductDocumentUploader.vue'
 import ProductDocumentList from '@/components/products/ProductDocumentList.vue'
 import ProductDescriptionEditor from '@/components/products/ProductDescriptionEditor.vue'
+import ProductVariantEditor from '@/components/products/ProductVariantEditor.vue'
 import { AiFieldGenerator } from '@/components/ui'
 import { AI_BUTTON_IDS } from '@/config/ai-buttons.config'
 import ProductTagAssignment from '@/components/ProductTagAssignment.vue'
@@ -1511,6 +1522,17 @@ const handleDocumentDelete = async () => {
 
 const handleDocumentError = (error: string) => {
   toast.add({ severity: 'error', summary: 'Error', detail: error, life: 5000 })
+}
+
+// ── Variant handlers ──
+const reloadProduct = async () => {
+  if (product.value) await productsStore.fetchProduct(product.value.id)
+}
+
+const handleVariantsToggle = (hasVariants: boolean) => {
+  if (product.value) {
+    product.value.has_variation_attributes = hasVariants
+  }
 }
 
 // ── NetSuite Stock ──
