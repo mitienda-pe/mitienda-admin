@@ -497,6 +497,7 @@
           :product-id="product.id"
           :has-variants-prop="product.has_variation_attributes || false"
           :default-price="form.price"
+          :images="product.images || []"
           @variants-saved="reloadProduct"
           @variants-toggle="handleVariantsToggle"
         />

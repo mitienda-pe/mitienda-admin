@@ -78,6 +78,7 @@
         <!-- Table -->
         <VariantTable
           :variants="variants"
+          :images="props.images"
           :loading="isSaving"
           @update="isDirty = true"
           @remove="handleRemoveVariant"
@@ -99,6 +100,7 @@ import { ref, onMounted } from 'vue'
 import { productsApi } from '@/api/products.api'
 import type {
   ProductVariant,
+  ProductImage,
   GenerateVariantsPayload,
   SaveVariantsPayload,
 } from '@/types/product.types'
@@ -113,6 +115,7 @@ const props = defineProps<{
   productId: number
   hasVariantsProp: boolean
   defaultPrice?: number
+  images: ProductImage[]
 }>()
 
 const emit = defineEmits<{
