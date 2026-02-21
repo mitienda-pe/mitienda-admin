@@ -23,7 +23,8 @@ const eventLabels: Record<string, string> = {
   'customer.created': 'Nuevo cliente registrado',
   'order.created': 'Nueva orden creada',
   'order.paid': 'Orden pagada',
-  'product.updated': 'Producto actualizado'
+  'product.updated': 'Producto actualizado',
+  'cart.abandoned': 'Carrito abandonado'
 }
 
 onMounted(() => {
