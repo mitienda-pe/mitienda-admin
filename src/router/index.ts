@@ -497,6 +497,21 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/marketing/ConfigureDiscountedPriceView.vue')
       },
       {
+        path: 'promotions-v2',
+        name: 'PromotionsV2',
+        component: () => import('@/views/marketing/promotions-v2/PromotionsV2ListView.vue')
+      },
+      {
+        path: 'promotions-v2/new',
+        name: 'PromotionV2Create',
+        component: () => import('@/views/marketing/promotions-v2/PromotionV2CreateView.vue')
+      },
+      {
+        path: 'promotions-v2/:id',
+        name: 'PromotionV2Detail',
+        component: () => import('@/views/marketing/promotions-v2/PromotionV2DetailView.vue')
+      },
+      {
         path: 'abandoned-carts',
         name: 'AbandonedCarts',
         component: () => import('@/views/abandoned-carts/AbandonedCartsListView.vue')

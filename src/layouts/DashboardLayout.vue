@@ -1042,6 +1042,7 @@ const catalogMenuItems = [
 // Items del grupo Marketing
 const marketingMenuItems = [
   { label: 'Promociones', icon: 'pi pi-percentage', to: '/marketing/promotions' },
+  { label: 'Promociones v2', icon: 'pi pi-sparkles', to: '/marketing/promotions-v2' },
   { label: 'Upsales', icon: 'pi pi-arrow-up', to: '/marketing/upsales' },
   { label: 'Combos', icon: 'pi pi-box', to: '/marketing/combos' },
   { label: 'Barras de Anuncios', icon: 'pi pi-megaphone', to: '/marketing/announcement-bars' },
