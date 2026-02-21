@@ -748,6 +748,16 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, requiresStore: true },
     children: [
       {
+        path: 'providers',
+        name: 'IntegrationProviders',
+        component: () => import('@/views/integrations/IntegrationProvidersView.vue')
+      },
+      {
+        path: 'providers/:code',
+        name: 'IntegrationProviderConfig',
+        component: () => import('@/views/integrations/IntegrationProviderConfigView.vue')
+      },
+      {
         path: 'webhooks',
         name: 'IntegrationWebhooks',
         component: () => import('@/views/integrations/WebhookSubscriptionsView.vue')
