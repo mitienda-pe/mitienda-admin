@@ -7,7 +7,8 @@ import type {
   CreateWebhookPayload,
   UpdateWebhookPayload,
   DomainEvent,
-  EventStats
+  EventStats,
+  DashboardData
 } from '@/types/webhook-subscriptions.types'
 
 export const webhookSubscriptionsApi = {
@@ -88,6 +89,13 @@ export const webhookSubscriptionsApi = {
 
   async retryEvent(id: number): Promise<ApiResponse<void>> {
     const response = await apiClient.post(`/events/${id}/retry`)
+    return response.data
+  },
+
+  // ========== Dashboard ==========
+
+  async getDashboard(): Promise<ApiResponse<DashboardData>> {
+    const response = await apiClient.get('/events/dashboard')
     return response.data
   }
 }

@@ -1132,6 +1132,7 @@ const shippingMenuItems = [
 
 // Items del grupo Integraciones
 const integrationMenuItems = [
+  { label: 'Monitor', icon: 'pi pi-chart-bar', to: '/integrations/dashboard' },
   { label: 'Proveedores', icon: 'pi pi-th-large', to: '/integrations/providers' },
   { label: 'Webhooks', icon: 'pi pi-link', to: '/integrations/webhooks' },
   { label: 'Registro de Eventos', icon: 'pi pi-list', to: '/integrations/events' }

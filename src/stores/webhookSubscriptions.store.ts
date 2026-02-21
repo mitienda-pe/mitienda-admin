@@ -8,7 +8,8 @@ import type {
   CreateWebhookPayload,
   UpdateWebhookPayload,
   DomainEvent,
-  EventStats
+  EventStats,
+  DashboardData
 } from '@/types/webhook-subscriptions.types'
 
 export const useWebhookSubscriptionsStore = defineStore('webhookSubscriptions', () => {
@@ -23,6 +24,10 @@ export const useWebhookSubscriptionsStore = defineStore('webhookSubscriptions', 
   const eventStats = ref<EventStats | null>(null)
   const eventsLoading = ref(false)
   const eventsMeta = ref<{ page: number; total: number; totalPages: number } | null>(null)
+
+  // Dashboard state
+  const dashboardData = ref<DashboardData | null>(null)
+  const dashboardLoading = ref(false)
 
   // Actions - Subscriptions
   async function fetchSubscriptions() {
@@ -176,6 +181,21 @@ export const useWebhookSubscriptionsStore = defineStore('webhookSubscriptions', 
     }
   }
 
+  // Actions - Dashboard
+  async function fetchDashboard() {
+    dashboardLoading.value = true
+    try {
+      const response = await webhookSubscriptionsApi.getDashboard()
+      if (response.success && response.data) {
+        dashboardData.value = response.data
+      }
+    } catch (e: any) {
+      error.value = e.message || 'Error al cargar dashboard'
+    } finally {
+      dashboardLoading.value = false
+    }
+  }
+
   return {
     // State
     subscriptions,
@@ -186,6 +206,8 @@ export const useWebhookSubscriptionsStore = defineStore('webhookSubscriptions', 
     eventStats,
     eventsLoading,
     eventsMeta,
+    dashboardData,
+    dashboardLoading,
     // Actions
     fetchSubscriptions,
     fetchAvailableEvents,
@@ -197,6 +219,7 @@ export const useWebhookSubscriptionsStore = defineStore('webhookSubscriptions', 
     fetchDeliveries,
     fetchEvents,
     fetchEventStats,
-    retryEvent
+    retryEvent,
+    fetchDashboard
   }
 })

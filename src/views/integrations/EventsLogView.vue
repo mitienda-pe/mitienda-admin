@@ -27,7 +27,8 @@ const statusOptions = [
   { label: 'Pendiente', value: 'pending' },
   { label: 'Procesando', value: 'processing' },
   { label: 'Completado', value: 'completed' },
-  { label: 'Fallido', value: 'failed' }
+  { label: 'Fallido', value: 'failed' },
+  { label: 'Dead Letter', value: 'dead_letter' }
 ]
 
 const typeOptions = ref<Array<{ label: string; value: string | null }>>([{ label: 'Todos', value: null }])
@@ -90,7 +91,8 @@ function getStatusVariant(status: string): BadgeVariant {
     pending: 'warning',
     processing: 'info',
     completed: 'success',
-    failed: 'danger'
+    failed: 'danger',
+    dead_letter: 'danger'
   }
   return map[status] || 'neutral'
 }
@@ -100,7 +102,8 @@ function getStatusLabel(status: string) {
     pending: 'Pendiente',
     processing: 'Procesando',
     completed: 'Completado',
-    failed: 'Fallido'
+    failed: 'Fallido',
+    dead_letter: 'Dead Letter'
   }
   return map[status] || status
 }
@@ -123,7 +126,7 @@ function getStatusLabel(status: string) {
         <div class="text-sm text-gray-500">{{ getStatusLabel(stat.status) }}</div>
         <div class="text-2xl font-bold" :class="{
           'text-green-600': stat.status === 'completed',
-          'text-red-600': stat.status === 'failed',
+          'text-red-600': stat.status === 'failed' || stat.status === 'dead_letter',
           'text-yellow-600': stat.status === 'pending',
           'text-blue-600': stat.status === 'processing'
         }">
@@ -219,7 +222,7 @@ function getStatusLabel(status: string) {
               <i class="pi pi-eye" />
             </AppButton>
             <AppButton
-              v-if="data.status === 'failed'"
+              v-if="data.status === 'failed' || data.status === 'dead_letter'"
               variant="text"
               size="small"
               @click="retryEvent(data)"
@@ -264,6 +267,14 @@ function getStatusLabel(status: string) {
               <span class="text-gray-500">Procesado:</span>
               <span class="ml-2">{{ selectedEvent.processed_at ? new Date(selectedEvent.processed_at).toLocaleString('es-PE') : '-' }}</span>
             </div>
+            <div v-if="selectedEvent.retry_count > 0">
+              <span class="text-gray-500">Reintentos:</span>
+              <span class="ml-2 text-orange-600 font-medium">{{ selectedEvent.retry_count }}</span>
+            </div>
+            <div v-if="selectedEvent.dead_letter_at">
+              <span class="text-gray-500">Dead letter:</span>
+              <span class="ml-2 text-red-600">{{ new Date(selectedEvent.dead_letter_at).toLocaleString('es-PE') }}</span>
+            </div>
           </div>
 
           <!-- Payload -->
@@ -272,9 +283,9 @@ function getStatusLabel(status: string) {
             <pre class="bg-gray-800 text-green-400 text-xs p-4 rounded overflow-auto max-h-64">{{ JSON.stringify(selectedEvent.payload, null, 2) }}</pre>
           </div>
 
-          <!-- Deliveries -->
+          <!-- Webhook Deliveries -->
           <div v-if="selectedEvent.deliveries?.length">
-            <h4 class="font-semibold text-gray-700 mb-2">Entregas ({{ selectedEvent.deliveries.length }})</h4>
+            <h4 class="font-semibold text-gray-700 mb-2">Entregas webhook ({{ selectedEvent.deliveries.length }})</h4>
             <div v-for="d in selectedEvent.deliveries" :key="d.id" class="border rounded p-3 mb-2 text-sm">
               <div class="flex items-center justify-between">
                 <span class="font-mono text-xs truncate max-w-xs">{{ d.url }}</span>
@@ -287,9 +298,29 @@ function getStatusLabel(status: string) {
               </div>
             </div>
           </div>
+
+          <!-- Adapter Deliveries -->
+          <div v-if="selectedEvent.adapter_deliveries?.length">
+            <h4 class="font-semibold text-gray-700 mb-2">Entregas a proveedores ({{ selectedEvent.adapter_deliveries.length }})</h4>
+            <div v-for="ad in selectedEvent.adapter_deliveries" :key="ad.id" class="border rounded p-3 mb-2 text-sm">
+              <div class="flex items-center justify-between">
+                <span class="font-medium capitalize">{{ ad.provider }}</span>
+                <AppBadge :variant="ad.status === 'success' ? 'success' : 'danger'">
+                  {{ ad.status === 'success' ? 'Exitoso' : 'Fallido' }}
+                </AppBadge>
+              </div>
+              <div class="text-xs text-gray-500 mt-1">
+                <span v-if="ad.duration_ms">{{ ad.duration_ms }}ms - </span>
+                {{ new Date(ad.created_at).toLocaleString('es-PE') }}
+              </div>
+              <div v-if="ad.error_message" class="text-xs text-red-500 mt-1 truncate" :title="ad.error_message">
+                {{ ad.error_message }}
+              </div>
+            </div>
+          </div>
         </div>
 
-        <template v-if="selectedEvent.status === 'failed'">
+        <template v-if="selectedEvent.status === 'failed' || selectedEvent.status === 'dead_letter'">
           <div class="mt-4 pt-4 border-t flex justify-end">
             <AppButton variant="primary" @click="retryEvent(selectedEvent!)">
               <i class="pi pi-replay mr-2" />

@@ -748,6 +748,11 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, requiresStore: true },
     children: [
       {
+        path: 'dashboard',
+        name: 'IntegrationsDashboard',
+        component: () => import('@/views/integrations/IntegrationsDashboardView.vue')
+      },
+      {
         path: 'providers',
         name: 'IntegrationProviders',
         component: () => import('@/views/integrations/IntegrationProvidersView.vue')
