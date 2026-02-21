@@ -1029,6 +1029,7 @@ const catalogMenuItems = [
   { label: 'Precios', icon: 'pi pi-dollar', to: '/products/prices' },
   { label: 'Stock', icon: 'pi pi-warehouse', to: '/products/stock' },
   { label: 'Orden', icon: 'pi pi-sort-alt', to: '/products/order' },
+  { label: 'Importacion Masiva', icon: 'pi pi-upload', to: '/products/bulk-import' },
   { label: 'Categorías', icon: 'pi pi-folder', to: '/catalog/categories' },
   { label: 'Marcas', icon: 'pi pi-tag', to: '/catalog/brands' },
   { label: 'Gammas', icon: 'pi pi-sitemap', to: '/catalog/gammas' },

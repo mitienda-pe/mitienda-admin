@@ -108,6 +108,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/products/ProductOrderView.vue')
       },
       {
+        path: 'bulk-import',
+        name: 'ProductBulkImport',
+        component: () => import('@/views/products/ProductBulkImportView.vue')
+      },
+      {
         path: ':id',
         name: 'ProductDetail',
         component: () => import('@/views/products/ProductDetailView.vue')

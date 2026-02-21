@@ -372,3 +372,32 @@ export interface SaveVariantsPayload {
   }[]
   deleted_ids: number[]
 }
+
+// ── Bulk CSV Import ──
+
+export interface BulkCsvParsedRow {
+  rowNumber: number
+  raw: Record<string, string>
+  mapped: Record<string, any>
+  errors: string[]
+  warnings: string[]
+  isValid: boolean
+}
+
+export interface BulkProcessingResult {
+  rowNumber: number
+  sku: string
+  productName: string
+  success: boolean
+  action: 'created' | 'updated' | 'skipped'
+  productId?: number
+  error?: string
+}
+
+export interface BulkImportSummary {
+  total: number
+  created: number
+  updated: number
+  errors: number
+  skipped: number
+}

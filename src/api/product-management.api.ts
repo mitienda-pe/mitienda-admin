@@ -170,6 +170,16 @@ export const productManagementApi = {
     return response.data
   },
 
+  // ── Bulk export ──
+
+  async exportBulk(columns: string[]): Promise<Blob> {
+    const response = await apiClient.get('/products/export-bulk', {
+      params: { columns: columns.join(',') },
+      responseType: 'blob',
+    })
+    return response.data
+  },
+
   // ── Product creation ──
 
   async createProduct(data: ProductCreatePayload): Promise<ApiResponse<any>> {
