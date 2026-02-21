@@ -743,6 +743,23 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/integrations',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: 'webhooks',
+        name: 'IntegrationWebhooks',
+        component: () => import('@/views/integrations/WebhookSubscriptionsView.vue')
+      },
+      {
+        path: 'events',
+        name: 'IntegrationEvents',
+        component: () => import('@/views/integrations/EventsLogView.vue')
+      }
+    ]
+  },
+  {
     path: '/configuracion',
     component: DashboardLayout,
     meta: { requiresAuth: true, requiresStore: true },

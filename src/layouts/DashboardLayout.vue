@@ -393,6 +393,36 @@
               </ul>
             </li>
 
+            <!-- Grupo: Integraciones -->
+            <li>
+              <button
+                @click="integrationExpanded = !integrationExpanded"
+                :aria-expanded="integrationExpanded"
+                class="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isIntegrationActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-sitemap"></i>
+                  <span>Integraciones</span>
+                </div>
+                <i :class="integrationExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="integrationExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in integrationMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+
             <!-- Grupo: API -->
             <li>
               <button
@@ -784,7 +814,38 @@
               </ul>
             </li>
 
-            <!-- Grupo API -->
+            <!-- Grupo Integraciones (móvil) -->
+            <li>
+              <button
+                @click="integrationExpanded = !integrationExpanded"
+                :aria-expanded="integrationExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isIntegrationActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-sitemap"></i>
+                  <span>Integraciones</span>
+                </div>
+                <i :class="integrationExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="integrationExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in integrationMenuItems" :key="item.to">
+                  <router-link
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
+                    active-class="bg-primary-50 text-primary font-medium"
+                    @click="sidebarVisible = false"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+
+            <!-- Grupo API (móvil) -->
             <li>
               <button
                 @click="apiExpanded = !apiExpanded"
@@ -896,6 +957,7 @@ const reportsExpandedRef = ref(false)
 const catalogExpandedRef = ref(false)
 const marketingExpandedRef = ref(false)
 const billingExpandedRef = ref(false)
+const integrationExpandedRef = ref(false)
 const apiExpandedRef = ref(false)
 const configExpandedRef = ref(false)
 const contentExpandedRef = ref(false)
@@ -929,6 +991,11 @@ const billingExpanded = computed({
   set: (val) => { billingExpandedRef.value = val }
 })
 
+
+const integrationExpanded = computed({
+  get: () => integrationExpandedRef.value || route.path.startsWith('/integrations'),
+  set: (val) => { integrationExpandedRef.value = val }
+})
 
 const apiExpanded = computed({
   get: () => apiExpandedRef.value || route.path.startsWith('/api'),
@@ -1063,10 +1130,16 @@ const shippingMenuItems = [
   { label: 'Proveedores', icon: 'pi pi-truck', to: '/shipping/couriers' }
 ]
 
+// Items del grupo Integraciones
+const integrationMenuItems = [
+  { label: 'Webhooks', icon: 'pi pi-link', to: '/integrations/webhooks' },
+  { label: 'Registro de Eventos', icon: 'pi pi-list', to: '/integrations/events' }
+]
+
 // Items del grupo API
 const apiMenuItems = [
   { label: 'Credenciales', icon: 'pi pi-key', to: '/api/credentials' },
-  { label: 'Webhooks', icon: 'pi pi-link', to: '/api/webhooks' }
+  { label: 'Webhooks (legacy)', icon: 'pi pi-link', to: '/api/webhooks' }
 ]
 
 // Items del grupo NetSuite
@@ -1119,6 +1192,11 @@ const isMarketingActive = computed(() => {
 // Detectar si estamos en alguna ruta de facturación
 const isBillingActive = computed(() => {
   return route.path.startsWith('/billing')
+})
+
+// Detectar si estamos en alguna ruta de Integraciones
+const isIntegrationActive = computed(() => {
+  return route.path.startsWith('/integrations')
 })
 
 // Detectar si estamos en alguna ruta de API
