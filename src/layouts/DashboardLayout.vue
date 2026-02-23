@@ -49,7 +49,7 @@
     <div class="flex">
       <!-- Sidebar Desktop -->
       <aside class="hidden lg:block w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-60px)]" role="navigation" aria-label="Navegación principal">
-        <nav class="p-4">
+        <nav class="p-4" @click.capture="handleNavClick">
           <!-- Sidebar para SuperAdmin SIN impersonación -->
           <ul v-if="isSuperAdminWithoutImpersonation" class="space-y-1">
             <li>
@@ -135,15 +135,17 @@
                 <li v-for="item in salesMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center justify-between px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center justify-between px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                   >
                     <div class="flex items-center gap-3">
                       <i :class="item.icon"></i>
                       <span>{{ item.label }}</span>
                     </div>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs text-secondary-300"></i>
                     <span
-                      v-if="salesBadgeMap[item.to] > 0"
+                      v-else-if="salesBadgeMap[item.to] > 0"
                       class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full"
                     >
                       {{ salesBadgeMap[item.to] > 99 ? '99+' : salesBadgeMap[item.to] }}
@@ -173,11 +175,13 @@
                 <li v-for="item in reportsMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -203,11 +207,13 @@
                 <li v-for="item in catalogMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -233,11 +239,13 @@
                 <li v-for="item in marketingMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -263,11 +271,13 @@
                 <li v-for="item in contentMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -293,11 +303,13 @@
                 <li v-for="item in appearanceMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -323,11 +335,13 @@
                 <li v-for="item in billingMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -353,11 +367,13 @@
                 <li v-for="item in shippingMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -383,11 +399,13 @@
                 <li v-for="item in storeMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -413,11 +431,13 @@
                 <li v-for="item in integrationMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -443,11 +463,13 @@
                 <li v-for="item in apiMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -473,11 +495,13 @@
                 <li v-for="item in configMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -506,7 +530,7 @@
           </div>
         </template>
 
-        <nav>
+        <nav @click.capture="handleNavClick">
           <ul class="space-y-1">
             <!-- Items simples -->
             <li v-for="item in simpleMenuItems" :key="item.to">
@@ -547,16 +571,18 @@
                 <li v-for="item in salesMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center justify-between px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center justify-between px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                     @click="sidebarVisible = false"
                   >
                     <div class="flex items-center gap-3">
                       <i :class="item.icon"></i>
                       <span>{{ item.label }}</span>
                     </div>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs text-secondary-300"></i>
                     <span
-                      v-if="salesBadgeMap[item.to] > 0"
+                      v-else-if="salesBadgeMap[item.to] > 0"
                       class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full"
                     >
                       {{ salesBadgeMap[item.to] > 99 ? '99+' : salesBadgeMap[item.to] }}
@@ -586,12 +612,14 @@
                 <li v-for="item in reportsMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                     @click="sidebarVisible = false"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -617,12 +645,14 @@
                 <li v-for="item in catalogMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                     @click="sidebarVisible = false"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -648,12 +678,14 @@
                 <li v-for="item in marketingMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                     @click="sidebarVisible = false"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -679,12 +711,14 @@
                 <li v-for="item in contentMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                     @click="sidebarVisible = false"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -710,12 +744,14 @@
                 <li v-for="item in appearanceMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                     @click="sidebarVisible = false"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -741,12 +777,14 @@
                 <li v-for="item in billingMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                     @click="sidebarVisible = false"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -772,12 +810,14 @@
                 <li v-for="item in shippingMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                     @click="sidebarVisible = false"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -803,12 +843,14 @@
                 <li v-for="item in storeMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                     @click="sidebarVisible = false"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -834,12 +876,14 @@
                 <li v-for="item in integrationMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                     @click="sidebarVisible = false"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -865,12 +909,14 @@
                 <li v-for="item in apiMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                     @click="sidebarVisible = false"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -896,12 +942,14 @@
                 <li v-for="item in configMenuItems" :key="item.to">
                   <router-link
                     :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors text-sm"
-                    active-class="bg-primary-50 text-primary font-medium"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
                     @click="sidebarVisible = false"
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
                   </router-link>
                 </li>
               </ul>
@@ -915,6 +963,9 @@
         <router-view />
       </main>
     </div>
+
+    <!-- Plan Upgrade Modal -->
+    <UpgradeModal />
   </div>
 </template>
 
@@ -929,12 +980,15 @@ import Sidebar from 'primevue/sidebar'
 import Menu from 'primevue/menu'
 import ImpersonationBanner from '@/components/admin/ImpersonationBanner.vue'
 import { useOneSignal } from '@/composables/useOneSignal'
+import { usePlanStore } from '@/stores/plan.store'
+import UpgradeModal from '@/components/plan/UpgradeModal.vue'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 const adminStore = useAdminStore()
 const badgeCountsStore = useBadgeCountsStore()
+const planStore = usePlanStore()
 const { initOneSignal } = useOneSignal()
 
 onMounted(() => {
@@ -947,6 +1001,31 @@ onUnmounted(() => {
 })
 
 const exitingImpersonation = ref(false)
+
+// Plan-based access control
+const shouldBypassPlanCheck = computed(() => authStore.isSuperAdmin)
+
+function isItemLocked(item: { to: string }): boolean {
+  if (shouldBypassPlanCheck.value) return false
+  if (!planStore.planInfo) return false
+  return !planStore.isRouteAccessible(item.to)
+}
+
+function handleNavClick(event: MouseEvent) {
+  if (shouldBypassPlanCheck.value) return
+  const target = event.target as HTMLElement
+  const anchor = target.closest('a')
+  if (!anchor) return
+  const href = anchor.getAttribute('href')
+  if (!href) return
+  if (!planStore.isRouteAccessible(href)) {
+    event.stopPropagation()
+    event.preventDefault()
+    sidebarVisible.value = false
+    const mod = planStore.getModuleForRoute(href)
+    planStore.showUpgradeModal(mod)
+  }
+}
 
 const sidebarVisible = ref(false)
 const userMenu = ref()

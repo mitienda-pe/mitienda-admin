@@ -11,9 +11,18 @@
       <Button
         label="Nueva Página"
         icon="pi pi-plus"
+        :disabled="!planStore.canAddPage()"
         @click="$router.push({ name: 'page-create' })"
       />
     </div>
+
+    <!-- Quota Banner -->
+    <QuotaBanner
+      v-if="planStore.quotas && planStore.quotas.max_pages > 0"
+      :current="planStore.quotas.current_pages"
+      :max="planStore.quotas.max_pages"
+      resource-label="páginas"
+    />
 
     <!-- Búsqueda -->
     <div class="mb-6">
@@ -135,6 +144,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { usePagesStore } from '@/stores/pages.store'
+import { usePlanStore } from '@/stores/plan.store'
+import QuotaBanner from '@/components/plan/QuotaBanner.vue'
 import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
@@ -145,6 +156,7 @@ import SearchBar from '@/components/common/SearchBar.vue'
 import type { Page, PageEditorType } from '@/types/page.types'
 
 const pagesStore = usePagesStore()
+const planStore = usePlanStore()
 const toast = useToast()
 
 const searchQuery = ref('')

@@ -892,6 +892,18 @@ router.beforeEach(async (to, _from, next) => {
     }
   }
 
+  // Plan module access check (skip for superadmin and impersonation)
+  if (requiresStore && authStore.selectedStore && !authStore.isSuperAdmin && !isImpersonating) {
+    const { usePlanStore } = await import('@/stores/plan.store')
+    const planStore = usePlanStore()
+    if (!planStore.planInfo) planStore.restorePlan()
+    if (!planStore.isRouteAccessible(to.path)) {
+      const blockedModule = planStore.getModuleForRoute(to.path)
+      if (blockedModule) planStore.showUpgradeModal(blockedModule)
+      return next(false)
+    }
+  }
+
   // Si está en store-selection pero ya tiene tienda seleccionada
   if (to.path === '/store-selection' && authStore.selectedStore) {
     next('/dashboard')

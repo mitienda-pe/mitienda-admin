@@ -4,6 +4,8 @@ import { useRouter } from 'vue-router'
 import { useCatalogStore } from '@/stores/catalog.store'
 import { useGammaStore } from '@/stores/gamma.store'
 import { productManagementApi } from '@/api/product-management.api'
+import { usePlanStore } from '@/stores/plan.store'
+import QuotaBanner from '@/components/plan/QuotaBanner.vue'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import Textarea from 'primevue/textarea'
@@ -17,6 +19,7 @@ import type { ProductCreatePayload } from '@/types/product.types'
 const router = useRouter()
 const catalogStore = useCatalogStore()
 const gammaStore = useGammaStore()
+const planStore = usePlanStore()
 const toast = useToast()
 
 const saving = ref(false)
@@ -214,6 +217,14 @@ const handleSave = async () => {
       />
       <h1 class="text-3xl font-bold text-secondary">Nuevo Producto</h1>
     </div>
+
+    <!-- Quota Banner -->
+    <QuotaBanner
+      v-if="planStore.quotas && planStore.quotas.max_products > 0"
+      :current="planStore.quotas.current_products"
+      :max="planStore.quotas.max_products"
+      resource-label="productos"
+    />
 
     <div class="bg-white rounded-lg shadow p-6 space-y-5">
       <!-- Nombre -->
@@ -461,6 +472,7 @@ const handleSave = async () => {
           label="Crear Producto"
           icon="pi pi-check"
           :loading="saving"
+          :disabled="!planStore.canAddProduct()"
           @click="handleSave"
         />
         <Button

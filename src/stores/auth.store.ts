@@ -113,6 +113,14 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.setItem('selected_store', JSON.stringify(store))
 
         console.log('✅ Token de tienda actualizado con permisos completos para store_id:', store.id)
+
+        // Fetch plan info for the selected store (fire-and-forget)
+        import('@/stores/plan.store').then(({ usePlanStore }) => {
+          const planStore = usePlanStore()
+          planStore.clearPlan() // Clear previous store's plan
+          planStore.fetchPlan()
+        })
+
         return true
       } else {
         error.value = response.message || 'Error al seleccionar tienda'
@@ -173,6 +181,12 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.removeItem('selected_store')
       localStorage.removeItem('superadmin_info')
       localStorage.removeItem('impersonation_context')
+
+      // Clear plan data
+      import('@/stores/plan.store').then(({ usePlanStore }) => {
+        const planStore = usePlanStore()
+        planStore.clearPlan()
+      })
     }
   }
 
@@ -231,6 +245,13 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.removeItem('superadmin_info')
       return
     }
+
+    // Restore plan info from localStorage + fetch updated data in background
+    import('@/stores/plan.store').then(({ usePlanStore }) => {
+      const planStore = usePlanStore()
+      planStore.restorePlan()
+      if (selectedStore.value) planStore.fetchPlan()
+    })
 
     // Fetch updated stores in background
     fetchStores()
