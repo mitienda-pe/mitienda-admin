@@ -21,7 +21,7 @@ export const useProductsStore = defineStore('products', () => {
     search: '',
     categoryId: null,
     brandId: null,
-    published: true,
+    published: null,
     stockStatus: 'all'
   })
 
@@ -142,7 +142,7 @@ export const useProductsStore = defineStore('products', () => {
       search: '',
       categoryId: null,
       brandId: null,
-      published: true,
+      published: null,
       stockStatus: 'all'
     }
     fetchProducts()
