@@ -771,6 +771,11 @@ const routes: RouteRecordRaw[] = [
         path: 'events',
         name: 'IntegrationEvents',
         component: () => import('@/views/integrations/EventsLogView.vue')
+      },
+      {
+        path: 'queue',
+        name: 'QueueManagement',
+        component: () => import('@/views/configuracion/NetsuiteQueueView.vue')
       }
     ]
   },
@@ -788,11 +793,6 @@ const routes: RouteRecordRaw[] = [
         path: 'netsuite/inventario',
         name: 'NetsuiteInventoryMap',
         component: () => import('@/views/configuracion/NetsuiteInventoryMapView.vue')
-      },
-      {
-        path: 'netsuite/cola',
-        name: 'NetsuiteQueue',
-        component: () => import('@/views/configuracion/NetsuiteQueueView.vue')
       },
       {
         path: 'netsuite/stock',

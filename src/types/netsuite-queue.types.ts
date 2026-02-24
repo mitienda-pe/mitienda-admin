@@ -1,6 +1,5 @@
 /**
- * Types for NetSuite Queue Management
- * Based on API documentation: docs/QUEUE_MANAGEMENT_API.md
+ * Types for Queue Management (all job types: netsuite, events, etc.)
  */
 
 export interface QueueJob {
@@ -9,12 +8,17 @@ export interface QueueJob {
   attempts: number
   max_attempts: number
   job_class: string
-  order_id?: number
+  order_id?: number | null
+  event_id?: number | null
+  event_type?: string | null
+  resource_type?: string | null
+  resource_id?: number | null
   tienda_id: number
   created_at_human: string
   available_at_human: string
   reserved_at_human: string | null
   age_seconds: number
+  corrupted?: boolean
   payload?: Record<string, any>
 }
 
@@ -22,7 +26,11 @@ export interface FailedJob {
   id: number
   queue: string
   job_class: string
-  order_id?: number
+  order_id?: number | null
+  event_id?: number | null
+  event_type?: string | null
+  resource_type?: string | null
+  resource_id?: number | null
   tienda_id: number
   exception_short: string
   exception?: string

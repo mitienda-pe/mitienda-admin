@@ -107,6 +107,33 @@ function truncateException(exception: string, maxLength = 100): string {
   if (exception.length <= maxLength) return exception
   return exception.substring(0, maxLength) + '...'
 }
+
+const resourceTypeLabels: Record<string, string> = {
+  order: 'Orden',
+  customer: 'Cliente',
+  product: 'Producto',
+  cart: 'Carrito'
+}
+
+function getResourceLabel(data: QueueJob | FailedJob): string {
+  if (data.queue === 'netsuite' && data.order_id) {
+    return `Orden #${data.order_id}`
+  }
+  if (data.queue === 'events' && data.event_type) {
+    const typeLabel = resourceTypeLabels[data.resource_type || ''] || data.resource_type || ''
+    return `${data.event_type} — ${typeLabel} #${data.resource_id || ''}`
+  }
+  if (data.order_id) return `Orden #${data.order_id}`
+  return '-'
+}
+
+function getQueueSeverity(queue: string): 'info' | 'warning' | 'secondary' {
+  switch (queue) {
+    case 'netsuite': return 'warning'
+    case 'events': return 'info'
+    default: return 'secondary'
+  }
+}
 </script>
 
 <template>
@@ -160,7 +187,7 @@ function truncateException(exception: string, maxLength = 100): string {
 
         <Column field="queue" header="Cola" :sortable="true">
           <template #body="{ data }">
-            <Tag :value="data.queue" severity="info" />
+            <Tag :value="data.queue" :severity="getQueueSeverity(data.queue)" />
           </template>
         </Column>
 
@@ -170,10 +197,9 @@ function truncateException(exception: string, maxLength = 100): string {
           </template>
         </Column>
 
-        <Column v-if="!showFailedJobs" field="order_id" header="Orden" :sortable="true">
+        <Column v-if="!showFailedJobs" header="Recurso" :sortable="true">
           <template #body="{ data }">
-            <span v-if="data.order_id" class="font-mono">{{ data.order_id }}</span>
-            <span v-else class="text-gray-400">-</span>
+            <span class="text-sm">{{ getResourceLabel(data) }}</span>
           </template>
         </Column>
 
@@ -195,6 +221,12 @@ function truncateException(exception: string, maxLength = 100): string {
         <Column v-if="!showFailedJobs" field="created_at_human" header="Creado" :sortable="true">
           <template #body="{ data }">
             <span class="text-sm text-gray-600">{{ data.created_at_human }}</span>
+          </template>
+        </Column>
+
+        <Column v-if="showFailedJobs" header="Recurso">
+          <template #body="{ data }">
+            <span class="text-sm">{{ getResourceLabel(data) }}</span>
           </template>
         </Column>
 

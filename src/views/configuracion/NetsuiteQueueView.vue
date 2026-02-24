@@ -219,9 +219,9 @@ function toggleAutoRefresh() {
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900">Gestión de Cola NetSuite</h1>
+        <h1 class="text-3xl font-bold text-gray-900">Cola de Trabajos</h1>
         <p class="text-gray-600 mt-1">
-          Monitorea y gestiona los trabajos de sincronización con NetSuite
+          Monitorea y gestiona los trabajos en segundo plano (NetSuite, eventos, integraciones)
         </p>
       </div>
 

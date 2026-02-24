@@ -25,6 +25,41 @@ const isFailedJob = computed(() => {
   return props.job && 'failed_at' in props.job
 })
 
+const isEventJob = computed(() => {
+  return props.job?.queue === 'events'
+})
+
+const isNetsuiteJob = computed(() => {
+  return props.job?.queue === 'netsuite'
+})
+
+const queueSeverity = computed(() => {
+  if (!props.job) return 'info'
+  switch (props.job.queue) {
+    case 'netsuite': return 'warning'
+    case 'events': return 'info'
+    default: return 'secondary'
+  }
+})
+
+const resourceLabel = computed(() => {
+  if (!props.job) return ''
+  if (isNetsuiteJob.value && props.job.order_id) {
+    return `Orden #${props.job.order_id}`
+  }
+  if (isEventJob.value && props.job.event_type) {
+    const typeMap: Record<string, string> = {
+      order: 'Orden',
+      customer: 'Cliente',
+      product: 'Producto',
+      cart: 'Carrito'
+    }
+    const label = typeMap[props.job.resource_type || ''] || props.job.resource_type || ''
+    return `${label} #${props.job.resource_id || ''}`
+  }
+  return '-'
+})
+
 const payloadString = computed(() => {
   if (!props.job?.payload) return 'No hay datos de payload'
   return JSON.stringify(props.job.payload, null, 2)
@@ -78,17 +113,35 @@ function copyToClipboard(text: string) {
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Cola</label>
-          <Tag :value="job.queue" severity="info" />
+          <Tag :value="job.queue" :severity="queueSeverity" />
         </div>
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Tienda ID</label>
-          <div class="font-mono">{{ job.tienda_id }}</div>
+          <div class="font-mono">{{ job.tienda_id || '-' }}</div>
         </div>
 
-        <div v-if="job.order_id">
+        <!-- Netsuite: Order ID -->
+        <div v-if="isNetsuiteJob && job.order_id">
           <label class="block text-sm font-medium text-gray-700 mb-1">Orden ID</label>
           <div class="font-mono">{{ job.order_id }}</div>
+        </div>
+
+        <!-- Events: Event info -->
+        <div v-if="isEventJob && job.event_type">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Tipo de Evento</label>
+          <Tag :value="job.event_type" severity="info" />
+        </div>
+
+        <div v-if="isEventJob && job.event_id">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Event ID</label>
+          <div class="font-mono">{{ job.event_id }}</div>
+        </div>
+
+        <!-- Resource -->
+        <div v-if="job.resource_type">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Recurso</label>
+          <div class="font-mono">{{ resourceLabel }}</div>
         </div>
 
         <div class="col-span-2">
@@ -99,7 +152,7 @@ function copyToClipboard(text: string) {
 
       <Divider />
 
-      <!-- Status Info -->
+      <!-- Status Info (Active Jobs) -->
       <div v-if="!isFailedJob" class="grid grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Intentos</label>
