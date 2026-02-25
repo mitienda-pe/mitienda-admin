@@ -36,6 +36,19 @@ export default {
       }
     }
   },
+  safelist: [
+    // Plan lock icon colors (DashboardLayout sidebar)
+    'text-sky-400',
+    'text-violet-400',
+    'text-amber-400',
+    // Plan pill colors (UpgradeModal)
+    'bg-sky-100',
+    'text-sky-700',
+    'bg-violet-100',
+    'text-violet-700',
+    'bg-amber-100',
+    'text-amber-700'
+  ],
   plugins: [
     require('@tailwindcss/typography')
   ]
