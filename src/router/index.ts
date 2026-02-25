@@ -896,7 +896,13 @@ router.beforeEach(async (to, _from, next) => {
   if (requiresStore && authStore.selectedStore && !authStore.isSuperAdmin && !isImpersonating) {
     const { usePlanStore } = await import('@/stores/plan.store')
     const planStore = usePlanStore()
-    if (!planStore.planInfo) planStore.restorePlan()
+    if (!planStore.planInfo) {
+      planStore.restorePlan()
+      // If still no data after restore (no localStorage cache), fetch from API
+      if (!planStore.planInfo) {
+        await planStore.fetchPlan()
+      }
+    }
     if (!planStore.isRouteAccessible(to.path)) {
       const blockedModule = planStore.getModuleForRoute(to.path)
       if (blockedModule) planStore.showUpgradeModal(blockedModule)
