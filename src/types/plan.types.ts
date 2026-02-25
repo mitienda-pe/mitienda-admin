@@ -19,8 +19,10 @@ export interface PlanModule {
 export interface PlanQuotas {
   max_products: number
   max_pages: number
+  max_users: number
   current_products: number
   current_pages: number
+  current_users: number
 }
 
 export interface StorePlanInfo {

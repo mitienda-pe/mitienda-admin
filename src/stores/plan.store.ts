@@ -155,6 +155,12 @@ export const usePlanStore = defineStore('plan', () => {
     return quotas.value.current_pages < quotas.value.max_pages
   }
 
+  function canAddUser(): boolean {
+    if (!quotas.value) return true
+    if (quotas.value.max_users === 0) return true // 0 = unlimited
+    return quotas.value.current_users < quotas.value.max_users
+  }
+
   // Upgrade modal
 
   function showUpgradeModal(mod: PlanModule | null) {
@@ -195,6 +201,7 @@ export const usePlanStore = defineStore('plan', () => {
     // Quota helpers
     canAddProduct,
     canAddPage,
+    canAddUser,
     // Modal
     showUpgradeModal,
     hideUpgradeModal

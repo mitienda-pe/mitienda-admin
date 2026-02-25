@@ -51,6 +51,7 @@ export const MODULE_ROUTE_MAP: Record<string, string[]> = {
   mod_tarifas_envio: ['/shipping'],
 
   // Store settings
+  mod_varios_usuarios: ['/store/users'],
   mod_informacion: ['/store/info'],
   mod_dominio_propio: ['/store/domain'],
   mod_seo: ['/store/seo'],

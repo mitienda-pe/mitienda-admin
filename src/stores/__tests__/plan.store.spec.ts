@@ -34,15 +34,17 @@ function makePlanInfo(overrides: Partial<StorePlanInfo> = {}): StorePlanInfo {
     quotas: {
       max_products: 100,
       max_pages: 10,
+      max_users: 2,
       current_products: 50,
-      current_pages: 5
+      current_pages: 5,
+      current_users: 1
     },
     ...overrides
   }
 }
 
 function makeQuotas(overrides: Partial<PlanQuotas> = {}): PlanQuotas {
-  return { max_products: 100, max_pages: 10, current_products: 50, current_pages: 5, ...overrides }
+  return { max_products: 100, max_pages: 10, max_users: 2, current_products: 50, current_pages: 5, current_users: 1, ...overrides }
 }
 
 // ─── Tests ───────────────────────────────────────────────────
