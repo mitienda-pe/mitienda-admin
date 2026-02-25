@@ -143,7 +143,7 @@
                       <i :class="item.icon"></i>
                       <span>{{ item.label }}</span>
                     </div>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs" :class="getLockedIconColor(item)"></i>
                     <span
                       v-else-if="salesBadgeMap[item.to] > 0"
                       class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full"
@@ -181,7 +181,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -213,7 +213,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -245,7 +245,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -277,7 +277,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -309,7 +309,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -341,7 +341,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -373,7 +373,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -405,7 +405,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -437,7 +437,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -469,7 +469,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -501,7 +501,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -580,7 +580,7 @@
                       <i :class="item.icon"></i>
                       <span>{{ item.label }}</span>
                     </div>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs" :class="getLockedIconColor(item)"></i>
                     <span
                       v-else-if="salesBadgeMap[item.to] > 0"
                       class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full"
@@ -619,7 +619,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -652,7 +652,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -685,7 +685,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -718,7 +718,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -751,7 +751,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -784,7 +784,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -817,7 +817,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -850,7 +850,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -883,7 +883,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -916,7 +916,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -949,7 +949,7 @@
                   >
                     <i :class="item.icon"></i>
                     <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto text-secondary-300"></i>
+                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
                   </router-link>
                 </li>
               </ul>
@@ -1009,6 +1009,19 @@ function isItemLocked(item: { to: string }): boolean {
   if (shouldBypassPlanCheck.value) return false
   if (!planStore.planInfo) return false
   return !planStore.isRouteAccessible(item.to)
+}
+
+// Colored lock icons by minimum plan
+const PLAN_LOCK_COLORS: Record<string, string> = {
+  Small: 'text-sky-400',
+  Medium: 'text-violet-400',
+  Large: 'text-amber-400'
+}
+
+function getLockedIconColor(item: { to: string }): string {
+  const planName = planStore.getMinimumPlanForRoute(item.to)
+  if (!planName) return 'text-secondary-300'
+  return PLAN_LOCK_COLORS[planName] || 'text-secondary-300'
 }
 
 function handleNavClick(event: MouseEvent) {

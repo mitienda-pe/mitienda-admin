@@ -13,6 +13,7 @@ export interface PlanModule {
   name: string
   group: string
   enabled: boolean
+  minimum_plan: string | null
 }
 
 export interface PlanQuotas {

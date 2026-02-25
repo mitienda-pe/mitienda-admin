@@ -78,6 +78,14 @@ export const usePlanStore = defineStore('plan', () => {
   }
 
   /**
+   * Get the minimum plan name required for a route path (for colored lock icons)
+   */
+  function getMinimumPlanForRoute(routePath: string): string | null {
+    const mod = getModuleForRoute(routePath)
+    return mod?.minimum_plan ?? null
+  }
+
+  /**
    * Fetch plan data from the API with caching
    */
   async function fetchPlan() {
@@ -178,6 +186,7 @@ export const usePlanStore = defineStore('plan', () => {
     isModuleEnabled,
     isRouteAccessible,
     getModuleForRoute,
+    getMinimumPlanForRoute,
     // Actions
     fetchPlan,
     refreshPlan,

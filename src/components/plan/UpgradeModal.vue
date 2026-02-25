@@ -29,6 +29,15 @@
         </template>
       </p>
 
+      <span
+        v-if="planStore.upgradeModalModule?.minimum_plan"
+        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold"
+        :class="planPillClasses"
+      >
+        <i class="pi pi-lock text-xs"></i>
+        Disponible desde {{ planStore.upgradeModalModule.minimum_plan }}
+      </span>
+
       <p class="text-secondary-600">
         Mejora tu plan para acceder a esta y otras funcionalidades avanzadas.
       </p>
@@ -60,11 +69,23 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import Dialog from 'primevue/dialog'
 import { AppButton } from '@/components/ui'
 import { usePlanStore } from '@/stores/plan.store'
 
 const planStore = usePlanStore()
+
+const PLAN_PILL_STYLES: Record<string, string> = {
+  Small: 'bg-sky-100 text-sky-700',
+  Medium: 'bg-violet-100 text-violet-700',
+  Large: 'bg-amber-100 text-amber-700'
+}
+
+const planPillClasses = computed(() => {
+  const plan = planStore.upgradeModalModule?.minimum_plan
+  return plan ? (PLAN_PILL_STYLES[plan] || 'bg-gray-100 text-gray-700') : ''
+})
 
 function openPlans() {
   window.open('https://mitienda.pe/planes', '_blank')
