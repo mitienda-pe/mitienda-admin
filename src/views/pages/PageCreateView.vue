@@ -219,7 +219,8 @@ const handleCreate = async () => {
     // Navigate to edit page to add content
     router.push({ name: 'page-edit', params: { id: page.id } })
   } catch (error: any) {
-    const message = error.response?.data?.messages?.error
+    const message = error.response?.data?.message
+      || error.response?.data?.messages?.error
       || error.response?.data?.messages?.slug
       || error.message
       || 'Error al crear la página'
@@ -230,6 +231,10 @@ const handleCreate = async () => {
       detail: message,
       life: 5000,
     })
+    if (error.response?.status === 403 && error.response?.data?.quota) {
+      const { usePlanStore } = await import('@/stores/plan.store')
+      usePlanStore().refreshPlan()
+    }
   } finally {
     isSubmitting.value = false
   }

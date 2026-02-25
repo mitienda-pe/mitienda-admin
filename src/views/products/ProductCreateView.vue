@@ -198,6 +198,9 @@ const handleSave = async () => {
   } catch (err: any) {
     const message = err.response?.data?.message || 'Error al crear el producto'
     toast.add({ severity: 'error', summary: 'Error', detail: message, life: 5000 })
+    if (err.response?.status === 403 && err.response?.data?.quota) {
+      planStore.refreshPlan()
+    }
   } finally {
     saving.value = false
   }

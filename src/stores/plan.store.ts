@@ -116,6 +116,14 @@ export const usePlanStore = defineStore('plan', () => {
   }
 
   /**
+   * Force refresh plan data (bypasses cache). Use after quota-related errors.
+   */
+  async function refreshPlan() {
+    lastFetchedAt.value = null
+    await fetchPlan()
+  }
+
+  /**
    * Clear plan data (on logout or store change)
    */
   function clearPlan() {
@@ -172,6 +180,7 @@ export const usePlanStore = defineStore('plan', () => {
     getModuleForRoute,
     // Actions
     fetchPlan,
+    refreshPlan,
     restorePlan,
     clearPlan,
     // Quota helpers
