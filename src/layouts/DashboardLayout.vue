@@ -1134,6 +1134,7 @@ const storeMenuItems = [
   { label: 'Google y SEO', icon: 'pi pi-globe', to: '/store/seo' },
   { label: 'Facebook', icon: 'pi pi-facebook', to: '/store/facebook' },
   { label: 'TikTok', icon: 'pi pi-video', to: '/store/tiktok' },
+  { label: 'Usuarios', icon: 'pi pi-users', to: '/store/users' },
   { label: 'Notificaciones', icon: 'pi pi-bell', to: '/notifications' },
   { label: 'Formas de Pago', icon: 'pi pi-credit-card', to: '/payment-gateways' }
 ]

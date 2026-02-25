@@ -693,6 +693,21 @@ const routes: RouteRecordRaw[] = [
         path: 'domain',
         name: 'store-domain',
         component: () => import('@/views/store/StoreDomainView.vue')
+      },
+      {
+        path: 'users',
+        name: 'store-users',
+        component: () => import('@/views/store/users/UsersListView.vue')
+      },
+      {
+        path: 'users/invite',
+        name: 'store-user-invite',
+        component: () => import('@/views/store/users/UserInviteView.vue')
+      },
+      {
+        path: 'users/:id/edit',
+        name: 'store-user-edit',
+        component: () => import('@/views/store/users/UserInviteView.vue')
       }
     ]
   },
