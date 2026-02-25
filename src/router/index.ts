@@ -708,6 +708,11 @@ const routes: RouteRecordRaw[] = [
         path: 'users/:id/edit',
         name: 'store-user-edit',
         component: () => import('@/views/store/users/UserInviteView.vue')
+      },
+      {
+        path: 'subscription',
+        name: 'store-subscription',
+        component: () => import('@/views/store/SubscriptionView.vue')
       }
     ]
   },

@@ -30,3 +30,17 @@ export interface StorePlanInfo {
   modules: PlanModule[]
   quotas: PlanQuotas
 }
+
+export interface SubscriptionHistoryItem {
+  id: number
+  plan_name: string
+  detail: string
+  start_date: string
+  end_date: string
+  payment_date: string | null
+  price: number
+  status: 'active' | 'trial' | 'expired'
+  is_trial: boolean
+  payment_method: string | null
+  reference_code: string
+}

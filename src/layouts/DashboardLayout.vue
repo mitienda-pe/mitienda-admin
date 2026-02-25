@@ -1127,6 +1127,7 @@ const simpleMenuItems = [
 
 // Items del grupo Tu Tienda
 const storeMenuItems = [
+  { label: 'Suscripcion', icon: 'pi pi-star', to: '/store/subscription' },
   { label: 'Información', icon: 'pi pi-info-circle', to: '/store/info' },
   { label: 'Direcciones', icon: 'pi pi-map-marker', to: '/store/addresses' },
   { label: 'Configuración', icon: 'pi pi-cog', to: '/store/config' },

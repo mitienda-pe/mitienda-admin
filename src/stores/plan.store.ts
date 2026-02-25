@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { planApi } from '@/api/plan.api'
-import type { StorePlanInfo, PlanModule } from '@/types/plan.types'
+import type { StorePlanInfo, PlanModule, SubscriptionHistoryItem } from '@/types/plan.types'
 import { MODULE_ROUTE_MAP, ALWAYS_ACCESSIBLE_ROUTES } from '@/config/plan-modules.config'
 
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
@@ -13,6 +13,11 @@ export const usePlanStore = defineStore('plan', () => {
   const isLoading = ref(false)
   const error = ref<string | null>(null)
   const lastFetchedAt = ref<number | null>(null)
+
+  // Subscription history state
+  const subscriptionHistory = ref<SubscriptionHistoryItem[]>([])
+  const isLoadingHistory = ref(false)
+  const historyError = ref<string | null>(null)
 
   // Upgrade modal state
   const upgradeModalVisible = ref(false)
@@ -141,6 +146,25 @@ export const usePlanStore = defineStore('plan', () => {
     localStorage.removeItem(STORAGE_KEY)
   }
 
+  /**
+   * Fetch subscription history from the API
+   */
+  async function fetchSubscriptionHistory() {
+    isLoadingHistory.value = true
+    historyError.value = null
+    try {
+      const response = await planApi.getSubscriptionHistory()
+      if (response.success && response.data) {
+        subscriptionHistory.value = response.data
+      }
+    } catch (e: any) {
+      historyError.value = e.message || 'Error al cargar el historial'
+      console.error('Error fetching subscription history:', e)
+    } finally {
+      isLoadingHistory.value = false
+    }
+  }
+
   // Quota helpers
 
   function canAddProduct(): boolean {
@@ -178,6 +202,9 @@ export const usePlanStore = defineStore('plan', () => {
     planInfo,
     isLoading,
     error,
+    subscriptionHistory,
+    isLoadingHistory,
+    historyError,
     upgradeModalVisible,
     upgradeModalModule,
     // Getters
@@ -198,6 +225,7 @@ export const usePlanStore = defineStore('plan', () => {
     refreshPlan,
     restorePlan,
     clearPlan,
+    fetchSubscriptionHistory,
     // Quota helpers
     canAddProduct,
     canAddPage,

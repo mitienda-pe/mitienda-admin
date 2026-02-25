@@ -76,6 +76,7 @@ export const ALWAYS_ACCESSIBLE_ROUTES = [
   '/dashboard',
   '/customers',
   '/store/addresses',
+  '/store/subscription',
   '/profile',
   '/store-selection'
 ]
