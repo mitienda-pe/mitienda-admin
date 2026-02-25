@@ -133,14 +133,16 @@ const passwordError = ref('')
 const isSocialLoading = ref(false)
 const socialProvider = ref<SocialProvider | null>(null)
 
-// Cargar credenciales de prueba si existen en .env
+// Cargar credenciales de prueba solo en desarrollo
 onMounted(async () => {
-  const testEmail = import.meta.env.VITE_TEST_EMAIL
-  const testPassword = import.meta.env.VITE_TEST_PASSWORD
+  if (import.meta.env.DEV) {
+    const testEmail = import.meta.env.VITE_TEST_EMAIL
+    const testPassword = import.meta.env.VITE_TEST_PASSWORD
 
-  if (testEmail && testPassword) {
-    credentials.value.email = testEmail
-    credentials.value.password = testPassword
+    if (testEmail && testPassword) {
+      credentials.value.email = testEmail
+      credentials.value.password = testPassword
+    }
   }
 
   // Manejar callback de OAuth si hay código en la URL
