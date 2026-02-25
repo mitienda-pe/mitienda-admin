@@ -90,6 +90,18 @@ apiClient.interceptors.response.use(
   async (error: AxiosError<ApiResponse>) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
 
+    // Handle 403 module access errors - show upgrade modal
+    const responseData = error.response?.data as Record<string, unknown> | undefined
+    if (error.response?.status === 403 && responseData?.module) {
+      import('@/stores/plan.store').then(({ usePlanStore }) => {
+        const planStore = usePlanStore()
+        const moduleCode = responseData.module as string
+        const mod = planStore.modules.find((m: { code: string }) => m.code === moduleCode)
+        planStore.showUpgradeModal(mod ?? null)
+      })
+      return Promise.reject(error)
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
 
