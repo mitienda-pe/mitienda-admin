@@ -90,21 +90,9 @@ async function loadUserData() {
 }
 
 async function loadAvailableModules() {
-  // For invite mode, we need to load available modules separately
-  // We'll use a dummy fetch to get the available modules
-  // The show endpoint returns them, but for invite we need a workaround
-  // We use the current user's own data to get available modules
   isLoading.value = true
   try {
-    // Get modules from the store-users API by fetching any user (the owner)
-    await store.fetchUsers()
-    if (store.users.length > 0) {
-      // Fetch the first user's detail to get available_modules
-      await store.fetchUser(store.users[0].id)
-      if (store.currentUser) {
-        availableModules.value = store.currentUser.available_modules
-      }
-    }
+    availableModules.value = await store.fetchAvailableModules()
   } catch (e: any) {
     toast.add({
       severity: 'error',

@@ -3,6 +3,7 @@ import type { ApiResponse } from '@/types/api.types'
 import type {
   StoreUser,
   StoreUserDetail,
+  UserModule,
   InviteUserData,
   InviteResult
 } from '@/types/store-users.types'
@@ -15,6 +16,11 @@ export const storeUsersApi = {
 
   async getUser(id: number): Promise<ApiResponse<StoreUserDetail>> {
     const response = await apiClient.get(`/store-users/${id}`)
+    return response.data
+  },
+
+  async getAvailableModules(): Promise<ApiResponse<UserModule[]>> {
+    const response = await apiClient.get('/store-users/modules')
     return response.data
   },
 

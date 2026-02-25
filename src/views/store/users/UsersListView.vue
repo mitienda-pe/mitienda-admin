@@ -71,6 +71,7 @@ function fullName(user: StoreUser): string {
         </p>
       </div>
       <Button
+        v-if="store.isOwner"
         label="Invitar Usuario"
         icon="pi pi-user-plus"
         @click="router.push('/store/users/invite')"
@@ -110,6 +111,7 @@ function fullName(user: StoreUser): string {
         Invita a otros usuarios para que administren tu tienda
       </p>
       <Button
+        v-if="store.isOwner"
         label="Invitar Usuario"
         icon="pi pi-user-plus"
         class="mt-4"
@@ -167,7 +169,7 @@ function fullName(user: StoreUser): string {
           </template>
         </Column>
 
-        <Column header="Acciones" style="min-width: 120px" :exportable="false">
+        <Column v-if="store.isOwner" header="Acciones" style="min-width: 120px" :exportable="false">
           <template #body="{ data }">
             <div v-if="data.tipo_id === 2" class="flex gap-2">
               <Button

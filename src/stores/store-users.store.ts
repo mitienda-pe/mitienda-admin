@@ -4,6 +4,7 @@ import { storeUsersApi } from '@/api/store-users.api'
 import type {
   StoreUser,
   StoreUserDetail,
+  UserModule,
   InviteUserData,
   InviteResult
 } from '@/types/store-users.types'
@@ -11,6 +12,7 @@ import type {
 export const useStoreUsersStore = defineStore('storeUsers', () => {
   const users = ref<StoreUser[]>([])
   const currentUser = ref<StoreUserDetail | null>(null)
+  const isOwner = ref(false)
   const isLoading = ref(false)
   const isDetailLoading = ref(false)
   const error = ref<string | null>(null)
@@ -22,6 +24,7 @@ export const useStoreUsersStore = defineStore('storeUsers', () => {
       const response = await storeUsersApi.getUsers()
       if (response.success && response.data) {
         users.value = response.data
+        isOwner.value = !!(response as any).is_owner
       }
     } catch (e: any) {
       error.value = e.message || 'Error al cargar usuarios'
@@ -43,6 +46,14 @@ export const useStoreUsersStore = defineStore('storeUsers', () => {
     } finally {
       isDetailLoading.value = false
     }
+  }
+
+  async function fetchAvailableModules(): Promise<UserModule[]> {
+    const response = await storeUsersApi.getAvailableModules()
+    if (response.success && response.data) {
+      return response.data
+    }
+    return []
   }
 
   async function inviteUser(data: InviteUserData): Promise<InviteResult | null> {
@@ -73,11 +84,13 @@ export const useStoreUsersStore = defineStore('storeUsers', () => {
   return {
     users,
     currentUser,
+    isOwner,
     isLoading,
     isDetailLoading,
     error,
     fetchUsers,
     fetchUser,
+    fetchAvailableModules,
     inviteUser,
     updateModules,
     deleteUser
