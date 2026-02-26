@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useConfirm } from 'primevue/useconfirm'
 import Card from 'primevue/card'
 import Tag from 'primevue/tag'
 import DataTable from 'primevue/datatable'
@@ -33,7 +32,6 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<Emits>()
-const confirm = useConfirm()
 
 const displayJobs = computed(() => {
   if (props.showFailedJobs) {
@@ -72,31 +70,11 @@ function formatAge(ageSeconds: number): string {
 }
 
 function handleRetry(job: QueueJob | FailedJob) {
-  confirm.require({
-    message: `¿Estás seguro de reintentar este trabajo?`,
-    header: 'Confirmar Reintento',
-    icon: 'pi pi-refresh',
-    acceptLabel: 'Sí, reintentar',
-    rejectLabel: 'Cancelar',
-    accept: () => {
-      emit('retry', job.id)
-    }
-  })
+  emit('retry', job.id)
 }
 
 function handleDelete(job: QueueJob | FailedJob) {
-  const isFailedJob = 'failed_at' in job
-  confirm.require({
-    message: `¿Estás seguro de eliminar este trabajo ${isFailedJob ? 'fallido' : ''}? Esta acción no se puede deshacer.`,
-    header: 'Confirmar Eliminación',
-    icon: 'pi pi-exclamation-triangle',
-    acceptLabel: 'Sí, eliminar',
-    rejectLabel: 'Cancelar',
-    acceptClass: 'p-button-danger',
-    accept: () => {
-      emit('delete', job.id)
-    }
-  })
+  emit('delete', job.id)
 }
 
 function handleViewDetails(job: QueueJob | FailedJob) {

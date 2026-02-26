@@ -77,7 +77,18 @@ function handleViewDetails(job: QueueJob | FailedJob) {
   showJobDetail.value = true
 }
 
-async function handleRetryJob(jobId: number) {
+function handleRetryJob(jobId: number) {
+  confirm.require({
+    message: `¿Estás seguro de reintentar el trabajo #${jobId}?`,
+    header: 'Confirmar Reintento',
+    icon: 'pi pi-refresh',
+    acceptLabel: 'Sí, reintentar',
+    rejectLabel: 'Cancelar',
+    accept: () => executeRetryJob(jobId)
+  })
+}
+
+async function executeRetryJob(jobId: number) {
   try {
     console.log('[NetsuiteQueueView] Retry job:', jobId)
     await queueStore.retryFailedJob(jobId)
@@ -98,7 +109,20 @@ async function handleRetryJob(jobId: number) {
   }
 }
 
-async function handleDeleteJob(jobId: number) {
+function handleDeleteJob(jobId: number) {
+  const jobType = showFailedJobs.value ? 'fallido ' : ''
+  confirm.require({
+    message: `¿Estás seguro de eliminar este trabajo ${jobType}#${jobId}? Esta acción no se puede deshacer.`,
+    header: 'Confirmar Eliminación',
+    icon: 'pi pi-exclamation-triangle',
+    acceptLabel: 'Sí, eliminar',
+    rejectLabel: 'Cancelar',
+    acceptClass: 'p-button-danger',
+    accept: () => executeDeleteJob(jobId)
+  })
+}
+
+async function executeDeleteJob(jobId: number) {
   try {
     console.log('[NetsuiteQueueView] Delete job:', jobId)
     if (showFailedJobs.value) {
