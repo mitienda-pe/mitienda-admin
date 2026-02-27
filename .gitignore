@@ -27,6 +27,9 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+
+# MCP config (contains credentials)
+.mcp.json
 !.env.development
 !.env.production
 
