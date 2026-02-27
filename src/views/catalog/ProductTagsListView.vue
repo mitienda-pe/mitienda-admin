@@ -41,6 +41,9 @@
                 <p class="text-sm text-secondary-400">{{ tag.tipo === 'texto' ? 'Texto' : 'Imagen' }}</p>
               </div>
               <div class="flex gap-2">
+                <Button icon="pi pi-link" text rounded size="small" severity="info"
+                  v-tooltip.top="'Vincular productos'"
+                  @click="openLinkDialog(tag)" />
                 <Button icon="pi pi-pencil" text rounded size="small" severity="secondary"
                   @click="router.push(`/catalog/product-tags/${tag.id}`)" />
                 <Button icon="pi pi-trash" text rounded size="small" severity="danger"
@@ -89,6 +92,14 @@
       <Button v-if="!searchQuery" label="Nueva Etiqueta" icon="pi pi-plus" @click="router.push('/catalog/product-tags/new')" />
     </div>
 
+    <!-- Dialog Vincular Productos -->
+    <ProductLinkDialog
+      v-model:visible="showLinkDialog"
+      entity-type="product-tag"
+      :entity-id="linkTag?.id ?? 0"
+      :entity-name="linkTag?.nombre ?? ''"
+    />
+
     <!-- Dialog Confirmar Eliminación -->
     <Dialog v-model:visible="showDeleteDialog" header="Confirmar eliminación" :modal="true" :style="{ width: '450px' }">
       <div class="flex items-start gap-4">
@@ -128,6 +139,7 @@ import ProgressSpinner from 'primevue/progressspinner'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import { useToast } from 'primevue/usetoast'
+import ProductLinkDialog from '@/components/catalog/ProductLinkDialog.vue'
 
 const router = useRouter()
 const tagsStore = useProductTagsStore()
@@ -137,6 +149,8 @@ const toast = useToast()
 const searchQuery = ref('')
 const showDeleteDialog = ref(false)
 const tagToDelete = ref<ProductTag | null>(null)
+const showLinkDialog = ref(false)
+const linkTag = ref<ProductTag | null>(null)
 
 const posicionOptions = [
   { label: 'Superior Izquierda', value: 'top-left' as TagPosition },
@@ -164,6 +178,11 @@ const filteredTags = computed(() => {
 function getPositionLabel(position: TagPosition): string {
   const option = posicionOptions.find(opt => opt.value === position)
   return option?.label || position
+}
+
+function openLinkDialog(tag: ProductTag) {
+  linkTag.value = tag
+  showLinkDialog.value = true
 }
 
 function confirmDelete(tag: ProductTag) {

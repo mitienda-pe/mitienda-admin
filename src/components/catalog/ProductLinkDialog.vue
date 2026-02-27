@@ -192,6 +192,7 @@ import { categoryApi } from '@/api/category.api'
 import { brandApi } from '@/api/brand.api'
 import { gammaApi } from '@/api/gamma.api'
 import { productListApi } from '@/api/product-list.api'
+import { productTagsApi } from '@/api/product-tags.api'
 
 interface ProductItem {
   id: number
@@ -202,7 +203,7 @@ interface ProductItem {
 
 interface Props {
   visible: boolean
-  entityType: 'category' | 'brand' | 'gamma' | 'product-list'
+  entityType: 'category' | 'brand' | 'gamma' | 'product-list' | 'product-tag'
   entityId: number
   entityName: string
 }
@@ -222,6 +223,7 @@ const entityTypeLabel = computed(() => {
     case 'brand': return 'marca'
     case 'gamma': return 'gamma'
     case 'product-list': return 'lista'
+    case 'product-tag': return 'etiqueta'
     default: return props.entityType
   }
 })
@@ -232,6 +234,7 @@ const getApi = () => {
     case 'brand': return brandApi
     case 'gamma': return gammaApi
     case 'product-list': return productListApi
+    case 'product-tag': return productTagsApi
   }
 }
 

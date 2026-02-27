@@ -85,5 +85,34 @@ export const productTagsApi = {
   async unassignProductTag(productId: number, tagId: number): Promise<ApiResponse<void>> {
     const response = await apiClient.delete(`/products/${productId}/tags/${tagId}`)
     return response.data
+  },
+
+  // Vinculación masiva de productos a etiquetas
+
+  /**
+   * GET /api/v1/product-tags/:id/products
+   * Obtener productos vinculados y no vinculados a una etiqueta
+   */
+  async getProducts(id: number): Promise<ApiResponse<{ linked: any[]; unlinked: any[] }>> {
+    const response = await apiClient.get(`/product-tags/${id}/products`)
+    return { success: true, data: response.data }
+  },
+
+  /**
+   * POST /api/v1/product-tags/:id/link-products
+   * Vincular productos masivamente a una etiqueta
+   */
+  async linkProducts(id: number, productIds: number[]): Promise<ApiResponse<{ linked_count: number }>> {
+    const response = await apiClient.post(`/product-tags/${id}/link-products`, { product_ids: productIds })
+    return { success: true, data: response.data }
+  },
+
+  /**
+   * POST /api/v1/product-tags/:id/unlink-products
+   * Desvincular productos masivamente de una etiqueta
+   */
+  async unlinkProducts(id: number, productIds: number[]): Promise<ApiResponse<{ unlinked_count: number }>> {
+    const response = await apiClient.post(`/product-tags/${id}/unlink-products`, { product_ids: productIds })
+    return { success: true, data: response.data }
   }
 }
