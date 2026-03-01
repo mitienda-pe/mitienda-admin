@@ -28,6 +28,7 @@
     "jspdf": "^4.1.0",
     "jspdf-autotable": "^5.0.7",
     "leaflet": "^1.9.4",
+    "marked": "^17.0.3",
     "monaco-editor": "^0.45.0",
     "pinia": "^2.1.7",
     "primeicons": "^7.0.0",

@@ -966,6 +966,10 @@
 
     <!-- Plan Upgrade Modal -->
     <UpgradeModal />
+
+    <!-- Contextual Help -->
+    <HelpFab />
+    <HelpDrawer />
   </div>
 </template>
 
@@ -982,6 +986,8 @@ import ImpersonationBanner from '@/components/admin/ImpersonationBanner.vue'
 import { useOneSignal } from '@/composables/useOneSignal'
 import { usePlanStore } from '@/stores/plan.store'
 import UpgradeModal from '@/components/plan/UpgradeModal.vue'
+import HelpFab from '@/components/help/HelpFab.vue'
+import HelpDrawer from '@/components/help/HelpDrawer.vue'
 
 const router = useRouter()
 const route = useRoute()
