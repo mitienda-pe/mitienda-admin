@@ -46,6 +46,7 @@ const categories = computed(() => {
 const providerIcons: Record<string, string> = {
   // Ads
   facebook_capi: 'pi pi-facebook',
+  tiktok_pixel: 'pi pi-video',
   // Email Marketing
   doppler: 'pi pi-envelope',
   icomm: 'pi pi-envelope',
