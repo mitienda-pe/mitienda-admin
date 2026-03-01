@@ -1,5 +1,8 @@
 <template>
   <div>
+    <!-- Setup Checklist for onboarding -->
+    <SetupChecklist />
+
     <!-- Header -->
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
       <div>
@@ -102,9 +105,16 @@ import SalesByDayChart from '@/components/dashboard/SalesByDayChart.vue'
 import SalesByHourChart from '@/components/dashboard/SalesByHourChart.vue'
 import TopProductsTable from '@/components/dashboard/TopProductsTable.vue'
 import TopCustomersTable from '@/components/dashboard/TopCustomersTable.vue'
+import SetupChecklist from '@/components/onboarding/SetupChecklist.vue'
+import { useOnboardingStore } from '@/stores/onboarding.store'
+import { usePlanStore } from '@/stores/plan.store'
+import { useOnboarding } from '@/composables/useOnboarding'
 
 const authStore = useAuthStore()
 const dashboardStore = useDashboardStore()
+const onboardingStore = useOnboardingStore()
+const planStore = usePlanStore()
+const { startTour, resumeTourIfPending } = useOnboarding()
 
 function onCompareToggle(val: boolean) {
   dashboardStore.setFilters({ compare: val })
@@ -119,5 +129,13 @@ function formatDateRange(from: string, to: string): string {
 
 onMounted(() => {
   dashboardStore.fetchAnalytics()
+
+  // Auto-start welcome tour for trial stores
+  if (planStore.isPlanTrial && onboardingStore.shouldAutoStart) {
+    setTimeout(() => startTour('welcome-flow'), 1000)
+  }
+
+  // Resume pending tour if navigated from checklist
+  resumeTourIfPending()
 })
 </script>

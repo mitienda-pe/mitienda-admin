@@ -1,0 +1,106 @@
+/* ============================================
+   driver.js Onboarding Theme — MiTienda
+   Primary: #00b2a6
+   ============================================ */
+
+/* Base popover */
+.onboarding-popover.driver-popover {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  max-width: 380px;
+  border: 1px solid #e5e7eb;
+}
+
+.onboarding-popover .driver-popover-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.onboarding-popover .driver-popover-description {
+  font-size: 0.875rem;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.onboarding-popover .driver-popover-description ul {
+  margin-top: 0.5rem;
+  padding-left: 1.25rem;
+}
+
+.onboarding-popover .driver-popover-description li {
+  margin-bottom: 0.25rem;
+}
+
+/* Progress text */
+.onboarding-popover .driver-popover-progress-text {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+/* Next / Done button */
+.onboarding-popover .driver-popover-next-btn {
+  background: #00b2a6 !important;
+  color: #ffffff !important;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.onboarding-popover .driver-popover-next-btn:hover {
+  background: #009688 !important;
+}
+
+/* Previous button */
+.onboarding-popover .driver-popover-prev-btn {
+  background: transparent;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.onboarding-popover .driver-popover-prev-btn:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+/* Close (X) button */
+.onboarding-popover .driver-popover-close-btn {
+  color: #9ca3af;
+}
+
+.onboarding-popover .driver-popover-close-btn:hover {
+  color: #4b5563;
+}
+
+/* Arrow */
+.onboarding-popover .driver-popover-arrow-side-left .driver-popover-arrow,
+.onboarding-popover .driver-popover-arrow-side-right .driver-popover-arrow,
+.onboarding-popover .driver-popover-arrow-side-top .driver-popover-arrow,
+.onboarding-popover .driver-popover-arrow-side-bottom .driver-popover-arrow {
+  border-color: #ffffff;
+}
+
+/* Welcome modal — wider, no arrow */
+.onboarding-welcome.driver-popover {
+  max-width: 460px;
+}
+
+.onboarding-welcome .driver-popover-arrow {
+  display: none;
+}
+
+/* Overlay */
+.driver-overlay {
+  background: rgba(0, 0, 0, 0.6) !important;
+}

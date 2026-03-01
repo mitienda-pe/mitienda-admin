@@ -14,7 +14,7 @@
     </div>
 
     <!-- Providers Grid -->
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div data-tour="payment-grid" v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       <Card v-for="gateway in store.gateways" :key="gateway.code"
         class="cursor-pointer hover:shadow-lg transition-shadow border-2" :class="[
           gateway.configured && gateway.enabled
@@ -68,7 +68,7 @@
     </div>
 
     <!-- Information Box -->
-    <Card class="bg-blue-50 border border-blue-200">
+    <Card data-tour="payment-info" class="bg-blue-50 border border-blue-200">
       <template #content>
         <div class="flex gap-4">
           <i class="pi pi-info-circle text-blue-600 text-2xl"></i>
@@ -91,6 +91,7 @@
 import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePaymentGatewaysStore } from '@/stores/payment-gateways.store'
+import { useOnboarding } from '@/composables/useOnboarding'
 import Card from 'primevue/card'
 import ProgressSpinner from 'primevue/progressspinner'
 
@@ -105,6 +106,7 @@ import logoPaypal from '@/assets/images/Logo_PayPal.png'
 
 const router = useRouter()
 const store = usePaymentGatewaysStore()
+const { resumeTourIfPending } = useOnboarding()
 
 const gatewayLogos: Record<string, string> = {
   'izipay': logoIzipay,
@@ -118,6 +120,7 @@ const gatewayLogos: Record<string, string> = {
 
 onMounted(async () => {
   await store.fetchGateways()
+  resumeTourIfPending()
 })
 
 function goToGatewayConfig(code: string) {

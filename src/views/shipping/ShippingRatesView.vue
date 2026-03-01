@@ -29,7 +29,7 @@
     </Card>
 
     <!-- Tabs de países -->
-    <TabView v-else v-model:activeIndex="activeTabIndex" @tab-change="onTabChange">
+    <TabView data-tour="shipping-tabs" v-else v-model:activeIndex="activeTabIndex" @tab-change="onTabChange">
       <TabPanel v-for="country in countries" :key="country.code">
         <template #header>
           <div class="flex items-center gap-2">
@@ -43,6 +43,7 @@
           <!-- Toolbar -->
           <div class="flex items-center justify-between">
             <Button
+              data-tour="shipping-add-location"
               label="Agregar ubicación"
               icon="pi pi-plus"
               @click="openAddDialog"
@@ -60,6 +61,7 @@
 
           <!-- TreeTable -->
           <TreeTable
+            data-tour="shipping-table"
             v-else
             :value="filteredRates"
             :expandedKeys="expandedKeys"
@@ -378,6 +380,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { useShippingStore } from '@/stores/shipping.store'
+import { useOnboarding } from '@/composables/useOnboarding'
 import {
   formatDeliveryTime,
   formatPrice as formatPriceHelper
@@ -409,6 +412,7 @@ import ConfirmDialog from 'primevue/confirmdialog'
 const toast = useToast()
 const confirm = useConfirm()
 const store = useShippingStore()
+const { resumeTourIfPending } = useOnboarding()
 
 // State
 const activeTabIndex = ref(0)
@@ -696,6 +700,7 @@ onMounted(async () => {
   if (store.hasEnabledCountries) {
     store.fetchRates()
   }
+  resumeTourIfPending()
 })
 
 // Watch for country changes

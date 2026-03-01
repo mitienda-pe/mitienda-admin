@@ -16,6 +16,10 @@ import 'primeicons/primeicons.css'
 // Custom styles
 import './assets/styles/main.css'
 
+// Onboarding tour styles
+import 'driver.js/dist/driver.css'
+import './assets/styles/onboarding.css'
+
 const app = createApp(App)
 
 // Sentry error tracking (production only)

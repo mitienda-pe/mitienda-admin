@@ -10,6 +10,7 @@
 
     <!-- Header -->
     <header
+      data-tour="header"
       class="bg-white shadow-sm border-b border-gray-200 sticky z-40"
       :class="adminStore.isImpersonating ? 'top-[52px]' : 'top-0'"
     >
@@ -48,7 +49,7 @@
 
     <div class="flex">
       <!-- Sidebar Desktop -->
-      <aside class="hidden lg:block w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-60px)]" role="navigation" aria-label="Navegación principal">
+      <aside data-tour="sidebar" class="hidden lg:block w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-60px)]" role="navigation" aria-label="Navegación principal">
         <nav class="p-4" @click.capture="handleNavClick">
           <!-- Sidebar para SuperAdmin SIN impersonación -->
           <ul v-if="isSuperAdminWithoutImpersonation" class="space-y-1">
@@ -959,7 +960,7 @@
       </Sidebar>
 
       <!-- Main Content -->
-      <main class="flex-1 p-4 lg:p-6">
+      <main data-tour="main-content" class="flex-1 p-4 lg:p-6">
         <router-view />
       </main>
     </div>
@@ -988,6 +989,7 @@ import { usePlanStore } from '@/stores/plan.store'
 import UpgradeModal from '@/components/plan/UpgradeModal.vue'
 import HelpFab from '@/components/help/HelpFab.vue'
 import HelpDrawer from '@/components/help/HelpDrawer.vue'
+import { useOnboardingStore } from '@/stores/onboarding.store'
 
 const router = useRouter()
 const route = useRoute()
@@ -995,11 +997,13 @@ const authStore = useAuthStore()
 const adminStore = useAdminStore()
 const badgeCountsStore = useBadgeCountsStore()
 const planStore = usePlanStore()
+const onboardingStore = useOnboardingStore()
 const { initOneSignal } = useOneSignal()
 
 onMounted(() => {
   badgeCountsStore.startPolling()
   initOneSignal({ autoPrompt: true })
+  onboardingStore.restore()
 })
 
 onUnmounted(() => {

@@ -5,6 +5,7 @@ import { useCatalogStore } from '@/stores/catalog.store'
 import { useGammaStore } from '@/stores/gamma.store'
 import { productManagementApi } from '@/api/product-management.api'
 import { usePlanStore } from '@/stores/plan.store'
+import { useOnboarding } from '@/composables/useOnboarding'
 import QuotaBanner from '@/components/plan/QuotaBanner.vue'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
@@ -20,6 +21,7 @@ const router = useRouter()
 const catalogStore = useCatalogStore()
 const gammaStore = useGammaStore()
 const planStore = usePlanStore()
+const { resumeTourIfPending } = useOnboarding()
 const toast = useToast()
 
 const saving = ref(false)
@@ -153,6 +155,7 @@ onMounted(async () => {
   if (catalogStore.categories.length === 0 || catalogStore.brands.length === 0) {
     await catalogStore.fetchAll()
   }
+  resumeTourIfPending()
 })
 
 const validate = (): boolean => {
@@ -231,7 +234,7 @@ const handleSave = async () => {
 
     <div class="bg-white rounded-lg shadow p-6 space-y-5">
       <!-- Nombre -->
-      <div>
+      <div data-tour="product-name">
         <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
           Nombre del producto <span class="text-red-500">*</span>
         </label>
@@ -246,7 +249,7 @@ const handleSave = async () => {
       </div>
 
       <!-- SKU + Barcode -->
-      <div class="grid grid-cols-2 gap-4">
+      <div data-tour="product-sku" class="grid grid-cols-2 gap-4">
         <div>
           <label for="sku" class="block text-sm font-medium text-gray-700 mb-1">
             SKU
@@ -273,7 +276,7 @@ const handleSave = async () => {
       </div>
 
       <!-- Precios e Impuestos -->
-      <div class="border-t border-gray-100 pt-4">
+      <div data-tour="product-prices" class="border-t border-gray-100 pt-4">
         <h3 class="text-sm font-semibold text-gray-700 mb-3">Precios e Impuestos</h3>
 
         <!-- Afectacion IGV -->
@@ -334,7 +337,7 @@ const handleSave = async () => {
       </div>
 
       <!-- Stock -->
-      <div class="border-t border-gray-100 pt-4">
+      <div data-tour="product-stock" class="border-t border-gray-100 pt-4">
         <h3 class="text-sm font-semibold text-gray-700 mb-3">Stock</h3>
         <div class="flex items-center gap-4">
           <div class="flex-1 max-w-[200px]">
@@ -430,7 +433,7 @@ const handleSave = async () => {
       </div>
 
       <!-- Categorias -->
-      <div>
+      <div data-tour="product-categories">
         <label class="block text-sm font-medium text-gray-700 mb-1">
           Categorias
         </label>
@@ -470,7 +473,7 @@ const handleSave = async () => {
       </div>
 
       <!-- Actions -->
-      <div class="flex items-center gap-3 pt-4 border-t border-gray-100">
+      <div data-tour="product-save" class="flex items-center gap-3 pt-4 border-t border-gray-100">
         <Button
           label="Crear Producto"
           icon="pi pi-check"
