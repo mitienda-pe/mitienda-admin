@@ -60,10 +60,13 @@ const provider = computed(() => store.currentConfig?.provider)
 const isConfigured = computed(() => store.currentConfig?.configured ?? false)
 const isEnabled = computed(() => store.currentConfig?.enabled ?? false)
 
+const isFrontendOnly = computed(() => provider.value?.frontend_only === true)
+const hasEvents = computed(() => (provider.value?.supported_events?.length ?? 0) > 0)
+
 async function handleSave() {
   if (!code.value || !provider.value) return
 
-  if (formEvents.value.length === 0) {
+  if (hasEvents.value && formEvents.value.length === 0) {
     toast.add({
       severity: 'warn',
       summary: 'Eventos requeridos',
@@ -73,9 +76,11 @@ async function handleSave() {
     return
   }
 
-  const data = {
+  const data: any = {
     credentials: formCredentials.value,
-    config: { events: formEvents.value }
+  }
+  if (hasEvents.value) {
+    data.config = { events: formEvents.value }
   }
 
   let ok: boolean
@@ -204,6 +209,20 @@ async function handleDelete() {
           </div>
         </div>
 
+        <!-- Frontend-only info banner -->
+        <div
+          v-if="isFrontendOnly"
+          class="bg-blue-50 border border-blue-200 rounded-lg p-4"
+        >
+          <div class="flex items-start gap-2">
+            <i class="pi pi-info-circle text-blue-500 mt-0.5" />
+            <p class="text-sm text-blue-700">
+              Este widget se carga automáticamente en tu tienda online cuando está activado.
+              Para verificar que funciona, visita tu tienda después de guardar la configuración.
+            </p>
+          </div>
+        </div>
+
         <!-- Credentials Form -->
         <div class="bg-white rounded-lg shadow p-6">
           <h3 class="font-semibold text-gray-700 mb-4">Credenciales</h3>
@@ -233,8 +252,8 @@ async function handleDelete() {
           </div>
         </div>
 
-        <!-- Events Selection -->
-        <div class="bg-white rounded-lg shadow p-6">
+        <!-- Events Selection (only for providers with server-side events) -->
+        <div v-if="hasEvents" class="bg-white rounded-lg shadow p-6">
           <h3 class="font-semibold text-gray-700 mb-4">Eventos a sincronizar</h3>
           <p class="text-sm text-gray-500 mb-3">
             Selecciona qué eventos de tu tienda se enviarán a {{ provider.name }}
@@ -268,7 +287,7 @@ async function handleDelete() {
               {{ isConfigured ? 'Actualizar' : 'Guardar' }}
             </AppButton>
             <AppButton
-              v-if="isConfigured"
+              v-if="isConfigured && !isFrontendOnly"
               variant="secondary"
               @click="handleTest"
               :loading="store.isTesting"
@@ -315,21 +334,29 @@ async function handleDelete() {
           <h3 class="font-semibold text-gray-700 mb-3">Acerca de {{ provider.name }}</h3>
           <p class="text-sm text-gray-600 mb-4">{{ provider.description }}</p>
 
-          <h4 class="text-sm font-medium text-gray-700 mb-2">Eventos soportados</h4>
-          <ul class="space-y-1">
-            <li
-              v-for="evt in provider.supported_events"
-              :key="evt"
-              class="text-sm text-gray-600 flex items-center gap-2"
-            >
-              <i class="pi pi-check text-xs text-green-500" />
-              {{ eventLabels[evt] || evt }}
-            </li>
-          </ul>
+          <template v-if="hasEvents">
+            <h4 class="text-sm font-medium text-gray-700 mb-2">Eventos soportados</h4>
+            <ul class="space-y-1">
+              <li
+                v-for="evt in provider.supported_events"
+                :key="evt"
+                class="text-sm text-gray-600 flex items-center gap-2"
+              >
+                <i class="pi pi-check text-xs text-green-500" />
+                {{ eventLabels[evt] || evt }}
+              </li>
+            </ul>
+          </template>
+          <template v-else>
+            <div class="text-sm text-gray-500 flex items-center gap-2">
+              <i class="pi pi-globe text-xs" />
+              Widget cargado en la tienda online
+            </div>
+          </template>
         </div>
 
-        <!-- Last sync info -->
-        <div v-if="isConfigured" class="bg-white rounded-lg shadow p-6">
+        <!-- Last sync info (only for server-side providers) -->
+        <div v-if="isConfigured && !isFrontendOnly" class="bg-white rounded-lg shadow p-6">
           <h3 class="font-semibold text-gray-700 mb-3">Estado de sincronización</h3>
           <div class="space-y-2 text-sm">
             <div v-if="store.currentConfig?.last_success_at" class="flex items-center gap-2">

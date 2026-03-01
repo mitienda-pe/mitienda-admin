@@ -16,6 +16,9 @@ export interface IntegrationProvider {
   config_fields: IntegrationProviderField[]
   configured: boolean
   enabled: boolean
+  category?: string
+  frontend_only?: boolean
+  consent_category?: string
   config_url?: string
   last_success_at?: string | null
   last_failure_at?: string | null
