@@ -69,11 +69,9 @@ const providerIcons: Record<string, string> = {
   // Lead Capture
   optinmonster: 'pi pi-megaphone',
   privy: 'pi pi-megaphone',
-  sumo: 'pi pi-megaphone',
   bdow: 'pi pi-megaphone',
   hellobar: 'pi pi-megaphone',
   poptin: 'pi pi-megaphone',
-  getbrave: 'pi pi-megaphone',
   // Analytics (additional)
   crazyegg: 'pi pi-chart-bar',
 }
