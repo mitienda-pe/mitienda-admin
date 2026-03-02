@@ -82,6 +82,7 @@ export const routeToDocMap: [string, string][] = [
   ['/store/config', '12-configuracion/03-config-general'],
   ['/store/domain', '12-configuracion/04-dominio'],
   ['/store/seo', '12-configuracion/05-seo'],
+  ['/store/google', '13-integraciones/02-google'],
   ['/store/facebook', '12-configuracion/06-facebook-meta'],
   ['/store/tiktok', '12-configuracion/07-tiktok'],
   ['/store/users', '12-configuracion/08-usuarios-equipo'],
@@ -91,7 +92,11 @@ export const routeToDocMap: [string, string][] = [
   ['/notifications', '12-configuracion/09-notificaciones'],
 
   // Integrations
-  ['/integrations', '13-integraciones'],
+  ['/integrations/dashboard', '13-integraciones/06-monitor'],
+  ['/integrations/providers', '13-integraciones/01-overview'],
+  ['/integrations/webhooks', '13-integraciones/05-webhooks'],
+  ['/integrations/queue', '13-integraciones/06-monitor'],
+  ['/integrations', '13-integraciones/01-overview'],
   ['/configuracion/netsuite', '14-netsuite'],
   ['/api', '15-api'],
 ]
