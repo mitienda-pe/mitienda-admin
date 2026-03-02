@@ -22,7 +22,7 @@ const categoryConfig: Record<string, { label: string; icon: string; iconColor: s
   email_marketing:    { label: 'Email Marketing',              icon: 'pi pi-envelope',   iconColor: 'text-primary',    bgColor: 'bg-teal-50' },
 }
 
-const categoryOrder = ['chat', 'analytics', 'push_notifications', 'lead_capture', 'ads', 'email_marketing']
+const categoryOrder = ['ads', 'analytics', 'email_marketing', 'lead_capture', 'chat', 'push_notifications']
 
 const categories = computed(() => {
   const groups: Record<string, IntegrationProvider[]> = {}
