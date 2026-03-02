@@ -1110,12 +1110,12 @@ const configExpanded = computed({
 })
 
 const contentExpanded = computed({
-  get: () => contentExpandedRef.value || route.path.startsWith('/pages') || route.path.startsWith('/blog') || route.path.startsWith('/content') || route.path.startsWith('/legal'),
+  get: () => contentExpandedRef.value || route.path.startsWith('/pages') || route.path.startsWith('/blog') || route.path.startsWith('/legal') || (route.path.startsWith('/content') && !route.path.startsWith('/content/template') && !route.path.startsWith('/content/components')),
   set: (val) => { contentExpandedRef.value = val }
 })
 
 const appearanceExpanded = computed({
-  get: () => appearanceExpandedRef.value || route.path.startsWith('/appearance'),
+  get: () => appearanceExpandedRef.value || route.path.startsWith('/appearance') || route.path.startsWith('/content/template') || route.path.startsWith('/content/components'),
   set: (val) => { appearanceExpandedRef.value = val }
 })
 
@@ -1153,7 +1153,6 @@ const contentMenuItems = [
   { label: 'Páginas', icon: 'pi pi-file-edit', to: '/pages' },
   { label: 'Blog', icon: 'pi pi-pencil', to: '/blog' },
   { label: 'Legal', icon: 'pi pi-shield', to: '/legal' },
-  { label: 'Plantilla', icon: 'pi pi-th-large', to: '/content/template' },
   { label: 'Carrusel', icon: 'pi pi-images', to: '/content/carousel' },
   { label: 'Imágenes', icon: 'pi pi-images', to: '/content/images' },
   { label: 'Mensajes', icon: 'pi pi-comment', to: '/content/messages' }
@@ -1165,7 +1164,9 @@ const appearanceMenuItems = [
   { label: 'Colores', icon: 'pi pi-palette', to: '/appearance/colors' },
   { label: 'Tipografía', icon: 'pi pi-language', to: '/appearance/typography' },
   { label: 'Viñeta de Producto', icon: 'pi pi-th-large', to: '/appearance/product-card' },
-  { label: 'Menú', icon: 'pi pi-bars', to: '/appearance/menu' }
+  { label: 'Menú', icon: 'pi pi-bars', to: '/appearance/menu' },
+  { label: 'Plantilla', icon: 'pi pi-layout', to: '/content/template' },
+  { label: 'Bloques de Plantilla', icon: 'pi pi-box', to: '/content/components' },
 ]
 
 // Items del grupo Ventas
