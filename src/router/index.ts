@@ -42,6 +42,13 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/auth/magic',
+    // No layout wrapper — MagicLoginView is full-page and handles its own UI
+    component: () => import('@/views/auth/MagicLoginView.vue'),
+    name: 'MagicLogin',
+    meta: { requiresAuth: false }
+  },
+  {
     path: '/forgot-password',
     component: AuthLayout,
     children: [

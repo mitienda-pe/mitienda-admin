@@ -90,5 +90,11 @@ export const authApi = {
   async resetPassword(data: ResetPasswordRequest): Promise<ApiResponse<void>> {
     const response = await apiClient.post('/auth/reset-password', data)
     return response.data
+  },
+
+  // Magic link auto-login (called from the landing page after trial registration)
+  async magicLogin(token: string): Promise<ApiResponse<{ access_token: string; token_type: string; expires_in: number; user: { id: number; email: string; name: string }; store_id: number }>> {
+    const response = await apiClient.post('/auth/magic-login', { token })
+    return response.data
   }
 }
