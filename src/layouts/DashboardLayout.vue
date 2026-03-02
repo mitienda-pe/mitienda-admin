@@ -1153,6 +1153,7 @@ const contentMenuItems = [
   { label: 'Páginas', icon: 'pi pi-file-edit', to: '/pages' },
   { label: 'Blog', icon: 'pi pi-pencil', to: '/blog' },
   { label: 'Legal', icon: 'pi pi-shield', to: '/legal' },
+  { label: 'Plantilla', icon: 'pi pi-th-large', to: '/content/template' },
   { label: 'Carrusel', icon: 'pi pi-images', to: '/content/carousel' },
   { label: 'Imágenes', icon: 'pi pi-images', to: '/content/images' },
   { label: 'Mensajes', icon: 'pi pi-comment', to: '/content/messages' }

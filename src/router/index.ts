@@ -406,6 +406,11 @@ const routes: RouteRecordRaw[] = [
         path: 'components/:id/edit',
         name: 'component-edit',
         component: () => import('@/views/content/ComponentEditView.vue')
+      },
+      {
+        path: 'template',
+        name: 'content-template',
+        component: () => import('@/views/content/TemplateBuilderView.vue')
       }
     ]
   },

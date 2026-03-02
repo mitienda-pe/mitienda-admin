@@ -1,0 +1,476 @@
+<template>
+  <div class="flex flex-col">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      <div>
+        <h1 class="text-3xl font-bold text-secondary">Plantilla</h1>
+        <p class="text-sm text-secondary-500 mt-1">
+          Organiza los bloques de contenido en cada página de tu storefront
+        </p>
+      </div>
+      <Button
+        label="Guardar página"
+        icon="pi pi-save"
+        :loading="sectionsStore.isSaving"
+        @click="handleSave"
+      />
+    </div>
+
+    <!-- Page Tabs -->
+    <div class="flex gap-1 border-b border-gray-200 mb-6 overflow-x-auto pb-0">
+      <button
+        v-for="pageDef in PAGE_DEFINITIONS"
+        :key="pageDef.id"
+        class="px-4 py-2.5 text-sm font-medium rounded-t-lg transition-colors whitespace-nowrap border border-b-0 -mb-px focus:outline-none"
+        :class="
+          activePage === pageDef.id
+            ? 'bg-white border-gray-200 text-primary'
+            : 'border-transparent text-secondary-500 hover:text-primary hover:bg-gray-50'
+        "
+        @click="selectPage(pageDef.id)"
+      >
+        {{ pageDef.label }}
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div v-if="sectionsStore.isLoading" class="flex justify-center py-20">
+      <ProgressSpinner />
+    </div>
+
+    <!-- Builder -->
+    <div v-else class="flex gap-6">
+      <!-- Main: Zones editor -->
+      <div class="flex-1 min-w-0 space-y-6">
+        <div v-for="zone in activeZones" :key="zone.ubicacion">
+          <!-- Zone label (only when 2 zones) -->
+          <div v-if="activeZones.length > 1" class="flex items-center gap-3 mb-3">
+            <span class="text-xs font-semibold uppercase tracking-wider text-secondary-400">
+              {{ ZONE_LABELS[zone.ubicacion] }}
+            </span>
+            <div class="flex-1 h-px bg-gray-200"></div>
+          </div>
+
+          <!-- Drop zone -->
+          <div
+            class="border-2 border-dashed rounded-xl p-4 min-h-36 transition-colors"
+            :class="
+              zoneSections(zone.ubicacion).length
+                ? 'border-primary/25 bg-primary-50/20'
+                : 'border-gray-200 bg-gray-50/50'
+            "
+          >
+            <!-- Empty state -->
+            <div
+              v-if="!zoneSections(zone.ubicacion).length"
+              class="flex flex-col items-center justify-center py-10 text-secondary-300"
+            >
+              <i class="pi pi-th-large text-4xl mb-3 opacity-40"></i>
+              <p class="text-sm">Sin secciones. Agrega tu primer bloque de contenido.</p>
+            </div>
+
+            <!-- Sections list -->
+            <div v-else class="space-y-3 mb-3">
+              <div
+                v-for="(cols, sIdx) in zoneSections(zone.ubicacion)"
+                :key="sIdx"
+                class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
+              >
+                <!-- Toolbar -->
+                <div
+                  class="flex items-center gap-1 px-3 py-1.5 bg-gray-50 border-b border-gray-100"
+                >
+                  <span class="text-xs text-secondary-400 font-medium flex-1">
+                    Sección {{ sIdx + 1 }} — {{ cols.length }}
+                    {{ cols.length === 1 ? 'columna' : 'columnas' }}
+                  </span>
+                  <Button
+                    v-tooltip.top="'Mover arriba'"
+                    icon="pi pi-angle-up"
+                    text
+                    rounded
+                    size="small"
+                    severity="secondary"
+                    :disabled="sIdx === 0"
+                    @click="sectionsStore.moveSectionUp(activePage, zone.ubicacion, sIdx)"
+                  />
+                  <Button
+                    v-tooltip.top="'Mover abajo'"
+                    icon="pi pi-angle-down"
+                    text
+                    rounded
+                    size="small"
+                    severity="secondary"
+                    :disabled="sIdx === zoneSections(zone.ubicacion).length - 1"
+                    @click="
+                      sectionsStore.moveSectionDown(
+                        activePage,
+                        zone.ubicacion,
+                        sIdx,
+                        zoneSections(zone.ubicacion).length,
+                      )
+                    "
+                  />
+                  <Button
+                    v-tooltip.top="'Eliminar sección'"
+                    icon="pi pi-trash"
+                    text
+                    rounded
+                    size="small"
+                    severity="danger"
+                    @click="confirmRemove(zone.ubicacion, sIdx)"
+                  />
+                </div>
+
+                <!-- Columns -->
+                <div class="flex gap-2 p-3">
+                  <div
+                    v-for="(col, cIdx) in cols"
+                    :key="cIdx"
+                    class="flex-1 min-h-20 rounded-lg border-2 border-dashed cursor-pointer transition-all"
+                    :class="
+                      isColEmpty(col)
+                        ? 'border-gray-200 hover:border-primary/50 hover:bg-primary-50/30'
+                        : 'border-primary/30 bg-primary-50/20 hover:border-primary/50'
+                    "
+                    @click="openSelector(zone.ubicacion, sIdx, cIdx)"
+                  >
+                    <!-- Assigned component -->
+                    <div v-if="!isColEmpty(col)" class="p-2.5">
+                      <div class="flex items-start justify-between gap-1">
+                        <div class="min-w-0">
+                          <p class="text-xs font-semibold text-secondary truncate">
+                            {{ getComponentName(col.componente_id) }}
+                          </p>
+                          <p class="text-xs text-secondary-400 mt-0.5">
+                            {{ getComponentTypeName(col.componente_id) }}
+                          </p>
+                        </div>
+                        <button
+                          class="shrink-0 text-gray-300 hover:text-red-400 transition-colors mt-0.5"
+                          title="Quitar componente"
+                          @click.stop="sectionsStore.assignComponent(activePage, zone.ubicacion, sIdx, cIdx, 0)"
+                        >
+                          <i class="pi pi-times text-xs"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Empty slot -->
+                    <div
+                      v-else
+                      class="flex flex-col items-center justify-center h-20 text-secondary-300"
+                    >
+                      <i class="pi pi-plus text-base mb-1"></i>
+                      <span class="text-xs">Asignar</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Add section button -->
+            <Button
+              icon="pi pi-plus"
+              label="Agregar sección"
+              text
+              severity="secondary"
+              class="w-full text-sm"
+              @click="openAddSection(zone.ubicacion)"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Components panel -->
+      <div class="w-60 shrink-0">
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm sticky top-4">
+          <div class="px-4 py-3 border-b border-gray-100">
+            <h3 class="text-sm font-semibold text-secondary">Componentes</h3>
+            <p class="text-xs text-secondary-400 mt-0.5">
+              {{ componentsStore.components.length }} disponibles
+            </p>
+          </div>
+
+          <div v-if="componentsLoading" class="flex justify-center p-6">
+            <ProgressSpinner style="width: 24px; height: 24px" />
+          </div>
+
+          <div v-else class="p-2 max-h-[60vh] overflow-y-auto">
+            <div
+              v-if="!componentsStore.components.length"
+              class="text-center py-8 text-secondary-300"
+            >
+              <i class="pi pi-box text-2xl mb-2 block opacity-40"></i>
+              <p class="text-xs">No hay componentes</p>
+            </div>
+
+            <div
+              v-for="comp in componentsStore.components"
+              :key="comp.id"
+              class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm"
+            >
+              <span
+                class="inline-flex items-center justify-center w-6 h-6 rounded text-xs shrink-0"
+                :class="
+                  comp.type_id === 2 ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-500'
+                "
+              >
+                <i :class="comp.type_id === 2 ? 'pi pi-code' : 'pi pi-box'"></i>
+              </span>
+              <div class="min-w-0">
+                <p class="text-xs font-medium text-secondary truncate">{{ comp.name }}</p>
+                <p class="text-xs text-secondary-400">{{ comp.type_name }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Add Section Dialog ─────────────────────────────────────────── -->
+    <Dialog
+      v-model:visible="addSectionVisible"
+      header="Agregar sección"
+      :modal="true"
+      :style="{ width: '460px' }"
+      :draggable="false"
+    >
+      <p class="text-sm text-secondary-500 mb-5">
+        Elige la distribución de columnas para la nueva sección:
+      </p>
+      <div class="grid grid-cols-2 gap-3">
+        <button
+          v-for="layout in COLUMN_LAYOUTS"
+          :key="layout.cols"
+          class="flex flex-col items-center gap-3 p-5 border-2 rounded-xl transition-all text-center hover:border-primary hover:bg-primary-50"
+          :class="'border-gray-200'"
+          @click="confirmAddSection(layout.cols)"
+        >
+          <div class="flex gap-1.5 w-full h-8">
+            <div v-for="c in layout.cols" :key="c" class="flex-1 bg-gray-200 rounded-md"></div>
+          </div>
+          <span class="text-sm font-medium text-secondary">{{ layout.label }}</span>
+        </button>
+      </div>
+    </Dialog>
+
+    <!-- ── Component Selector Dialog ─────────────────────────────────── -->
+    <Dialog
+      v-model:visible="selectorVisible"
+      header="Seleccionar componente"
+      :modal="true"
+      :style="{ width: '440px' }"
+      :draggable="false"
+    >
+      <div class="mb-3">
+        <IconField iconPosition="left">
+          <InputIcon class="pi pi-search" />
+          <InputText
+            v-model="selectorSearch"
+            placeholder="Buscar componente..."
+            class="w-full"
+            size="small"
+          />
+        </IconField>
+      </div>
+
+      <div class="max-h-72 overflow-y-auto -mx-1 px-1 space-y-0.5">
+        <!-- Clear option -->
+        <button
+          class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-red-50 text-left transition-colors"
+          @click="applyComponent(0)"
+        >
+          <i class="pi pi-times-circle text-red-400 text-sm"></i>
+          <span class="text-sm text-red-500 font-medium">Vaciar columna</span>
+        </button>
+
+        <div class="h-px bg-gray-100 my-1"></div>
+
+        <!-- Component list -->
+        <button
+          v-for="comp in filteredComponents"
+          :key="comp.id"
+          class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-primary-50 hover:text-primary text-left transition-colors"
+          @click="applyComponent(comp.id)"
+        >
+          <span
+            class="inline-flex items-center justify-center w-7 h-7 rounded text-xs shrink-0"
+            :class="
+              comp.type_id === 2 ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-500'
+            "
+          >
+            <i :class="comp.type_id === 2 ? 'pi pi-code' : 'pi pi-box'"></i>
+          </span>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-secondary">{{ comp.name }}</p>
+            <p class="text-xs text-secondary-400">{{ comp.type_name }}</p>
+          </div>
+        </button>
+
+        <div v-if="!filteredComponents.length" class="text-center py-6 text-secondary-400">
+          <p class="text-sm">No se encontraron componentes</p>
+        </div>
+      </div>
+    </Dialog>
+
+    <ConfirmDialog />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { useTemplateSectionsStore } from '@/stores/template-sections.store'
+import { useComponentsStore } from '@/stores/components.store'
+import { useToast } from 'primevue/usetoast'
+import { useConfirm } from 'primevue/useconfirm'
+import {
+  PAGE_DEFINITIONS,
+  COLUMN_LAYOUTS,
+  ZONE_LABELS,
+} from '@/types/template-section.types'
+import type { SectionColumn } from '@/types/template-section.types'
+import Button from 'primevue/button'
+import Dialog from 'primevue/dialog'
+import InputText from 'primevue/inputtext'
+import IconField from 'primevue/iconfield'
+import InputIcon from 'primevue/inputicon'
+import ProgressSpinner from 'primevue/progressspinner'
+import ConfirmDialog from 'primevue/confirmdialog'
+
+const sectionsStore = useTemplateSectionsStore()
+const componentsStore = useComponentsStore()
+const toast = useToast()
+const confirm = useConfirm()
+
+// ── Page state ────────────────────────────────────────────────────────────────
+
+const activePage = ref(PAGE_DEFINITIONS[0].id)
+
+const activePageDef = computed(() => PAGE_DEFINITIONS.find(p => p.id === activePage.value))
+const activeZones = computed(() =>
+  (activePageDef.value?.zones ?? ['header']).map(z => ({
+    ubicacion: z as 'header' | 'footer',
+  })),
+)
+
+async function selectPage(pageId: number) {
+  activePage.value = pageId
+  await sectionsStore.loadPage(pageId)
+}
+
+// ── Sections helpers ──────────────────────────────────────────────────────────
+
+function zoneSections(ubicacion: 'header' | 'footer'): SectionColumn[][] {
+  return sectionsStore.getSections(activePage.value, ubicacion)
+}
+
+function isColEmpty(col: SectionColumn): boolean {
+  const id = col.componente_id
+  return !id || id === 0 || id === '0'
+}
+
+// ── Components ────────────────────────────────────────────────────────────────
+
+const componentsLoading = ref(false)
+
+function getComponentName(id: number | string): string {
+  const comp = componentsStore.components.find(c => c.id === Number(id))
+  return comp?.name ?? `Componente #${id}`
+}
+
+function getComponentTypeName(id: number | string): string {
+  const comp = componentsStore.components.find(c => c.id === Number(id))
+  return comp?.type_name ?? ''
+}
+
+// ── Add Section Dialog ────────────────────────────────────────────────────────
+
+const addSectionVisible = ref(false)
+const pendingUbicacion = ref<'header' | 'footer'>('header')
+
+function openAddSection(ubicacion: 'header' | 'footer') {
+  pendingUbicacion.value = ubicacion
+  addSectionVisible.value = true
+}
+
+function confirmAddSection(numCols: number) {
+  sectionsStore.addSection(activePage.value, pendingUbicacion.value, numCols)
+  addSectionVisible.value = false
+}
+
+// ── Remove section confirm ────────────────────────────────────────────────────
+
+function confirmRemove(ubicacion: 'header' | 'footer', zoneIdx: number) {
+  confirm.require({
+    message: '¿Eliminar esta sección? Se perderá la configuración de sus columnas.',
+    header: 'Eliminar sección',
+    icon: 'pi pi-exclamation-triangle',
+    acceptLabel: 'Eliminar',
+    rejectLabel: 'Cancelar',
+    acceptClass: 'p-button-danger',
+    accept: () => sectionsStore.removeSection(activePage.value, ubicacion, zoneIdx),
+  })
+}
+
+// ── Component Selector ────────────────────────────────────────────────────────
+
+const selectorVisible = ref(false)
+const selectorSearch = ref('')
+const pendingCol = ref<{ ubicacion: 'header' | 'footer'; sIdx: number; cIdx: number } | null>(null)
+
+const filteredComponents = computed(() => {
+  const q = selectorSearch.value.toLowerCase().trim()
+  if (!q) return componentsStore.components
+  return componentsStore.components.filter(
+    c => c.name.toLowerCase().includes(q) || c.type_name.toLowerCase().includes(q),
+  )
+})
+
+function openSelector(ubicacion: 'header' | 'footer', sIdx: number, cIdx: number) {
+  pendingCol.value = { ubicacion, sIdx, cIdx }
+  selectorSearch.value = ''
+  selectorVisible.value = true
+}
+
+function applyComponent(componentId: number) {
+  if (!pendingCol.value) return
+  const { ubicacion, sIdx, cIdx } = pendingCol.value
+  sectionsStore.assignComponent(activePage.value, ubicacion, sIdx, cIdx, componentId)
+  selectorVisible.value = false
+  pendingCol.value = null
+}
+
+// ── Save ──────────────────────────────────────────────────────────────────────
+
+async function handleSave() {
+  const ok = await sectionsStore.savePage(activePage.value)
+  if (ok) {
+    toast.add({
+      severity: 'success',
+      summary: 'Guardado',
+      detail: 'Plantilla guardada correctamente',
+      life: 3000,
+    })
+  } else {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: sectionsStore.error ?? 'No se pudo guardar la plantilla',
+      life: 5000,
+    })
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+
+onMounted(async () => {
+  // Load components for the right panel (all, no pagination)
+  componentsLoading.value = true
+  await componentsStore.fetchComponents({ limit: 200 })
+  componentsLoading.value = false
+
+  // Load first page sections
+  await sectionsStore.loadPage(activePage.value)
+})
+</script>
