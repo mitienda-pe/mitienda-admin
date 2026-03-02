@@ -680,6 +680,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/store/StoreSeoView.vue')
       },
       {
+        path: 'google',
+        name: 'store-google',
+        component: () => import('@/views/store/StoreGoogleView.vue')
+      },
+      {
         path: 'facebook',
         name: 'store-facebook',
         component: () => import('@/views/store/StoreFacebookView.vue')

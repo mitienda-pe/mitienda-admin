@@ -63,6 +63,7 @@ const providerIcons: Record<string, string> = {
   chatway: 'pi pi-comments',
   chatify: 'pi pi-comments',
   // Analytics
+  google: 'pi pi-chart-bar',
   hotjar: 'pi pi-chart-bar',
   clarity: 'pi pi-chart-bar',
   // Push

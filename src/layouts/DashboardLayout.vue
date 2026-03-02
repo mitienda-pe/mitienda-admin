@@ -1142,7 +1142,7 @@ const storeMenuItems = [
   { label: 'Direcciones', icon: 'pi pi-map-marker', to: '/store/addresses' },
   { label: 'Configuración', icon: 'pi pi-cog', to: '/store/config' },
   { label: 'Dominio propio', icon: 'pi pi-link', to: '/store/domain' },
-  { label: 'Google y SEO', icon: 'pi pi-globe', to: '/store/seo' },
+  { label: 'SEO', icon: 'pi pi-globe', to: '/store/seo' },
   { label: 'Facebook', icon: 'pi pi-facebook', to: '/store/facebook' },
   { label: 'TikTok', icon: 'pi pi-video', to: '/store/tiktok' },
   { label: 'Usuarios', icon: 'pi pi-users', to: '/store/users' },
