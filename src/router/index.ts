@@ -793,11 +793,6 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/integrations/WebhookSubscriptionsView.vue')
       },
       {
-        path: 'events',
-        name: 'IntegrationEvents',
-        component: () => import('@/views/integrations/EventsLogView.vue')
-      },
-      {
         path: 'queue',
         name: 'QueueManagement',
         component: () => import('@/views/configuracion/NetsuiteQueueView.vue')
