@@ -1,6 +1,7 @@
 import apiClient from './axios'
 import type { ApiResponse, PaginatedResponse } from '@/types/api.types'
-import type { StoreComponent, ComponentUpdateData } from '@/types/component.types'
+import type { StoreComponent, ComponentCreateData, ComponentUpdateData } from '@/types/component.types'
+import type { ComponentEditorType } from '@/types/component.types'
 
 const transformComponent = (raw: any): StoreComponent => ({
   id: parseInt(raw.tiendacomponente_id),
@@ -11,6 +12,7 @@ const transformComponent = (raw: any): StoreComponent => ({
   name: raw.tiendacomponente_nombre || '',
   active: parseInt(raw.tiendacomponente_swactivo) === 1,
   created_at: raw.tiendacomponente_fecharegistro,
+  editor_type: (raw.editor_type || raw.tiendacomponente_configuracion1 || 'code') as ComponentEditorType,
   html_content: raw.html_content ?? undefined,
   html_record_id: raw.html_record_id ? parseInt(raw.html_record_id) : null,
 })
@@ -55,6 +57,17 @@ export const componentsApi = {
     }
 
     return { success: false }
+  },
+
+  async create(data: ComponentCreateData): Promise<ApiResponse<StoreComponent>> {
+    const response = await apiClient.post('/components', data)
+    const rawData = response.data
+
+    if (rawData.success && rawData.data) {
+      return { success: true, data: transformComponent(rawData.data) }
+    }
+
+    return { success: false, message: rawData.message }
   },
 
   async update(id: number, data: ComponentUpdateData): Promise<ApiResponse<StoreComponent>> {

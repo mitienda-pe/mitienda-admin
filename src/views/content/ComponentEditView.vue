@@ -27,10 +27,11 @@
             <div class="flex items-center gap-2 mt-1">
               <code class="text-sm bg-gray-100 px-2 py-1 rounded">{{ component.code }}</code>
               <span
-                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800"
+                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                :class="editorBadgeClass(component.editor_type)"
               >
-                <i class="pi pi-code mr-1 text-xs"></i>
-                {{ component.type_name }}
+                <i :class="editorIcon(component.editor_type)" class="mr-1 text-xs"></i>
+                {{ editorLabel(component.editor_type) }}
               </span>
               <span
                 class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
@@ -59,18 +60,20 @@
         </div>
       </div>
 
-      <!-- Monaco Editor -->
-      <div
-        ref="monacoContainer"
-        class="flex-1 bg-white rounded-lg shadow overflow-hidden border border-gray-300"
-        style="min-height: 500px;"
-      ></div>
+      <!-- Content Editor -->
+      <PageContentEditor
+        v-model="htmlContent"
+        :editor-type="component.editor_type || 'code'"
+        :page-id="String(component.id)"
+        class="flex-1"
+        style="min-height: 500px"
+      />
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useComponentsStore } from '@/stores/components.store'
 import { useToast } from 'primevue/usetoast'
@@ -78,8 +81,8 @@ import Button from 'primevue/button'
 import InputSwitch from 'primevue/inputswitch'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
-import type { StoreComponent } from '@/types/component.types'
-import type * as MonacoTypes from 'monaco-editor'
+import PageContentEditor from '@/components/pages/PageContentEditor.vue'
+import type { StoreComponent, ComponentEditorType } from '@/types/component.types'
 
 const route = useRoute()
 const router = useRouter()
@@ -92,68 +95,22 @@ const isLoading = ref(true)
 const loadError = ref<string | null>(null)
 const isSaving = ref(false)
 
-const monacoContainer = ref<HTMLElement | null>(null)
-let monacoEditor: MonacoTypes.editor.IStandaloneCodeEditor | null = null
+const editorIcon = (type: ComponentEditorType) => {
+  if (type === 'wysiwyg') return 'pi pi-align-left'
+  if (type === 'visual_builder') return 'pi pi-th-large'
+  return 'pi pi-code'
+}
 
-const initMonaco = async () => {
-  if (!monacoContainer.value) return
+const editorLabel = (type: ComponentEditorType) => {
+  if (type === 'wysiwyg') return 'Visual'
+  if (type === 'visual_builder') return 'Builder'
+  return 'Código'
+}
 
-  await nextTick()
-
-  const monaco = await import('monaco-editor')
-
-  // Configure web workers for Monaco in production builds
-  self.MonacoEnvironment = {
-    getWorker(_: string, label: string) {
-      if (label === 'html' || label === 'handlebars' || label === 'razor') {
-        return new Worker(
-          new URL('monaco-editor/esm/vs/language/html/html.worker.js', import.meta.url),
-          { type: 'module' }
-        )
-      }
-      if (label === 'css' || label === 'scss' || label === 'less') {
-        return new Worker(
-          new URL('monaco-editor/esm/vs/language/css/css.worker.js', import.meta.url),
-          { type: 'module' }
-        )
-      }
-      if (label === 'json') {
-        return new Worker(
-          new URL('monaco-editor/esm/vs/language/json/json.worker.js', import.meta.url),
-          { type: 'module' }
-        )
-      }
-      if (label === 'javascript' || label === 'typescript') {
-        return new Worker(
-          new URL('monaco-editor/esm/vs/language/typescript/ts.worker.js', import.meta.url),
-          { type: 'module' }
-        )
-      }
-      return new Worker(
-        new URL('monaco-editor/esm/vs/editor/editor.worker.js', import.meta.url),
-        { type: 'module' }
-      )
-    },
-  }
-
-  monacoEditor = monaco.editor.create(monacoContainer.value, {
-    value: htmlContent.value,
-    language: 'html',
-    theme: 'vs',
-    automaticLayout: true,
-    minimap: { enabled: true },
-    wordWrap: 'on',
-    fontSize: 14,
-    tabSize: 2,
-    formatOnPaste: true,
-    suggestOnTriggerCharacters: true,
-  })
-
-  monacoEditor.onDidChangeModelContent(() => {
-    if (monacoEditor) {
-      htmlContent.value = monacoEditor.getValue()
-    }
-  })
+const editorBadgeClass = (type: ComponentEditorType) => {
+  if (type === 'wysiwyg') return 'bg-blue-100 text-blue-800'
+  if (type === 'visual_builder') return 'bg-purple-100 text-purple-800'
+  return 'bg-gray-100 text-gray-700'
 }
 
 const loadComponent = async () => {
@@ -166,7 +123,6 @@ const loadComponent = async () => {
     const result = await componentsStore.fetchComponentById(componentId)
 
     if (result) {
-      // Redirect if not HTML type
       if (result.type_id !== 2) {
         toast.add({
           severity: 'warn',
@@ -180,10 +136,6 @@ const loadComponent = async () => {
 
       component.value = result
       htmlContent.value = result.html_content || ''
-      isLoading.value = false
-
-      await nextTick()
-      await initMonaco()
     } else {
       loadError.value = 'Componente no encontrado'
     }
@@ -210,7 +162,7 @@ const handleSave = async () => {
     toast.add({
       severity: 'success',
       summary: 'Guardado',
-      detail: 'Contenido HTML guardado exitosamente',
+      detail: 'Contenido guardado exitosamente',
       life: 3000,
     })
   } catch (error: any) {
@@ -255,12 +207,5 @@ const handleBack = () => {
 
 onMounted(() => {
   loadComponent()
-})
-
-onBeforeUnmount(() => {
-  if (monacoEditor) {
-    monacoEditor.dispose()
-    monacoEditor = null
-  }
 })
 </script>

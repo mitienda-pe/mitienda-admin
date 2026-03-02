@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { componentsApi } from '@/api/components.api'
-import type { StoreComponent, ComponentUpdateData } from '@/types/component.types'
+import type { StoreComponent, ComponentCreateData, ComponentUpdateData } from '@/types/component.types'
 import type { PaginationMeta } from '@/types/api.types'
 
 export const useComponentsStore = defineStore('components', () => {
@@ -60,6 +60,14 @@ export const useComponentsStore = defineStore('components', () => {
     }
   }
 
+  async function createComponent(data: ComponentCreateData): Promise<StoreComponent> {
+    const response = await componentsApi.create(data)
+    if (response.success && response.data) {
+      return response.data
+    }
+    throw new Error(response.message || 'Error al crear el componente')
+  }
+
   async function updateComponent(
     id: number,
     data: ComponentUpdateData
@@ -105,6 +113,7 @@ export const useComponentsStore = defineStore('components', () => {
     pagination,
     fetchComponents,
     fetchComponentById,
+    createComponent,
     updateComponent,
     toggleActive,
   }
