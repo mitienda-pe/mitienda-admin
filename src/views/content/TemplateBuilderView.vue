@@ -51,7 +51,7 @@
             <div class="flex-1 h-px bg-gray-200"></div>
           </div>
 
-          <!-- Drop zone -->
+          <!-- Drop zone container -->
           <div
             class="border-2 border-dashed rounded-xl p-4 min-h-36 transition-colors"
             :class="
@@ -66,7 +66,9 @@
               class="flex flex-col items-center justify-center py-10 text-secondary-300"
             >
               <i class="pi pi-th-large text-4xl mb-3 opacity-40"></i>
-              <p class="text-sm">Sin secciones. Agrega tu primer bloque de contenido.</p>
+              <p class="text-sm">
+                Arrastra bloques desde el panel o agrega una nueva sección.
+              </p>
             </div>
 
             <!-- Sections list -->
@@ -77,9 +79,7 @@
                 class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
               >
                 <!-- Toolbar -->
-                <div
-                  class="flex items-center gap-1 px-3 py-1.5 bg-gray-50 border-b border-gray-100"
-                >
+                <div class="flex items-center gap-1 px-3 py-1.5 bg-gray-50 border-b border-gray-100">
                   <span class="text-xs text-secondary-400 font-medium flex-1">
                     Sección {{ sIdx + 1 }} — {{ cols.length }}
                     {{ cols.length === 1 ? 'columna' : 'columnas' }}
@@ -87,37 +87,21 @@
                   <Button
                     v-tooltip.top="'Mover arriba'"
                     icon="pi pi-angle-up"
-                    text
-                    rounded
-                    size="small"
-                    severity="secondary"
+                    text rounded size="small" severity="secondary"
                     :disabled="sIdx === 0"
                     @click="sectionsStore.moveSectionUp(activePage, zone.ubicacion, sIdx)"
                   />
                   <Button
                     v-tooltip.top="'Mover abajo'"
                     icon="pi pi-angle-down"
-                    text
-                    rounded
-                    size="small"
-                    severity="secondary"
+                    text rounded size="small" severity="secondary"
                     :disabled="sIdx === zoneSections(zone.ubicacion).length - 1"
-                    @click="
-                      sectionsStore.moveSectionDown(
-                        activePage,
-                        zone.ubicacion,
-                        sIdx,
-                        zoneSections(zone.ubicacion).length,
-                      )
-                    "
+                    @click="sectionsStore.moveSectionDown(activePage, zone.ubicacion, sIdx, zoneSections(zone.ubicacion).length)"
                   />
                   <Button
                     v-tooltip.top="'Eliminar sección'"
                     icon="pi pi-trash"
-                    text
-                    rounded
-                    size="small"
-                    severity="danger"
+                    text rounded size="small" severity="danger"
                     @click="confirmRemove(zone.ubicacion, sIdx)"
                   />
                 </div>
@@ -127,16 +111,40 @@
                   <div
                     v-for="(col, cIdx) in cols"
                     :key="cIdx"
-                    class="flex-1 min-h-20 rounded-lg border-2 border-dashed cursor-pointer transition-all"
-                    :class="
-                      isColEmpty(col)
-                        ? 'border-gray-200 hover:border-primary/50 hover:bg-primary-50/30'
-                        : 'border-primary/30 bg-primary-50/20 hover:border-primary/50'
-                    "
+                    class="flex-1 min-h-24 rounded-lg border-2 border-dashed cursor-pointer transition-all"
+                    :class="colSlotClass(col, zone.ubicacion, sIdx, cIdx)"
+                    @dragover.prevent
+                    @dragenter.prevent="setDragOver(`${zone.ubicacion}-${sIdx}-${cIdx}`)"
+                    @dragleave="clearDragOver(`${zone.ubicacion}-${sIdx}-${cIdx}`)"
+                    @drop.prevent="handleDrop(zone.ubicacion, sIdx, cIdx)"
                     @click="openSelector(zone.ubicacion, sIdx, cIdx)"
                   >
-                    <!-- Assigned component -->
-                    <div v-if="!isColEmpty(col)" class="p-2.5">
+                    <!-- Predefined block chip -->
+                    <div v-if="col.bloque_codigo" class="p-2.5 h-full flex flex-col">
+                      <div class="flex items-start justify-between gap-1">
+                        <div class="flex items-center gap-2 min-w-0">
+                          <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10 text-primary shrink-0">
+                            <i :class="getPredefinedBlock(col.bloque_codigo)?.icon ?? 'pi pi-box'" class="text-sm"></i>
+                          </span>
+                          <div class="min-w-0">
+                            <p class="text-xs font-semibold text-secondary truncate">
+                              {{ getPredefinedBlock(col.bloque_codigo)?.label ?? col.bloque_codigo }}
+                            </p>
+                            <p class="text-xs text-secondary-400 mt-0.5">Bloque predefinido</p>
+                          </div>
+                        </div>
+                        <button
+                          class="shrink-0 text-gray-300 hover:text-red-400 transition-colors"
+                          title="Quitar"
+                          @click.stop="sectionsStore.clearColumn(activePage, zone.ubicacion, sIdx, cIdx)"
+                        >
+                          <i class="pi pi-times text-xs"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- User component chip -->
+                    <div v-else-if="!isColEmpty(col)" class="p-2.5 h-full flex flex-col">
                       <div class="flex items-start justify-between gap-1">
                         <div class="min-w-0">
                           <p class="text-xs font-semibold text-secondary truncate">
@@ -147,9 +155,9 @@
                           </p>
                         </div>
                         <button
-                          class="shrink-0 text-gray-300 hover:text-red-400 transition-colors mt-0.5"
-                          title="Quitar componente"
-                          @click.stop="sectionsStore.assignComponent(activePage, zone.ubicacion, sIdx, cIdx, 0)"
+                          class="shrink-0 text-gray-300 hover:text-red-400 transition-colors"
+                          title="Quitar"
+                          @click.stop="sectionsStore.clearColumn(activePage, zone.ubicacion, sIdx, cIdx)"
                         >
                           <i class="pi pi-times text-xs"></i>
                         </button>
@@ -157,12 +165,10 @@
                     </div>
 
                     <!-- Empty slot -->
-                    <div
-                      v-else
-                      class="flex flex-col items-center justify-center h-20 text-secondary-300"
-                    >
-                      <i class="pi pi-plus text-base mb-1"></i>
-                      <span class="text-xs">Asignar</span>
+                    <div v-else class="flex flex-col items-center justify-center h-24 text-secondary-300 gap-1">
+                      <i class="pi pi-arrow-down text-base opacity-50"></i>
+                      <span class="text-xs">Arrastra un bloque</span>
+                      <span class="text-xs opacity-60">o click para componente</span>
                     </div>
                   </div>
                 </div>
@@ -173,8 +179,7 @@
             <Button
               icon="pi pi-plus"
               label="Agregar sección"
-              text
-              severity="secondary"
+              text severity="secondary"
               class="w-full text-sm"
               @click="openAddSection(zone.ubicacion)"
             />
@@ -182,49 +187,67 @@
         </div>
       </div>
 
-      <!-- Right: Components panel -->
-      <div class="w-60 shrink-0">
-        <div class="bg-white rounded-xl border border-gray-200 shadow-sm sticky top-4">
+      <!-- Right panel -->
+      <div class="w-64 shrink-0 space-y-4">
+
+        <!-- Predefined Blocks -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
           <div class="px-4 py-3 border-b border-gray-100">
-            <h3 class="text-sm font-semibold text-secondary">Componentes</h3>
-            <p class="text-xs text-secondary-400 mt-0.5">
-              {{ componentsStore.components.length }} disponibles
-            </p>
+            <h3 class="text-sm font-semibold text-secondary">Bloques predefinidos</h3>
+            <p class="text-xs text-secondary-400 mt-0.5">Arrastra al área de contenido</p>
           </div>
-
-          <div v-if="componentsLoading" class="flex justify-center p-6">
-            <ProgressSpinner style="width: 24px; height: 24px" />
-          </div>
-
-          <div v-else class="p-2 max-h-[60vh] overflow-y-auto">
+          <div class="p-2 space-y-1">
             <div
-              v-if="!componentsStore.components.length"
-              class="text-center py-8 text-secondary-300"
+              v-for="block in PREDEFINED_BLOCKS"
+              :key="block.codigo"
+              draggable="true"
+              class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg border border-gray-100 bg-gray-50 cursor-grab active:cursor-grabbing hover:border-primary/40 hover:bg-primary-50/50 transition-all select-none"
+              :class="draggedBlock === block.codigo ? 'opacity-50 border-primary/40 bg-primary-50' : ''"
+              @dragstart="startDrag(block.codigo)"
+              @dragend="endDrag"
             >
-              <i class="pi pi-box text-2xl mb-2 block opacity-40"></i>
-              <p class="text-xs">No hay componentes</p>
-            </div>
-
-            <div
-              v-for="comp in componentsStore.components"
-              :key="comp.id"
-              class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm"
-            >
-              <span
-                class="inline-flex items-center justify-center w-6 h-6 rounded text-xs shrink-0"
-                :class="
-                  comp.type_id === 2 ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-500'
-                "
-              >
-                <i :class="comp.type_id === 2 ? 'pi pi-code' : 'pi pi-box'"></i>
+              <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10 text-primary shrink-0">
+                <i :class="block.icon" class="text-sm"></i>
               </span>
               <div class="min-w-0">
-                <p class="text-xs font-medium text-secondary truncate">{{ comp.name }}</p>
-                <p class="text-xs text-secondary-400">{{ comp.type_name }}</p>
+                <p class="text-xs font-semibold text-secondary truncate">{{ block.label }}</p>
+                <p class="text-xs text-secondary-400 truncate">{{ block.descripcion }}</p>
               </div>
+              <i class="pi pi-grip-vertical text-gray-300 text-xs ml-auto shrink-0"></i>
             </div>
           </div>
         </div>
+
+        <!-- User Components -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm">
+          <div class="px-4 py-3 border-b border-gray-100">
+            <h3 class="text-sm font-semibold text-secondary">Componentes HTML</h3>
+            <p class="text-xs text-secondary-400 mt-0.5">Click en columna para asignar</p>
+          </div>
+          <div v-if="componentsLoading" class="flex justify-center p-6">
+            <ProgressSpinner style="width: 24px; height: 24px" />
+          </div>
+          <div v-else class="p-2 max-h-64 overflow-y-auto">
+            <div
+              v-if="!htmlComponents.length"
+              class="text-center py-6 text-secondary-300"
+            >
+              <i class="pi pi-code text-xl mb-2 block opacity-40"></i>
+              <p class="text-xs">Sin componentes HTML</p>
+            </div>
+            <div
+              v-for="comp in htmlComponents"
+              :key="comp.id"
+              class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm"
+            >
+              <span class="inline-flex items-center justify-center w-6 h-6 rounded bg-purple-100 text-purple-600 shrink-0 text-xs">
+                <i class="pi pi-code"></i>
+              </span>
+              <p class="text-xs font-medium text-secondary truncate">{{ comp.name }}</p>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -243,8 +266,7 @@
         <button
           v-for="layout in COLUMN_LAYOUTS"
           :key="layout.cols"
-          class="flex flex-col items-center gap-3 p-5 border-2 rounded-xl transition-all text-center hover:border-primary hover:bg-primary-50"
-          :class="'border-gray-200'"
+          class="flex flex-col items-center gap-3 p-5 border-2 rounded-xl transition-all text-center hover:border-primary hover:bg-primary-50 border-gray-200"
           @click="confirmAddSection(layout.cols)"
         >
           <div class="flex gap-1.5 w-full h-8">
@@ -258,11 +280,14 @@
     <!-- ── Component Selector Dialog ─────────────────────────────────── -->
     <Dialog
       v-model:visible="selectorVisible"
-      header="Seleccionar componente"
+      header="Asignar componente HTML"
       :modal="true"
       :style="{ width: '440px' }"
       :draggable="false"
     >
+      <p class="text-xs text-secondary-400 mb-3">
+        Para bloques predefinidos (carrusel, categorías, etc.) arrastra desde el panel derecho.
+      </p>
       <div class="mb-3">
         <IconField iconPosition="left">
           <InputIcon class="pi pi-search" />
@@ -284,32 +309,25 @@
           <i class="pi pi-times-circle text-red-400 text-sm"></i>
           <span class="text-sm text-red-500 font-medium">Vaciar columna</span>
         </button>
-
         <div class="h-px bg-gray-100 my-1"></div>
 
-        <!-- Component list -->
+        <!-- Component list (HTML type only) -->
         <button
           v-for="comp in filteredComponents"
           :key="comp.id"
           class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-primary-50 hover:text-primary text-left transition-colors"
           @click="applyComponent(comp.id)"
         >
-          <span
-            class="inline-flex items-center justify-center w-7 h-7 rounded text-xs shrink-0"
-            :class="
-              comp.type_id === 2 ? 'bg-purple-100 text-purple-600' : 'bg-gray-100 text-gray-500'
-            "
-          >
-            <i :class="comp.type_id === 2 ? 'pi pi-code' : 'pi pi-box'"></i>
+          <span class="inline-flex items-center justify-center w-7 h-7 rounded bg-purple-100 text-purple-600 shrink-0 text-xs">
+            <i class="pi pi-code"></i>
           </span>
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-secondary">{{ comp.name }}</p>
-            <p class="text-xs text-secondary-400">{{ comp.type_name }}</p>
           </div>
         </button>
 
         <div v-if="!filteredComponents.length" class="text-center py-6 text-secondary-400">
-          <p class="text-sm">No se encontraron componentes</p>
+          <p class="text-sm">Sin componentes HTML disponibles</p>
         </div>
       </div>
     </Dialog>
@@ -328,6 +346,7 @@ import {
   PAGE_DEFINITIONS,
   COLUMN_LAYOUTS,
   ZONE_LABELS,
+  PREDEFINED_BLOCKS,
 } from '@/types/template-section.types'
 import type { SectionColumn } from '@/types/template-section.types'
 import Button from 'primevue/button'
@@ -346,12 +365,9 @@ const confirm = useConfirm()
 // ── Page state ────────────────────────────────────────────────────────────────
 
 const activePage = ref(PAGE_DEFINITIONS[0].id)
-
 const activePageDef = computed(() => PAGE_DEFINITIONS.find(p => p.id === activePage.value))
 const activeZones = computed(() =>
-  (activePageDef.value?.zones ?? ['header']).map(z => ({
-    ubicacion: z as 'header' | 'footer',
-  })),
+  (activePageDef.value?.zones ?? ['header']).map(z => ({ ubicacion: z as 'header' | 'footer' })),
 )
 
 async function selectPage(pageId: number) {
@@ -367,12 +383,57 @@ function zoneSections(ubicacion: 'header' | 'footer'): SectionColumn[][] {
 
 function isColEmpty(col: SectionColumn): boolean {
   const id = col.componente_id
-  return !id || id === 0 || id === '0'
+  return !col.bloque_codigo && (!id || id === 0 || id === '0')
+}
+
+// ── Predefined block helpers ──────────────────────────────────────────────────
+
+function getPredefinedBlock(codigo: string) {
+  return PREDEFINED_BLOCKS.find(b => b.codigo === codigo)
+}
+
+// ── Drag and drop ─────────────────────────────────────────────────────────────
+
+const draggedBlock = ref<string | null>(null)
+const dragOverKey = ref<string | null>(null)
+
+function startDrag(bloqueCodigo: string) {
+  draggedBlock.value = bloqueCodigo
+}
+
+function endDrag() {
+  draggedBlock.value = null
+  dragOverKey.value = null
+}
+
+function setDragOver(key: string) {
+  if (draggedBlock.value) dragOverKey.value = key
+}
+
+function clearDragOver(key: string) {
+  if (dragOverKey.value === key) dragOverKey.value = null
+}
+
+function handleDrop(ubicacion: 'header' | 'footer', sIdx: number, cIdx: number) {
+  if (!draggedBlock.value) return
+  sectionsStore.assignBlock(activePage.value, ubicacion, sIdx, cIdx, draggedBlock.value)
+  draggedBlock.value = null
+  dragOverKey.value = null
+}
+
+function colSlotClass(col: SectionColumn, ubicacion: 'header' | 'footer', sIdx: number, cIdx: number): string {
+  const key = `${ubicacion}-${sIdx}-${cIdx}`
+  const isDragOver = dragOverKey.value === key
+  if (isDragOver) return 'border-primary bg-primary-50/60 scale-[1.01] shadow-sm'
+  if (col.bloque_codigo) return 'border-primary/40 bg-primary-50/30 hover:border-primary/60'
+  if (!isColEmpty(col)) return 'border-purple-200 bg-purple-50/30 hover:border-purple-300'
+  return 'border-gray-200 hover:border-primary/50 hover:bg-primary-50/30'
 }
 
 // ── Components ────────────────────────────────────────────────────────────────
 
 const componentsLoading = ref(false)
+const htmlComponents = computed(() => componentsStore.components.filter(c => c.type_id === 2))
 
 function getComponentName(id: number | string): string {
   const comp = componentsStore.components.find(c => c.id === Number(id))
@@ -413,7 +474,7 @@ function confirmRemove(ubicacion: 'header' | 'footer', zoneIdx: number) {
   })
 }
 
-// ── Component Selector ────────────────────────────────────────────────────────
+// ── Component Selector (HTML components only) ─────────────────────────────────
 
 const selectorVisible = ref(false)
 const selectorSearch = ref('')
@@ -421,10 +482,7 @@ const pendingCol = ref<{ ubicacion: 'header' | 'footer'; sIdx: number; cIdx: num
 
 const filteredComponents = computed(() => {
   const q = selectorSearch.value.toLowerCase().trim()
-  if (!q) return componentsStore.components
-  return componentsStore.components.filter(
-    c => c.name.toLowerCase().includes(q) || c.type_name.toLowerCase().includes(q),
-  )
+  return htmlComponents.value.filter(c => !q || c.name.toLowerCase().includes(q))
 })
 
 function openSelector(ubicacion: 'header' | 'footer', sIdx: number, cIdx: number) {
@@ -436,7 +494,11 @@ function openSelector(ubicacion: 'header' | 'footer', sIdx: number, cIdx: number
 function applyComponent(componentId: number) {
   if (!pendingCol.value) return
   const { ubicacion, sIdx, cIdx } = pendingCol.value
-  sectionsStore.assignComponent(activePage.value, ubicacion, sIdx, cIdx, componentId)
+  if (componentId === 0) {
+    sectionsStore.clearColumn(activePage.value, ubicacion, sIdx, cIdx)
+  } else {
+    sectionsStore.assignComponent(activePage.value, ubicacion, sIdx, cIdx, componentId)
+  }
   selectorVisible.value = false
   pendingCol.value = null
 }
@@ -445,32 +507,19 @@ function applyComponent(componentId: number) {
 
 async function handleSave() {
   const ok = await sectionsStore.savePage(activePage.value)
-  if (ok) {
-    toast.add({
-      severity: 'success',
-      summary: 'Guardado',
-      detail: 'Plantilla guardada correctamente',
-      life: 3000,
-    })
-  } else {
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: sectionsStore.error ?? 'No se pudo guardar la plantilla',
-      life: 5000,
-    })
-  }
+  toast.add(
+    ok
+      ? { severity: 'success', summary: 'Guardado', detail: 'Plantilla guardada correctamente', life: 3000 }
+      : { severity: 'error', summary: 'Error', detail: sectionsStore.error ?? 'No se pudo guardar', life: 5000 },
+  )
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 onMounted(async () => {
-  // Load components for the right panel (all, no pagination)
   componentsLoading.value = true
   await componentsStore.fetchComponents({ limit: 200 })
   componentsLoading.value = false
-
-  // Load first page sections
   await sectionsStore.loadPage(activePage.value)
 })
 </script>

@@ -109,12 +109,12 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
     pagesData.value.set(page, all)
   }
 
-  function assignComponent(
+  function _updateColumn(
     page: number,
     ubicacion: 'header' | 'footer',
     zoneIdx: number,
     colIdx: number,
-    componentId: number,
+    patch: Partial<SectionColumn>,
   ) {
     const all = pagesData.value.get(page) ?? []
     let count = 0
@@ -123,12 +123,48 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
       if (count++ !== zoneIdx) return s
       return {
         ...s,
-        columnas: s.columnas.map((c, i) =>
-          i === colIdx ? { ...c, componente_id: componentId } : c,
-        ),
+        columnas: s.columnas.map((c, i) => (i === colIdx ? { ...c, ...patch } : c)),
       }
     })
     pagesData.value.set(page, newAll)
+  }
+
+  function assignComponent(
+    page: number,
+    ubicacion: 'header' | 'footer',
+    zoneIdx: number,
+    colIdx: number,
+    componentId: number,
+  ) {
+    _updateColumn(page, ubicacion, zoneIdx, colIdx, {
+      componente_id: componentId,
+      bloque_codigo: undefined,
+    })
+  }
+
+  function assignBlock(
+    page: number,
+    ubicacion: 'header' | 'footer',
+    zoneIdx: number,
+    colIdx: number,
+    bloqueCodigo: string,
+  ) {
+    _updateColumn(page, ubicacion, zoneIdx, colIdx, {
+      bloque_codigo: bloqueCodigo,
+      componente_id: 0,
+    })
+  }
+
+  function clearColumn(
+    page: number,
+    ubicacion: 'header' | 'footer',
+    zoneIdx: number,
+    colIdx: number,
+  ) {
+    _updateColumn(page, ubicacion, zoneIdx, colIdx, {
+      componente_id: 0,
+      bloque_codigo: undefined,
+    })
   }
 
   return {
@@ -143,5 +179,7 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
     moveSectionUp,
     moveSectionDown,
     assignComponent,
+    assignBlock,
+    clearColumn,
   }
 })

@@ -1,8 +1,25 @@
 export interface SectionColumn {
   posicion: number
   colBotstrap: number // 12=1col, 6=2cols, 4=3cols, 3=4cols
-  componente_id: number | string // 0 = empty
+  componente_id: number | string // 0 = empty user component
+  bloque_codigo?: string // predefined system block (mutually exclusive with componente_id)
 }
+
+export interface PredefinedBlock {
+  codigo: string
+  label: string
+  icon: string
+  descripcion: string
+}
+
+export const PREDEFINED_BLOCKS: PredefinedBlock[] = [
+  { codigo: 'carrusel', label: 'Carrusel', icon: 'pi pi-images', descripcion: 'Slider de banners principal' },
+  { codigo: 'categorias', label: 'Categorías', icon: 'pi pi-th-large', descripcion: 'Cuadrícula de categorías' },
+  { codigo: 'marcas', label: 'Marcas', icon: 'pi pi-tag', descripcion: 'Galería de marcas con logo' },
+  { codigo: 'productos_destacados', label: 'Productos Destacados', icon: 'pi pi-star', descripcion: 'Los productos más populares' },
+  { codigo: 'listas', label: 'Listas de Productos', icon: 'pi pi-list', descripcion: 'Colecciones personalizadas de productos' },
+  { codigo: 'gamas', label: 'Gamas', icon: 'pi pi-bars', descripcion: 'Líneas o gamas de productos' },
+]
 
 export interface PageSection {
   ubicacion: 'header' | 'footer'
