@@ -451,34 +451,32 @@ onMounted(() => {
                   </span>
 
                   <!-- Actions -->
-                  <div
-                    class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
+                  <div class="flex items-center gap-1">
                     <button
-                      v-if="index > 0"
-                      class="p-1 text-gray-400 hover:text-primary"
+                      class="p-1 text-secondary-300 hover:text-primary transition-colors"
+                      :class="{ invisible: index === 0 }"
                       title="Mover arriba"
                       @click="moveItem(item, menuStore.menuItems, 'up')"
                     >
                       <i class="pi pi-arrow-up text-xs" />
                     </button>
                     <button
-                      v-if="index < menuStore.menuItems.length - 1"
-                      class="p-1 text-gray-400 hover:text-primary"
+                      class="p-1 text-secondary-300 hover:text-primary transition-colors"
+                      :class="{ invisible: index >= menuStore.menuItems.length - 1 }"
                       title="Mover abajo"
                       @click="moveItem(item, menuStore.menuItems, 'down')"
                     >
                       <i class="pi pi-arrow-down text-xs" />
                     </button>
                     <button
-                      class="p-1 text-gray-400 hover:text-primary"
+                      class="p-1 text-secondary-300 hover:text-primary transition-colors"
                       title="Editar"
                       @click="startEditing(item)"
                     >
                       <i class="pi pi-pencil text-xs" />
                     </button>
                     <button
-                      class="p-1 text-gray-400 hover:text-red-500"
+                      class="p-1 text-secondary-300 hover:text-red-500 transition-colors"
                       title="Eliminar"
                       @click="confirmDelete(item)"
                     >
@@ -524,31 +522,29 @@ onMounted(() => {
                         ({{ child.children!.length }})
                       </span>
 
-                      <div
-                        class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
+                      <div class="flex items-center gap-1">
                         <button
-                          v-if="ci > 0"
-                          class="p-1 text-gray-400 hover:text-primary"
+                          class="p-1 text-secondary-300 hover:text-primary transition-colors"
+                          :class="{ invisible: ci === 0 }"
                           @click="moveItem(child, item.children!, 'up')"
                         >
                           <i class="pi pi-arrow-up text-xs" />
                         </button>
                         <button
-                          v-if="ci < item.children!.length - 1"
-                          class="p-1 text-gray-400 hover:text-primary"
+                          class="p-1 text-secondary-300 hover:text-primary transition-colors"
+                          :class="{ invisible: ci >= item.children!.length - 1 }"
                           @click="moveItem(child, item.children!, 'down')"
                         >
                           <i class="pi pi-arrow-down text-xs" />
                         </button>
                         <button
-                          class="p-1 text-gray-400 hover:text-primary"
+                          class="p-1 text-secondary-300 hover:text-primary transition-colors"
                           @click="startEditing(child)"
                         >
                           <i class="pi pi-pencil text-xs" />
                         </button>
                         <button
-                          class="p-1 text-gray-400 hover:text-red-500"
+                          class="p-1 text-secondary-300 hover:text-red-500 transition-colors"
                           @click="confirmDelete(child)"
                         >
                           <i class="pi pi-trash text-xs" />
@@ -594,31 +590,29 @@ onMounted(() => {
                             <i class="pi pi-external-link text-xs" />
                           </span>
 
-                          <div
-                            class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
+                          <div class="flex items-center gap-1">
                             <button
-                              v-if="gi > 0"
-                              class="p-1 text-gray-400 hover:text-primary"
+                              class="p-1 text-secondary-300 hover:text-primary transition-colors"
+                              :class="{ invisible: gi === 0 }"
                               @click="moveItem(grandchild, child.children!, 'up')"
                             >
                               <i class="pi pi-arrow-up text-xs" />
                             </button>
                             <button
-                              v-if="gi < child.children!.length - 1"
-                              class="p-1 text-gray-400 hover:text-primary"
+                              class="p-1 text-secondary-300 hover:text-primary transition-colors"
+                              :class="{ invisible: gi >= child.children!.length - 1 }"
                               @click="moveItem(grandchild, child.children!, 'down')"
                             >
                               <i class="pi pi-arrow-down text-xs" />
                             </button>
                             <button
-                              class="p-1 text-gray-400 hover:text-primary"
+                              class="p-1 text-secondary-300 hover:text-primary transition-colors"
                               @click="startEditing(grandchild)"
                             >
                               <i class="pi pi-pencil text-xs" />
                             </button>
                             <button
-                              class="p-1 text-gray-400 hover:text-red-500"
+                              class="p-1 text-secondary-300 hover:text-red-500 transition-colors"
                               @click="confirmDelete(grandchild)"
                             >
                               <i class="pi pi-trash text-xs" />
