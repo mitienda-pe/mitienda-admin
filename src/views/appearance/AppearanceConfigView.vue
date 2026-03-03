@@ -86,8 +86,8 @@ async function onSaveCatalog() {
     toast.add({
       severity: 'success',
       summary: 'Preferencias guardadas',
-      detail: 'Las preferencias del catálogo se actualizaron correctamente',
-      life: 3000,
+      detail: 'Los cambios pueden demorar hasta 3 minutos en verse reflejados en tu tienda. Haz hard refresh (Ctrl+Shift+R) para verificar.',
+      life: 5000,
     })
   } else {
     toast.add({

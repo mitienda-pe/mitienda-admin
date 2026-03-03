@@ -50,8 +50,8 @@ async function onSave() {
     toast.add({
       severity: 'success',
       summary: 'Colores publicados',
-      detail: 'Los colores se actualizaron correctamente',
-      life: 3000,
+      detail: 'Los cambios pueden demorar hasta 3 minutos en verse reflejados en tu tienda. Haz hard refresh (Ctrl+Shift+R) para verificar.',
+      life: 5000,
     })
   } else {
     toast.add({
