@@ -49,7 +49,13 @@
 
     <div class="flex">
       <!-- Sidebar Desktop -->
-      <aside data-tour="sidebar" class="hidden lg:block w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-60px)]" role="navigation" aria-label="Navegación principal">
+      <aside
+        data-tour="sidebar"
+        class="hidden lg:block w-64 bg-white border-r border-gray-200 sticky overflow-y-auto"
+        :class="adminStore.isImpersonating ? 'top-[112px] h-[calc(100vh-112px)]' : 'top-[60px] h-[calc(100vh-60px)]'"
+        role="navigation"
+        aria-label="Navegación principal"
+      >
         <nav class="p-4" @click.capture="handleNavClick">
           <!-- Sidebar para SuperAdmin SIN impersonación -->
           <ul v-if="isSuperAdminWithoutImpersonation" class="space-y-1">
