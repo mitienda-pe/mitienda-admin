@@ -11,6 +11,7 @@ export type HoverEffect =
   | 'ken-burns'
   | 'combo'
   | 'info-slide'
+  | 'button-slide'
 
 export type BorderRadius = 0 | 4 | 8 | 12
 
@@ -115,6 +116,11 @@ export const HOVER_EFFECT_OPTIONS: HoverEffectOption[] = [
     value: 'info-slide',
     label: 'Info deslizable',
     description: 'La información sube revelando detalles'
+  },
+  {
+    value: 'button-slide',
+    label: 'Botón deslizable',
+    description: 'El botón se oculta y desliza al pasar el cursor'
   }
 ]
 

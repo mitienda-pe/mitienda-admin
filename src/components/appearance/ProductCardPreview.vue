@@ -54,7 +54,8 @@ const cardClasses = computed(() => {
     zoom: 'pc-hover-zoom',
     'ken-burns': 'pc-hover-kenburns',
     combo: 'pc-hover-combo',
-    'info-slide': 'pc-hover-slideup'
+    'info-slide': 'pc-hover-slideup',
+    'button-slide': 'pc-hover-btnslide'
   }
   if (hoverMap[props.config.hover_effect]) {
     classes.push(hoverMap[props.config.hover_effect])
@@ -175,13 +176,17 @@ const buttonLabel = computed(() => {
           {{ buttonLabel }}
         </button>
 
-        <!-- Button type 2: Agregar al carrito (becomes stepper after adding) -->
-        <button
-          v-else-if="config.button_type === 2"
-          class="pc-btn pc-btn-primary"
-        >
-          {{ buttonLabel }}
-        </button>
+        <!-- Button type 2: Agregar al carrito (shows stepper preview) -->
+        <template v-else-if="config.button_type === 2">
+          <button class="pc-btn pc-btn-primary pc-btn-type2">
+            {{ buttonLabel }}
+          </button>
+          <div class="pc-quantity pc-quantity-preview">
+            <button class="pc-qty-btn">&minus;</button>
+            <span class="pc-qty-input">1</span>
+            <button class="pc-qty-btn">+</button>
+          </div>
+        </template>
 
         <!-- Button type 4: Comprar ahora -->
         <button
@@ -615,5 +620,44 @@ const buttonLabel = computed(() => {
 }
 .pc-thumb:hover:not(.pc-thumb-active) {
   border-color: #ccc;
+}
+
+/* ── Button type 2 preview: show button + stepper ── */
+.pc-btn-type2 {
+  margin-bottom: 6px;
+}
+.pc-quantity-preview {
+  opacity: 0.6;
+  position: relative;
+}
+.pc-quantity-preview::after {
+  content: 'Al agregar →';
+  position: absolute;
+  right: calc(100% + 6px);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 9px;
+  color: #999;
+  white-space: nowrap;
+}
+
+/* ── Hover effect: Button slide ── */
+.pc-hover-btnslide .pc-btn,
+.pc-hover-btnslide .pc-quantity {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.pc-hover-btnslide:hover .pc-btn,
+.pc-hover-btnslide:hover .pc-quantity {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* Override for stepper preview label */
+.pc-hover-btnslide .pc-quantity-preview {
+  opacity: 0;
+}
+.pc-hover-btnslide:hover .pc-quantity-preview {
+  opacity: 0.6;
 }
 </style>

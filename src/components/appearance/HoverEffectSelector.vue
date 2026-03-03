@@ -18,7 +18,8 @@ const effectIcons: Record<HoverEffect, string> = {
   'zoom': 'pi pi-search-plus',
   'ken-burns': 'pi pi-video',
   'combo': 'pi pi-bolt',
-  'info-slide': 'pi pi-arrow-circle-up'
+  'info-slide': 'pi pi-arrow-circle-up',
+  'button-slide': 'pi pi-chevron-up'
 }
 </script>
 
