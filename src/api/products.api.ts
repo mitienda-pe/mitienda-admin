@@ -74,11 +74,13 @@ export const productsApi = {
                 url: img.url || img,
                 cloudflare_url: img.cloudflare_url,
                 cloudflare_id: img.cloudflare_id,
-                cloudflare_imagen_id: img.cloudflare_imagen_id,  // NEW
+                cloudflare_imagen_id: img.cloudflare_imagen_id,
+                r2_imagen_id: img.r2_imagen_id,
+                r2_url: img.r2_url,
                 thumbnail: img.thumbnail || img.url || img,
                 position: img.position || index,
                 is_main: img.is_main || index === 0,
-                source: img.source  // NEW: 'cloudflare' or 'legacy'
+                source: img.source
               }
             })
 
@@ -160,11 +162,13 @@ export const productsApi = {
             url: img.url || img,
             cloudflare_url: img.cloudflare_url,
             cloudflare_id: img.cloudflare_id,
-            cloudflare_imagen_id: img.cloudflare_imagen_id,  // NEW
+            cloudflare_imagen_id: img.cloudflare_imagen_id,
+            r2_imagen_id: img.r2_imagen_id,
+            r2_url: img.r2_url,
             thumbnail: img.thumbnail || img.url || img,
             position: img.position || index,
             is_main: img.is_main || index === 0,
-            source: img.source  // NEW: 'cloudflare' or 'legacy'
+            source: img.source
           }
         })
 

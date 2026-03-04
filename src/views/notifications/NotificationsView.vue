@@ -7,22 +7,10 @@
     </div>
 
     <!-- Mensajes -->
-    <Message
-      v-if="store.error"
-      severity="error"
-      :closable="true"
-      @close="store.clearMessages"
-      class="mb-4"
-    >
+    <Message v-if="store.error" severity="error" :closable="true" @close="store.clearMessages" class="mb-4">
       {{ store.error }}
     </Message>
-    <Message
-      v-if="store.successMessage"
-      severity="success"
-      :closable="true"
-      @close="store.clearMessages"
-      class="mb-4"
-    >
+    <Message v-if="store.successMessage" severity="success" :closable="true" @close="store.clearMessages" class="mb-4">
       {{ store.successMessage }}
     </Message>
 
@@ -47,23 +35,13 @@
           </p>
 
           <!-- Email pills -->
-          <div
-            v-if="store.emailNotifications.length > 0"
-            class="flex flex-wrap gap-2 mb-4"
-          >
-            <span
-              v-for="item in store.emailNotifications"
-              :key="item.id"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-full text-sm"
-            >
+          <div v-if="store.emailNotifications.length > 0" class="flex flex-wrap gap-2 mb-4">
+            <span v-for="item in store.emailNotifications" :key="item.id"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary border border-primary/20 rounded-full text-sm">
               <i class="pi pi-envelope text-xs"></i>
               {{ item.email }}
-              <button
-                type="button"
-                class="ml-1 hover:text-red-600 transition-colors"
-                :disabled="store.isSaving"
-                @click="handleRemoveEmail(item.id)"
-              >
+              <button type="button" class="ml-1 hover:text-red-600 transition-colors" :disabled="store.isSaving"
+                @click="handleRemoveEmail(item.id)">
                 <i class="pi pi-times text-xs"></i>
               </button>
             </span>
@@ -71,22 +49,10 @@
 
           <!-- Add email form -->
           <form @submit.prevent="handleAddEmail" class="flex gap-3">
-            <InputText
-              id="notifEmail"
-              v-model="emailForm"
-              type="email"
-              class="flex-1"
-              placeholder="ventas@tutienda.com"
-              :disabled="store.isSaving"
-              @keydown.enter.prevent="handleAddEmail"
-            />
-            <Button
-              type="submit"
-              label="Agregar"
-              icon="pi pi-plus"
-              :loading="store.isSaving"
-              :disabled="!emailForm.trim()"
-            />
+            <InputText id="notifEmail" v-model="emailForm" type="email" class="flex-1" placeholder="ventas@tutienda.com"
+              :disabled="store.isSaving" @keydown.enter.prevent="handleAddEmail" />
+            <Button type="submit" label="Agregar" icon="pi pi-plus" :loading="store.isSaving"
+              :disabled="!emailForm.trim()" />
           </form>
         </template>
       </Card>
@@ -105,29 +71,19 @@
           </p>
 
           <!-- Not supported -->
-          <div
-            v-if="!pushSupported"
-            class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg"
-          >
+          <div v-if="!pushSupported" class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <div class="flex items-center gap-2">
               <i class="pi pi-exclamation-triangle text-yellow-600"></i>
-              <span class="text-yellow-700"
-                >Tu navegador no soporta notificaciones push.</span
-              >
+              <span class="text-yellow-700">Tu navegador no soporta notificaciones push.</span>
             </div>
           </div>
 
           <!-- Permission denied -->
-          <div
-            v-else-if="pushPermission === 'denied'"
-            class="p-4 bg-red-50 border border-red-200 rounded-lg"
-          >
+          <div v-else-if="pushPermission === 'denied'" class="p-4 bg-red-50 border border-red-200 rounded-lg">
             <div class="flex items-start gap-2">
               <i class="pi pi-times-circle text-red-600 mt-0.5"></i>
               <div>
-                <span class="text-red-700 font-medium"
-                  >Las notificaciones están bloqueadas.</span
-                >
+                <span class="text-red-700 font-medium">Las notificaciones están bloqueadas.</span>
                 <p class="text-red-600 text-sm mt-1">
                   Para habilitarlas, haz clic en el ícono de candado en la barra de direcciones
                   y permite las notificaciones.
@@ -138,23 +94,13 @@
 
           <!-- Subscribed -->
           <div v-else-if="isSubscribed" class="space-y-4">
-            <div
-              class="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg"
-            >
+            <div class="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
               <div class="flex items-center gap-2">
                 <i class="pi pi-check-circle text-green-600"></i>
-                <span class="text-green-700 font-medium"
-                  >Notificaciones push activas en este navegador</span
-                >
+                <span class="text-green-700 font-medium">Notificaciones push activas en este navegador</span>
               </div>
-              <Button
-                label="Desactivar"
-                icon="pi pi-bell-slash"
-                severity="danger"
-                text
-                @click="handleUnsubscribe"
-                :loading="store.isSaving"
-              />
+              <Button label="Desactivar" icon="pi pi-bell-slash" severity="danger" text @click="handleUnsubscribe"
+                :loading="store.isSaving" />
             </div>
 
             <div v-if="store.onesignalSubscriptions.length > 0">
@@ -162,11 +108,8 @@
                 Navegadores suscritos:
               </h4>
               <div class="space-y-2">
-                <div
-                  v-for="sub in store.onesignalSubscriptions"
-                  :key="sub.id"
-                  class="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
-                >
+                <div v-for="sub in store.onesignalSubscriptions" :key="sub.id"
+                  class="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                   <div class="flex items-center gap-2">
                     <i class="pi pi-desktop text-secondary-400"></i>
                     <span>{{ sub.browser || 'Navegador desconocido' }}</span>
@@ -178,12 +121,8 @@
 
           <!-- Not subscribed -->
           <div v-else>
-            <Button
-              label="Activar notificaciones push"
-              icon="pi pi-bell"
-              @click="handleSubscribe"
-              :loading="subscribing"
-            />
+            <Button label="Activar notificaciones push" icon="pi pi-bell" @click="handleSubscribe"
+              :loading="subscribing" />
           </div>
         </template>
       </Card>
@@ -203,12 +142,9 @@
           </p>
           <div class="flex flex-col sm:flex-row gap-4">
             <!-- Google Play -->
-            <a
-              href="https://play.google.com/store/apps/details?id=pe.mitienda.seller&utm_source=mitienda%20newsletter&utm_medium=sendy&utm_campaign=mitienda%20email_marketing"
-              target="_blank"
+            <a href="https://play.google.com/store/apps/details?id=pe.mitienda.seller" target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center gap-3 px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
-            >
+              class="inline-flex items-center gap-3 px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors">
               <i class="pi pi-android text-2xl"></i>
               <div>
                 <div class="text-xs opacity-75">Disponible en</div>
@@ -216,12 +152,9 @@
               </div>
             </a>
             <!-- App Store -->
-            <a
-              href="https://apps.apple.com/pe/app/mitienda-vendedor/id6752581287"
-              target="_blank"
+            <a href="https://apps.apple.com/pe/app/mitienda-vendedor/id6752581287" target="_blank"
               rel="noopener noreferrer"
-              class="inline-flex items-center gap-3 px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors"
-            >
+              class="inline-flex items-center gap-3 px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors">
               <i class="pi pi-apple text-2xl"></i>
               <div>
                 <div class="text-xs opacity-75">Descárgalo en</div>
