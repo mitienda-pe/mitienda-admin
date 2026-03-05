@@ -117,10 +117,11 @@ onMounted(async () => {
   // Register change handler after initial content is settled to avoid spurious emissions
   nextTick(() => {
     if (!quill) return
-    quill.on('text-change', () => {
+    quill.on('text-change', (_delta: any, _oldDelta: any, source: string) => {
       if (!quill || isInternalChange) return
       isInternalChange = true
       const html = quill.getSemanticHTML()
+      console.log('[QuillEditor] text-change source:', source, 'html length:', html.length, 'preview:', html.substring(0, 80))
       emit('update:modelValue', html === '<p><br></p>' ? '' : html)
       nextTick(() => {
         isInternalChange = false
