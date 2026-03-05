@@ -224,8 +224,10 @@ const handleSaveSettings = async () => {
       description: settingsForm.description,
       excerpt: settingsForm.excerpt,
     })
+    // Update post metadata but preserve current editor content (unsaved edits)
+    const currentContent = content.value
     post.value = updated
-    content.value = updated.content
+    content.value = currentContent
     toast.add({ severity: 'success', summary: 'Guardado', detail: 'Configuración actualizada', life: 3000 })
     showSettings.value = false
   } catch (error: any) {
