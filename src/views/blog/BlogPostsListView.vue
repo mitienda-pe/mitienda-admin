@@ -10,6 +10,13 @@
       </div>
       <div class="flex items-center gap-2">
         <Button
+          label="Autores"
+          icon="pi pi-users"
+          severity="secondary"
+          outlined
+          @click="$router.push({ name: 'blog-authors' })"
+        />
+        <Button
           label="Categorías"
           icon="pi pi-folder"
           severity="secondary"
@@ -70,8 +77,8 @@
             </div>
             <div class="flex items-center gap-3 mt-1 text-sm text-secondary-400">
               <span>/{{ post.slug }}</span>
-              <span v-if="post.author">
-                <i class="pi pi-user mr-1"></i>{{ post.author }}
+              <span v-if="post.author_name || post.author">
+                <i class="pi pi-user mr-1"></i>{{ post.author_name || post.author }}
               </span>
               <span>
                 <i class="pi pi-calendar mr-1"></i>{{ post.publication_date }}

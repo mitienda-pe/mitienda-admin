@@ -5,6 +5,8 @@ export interface BlogPost {
   tienda_id: number
   category_id: number | null
   category_name: string | null
+  author_id: number | null
+  author_name: string | null
   image_id: number | null
   title: string
   slug: string
@@ -28,6 +30,7 @@ export interface BlogPostFormData {
   content?: string
   editor_type: PageEditorType
   category_id?: number | null
+  author_id?: number | null
   published?: boolean
   publication_date?: string
   author?: string
@@ -42,4 +45,19 @@ export interface BlogCategory {
 
 export interface BlogCategoryFormData {
   name: string
+}
+
+export interface BlogAuthor {
+  id: number
+  tienda_id: number
+  name: string
+  slug: string
+  bio: string | null
+  avatar: string | null
+}
+
+export interface BlogAuthorFormData {
+  name: string
+  bio?: string | null
+  avatar?: string | null
 }

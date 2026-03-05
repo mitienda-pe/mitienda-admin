@@ -1,6 +1,6 @@
 import apiClient from './axios'
 import type { ApiResponse } from '@/types/api.types'
-import type { BlogPost, BlogPostFormData, BlogCategory, BlogCategoryFormData } from '@/types/blog.types'
+import type { BlogPost, BlogPostFormData, BlogCategory, BlogCategoryFormData, BlogAuthor, BlogAuthorFormData } from '@/types/blog.types'
 
 // Transform raw API response to BlogPost
 const transformPost = (raw: any): BlogPost => ({
@@ -8,6 +8,8 @@ const transformPost = (raw: any): BlogPost => ({
   tienda_id: parseInt(raw.tienda_id),
   category_id: raw.tiendasblogcategoria_id ? parseInt(raw.tiendasblogcategoria_id) : null,
   category_name: raw.category_name || null,
+  author_id: raw.tiendasblogautor_id ? parseInt(raw.tiendasblogautor_id) : null,
+  author_name: raw.author_name || null,
   image_id: raw.tiendaimagen_id ? parseInt(raw.tiendaimagen_id) : null,
   title: raw.tiendasblogentrada_titulo,
   slug: raw.tiendasblogentrada_slug || '',
@@ -21,6 +23,15 @@ const transformPost = (raw: any): BlogPost => ({
   author: raw.tiendasblogentrada_autor || '',
   created_at: raw.tiendasblogentrada_creacion,
   updated_at: raw.tiendasblogentrada_modificacion,
+})
+
+const transformAuthor = (raw: any): BlogAuthor => ({
+  id: parseInt(raw.tiendasblogautor_id),
+  tienda_id: parseInt(raw.tienda_id),
+  name: raw.tiendasblogautores_nombre,
+  slug: raw.tiendasblogautores_url,
+  bio: raw.tiendasblogautores_bio || null,
+  avatar: raw.tiendasblogautores_avatar || null,
 })
 
 const transformCategory = (raw: any): BlogCategory => ({
@@ -39,6 +50,7 @@ const transformPostToApi = (data: BlogPostFormData): Record<string, any> => {
   if (data.content !== undefined) result.content = data.content
   if (data.editor_type !== undefined) result.editor_type = data.editor_type
   if (data.category_id !== undefined) result.category_id = data.category_id
+  if (data.author_id !== undefined) result.author_id = data.author_id
   if (data.published !== undefined) result.published = data.published ? 1 : 0
   if (data.publication_date !== undefined) result.publication_date = data.publication_date
   if (data.author !== undefined) result.author = data.author
@@ -132,6 +144,40 @@ export const blogCategoriesApi = {
 
   async delete(id: number): Promise<ApiResponse<void>> {
     await apiClient.delete(`/blog-categories/${id}`)
+    return { success: true }
+  },
+}
+
+export const blogAuthorsApi = {
+  async getAll(): Promise<ApiResponse<BlogAuthor[]>> {
+    const response = await apiClient.get('/blog-authors')
+    const rawData = response.data
+    if (rawData.success && Array.isArray(rawData.data)) {
+      return { success: true, data: rawData.data.map(transformAuthor) }
+    }
+    return { success: false, data: [] }
+  },
+
+  async create(data: BlogAuthorFormData): Promise<ApiResponse<BlogAuthor>> {
+    const response = await apiClient.post('/blog-authors', data)
+    const rawData = response.data
+    if (rawData.success && rawData.data) {
+      return { success: true, data: transformAuthor(rawData.data) }
+    }
+    return { success: false, message: rawData.message }
+  },
+
+  async update(id: number, data: BlogAuthorFormData): Promise<ApiResponse<BlogAuthor>> {
+    const response = await apiClient.put(`/blog-authors/${id}`, data)
+    const rawData = response.data
+    if (rawData.success && rawData.data) {
+      return { success: true, data: transformAuthor(rawData.data) }
+    }
+    return { success: false, message: rawData.message }
+  },
+
+  async delete(id: number): Promise<ApiResponse<void>> {
+    await apiClient.delete(`/blog-authors/${id}`)
     return { success: true }
   },
 }

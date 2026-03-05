@@ -1,13 +1,14 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { blogPostsApi, blogCategoriesApi } from '@/api/blog.api'
-import type { BlogPost, BlogPostFormData, BlogCategory, BlogCategoryFormData } from '@/types/blog.types'
+import { blogPostsApi, blogCategoriesApi, blogAuthorsApi } from '@/api/blog.api'
+import type { BlogPost, BlogPostFormData, BlogCategory, BlogCategoryFormData, BlogAuthor, BlogAuthorFormData } from '@/types/blog.types'
 
 export const useBlogStore = defineStore('blog', () => {
   // State
   const posts = ref<BlogPost[]>([])
   const currentPost = ref<BlogPost | null>(null)
   const categories = ref<BlogCategory[]>([])
+  const authors = ref<BlogAuthor[]>([])
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
@@ -159,10 +160,62 @@ export const useBlogStore = defineStore('blog', () => {
     }
   }
 
+  // === Authors Actions ===
+
+  async function fetchAuthors() {
+    try {
+      const response = await blogAuthorsApi.getAll()
+      if (response.success && response.data) {
+        authors.value = response.data
+      }
+    } catch (err: any) {
+      console.error('Error al cargar autores del blog:', err)
+    }
+  }
+
+  async function createAuthor(data: BlogAuthorFormData): Promise<BlogAuthor> {
+    try {
+      const response = await blogAuthorsApi.create(data)
+      if (response.success && response.data) {
+        await fetchAuthors()
+        return response.data
+      }
+      throw new Error(response.message || 'Error al crear el autor')
+    } catch (err: any) {
+      console.error('Error al crear autor:', err)
+      throw err
+    }
+  }
+
+  async function updateAuthor(id: number, data: BlogAuthorFormData): Promise<BlogAuthor> {
+    try {
+      const response = await blogAuthorsApi.update(id, data)
+      if (response.success && response.data) {
+        await fetchAuthors()
+        return response.data
+      }
+      throw new Error(response.message || 'Error al actualizar el autor')
+    } catch (err: any) {
+      console.error('Error al actualizar autor:', err)
+      throw err
+    }
+  }
+
+  async function deleteAuthor(id: number): Promise<void> {
+    try {
+      await blogAuthorsApi.delete(id)
+      await fetchAuthors()
+    } catch (err: any) {
+      console.error('Error al eliminar autor:', err)
+      throw err
+    }
+  }
+
   return {
     posts,
     currentPost,
     categories,
+    authors,
     isLoading,
     error,
     fetchPosts,
@@ -175,5 +228,9 @@ export const useBlogStore = defineStore('blog', () => {
     createCategory,
     updateCategory,
     deleteCategory,
+    fetchAuthors,
+    createAuthor,
+    updateAuthor,
+    deleteAuthor,
   }
 })

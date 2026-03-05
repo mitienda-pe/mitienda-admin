@@ -58,7 +58,15 @@
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-secondary-700 mb-1">Autor</label>
-            <InputText v-model="settingsForm.author" class="w-full" />
+            <Dropdown
+              v-model="settingsForm.author_id"
+              :options="blogStore.authors"
+              optionLabel="name"
+              optionValue="id"
+              placeholder="Sin autor"
+              class="w-full"
+              showClear
+            />
           </div>
           <div>
             <label class="block text-sm font-medium text-secondary-700 mb-1">Categoría</label>
@@ -140,7 +148,7 @@ const isSavingSettings = ref(false)
 const settingsForm = reactive({
   title: '',
   slug: '',
-  author: '',
+  author_id: null as number | null,
   category_id: null as number | null,
   publication_date: '',
   published: false,
@@ -172,7 +180,7 @@ const loadPost = async () => {
       content.value = result.content
       settingsForm.title = result.title
       settingsForm.slug = result.slug
-      settingsForm.author = result.author
+      settingsForm.author_id = result.author_id
       settingsForm.category_id = result.category_id
       settingsForm.publication_date = result.publication_date
       settingsForm.published = result.published
@@ -209,7 +217,7 @@ const handleSaveSettings = async () => {
     const updated = await blogStore.updatePost(post.value.id, {
       title: settingsForm.title,
       slug: settingsForm.slug,
-      author: settingsForm.author,
+      author_id: settingsForm.author_id,
       category_id: settingsForm.category_id,
       publication_date: settingsForm.publication_date,
       published: settingsForm.published,
@@ -230,5 +238,6 @@ const handleSaveSettings = async () => {
 onMounted(() => {
   loadPost()
   blogStore.fetchCategories()
+  blogStore.fetchAuthors()
 })
 </script>

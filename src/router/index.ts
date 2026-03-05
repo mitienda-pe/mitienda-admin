@@ -374,6 +374,11 @@ const routes: RouteRecordRaw[] = [
         path: 'categories',
         name: 'blog-categories',
         component: () => import('@/views/blog/BlogCategoriesView.vue')
+      },
+      {
+        path: 'authors',
+        name: 'blog-authors',
+        component: () => import('@/views/blog/BlogAuthorsView.vue')
       }
     ]
   },

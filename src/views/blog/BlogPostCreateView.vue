@@ -29,7 +29,15 @@
           <!-- Author -->
           <div>
             <label class="block text-sm font-medium text-secondary-700 mb-1">Autor</label>
-            <InputText v-model="form.author" class="w-full" placeholder="Nombre del autor" />
+            <Dropdown
+              v-model="form.author_id"
+              :options="blogStore.authors"
+              optionLabel="name"
+              optionValue="id"
+              placeholder="Seleccionar autor"
+              class="w-full"
+              showClear
+            />
           </div>
 
           <!-- Category -->
@@ -150,7 +158,7 @@ const toast = useToast()
 const form = reactive({
   title: '',
   slug: '',
-  author: '',
+  author_id: null as number | null,
   category_id: null as number | null,
   description: '',
   excerpt: '',
@@ -170,7 +178,7 @@ const handleCreate = async () => {
     const post = await blogStore.createPost({
       title: form.title,
       slug: form.slug || undefined,
-      author: form.author || undefined,
+      author_id: form.author_id,
       category_id: form.category_id,
       description: form.description || undefined,
       excerpt: form.excerpt || undefined,
@@ -191,5 +199,6 @@ const handleCreate = async () => {
 
 onMounted(() => {
   blogStore.fetchCategories()
+  blogStore.fetchAuthors()
 })
 </script>
