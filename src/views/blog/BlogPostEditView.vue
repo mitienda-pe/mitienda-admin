@@ -200,10 +200,9 @@ const handleSave = async () => {
   if (!post.value) return
   try {
     isSaving.value = true
-    console.log('[BlogSave] content.value length:', content.value.length, 'preview:', content.value.substring(0, 100))
     const updated = await blogStore.updatePost(post.value.id, { content: content.value })
     post.value = updated
-    toast.add({ severity: 'success', summary: 'Guardado', detail: `Contenido guardado (${content.value.length} chars)`, life: 5000 })
+    toast.add({ severity: 'success', summary: 'Guardado', detail: 'Contenido guardado exitosamente', life: 3000 })
   } catch (error: any) {
     toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.message || 'Error al guardar', life: 5000 })
   } finally {
