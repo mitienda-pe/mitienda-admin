@@ -91,7 +91,7 @@ export const productTagsApi = {
    * POST /api/v1/product-tags/:id/upload-image
    * Subir imagen de etiqueta a R2
    */
-  async uploadImage(id: number, file: File): Promise<ApiResponse<{ image_url: string }>> {
+  async uploadImage(id: number, file: File): Promise<ApiResponse<{ imagen_url: string }>> {
     const formData = new FormData()
     formData.append('image', file)
     const response = await apiClient.post(`/product-tags/${id}/upload-image`, formData)
