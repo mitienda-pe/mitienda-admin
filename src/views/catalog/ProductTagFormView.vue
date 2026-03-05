@@ -62,14 +62,53 @@
                   <small class="text-secondary-500">Máximo 100 caracteres</small>
                 </div>
 
-                <!-- URL de imagen (solo si tipo es imagen) -->
+                <!-- Imagen (solo si tipo es imagen) -->
                 <div v-if="formData.tipo === 'imagen'">
                   <label class="block text-sm font-medium text-secondary-700 mb-2">
-                    URL de la imagen <span class="text-red-500">*</span>
+                    Imagen <span class="text-red-500">*</span>
                   </label>
-                  <InputText v-model="formData.imagen_url" placeholder="https://ejemplo.com/imagen.png"
-                    class="w-full" />
-                  <small class="text-secondary-500">URL completa de la imagen del ribbon</small>
+
+                  <!-- Upload area -->
+                  <div
+                    class="border-2 border-dashed border-secondary-300 rounded-lg p-4 text-center hover:border-primary transition-colors cursor-pointer"
+                    :class="{ 'border-primary bg-primary/5': isDragging }"
+                    @click="triggerFileInput"
+                    @dragover.prevent="isDragging = true"
+                    @dragleave.prevent="isDragging = false"
+                    @drop.prevent="handleDrop"
+                  >
+                    <!-- Current image preview -->
+                    <div v-if="formData.imagen_url && !isUploading" class="mb-3">
+                      <img :src="formData.imagen_url" alt="Preview" class="max-h-20 mx-auto rounded" @error="imageError = true" />
+                    </div>
+
+                    <!-- Upload progress -->
+                    <div v-if="isUploading" class="mb-3">
+                      <i class="pi pi-spin pi-spinner text-2xl text-primary"></i>
+                      <p class="text-sm text-secondary-500 mt-2">Subiendo imagen...</p>
+                    </div>
+
+                    <!-- Upload prompt -->
+                    <div v-if="!isUploading">
+                      <i class="pi pi-cloud-upload text-2xl text-secondary-400"></i>
+                      <p class="text-sm text-secondary-600 mt-1">
+                        {{ formData.imagen_url ? 'Clic para cambiar imagen' : 'Clic o arrastra una imagen aquí' }}
+                      </p>
+                      <p class="text-xs text-secondary-400 mt-1">JPG, PNG o WebP. Máximo 5MB</p>
+                    </div>
+                  </div>
+
+                  <input ref="fileInputRef" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="handleFileSelect" />
+
+                  <!-- URL manual fallback -->
+                  <div class="mt-3">
+                    <button type="button" class="text-xs text-secondary-400 hover:text-secondary-600 underline" @click="showUrlInput = !showUrlInput">
+                      {{ showUrlInput ? 'Ocultar URL manual' : 'Ingresar URL manualmente' }}
+                    </button>
+                    <div v-if="showUrlInput" class="mt-2">
+                      <InputText v-model="formData.imagen_url" placeholder="https://ejemplo.com/imagen.png" class="w-full" />
+                    </div>
+                  </div>
                 </div>
 
                 <!-- Posición -->
@@ -210,6 +249,7 @@ import InputSwitch from 'primevue/inputswitch'
 import SelectButton from 'primevue/selectbutton'
 import Divider from 'primevue/divider'
 import { useToast } from 'primevue/usetoast'
+import { productTagsApi } from '@/api/product-tags.api'
 
 const route = useRoute()
 const router = useRouter()
@@ -219,6 +259,10 @@ const toast = useToast()
 // State
 const editingTag = ref<ProductTag | null>(null)
 const imageError = ref(false)
+const isUploading = ref(false)
+const isDragging = ref(false)
+const showUrlInput = ref(false)
+const fileInputRef = ref<HTMLInputElement | null>(null)
 
 const defaultFormData: ProductTagFormData = {
   nombre: '',
@@ -277,6 +321,85 @@ const ribbonStyles = computed(() => {
 // Methods
 function handleBack() {
   router.push('/catalog/product-tags')
+}
+
+function triggerFileInput() {
+  fileInputRef.value?.click()
+}
+
+function handleFileSelect(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (file) uploadFile(file)
+  // Reset input so same file can be re-selected
+  input.value = ''
+}
+
+function handleDrop(event: DragEvent) {
+  isDragging.value = false
+  const file = event.dataTransfer?.files?.[0]
+  if (file) uploadFile(file)
+}
+
+async function uploadFile(file: File) {
+  // Client-side validation
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+  if (!allowedTypes.includes(file.type)) {
+    toast.add({ severity: 'warn', summary: 'Formato no válido', detail: 'Use JPG, PNG o WebP', life: 3000 })
+    return
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    toast.add({ severity: 'warn', summary: 'Archivo muy grande', detail: 'Máximo 5MB', life: 3000 })
+    return
+  }
+
+  // If editing existing tag, upload directly
+  if (editingTag.value) {
+    isUploading.value = true
+    try {
+      const response = await productTagsApi.uploadImage(editingTag.value.id, file)
+      if (response.success && response.data?.imagen_url) {
+        formData.imagen_url = response.data.imagen_url
+        imageError.value = false
+        toast.add({ severity: 'success', summary: 'Imagen subida', detail: 'La imagen se subió correctamente', life: 3000 })
+      }
+    } catch (error: any) {
+      toast.add({ severity: 'error', summary: 'Error', detail: error.message || 'No se pudo subir la imagen', life: 3000 })
+    } finally {
+      isUploading.value = false
+    }
+  } else {
+    // For new tags: save tag first, then upload image
+    if (!formData.nombre.trim()) {
+      toast.add({ severity: 'warn', summary: 'Validación', detail: 'Primero ingrese el nombre de la etiqueta', life: 3000 })
+      return
+    }
+
+    isUploading.value = true
+    try {
+      // Create tag first
+      const createSuccess = await tagsStore.createTag(formData)
+      if (createSuccess && tagsStore.tags.length > 0) {
+        // Get the newly created tag (last one added)
+        const newTag = tagsStore.tags[tagsStore.tags.length - 1]
+        editingTag.value = newTag
+
+        // Now upload image
+        const response = await productTagsApi.uploadImage(newTag.id, file)
+        if (response.success && response.data?.imagen_url) {
+          formData.imagen_url = response.data.imagen_url
+          imageError.value = false
+          toast.add({ severity: 'success', summary: 'Etiqueta creada', detail: 'Etiqueta creada e imagen subida', life: 3000 })
+          // Update route to edit mode
+          router.replace(`/catalog/product-tags/${newTag.id}`)
+        }
+      }
+    } catch (error: any) {
+      toast.add({ severity: 'error', summary: 'Error', detail: error.message || 'No se pudo crear la etiqueta', life: 3000 })
+    } finally {
+      isUploading.value = false
+    }
+  }
 }
 
 async function saveTag() {
