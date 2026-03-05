@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import Quill from 'quill'
 import 'quill/dist/quill.snow.css'
 
@@ -47,7 +47,6 @@ const emit = defineEmits<{
 
 const editorRef = ref<HTMLElement | null>(null)
 let quill: Quill | null = null
-let isInternalChange = false
 
 const TOOLBAR_FULL = [
   [{ header: [1, 2, 3, 4, false] }],
@@ -72,8 +71,7 @@ function getToolbar(): unknown[] {
   return props.toolbar === 'compact' ? TOOLBAR_COMPACT : TOOLBAR_FULL
 }
 
-onMounted(async () => {
-  await nextTick()
+onMounted(() => {
   if (!editorRef.value) return
 
   quill = new Quill(editorRef.value, {
@@ -114,36 +112,25 @@ onMounted(async () => {
     quill.setSelection(0, 0, 'silent')
   }
 
-  // Register change handler after initial content is settled to avoid spurious emissions
-  nextTick(() => {
-    if (!quill) return
-    quill.on('text-change', (_delta: any, _oldDelta: any, source: string) => {
-      if (!quill || isInternalChange) return
-      isInternalChange = true
-      const html = quill.getSemanticHTML()
-      console.log('[QuillEditor] text-change source:', source, 'html length:', html.length, 'preview:', html.substring(0, 80))
-      emit('update:modelValue', html === '<p><br></p>' ? '' : html)
-      nextTick(() => {
-        isInternalChange = false
-      })
-    })
+  // Only emit on user-initiated changes (typing, formatting, pasting)
+  // 'silent' and 'api' sources are ignored — no isInternalChange flag needed
+  quill.on('text-change', (_delta: any, _oldDelta: any, source: string) => {
+    if (!quill || source !== 'user') return
+    const html = quill.getSemanticHTML()
+    emit('update:modelValue', html === '<p><br></p>' ? '' : html)
   })
 })
 
-// Watch for external content changes
+// Watch for external content changes (e.g. parent loads data from API)
 watch(
   () => props.modelValue,
   (newVal) => {
-    if (isInternalChange || !quill) return
+    if (!quill) return
     const currentHtml = quill.getSemanticHTML()
     if (newVal !== currentHtml) {
-      isInternalChange = true
       const clipboard = quill.getModule('clipboard') as any
       const delta = clipboard.convert({ html: newVal || '' })
       quill.setContents(delta, 'silent')
-      nextTick(() => {
-        isInternalChange = false
-      })
     }
   }
 )
