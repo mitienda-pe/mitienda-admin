@@ -70,9 +70,40 @@
         </div>
 
         <!-- Excerpt -->
-        <div class="mb-6">
+        <div class="mb-4">
           <label class="block text-sm font-medium text-secondary-700 mb-1">Extracto</label>
           <Textarea v-model="form.excerpt" class="w-full" rows="2" placeholder="Resumen corto de la entrada" />
+        </div>
+
+        <!-- Featured Image -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-secondary-700 mb-1">Imagen Destacada</label>
+          <div v-if="form.image_url" class="mb-2">
+            <div class="relative inline-block">
+              <img :src="form.image_url" alt="Imagen destacada" class="w-full max-h-48 object-cover rounded border border-gray-200" />
+              <Button
+                icon="pi pi-times"
+                severity="danger"
+                size="small"
+                rounded
+                class="!absolute top-1 right-1"
+                @click="form.image_url = null"
+              />
+            </div>
+          </div>
+          <div>
+            <input ref="imageInputRef" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="handleImageUpload" />
+            <Button
+              :label="form.image_url ? 'Cambiar' : 'Subir Imagen'"
+              :icon="form.image_url ? 'pi pi-upload' : 'pi pi-image'"
+              severity="secondary"
+              :outlined="!form.image_url"
+              :text="!!form.image_url"
+              :size="form.image_url ? 'small' : undefined"
+              :loading="isUploadingImage"
+              @click="imageInputRef?.click()"
+            />
+          </div>
         </div>
 
         <Divider />
@@ -149,17 +180,22 @@ import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import Divider from 'primevue/divider'
 import Dropdown from 'primevue/dropdown'
+import { imageGalleryApi } from '@/api/image-gallery.api'
 import type { PageEditorType } from '@/types/page.types'
 
 const router = useRouter()
 const blogStore = useBlogStore()
 const toast = useToast()
 
+const imageInputRef = ref<HTMLInputElement | null>(null)
+const isUploadingImage = ref(false)
+
 const form = reactive({
   title: '',
   slug: '',
   author_id: null as number | null,
   category_id: null as number | null,
+  image_url: null as string | null,
   description: '',
   excerpt: '',
   publication_date: new Date().toISOString().split('T')[0],
@@ -180,6 +216,7 @@ const handleCreate = async () => {
       slug: form.slug || undefined,
       author_id: form.author_id,
       category_id: form.category_id,
+      image_url: form.image_url,
       description: form.description || undefined,
       excerpt: form.excerpt || undefined,
       publication_date: form.publication_date,
@@ -194,6 +231,33 @@ const handleCreate = async () => {
     toast.add({ severity: 'error', summary: 'Error', detail: message, life: 5000 })
   } finally {
     isSubmitting.value = false
+  }
+}
+
+const handleImageUpload = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  const validTypes = ['image/jpeg', 'image/png', 'image/webp']
+  if (!validTypes.includes(file.type)) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Formato no soportado. Usa JPG, PNG o WebP.', life: 5000 })
+    return
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'La imagen no debe superar 10MB.', life: 5000 })
+    return
+  }
+
+  try {
+    isUploadingImage.value = true
+    const result = await imageGalleryApi.uploadImage(file, form.title || 'Blog image')
+    form.image_url = result.url
+  } catch (error: any) {
+    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.message || 'Error al subir imagen', life: 5000 })
+  } finally {
+    isUploadingImage.value = false
+    input.value = ''
   }
 }
 

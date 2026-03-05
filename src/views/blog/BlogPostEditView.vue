@@ -98,6 +98,46 @@
           </div>
         </div>
         <Divider />
+        <h3 class="text-sm font-semibold text-secondary-700">Imagen Destacada</h3>
+        <div>
+          <div v-if="settingsForm.image_url" class="mb-2">
+            <div class="relative inline-block">
+              <img :src="settingsForm.image_url" alt="Imagen destacada" class="w-full max-h-48 object-cover rounded border border-gray-200" />
+              <Button
+                icon="pi pi-times"
+                severity="danger"
+                size="small"
+                rounded
+                class="!absolute top-1 right-1"
+                @click="settingsForm.image_url = null"
+              />
+            </div>
+          </div>
+          <div v-if="!settingsForm.image_url">
+            <input ref="imageInputRef" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="handleImageUpload" />
+            <Button
+              label="Subir Imagen"
+              icon="pi pi-image"
+              severity="secondary"
+              outlined
+              :loading="isUploadingImage"
+              @click="imageInputRef?.click()"
+            />
+          </div>
+          <div v-else>
+            <input ref="imageInputRef" type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="handleImageUpload" />
+            <Button
+              label="Cambiar"
+              icon="pi pi-upload"
+              severity="secondary"
+              text
+              size="small"
+              :loading="isUploadingImage"
+              @click="imageInputRef?.click()"
+            />
+          </div>
+        </div>
+        <Divider />
         <h3 class="text-sm font-semibold text-secondary-700">SEO</h3>
         <div>
           <label class="block text-sm font-medium text-secondary-700 mb-1">Descripción (meta)</label>
@@ -130,6 +170,7 @@ import Textarea from 'primevue/textarea'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import PageContentEditor from '@/components/pages/PageContentEditor.vue'
+import { imageGalleryApi } from '@/api/image-gallery.api'
 import type { BlogPost } from '@/types/blog.types'
 import type { PageEditorType } from '@/types/page.types'
 
@@ -145,11 +186,15 @@ const isSaving = ref(false)
 const showSettings = ref(false)
 const isSavingSettings = ref(false)
 
+const imageInputRef = ref<HTMLInputElement | null>(null)
+const isUploadingImage = ref(false)
+
 const settingsForm = reactive({
   title: '',
   slug: '',
   author_id: null as number | null,
   category_id: null as number | null,
+  image_url: null as string | null,
   publication_date: '',
   published: false,
   description: '',
@@ -182,6 +227,7 @@ const loadPost = async () => {
       settingsForm.slug = result.slug
       settingsForm.author_id = result.author_id
       settingsForm.category_id = result.category_id
+      settingsForm.image_url = result.image_url
       settingsForm.publication_date = result.publication_date
       settingsForm.published = result.published
       settingsForm.description = result.description
@@ -219,6 +265,7 @@ const handleSaveSettings = async () => {
       slug: settingsForm.slug,
       author_id: settingsForm.author_id,
       category_id: settingsForm.category_id,
+      image_url: settingsForm.image_url,
       publication_date: settingsForm.publication_date,
       published: settingsForm.published,
       description: settingsForm.description,
@@ -234,6 +281,34 @@ const handleSaveSettings = async () => {
     toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.message || 'Error al guardar configuración', life: 5000 })
   } finally {
     isSavingSettings.value = false
+  }
+}
+
+const handleImageUpload = async (event: Event) => {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  const validTypes = ['image/jpeg', 'image/png', 'image/webp']
+  if (!validTypes.includes(file.type)) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Formato no soportado. Usa JPG, PNG o WebP.', life: 5000 })
+    return
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'La imagen no debe superar 10MB.', life: 5000 })
+    return
+  }
+
+  try {
+    isUploadingImage.value = true
+    const result = await imageGalleryApi.uploadImage(file, post.value?.title || 'Blog image')
+    settingsForm.image_url = result.url
+    toast.add({ severity: 'success', summary: 'Imagen subida', detail: 'Recuerda guardar la configuración', life: 3000 })
+  } catch (error: any) {
+    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.message || 'Error al subir imagen', life: 5000 })
+  } finally {
+    isUploadingImage.value = false
+    input.value = ''
   }
 }
 

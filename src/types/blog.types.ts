@@ -8,6 +8,7 @@ export interface BlogPost {
   author_id: number | null
   author_name: string | null
   image_id: number | null
+  image_url: string | null
   title: string
   slug: string
   description: string
@@ -31,6 +32,7 @@ export interface BlogPostFormData {
   editor_type: PageEditorType
   category_id?: number | null
   author_id?: number | null
+  image_url?: string | null
   published?: boolean
   publication_date?: string
   author?: string

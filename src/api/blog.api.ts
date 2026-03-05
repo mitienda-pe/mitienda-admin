@@ -11,6 +11,7 @@ const transformPost = (raw: any): BlogPost => ({
   author_id: raw.tiendasblogautor_id ? parseInt(raw.tiendasblogautor_id) : null,
   author_name: raw.author_name || null,
   image_id: raw.tiendaimagen_id ? parseInt(raw.tiendaimagen_id) : null,
+  image_url: raw.tiendasblogentrada_imagen_url || null,
   title: raw.tiendasblogentrada_titulo,
   slug: raw.tiendasblogentrada_slug || '',
   description: raw.tiendasblogentrada_descripcion || '',
@@ -54,6 +55,7 @@ const transformPostToApi = (data: BlogPostFormData): Record<string, any> => {
   if (data.published !== undefined) result.published = data.published ? 1 : 0
   if (data.publication_date !== undefined) result.publication_date = data.publication_date
   if (data.author !== undefined) result.author = data.author
+  if (data.image_url !== undefined) result.image_url = data.image_url
   return result
 }
 
