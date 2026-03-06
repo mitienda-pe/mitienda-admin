@@ -30,6 +30,7 @@ export const MODULE_ROUTE_MAP: Record<string, string[]> = {
   mod_combos: ['/marketing/combos'],
   mod_barras_anuncios: ['/marketing/announcement-bars'],
   mod_referidos: ['/marketing/referrals'],
+  mod_fidelizacion: ['/marketing/loyalty'],
   mod_carrito_abandonado: ['/marketing/abandoned-carts'],
 
   // Content

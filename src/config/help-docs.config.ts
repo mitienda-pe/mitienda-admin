@@ -43,6 +43,7 @@ export const routeToDocMap: [string, string][] = [
   ['/marketing/combos', '06-marketing/04-combos'],
   ['/marketing/announcement-bars', '06-marketing/05-barras-anuncio'],
   ['/marketing/referrals', '06-marketing/06-referidos'],
+  ['/marketing/loyalty', '06-marketing/08-fidelizacion-contabilidad'],
   ['/marketing/abandoned-carts', '03-ventas/04-carritos-abandonados'],
 
   // Pages (Contenido > Páginas)

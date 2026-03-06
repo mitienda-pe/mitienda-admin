@@ -1224,7 +1224,7 @@ const marketingMenuItems = [
   { label: 'Combos', icon: 'pi pi-box', to: '/marketing/combos' },
   { label: 'Barras de Anuncios', icon: 'pi pi-megaphone', to: '/marketing/announcement-bars' },
   { label: 'Referidos', icon: 'pi pi-users', to: '/marketing/referrals' },
-  { label: 'Fidelización', icon: 'pi pi-star', to: '/marketing/loyalty' }
+  { label: 'Fidelización', icon: 'pi pi-gift', to: '/marketing/loyalty' }
 ]
 
 // Items del grupo Facturación
