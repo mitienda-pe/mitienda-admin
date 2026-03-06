@@ -567,6 +567,11 @@ const routes: RouteRecordRaw[] = [
         path: 'combos/:id/edit',
         name: 'marketing-combo-edit',
         component: () => import('@/views/marketing/combos/ComboFormView.vue')
+      },
+      {
+        path: 'loyalty',
+        name: 'marketing-loyalty',
+        component: () => import('@/views/marketing/loyalty/LoyaltyView.vue')
       }
     ]
   },

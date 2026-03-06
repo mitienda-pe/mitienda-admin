@@ -1223,7 +1223,8 @@ const marketingMenuItems = [
   { label: 'Upsales', icon: 'pi pi-arrow-up', to: '/marketing/upsales' },
   { label: 'Combos', icon: 'pi pi-box', to: '/marketing/combos' },
   { label: 'Barras de Anuncios', icon: 'pi pi-megaphone', to: '/marketing/announcement-bars' },
-  { label: 'Referidos', icon: 'pi pi-users', to: '/marketing/referrals' }
+  { label: 'Referidos', icon: 'pi pi-users', to: '/marketing/referrals' },
+  { label: 'Fidelización', icon: 'pi pi-star', to: '/marketing/loyalty' }
 ]
 
 // Items del grupo Facturación
