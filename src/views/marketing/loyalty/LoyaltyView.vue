@@ -131,60 +131,22 @@
             </div>
           </div>
 
-          <!-- Panel informativo contable (colapsable) -->
-          <div class="bg-white rounded-lg shadow overflow-hidden">
-            <button
-              @click="showAccountingInfo = !showAccountingInfo"
-              class="w-full flex items-center justify-between p-6 text-left hover:bg-secondary-50 transition-colors"
-            >
+          <!-- Botón guía contable -->
+          <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <i class="pi pi-chart-bar text-primary text-xl"></i>
                 <div>
-                  <h3 class="text-lg font-semibold text-secondary">Modelo contable recomendado</h3>
-                  <p class="text-sm text-secondary-500">Información para tu contador sobre cómo registrar el programa</p>
+                  <h3 class="text-lg font-semibold text-secondary">Contabilidad y facturación</h3>
+                  <p class="text-sm text-secondary-500">Guía completa para tu contador sobre cómo registrar el programa</p>
                 </div>
               </div>
-              <i :class="showAccountingInfo ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="text-secondary-400"></i>
-            </button>
-            <div v-show="showAccountingInfo" class="px-6 pb-6 space-y-4 border-t border-secondary-100 pt-4">
-              <p class="text-sm text-secondary-600">
-                MiTienda recomienda el modelo de <strong>Pasivo Diferido (NIIF 15)</strong>, el estándar para programas de lealtad.
-              </p>
-
-              <div v-if="form.type === 'points'" class="space-y-3">
-                <div class="bg-secondary-50 rounded p-3">
-                  <p class="text-sm font-medium text-secondary-700 mb-2">Cuando un cliente gana puntos (venta S/ 50.00):</p>
-                  <div class="text-xs font-mono text-secondary-600 space-y-1">
-                    <p>Dr. Caja&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;50.00</p>
-                    <p>&nbsp;&nbsp;&nbsp;Cr. Ventas&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ (50 / 1.18).toFixed(2) }}</p>
-                    <p>&nbsp;&nbsp;&nbsp;Cr. IGV por pagar&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ (50 - 50 / 1.18).toFixed(2) }}</p>
-                    <p>&nbsp;&nbsp;&nbsp;Cr. Pasivo — Puntos&nbsp;&nbsp;&nbsp;&nbsp;{{ pointsLiabilityExample }}</p>
-                  </div>
-                </div>
-                <div class="bg-secondary-50 rounded p-3">
-                  <p class="text-sm font-medium text-secondary-700 mb-2">Cuando un cliente paga con puntos:</p>
-                  <div class="text-xs font-mono text-secondary-600 space-y-1">
-                    <p>Dr. Pasivo — Puntos&nbsp;&nbsp;&nbsp;&nbsp;50.00</p>
-                    <p>&nbsp;&nbsp;&nbsp;Cr. Ventas&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ (50 / 1.18).toFixed(2) }}</p>
-                    <p>&nbsp;&nbsp;&nbsp;Cr. IGV por pagar&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ (50 - 50 / 1.18).toFixed(2) }}</p>
-                  </div>
-                </div>
-                <Message severity="warn" :closable="false" class="text-xs">
-                  El IGV siempre aplica aunque el cliente pague con puntos. SUNAT grava el valor del bien, no el medio de pago.
-                </Message>
-              </div>
-
-              <div v-if="form.type === 'stamps'" class="bg-secondary-50 rounded p-3">
-                <p class="text-sm text-secondary-600">
-                  El cupón emitido al completar la tarjeta es un <strong>descuento comercial condicional</strong>.
-                  No se registra contablemente al emitir; se reconoce como gasto de promoción cuando el cliente lo usa.
-                </p>
-              </div>
-
-              <p class="text-xs text-secondary-400">
-                Cuenta sugerida: <strong>2311 — Puntos de fidelización por canjear</strong>.
-                Consulta con tu contador para ajustar tu plan de cuentas.
-              </p>
+              <Button
+                label="Ver guía"
+                icon="pi pi-book"
+                outlined
+                @click="showAccountingDrawer = true"
+              />
             </div>
           </div>
 
@@ -446,6 +408,196 @@
         />
       </template>
     </Dialog>
+
+    <!-- Drawer: Guía contable y facturación -->
+    <Sidebar v-model:visible="showAccountingDrawer" position="right" class="w-full md:w-[560px]">
+      <template #header>
+        <div class="flex items-center gap-3">
+          <i class="pi pi-book text-primary text-xl"></i>
+          <span class="text-lg font-semibold text-secondary">Contabilidad y Facturación</span>
+        </div>
+      </template>
+
+      <div class="space-y-6 text-sm text-secondary-700 leading-relaxed">
+        <!-- Intro -->
+        <Message severity="warn" :closable="false">
+          MiTienda provee la infraestructura y los datos del programa. El registro contable y la responsabilidad tributaria son de tu empresa. Comparte esta guía con tu contador antes de activar el módulo.
+        </Message>
+
+        <!-- Modelo recomendado -->
+        <section>
+          <h3 class="text-base font-semibold text-secondary mb-2">Modelo recomendado: Pasivo Diferido (NIIF 15)</h3>
+          <p class="mb-3">
+            Cuando tu tienda acumula y canjea puntos, creas una <strong>obligación económica con tus clientes</strong>.
+            El modelo de Pasivo Diferido es el más preciso y auditable.
+          </p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs border border-secondary-200 rounded">
+              <thead class="bg-secondary-50">
+                <tr>
+                  <th class="text-left p-2 border-b border-secondary-200">Modelo</th>
+                  <th class="text-left p-2 border-b border-secondary-200">Descripción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="p-2 border-b border-secondary-100">Descuento directo</td>
+                  <td class="p-2 border-b border-secondary-100 text-secondary-500">Distorsiona el revenue. Puede alertar a SUNAT.</td>
+                </tr>
+                <tr>
+                  <td class="p-2 border-b border-secondary-100">Gasto de marketing</td>
+                  <td class="p-2 border-b border-secondary-100 text-secondary-500">Sobreestima gastos. No refleja breakage.</td>
+                </tr>
+                <tr class="bg-primary-50">
+                  <td class="p-2 font-medium">Pasivo diferido ✓</td>
+                  <td class="p-2">Porción del ingreso se difiere al emitir y se reconoce al canjear.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Puntos -->
+        <section v-if="form.type === 'points' || !store.program">
+          <h3 class="text-base font-semibold text-secondary mb-3">Modalidad Puntos — Ejemplos</h3>
+
+          <!-- Caso 1 -->
+          <div class="bg-secondary-50 rounded-lg p-4 mb-3">
+            <p class="font-medium text-secondary mb-2">Caso 1: Cliente compra S/ 50.00 y gana {{ Math.floor(50 * (form.points_per_sol || 5)) }} puntos</p>
+            <div class="font-mono text-xs space-y-1 text-secondary-600">
+              <p>Dr. Caja / Yape ............... 50.00</p>
+              <p>&nbsp;&nbsp;Cr. Ventas (4100) ........... {{ (50 / 1.18).toFixed(2) }}</p>
+              <p>&nbsp;&nbsp;Cr. IGV por pagar (4011) .... {{ (50 - 50 / 1.18).toFixed(2) }}</p>
+              <p>&nbsp;&nbsp;Cr. Pasivo 2311 ............. {{ pointsLiabilityExample }}</p>
+              <p>Dr. Ventas (4100) ajuste ..... {{ pointsLiabilityExample }}</p>
+            </div>
+            <p class="text-xs text-secondary-500 mt-2">Reclasificación de Ventas a Pasivo 2311. El IGV no cambia.</p>
+          </div>
+
+          <!-- Caso 2 -->
+          <div class="bg-secondary-50 rounded-lg p-4 mb-3">
+            <p class="font-medium text-secondary mb-2">Caso 2: Pago total con puntos ({{ Math.floor(50 * (form.points_per_sol || 5)) }} pts = S/ 50.00)</p>
+            <div class="font-mono text-xs space-y-1 text-secondary-600">
+              <p>Dr. Pasivo 2311 .............. 50.00</p>
+              <p>&nbsp;&nbsp;Cr. Ventas (4100) ........... {{ (50 / 1.18).toFixed(2) }}</p>
+              <p>&nbsp;&nbsp;Cr. IGV por pagar (4011) .... {{ (50 - 50 / 1.18).toFixed(2) }}</p>
+            </div>
+            <Message severity="warn" :closable="false" class="mt-2 text-xs">
+              El IGV aplica aunque el cliente pague con puntos. SUNAT grava el valor del bien, no el medio de pago.
+            </Message>
+          </div>
+
+          <!-- Caso 3 -->
+          <div class="bg-secondary-50 rounded-lg p-4 mb-3">
+            <p class="font-medium text-secondary mb-2">Caso 3: Pago mixto — 100 pts (S/ 20.00) + S/ 30.00 Yape</p>
+            <div class="font-mono text-xs space-y-1 text-secondary-600">
+              <p>Dr. Caja / Yape .............. 30.00</p>
+              <p>Dr. Pasivo 2311 .............. 20.00</p>
+              <p>&nbsp;&nbsp;Cr. Ventas (4100) ........... {{ (50 / 1.18).toFixed(2) }}</p>
+              <p>&nbsp;&nbsp;Cr. IGV por pagar (4011) .... {{ (50 - 50 / 1.18).toFixed(2) }}</p>
+            </div>
+          </div>
+
+          <!-- Caso 4 -->
+          <div class="bg-secondary-50 rounded-lg p-4">
+            <p class="font-medium text-secondary mb-2">Caso 4: Reembolso de pedido pagado con puntos</p>
+            <div class="font-mono text-xs space-y-1 text-secondary-600">
+              <p>Dr. Ventas (4100) ............ {{ (50 / 1.18).toFixed(2) }}</p>
+              <p>Dr. IGV por pagar (4011) ..... {{ (50 - 50 / 1.18).toFixed(2) }}</p>
+              <p>&nbsp;&nbsp;Cr. Pasivo 2311 ............. 50.00</p>
+            </div>
+            <p class="text-xs text-secondary-500 mt-2">Los puntos regresan al wallet del cliente automáticamente.</p>
+          </div>
+        </section>
+
+        <!-- Sellos -->
+        <section v-if="form.type === 'stamps' || !store.program">
+          <h3 class="text-base font-semibold text-secondary mb-3">Modalidad Sellos — Ejemplos</h3>
+
+          <div class="bg-secondary-50 rounded-lg p-4 mb-3">
+            <p class="font-medium text-secondary mb-2">Al emitir el cupón (tarjeta completada)</p>
+            <p class="text-secondary-600">No hay asiento contable. Se registra como pasivo contingente en notas a los EEFF.</p>
+          </div>
+
+          <div class="bg-secondary-50 rounded-lg p-4">
+            <p class="font-medium text-secondary mb-2">Al usar el cupón en compra de S/ 40.00 (descuento S/ 15.00)</p>
+            <div class="font-mono text-xs space-y-1 text-secondary-600">
+              <p>Dr. Caja / Yape .............. 25.00</p>
+              <p>Dr. Gasto promo (6310) ....... 12.71</p>
+              <p>Dr. IGV crédito (1611) ....... 2.29</p>
+              <p>&nbsp;&nbsp;Cr. Ventas (4100) ........... 33.90</p>
+              <p>&nbsp;&nbsp;Cr. IGV por pagar (4011) .... 6.10</p>
+            </div>
+            <p class="text-xs text-secondary-500 mt-2">El descuento es deducible como gasto de marketing con sustento en el programa documentado.</p>
+          </div>
+        </section>
+
+        <!-- Cuenta 2311 -->
+        <section>
+          <h3 class="text-base font-semibold text-secondary mb-2">Cuenta 2311 — Puntos por canjear</h3>
+          <div class="bg-secondary-50 rounded-lg p-4 font-mono text-xs text-secondary-600">
+            <p>2000 &nbsp;Pasivos corrientes</p>
+            <p>&nbsp;&nbsp;2300 &nbsp;Ingresos diferidos</p>
+            <p>&nbsp;&nbsp;&nbsp;&nbsp;<strong>2311 &nbsp;Puntos de fidelización por canjear</strong></p>
+          </div>
+          <p class="mt-2 text-xs text-secondary-500">
+            El backoffice muestra en el dashboard el saldo estimado de esta cuenta:
+            Total puntos activos × valor por punto. Compara mensualmente con tu sistema contable.
+          </p>
+        </section>
+
+        <!-- Breakage -->
+        <section>
+          <h3 class="text-base font-semibold text-secondary mb-2">Puntos que nunca se canjean (Breakage)</h3>
+          <p class="mb-2">Entre el 20% y 40% de los puntos emitidos nunca se canjean. Cuando sea remoto que el cliente los use (inactivos &gt; 12 meses), puedes liberar el pasivo:</p>
+          <div class="bg-secondary-50 rounded-lg p-4 font-mono text-xs text-secondary-600">
+            <p>Dr. Pasivo 2311 .............. X.XX</p>
+            <p>&nbsp;&nbsp;Cr. Ingreso vencimiento (7410) X.XX</p>
+          </div>
+          <p class="mt-2 text-xs text-secondary-500">
+            Revisa el saldo de la cuenta 2311 con tu contador al menos cada 6 meses.
+          </p>
+        </section>
+
+        <!-- NetSuite -->
+        <section>
+          <h3 class="text-base font-semibold text-secondary mb-2">Integración con ERP (NetSuite)</h3>
+          <p class="mb-2">Si tu tienda tiene integración con NetSuite activa, MiTienda envía automáticamente:</p>
+          <ul class="list-disc pl-5 space-y-1 text-xs">
+            <li><strong>Al emitir puntos:</strong> Journal Entry — Dr. Ventas 4100 / Cr. Pasivo 2311</li>
+            <li><strong>Al canjear puntos:</strong> Sales Order con descuento + Journal Entry — Dr. Pasivo 2311 / Cr. Ventas + IGV</li>
+          </ul>
+          <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-3">
+            <p class="text-xs text-amber-800">
+              <strong>Requisito:</strong> Crear ítem "Loyalty Pay" tipo Discount mapeado a cuenta 2311, y crear la cuenta 2311 en NetSuite antes de activar.
+            </p>
+          </div>
+        </section>
+
+        <!-- FAQ -->
+        <section>
+          <h3 class="text-base font-semibold text-secondary mb-3">Preguntas frecuentes</h3>
+          <div class="space-y-3">
+            <div>
+              <p class="font-medium text-secondary">¿Debo emitir factura cuando un cliente paga 100% con puntos?</p>
+              <p class="text-xs text-secondary-500 mt-1">Sí. La obligación nace con la transferencia del bien, independientemente del medio de pago.</p>
+            </div>
+            <div>
+              <p class="font-medium text-secondary">¿El IGV aplica en ventas con puntos?</p>
+              <p class="text-xs text-secondary-500 mt-1">Sí. El IGV grava el valor de la operación, no el flujo de caja.</p>
+            </div>
+            <div>
+              <p class="font-medium text-secondary">¿Puedo deducir el costo del programa como gasto?</p>
+              <p class="text-xs text-secondary-500 mt-1">Puntos: se reconoce al canjear. Sellos: gasto de promoción deducible. Necesitas la documentación del programa como sustento.</p>
+            </div>
+            <div>
+              <p class="font-medium text-secondary">¿Qué pasa si desactivo el programa con puntos activos?</p>
+              <p class="text-xs text-secondary-500 mt-1">Los puntos emitidos siguen siendo un pasivo. MiTienda mantiene el ledger histórico. Decide con tu contador si honrar, vencer o liberar como breakage.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </Sidebar>
   </div>
 </template>
 
@@ -466,6 +618,7 @@ import TabPanel from 'primevue/tabpanel'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Dialog from 'primevue/dialog'
+import Sidebar from 'primevue/sidebar'
 import Message from 'primevue/message'
 import Tag from 'primevue/tag'
 import Paginator from 'primevue/paginator'
@@ -477,7 +630,7 @@ const { formatDate, formatNumber } = useFormatters()
 
 // State
 const activeTab = ref(0)
-const showAccountingInfo = ref(false)
+const showAccountingDrawer = ref(false)
 const customerSearch = ref('')
 const showCustomerDetail = ref(false)
 const showCorrectionDialog = ref(false)
