@@ -14,9 +14,12 @@ export const MODULE_ROUTE_MAP: Record<string, string[]> = {
   // Reports
   mod_reportes_ventas: ['/reports'],
 
-  // Catalog
-  mod_productos: ['/products'],
+  // Catalog (specific routes MUST come before generic /products)
   mod_carga_productos_lote: ['/products/bulk-import'],
+  mod_precios_producto: ['/products/prices'],
+  mod_stock_producto: ['/products/stock'],
+  mod_orden_producto: ['/products/order'],
+  mod_productos: ['/products'],
   mod_categorias: ['/catalog/categories'],
   mod_marcas: ['/catalog/brands'],
   mod_gammas: ['/catalog/gammas'],
