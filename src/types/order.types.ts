@@ -64,12 +64,14 @@ export interface OrderPayment {
 export interface BillingDocument {
   id: number
   status: number // 0 = no emitido, 1 = emitido
+  source?: 'nubefact' | 'netsuite' | null // Fuente de emisión
   billing_date: string | null
   serie: string
   correlative: string
   document_type?: string // factura, boleta
   pdf_url?: string
   xml_url?: string
+  netsuite_invoice_id?: string | null // ID interno del invoice en NetSuite (solo si source = netsuite)
 }
 
 export interface ErpSync {

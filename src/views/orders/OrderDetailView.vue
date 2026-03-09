@@ -1490,12 +1490,23 @@ const handleDebugPayments = async () => {
                     <p class="text-sm text-gray-500">Número de comprobante</p>
                     <p class="font-semibold text-gray-900 font-mono">{{ billingDocumentNumber }}</p>
                   </div>
+                  <div v-if="order.billing_document?.source" class="flex items-center gap-1.5">
+                    <p class="text-sm text-gray-500">Emitido por</p>
+                    <span
+                      class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                      :class="order.billing_document.source === 'netsuite'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-green-100 text-green-800'"
+                    >
+                      {{ order.billing_document.source === 'netsuite' ? 'NetSuite' : 'Nubefact' }}
+                    </span>
+                  </div>
                   <div v-if="order.billing_document?.billing_date">
                     <p class="text-sm text-gray-500">Fecha de emisión</p>
                     <p class="text-gray-900">{{ formatDate(order.billing_document.billing_date) }}</p>
                   </div>
 
-                  <!-- Download Buttons -->
+                  <!-- Download Buttons (solo disponibles para Nubefact) -->
                   <div class="flex flex-col gap-2 pt-2">
                     <Button
                       v-if="order.billing_document?.pdf_url"
@@ -1517,8 +1528,14 @@ const handleDebugPayments = async () => {
                       class="w-full"
                       @click="downloadDocument(order.billing_document.xml_url!, 'comprobante.xml')"
                     />
+                    <p
+                      v-if="order.billing_document?.source === 'netsuite' && !order.billing_document?.pdf_url"
+                      class="text-xs text-gray-400 italic"
+                    >
+                      El PDF y XML están disponibles en NetSuite
+                    </p>
                     <Button
-                      v-if="!order.billing_document?.pdf_url && !order.billing_document?.xml_url"
+                      v-if="order.billing_document?.source !== 'netsuite' && !order.billing_document?.pdf_url && !order.billing_document?.xml_url"
                       label="Ver Comprobante"
                       icon="pi pi-eye"
                       severity="secondary"

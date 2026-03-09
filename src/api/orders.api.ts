@@ -292,11 +292,13 @@ export const ordersApi = {
         billing_document: billingInfo['e-billing'] ? {
           id: billingInfo['e-billing'].id || 0,
           status: billingInfo['e-billing'].status || 0,
+          source: billingInfo['e-billing'].source || null,
           billing_date: billingInfo['e-billing'].billing_date || null,
           serie: billingInfo['e-billing'].serie || '',
           correlative: billingInfo['e-billing'].correlative || '',
           pdf_url: billingInfo['e-billing'].url_pdf || undefined,
-          xml_url: billingInfo['e-billing'].url_xml || undefined
+          xml_url: billingInfo['e-billing'].url_xml || undefined,
+          netsuite_invoice_id: billingInfo['e-billing'].netsuite_invoice_id || undefined
         } : undefined
       }
 
