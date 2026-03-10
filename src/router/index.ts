@@ -967,4 +967,15 @@ router.beforeEach(async (to, _from, next) => {
   next()
 })
 
+// Clean up orphaned PrimeVue overlay masks on navigation
+// This prevents the sidebar from becoming unclickable after closing a Dialog/Sidebar
+router.afterEach(() => {
+  document.querySelectorAll('.p-dialog-mask, .p-sidebar-mask').forEach((mask) => {
+    mask.remove()
+  })
+  // Also restore body scroll in case a modal left it locked
+  document.body.classList.remove('p-overflow-hidden')
+  document.body.style.removeProperty('overflow')
+})
+
 export default router
