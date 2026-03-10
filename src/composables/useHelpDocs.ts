@@ -39,6 +39,9 @@ export function useHelpDocs() {
 
       let md = await res.text()
 
+      // Strip YAML frontmatter (--- ... ---)
+      md = md.replace(/^---\s*\n[\s\S]*?\n---\s*\n/, '')
+
       // Rewrite relative image paths to absolute CDN URLs
       md = md.replace(
         /!\[([^\]]*)\]\((?!https?:\/\/)([^)]+)\)/g,
