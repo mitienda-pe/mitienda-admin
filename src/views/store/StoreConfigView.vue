@@ -59,6 +59,11 @@ const isScheduleEnabled = computed({
   }
 })
 
+const isAgeVerificationEnabled = computed({
+  get: () => store.draftConfig.tiendageneral_sw_verificacion_edad === 1,
+  set: (val: boolean) => store.updateField('tiendageneral_sw_verificacion_edad', val ? 1 : 0)
+})
+
 const STORE_TYPE_OPTIONS = [
   {
     value: 0,
@@ -360,6 +365,52 @@ onMounted(() => {
               :schedule="schedule"
               @update:schedule="schedule = $event"
             />
+          </div>
+
+          <hr class="border-gray-100" />
+
+          <!-- Verificación de edad -->
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <label class="text-sm font-medium text-secondary-700">Verificación de edad</label>
+                <p class="text-xs text-gray-400 mt-0.5">
+                  Solicita confirmación de mayoría de edad antes de acceder a la tienda
+                </p>
+              </div>
+              <InputSwitch v-model="isAgeVerificationEnabled" />
+            </div>
+            <div v-if="isAgeVerificationEnabled" class="space-y-4 mt-3 pl-1">
+              <div>
+                <label class="block text-sm font-medium text-secondary-700 mb-2">
+                  Edad mínima
+                </label>
+                <InputNumber
+                  :modelValue="store.draftConfig.tiendageneral_edad_minima"
+                  :min="1"
+                  :max="99"
+                  suffix=" años"
+                  class="w-full md:w-48"
+                  @update:modelValue="store.updateField('tiendageneral_edad_minima', $event ?? 18)"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-secondary-700 mb-2">
+                  Mensaje personalizado
+                </label>
+                <p class="text-xs text-gray-400 mb-2">
+                  Se muestra al visitante antes de ingresar a la tienda. Dejar vacío para usar el mensaje predeterminado.
+                </p>
+                <textarea
+                  :value="store.draftConfig.tiendageneral_texto_verificacion_edad ?? ''"
+                  rows="2"
+                  maxlength="500"
+                  class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary"
+                  placeholder="Debes ser mayor de edad para acceder a esta tienda."
+                  @input="store.updateField('tiendageneral_texto_verificacion_edad', ($event.target as HTMLTextAreaElement).value || null)"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>

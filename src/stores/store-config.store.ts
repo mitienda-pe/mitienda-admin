@@ -21,7 +21,10 @@ const DEFAULT_CONFIG: StoreConfig = {
   tiendageneral_texto_desactivado: null,
   tiendageneral_sw_horarioActivo: 0,
   tiendageneral_json_horarioActivo: null,
-  sw_logincliente: 0
+  sw_logincliente: 0,
+  tiendageneral_sw_verificacion_edad: 0,
+  tiendageneral_edad_minima: 18,
+  tiendageneral_texto_verificacion_edad: null
 }
 
 export const useStoreConfigStore = defineStore('store-config', () => {
@@ -76,7 +79,10 @@ export const useStoreConfigStore = defineStore('store-config', () => {
         sw_tienda_visible: draftConfig.value.sw_tienda_visible,
         tiendageneral_sw_horarioActivo: draftConfig.value.tiendageneral_sw_horarioActivo,
         tiendageneral_json_horarioActivo: draftConfig.value.tiendageneral_json_horarioActivo,
-        sw_logincliente: draftConfig.value.sw_logincliente
+        sw_logincliente: draftConfig.value.sw_logincliente,
+        tiendageneral_sw_verificacion_edad: draftConfig.value.tiendageneral_sw_verificacion_edad,
+        tiendageneral_edad_minima: draftConfig.value.tiendageneral_edad_minima,
+        tiendageneral_texto_verificacion_edad: draftConfig.value.tiendageneral_texto_verificacion_edad
       }
       const response = await storeApi.updateConfig(update)
       if (response.success && response.data) {

@@ -101,6 +101,9 @@ export interface StoreConfig {
   tiendageneral_sw_horarioActivo: number
   tiendageneral_json_horarioActivo: string | null
   sw_logincliente: number
+  tiendageneral_sw_verificacion_edad: number
+  tiendageneral_edad_minima: number
+  tiendageneral_texto_verificacion_edad: string | null
 }
 
 export interface StoreConfigUpdate {
@@ -113,6 +116,9 @@ export interface StoreConfigUpdate {
   tiendageneral_sw_horarioActivo?: number
   tiendageneral_json_horarioActivo?: string | null
   sw_logincliente?: number
+  tiendageneral_sw_verificacion_edad?: number
+  tiendageneral_edad_minima?: number
+  tiendageneral_texto_verificacion_edad?: string | null
 }
 
 export interface Currency {
