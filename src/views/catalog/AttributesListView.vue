@@ -138,83 +138,25 @@
           </div>
         </div>
 
-        <div>
+        <!-- Color type: skip options here, add them in detail view -->
+        <div v-if="createForm.type === 2" class="bg-blue-50 rounded-lg p-3">
+          <p class="text-sm text-blue-700">
+            <i class="pi pi-info-circle mr-1"></i>
+            Los colores se agregan con el color picker en la vista de detalle del atributo.
+          </p>
+        </div>
+
+        <!-- Non-color options input -->
+        <div v-else>
           <label class="block text-sm font-medium text-secondary-700 mb-1">
             Opciones iniciales <span class="text-secondary-400">(opcional)</span>
           </label>
-
-          <!-- Color options input -->
-          <div v-if="createForm.type === 2" class="space-y-2">
-            <div class="flex gap-2 items-end">
-              <div class="flex-1">
-                <small class="text-secondary-500">Nombre</small>
-                <InputText
-                  v-model="colorOptionName"
-                  placeholder="Ej: Rojo"
-                  class="w-full"
-                  @keyup.enter="addColorOption"
-                />
-              </div>
-              <div class="w-32">
-                <small class="text-secondary-500">Color</small>
-                <div class="flex items-center gap-2">
-                  <div
-                    class="w-8 h-8 rounded border border-gray-300 shrink-0 cursor-pointer relative overflow-hidden"
-                    :style="{ backgroundColor: colorOptionHex }"
-                  >
-                    <ColorPicker
-                      :modelValue="colorOptionHex.replace('#', '')"
-                      @update:modelValue="colorOptionHex = '#' + ($event as string)"
-                      class="absolute inset-0 opacity-0 w-full h-full"
-                    />
-                  </div>
-                  <InputText
-                    v-model="colorOptionHex"
-                    placeholder="#FF0000"
-                    class="w-full p-inputtext-sm font-mono"
-                    maxlength="7"
-                  />
-                </div>
-              </div>
-              <Button
-                icon="pi pi-plus"
-                :disabled="!colorOptionName.trim() || !isValidHex(colorOptionHex)"
-                @click="addColorOption"
-                size="small"
-              />
-            </div>
-            <!-- Color options list -->
-            <div v-if="createForm.options.length > 0" class="flex flex-wrap gap-2 mt-2">
-              <div
-                v-for="(opt, idx) in createForm.options"
-                :key="idx"
-                class="flex items-center gap-2 bg-gray-100 rounded-full px-3 py-1"
-              >
-                <div
-                  class="w-4 h-4 rounded-full border border-gray-300"
-                  :style="{ backgroundColor: extractHex(opt) }"
-                ></div>
-                <span class="text-sm">{{ extractName(opt) }}</span>
-                <button
-                  class="text-gray-400 hover:text-red-500 ml-1"
-                  @click="createForm.options.splice(idx, 1)"
-                >
-                  <i class="pi pi-times text-xs"></i>
-                </button>
-              </div>
-            </div>
-            <small class="text-secondary-400">Puedes agregar más opciones después</small>
-          </div>
-
-          <!-- Non-color options input -->
-          <div v-else>
-            <Chips
-              v-model="createForm.options"
-              placeholder="Escribe y presiona Enter"
-              class="w-full"
-            />
-            <small class="text-secondary-400">Puedes agregar más opciones después</small>
-          </div>
+          <Chips
+            v-model="createForm.options"
+            placeholder="Escribe y presiona Enter"
+            class="w-full"
+          />
+          <small class="text-secondary-400">Puedes agregar más opciones después</small>
         </div>
       </div>
 
@@ -281,7 +223,6 @@ import Dropdown from 'primevue/dropdown'
 import InputText from 'primevue/inputtext'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
-import ColorPicker from 'primevue/colorpicker'
 import RadioButton from 'primevue/radiobutton'
 import Tag from 'primevue/tag'
 import { useToast } from 'primevue/usetoast'
@@ -303,8 +244,6 @@ const createForm = ref({
 })
 
 const createErrors = ref<Record<string, string>>({})
-const colorOptionName = ref('')
-const colorOptionHex = ref('#000000')
 
 const typeOptions = [
   { label: 'Texto / Combo', value: 1 },
@@ -312,30 +251,6 @@ const typeOptions = [
   { label: 'Botón', value: 3 },
   { label: 'Imagen', value: 4 },
 ]
-
-// Color helpers
-function isValidHex(hex: string): boolean {
-  return /^#[0-9A-Fa-f]{6}$/.test(hex)
-}
-
-function extractHex(option: string): string {
-  const parts = option.split('|')
-  return parts.length > 1 ? parts[1] : option
-}
-
-function extractName(option: string): string {
-  const parts = option.split('|')
-  return parts[0]
-}
-
-function addColorOption() {
-  const name = colorOptionName.value.trim()
-  const hex = colorOptionHex.value.trim().toUpperCase()
-  if (!name || !isValidHex(hex)) return
-  createForm.value.options.push(`${name}|${hex}`)
-  colorOptionName.value = ''
-  colorOptionHex.value = '#000000'
-}
 
 // Methods
 function getTypeLabel(type: AttributeType): string {
@@ -380,8 +295,6 @@ async function handleCreate() {
     })
     showCreateDialog.value = false
     createForm.value = { name: '', type: 1, style: 1, options: [] }
-    colorOptionName.value = ''
-    colorOptionHex.value = '#000000'
     router.push(`/catalog/attributes/${id}`)
   } else {
     toast.add({
