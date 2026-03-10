@@ -2,34 +2,84 @@
 import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useIntegrationProvidersStore } from '@/stores/integration-providers.store'
+import { usePaymentGatewaysStore } from '@/stores/payment-gateways.store'
+import { useCourierProvidersStore } from '@/stores/courier-providers.store'
 import { AppBadge, AppEmptyState, AppErrorState } from '@/components/ui'
 import type { IntegrationProvider } from '@/types/integration-provider.types'
 
 const store = useIntegrationProvidersStore()
+const paymentStore = usePaymentGatewaysStore()
+const courierStore = useCourierProvidersStore()
 const router = useRouter()
 
 onMounted(() => {
   store.fetchProviders()
+  paymentStore.fetchGateways()
+  courierStore.fetchProviders()
 })
 
 // Category definitions with display order
 const categoryConfig: Record<string, { label: string; icon: string; iconColor: string; bgColor: string }> = {
-  chat:               { label: 'Chat en vivo',                icon: 'pi pi-comments',   iconColor: 'text-blue-600',   bgColor: 'bg-blue-50' },
-  analytics:          { label: 'Análisis y comportamiento',   icon: 'pi pi-chart-bar',  iconColor: 'text-purple-600', bgColor: 'bg-purple-50' },
-  push_notifications: { label: 'Notificaciones push',         icon: 'pi pi-bell',       iconColor: 'text-orange-600', bgColor: 'bg-orange-50' },
-  lead_capture:       { label: 'Captura de leads y popups',   icon: 'pi pi-megaphone',  iconColor: 'text-pink-600',   bgColor: 'bg-pink-50' },
-  ads:                { label: 'Publicidad y Anuncios',        icon: 'pi pi-megaphone',  iconColor: 'text-blue-600',   bgColor: 'bg-blue-50' },
-  email_marketing:    { label: 'Email Marketing',              icon: 'pi pi-envelope',   iconColor: 'text-primary',    bgColor: 'bg-teal-50' },
-  fulfillment:        { label: 'Fulfillment y Logística 3PL',  icon: 'pi pi-box',        iconColor: 'text-indigo-600', bgColor: 'bg-indigo-50' },
+  payments:           { label: 'Pasarelas de Pago',             icon: 'pi pi-credit-card', iconColor: 'text-green-600',  bgColor: 'bg-green-50' },
+  shipping:           { label: 'Servicios de Reparto',          icon: 'pi pi-truck',       iconColor: 'text-amber-600',  bgColor: 'bg-amber-50' },
+  ads:                { label: 'Publicidad y Anuncios',         icon: 'pi pi-megaphone',   iconColor: 'text-blue-600',   bgColor: 'bg-blue-50' },
+  analytics:          { label: 'Análisis y comportamiento',     icon: 'pi pi-chart-bar',   iconColor: 'text-purple-600', bgColor: 'bg-purple-50' },
+  email_marketing:    { label: 'Email Marketing',               icon: 'pi pi-envelope',    iconColor: 'text-primary',    bgColor: 'bg-teal-50' },
+  fulfillment:        { label: 'Fulfillment y Logística 3PL',   icon: 'pi pi-box',         iconColor: 'text-indigo-600', bgColor: 'bg-indigo-50' },
+  lead_capture:       { label: 'Captura de leads y popups',     icon: 'pi pi-megaphone',   iconColor: 'text-pink-600',   bgColor: 'bg-pink-50' },
+  chat:               { label: 'Chat en vivo',                  icon: 'pi pi-comments',    iconColor: 'text-blue-600',   bgColor: 'bg-blue-50' },
+  push_notifications: { label: 'Notificaciones push',           icon: 'pi pi-bell',        iconColor: 'text-orange-600', bgColor: 'bg-orange-50' },
 }
 
-const categoryOrder = ['ads', 'analytics', 'email_marketing', 'fulfillment', 'lead_capture', 'chat', 'push_notifications']
+const categoryOrder = ['payments', 'shipping', 'ads', 'analytics', 'email_marketing', 'fulfillment', 'lead_capture', 'chat', 'push_notifications']
+
+// Map payment gateways to IntegrationProvider shape
+const paymentProviders = computed<IntegrationProvider[]>(() =>
+  paymentStore.gateways.map(g => ({
+    code: `pg_${g.code}`,
+    name: g.name,
+    description: g.description,
+    category: 'payments',
+    supported_events: [],
+    config_fields: [],
+    configured: g.configured,
+    enabled: g.enabled,
+    frontend_only: false,
+    config_url: `/payment-gateways/${g.code}`,
+  }))
+)
+
+// Map courier providers to IntegrationProvider shape
+const courierProviders = computed<IntegrationProvider[]>(() =>
+  courierStore.providers.map(c => ({
+    code: `cr_${c.code}`,
+    name: c.name,
+    description: c.description,
+    category: 'shipping',
+    supported_events: [],
+    config_fields: [],
+    configured: c.configured,
+    enabled: c.enabled,
+    frontend_only: false,
+    config_url: `/shipping/couriers/${c.code}`,
+  }))
+)
 
 const categories = computed(() => {
   const groups: Record<string, IntegrationProvider[]> = {}
 
+  // Inject payment gateways
+  if (paymentProviders.value.length) {
+    groups['payments'] = paymentProviders.value
+  }
+
+  // Inject courier providers
+  if (courierProviders.value.length) {
+    groups['shipping'] = courierProviders.value
+  }
+
+  // Integration providers (from API)
   for (const p of store.providers) {
-    // Infer category for legacy providers that don't have one
     const cat = p.category || (p.code === 'facebook_capi' ? 'ads' : 'email_marketing')
     if (!groups[cat]) groups[cat] = []
     groups[cat].push(p)
@@ -43,6 +93,9 @@ const categories = computed(() => {
       providers: groups[key],
     }))
 })
+
+const isLoading = computed(() => store.isLoading && !paymentStore.gateways.length && !courierStore.providers.length)
+const hasData = computed(() => store.providers.length || paymentStore.gateways.length || courierStore.providers.length)
 
 const providerIcons: Record<string, string> = {
   // Ads
@@ -79,6 +132,25 @@ const providerIcons: Record<string, string> = {
   crazyegg: 'pi pi-chart-bar',
   // Fulfillment
   mintsoft: 'pi pi-box',
+  // Payment Gateways
+  pg_izipay: 'pi pi-credit-card',
+  pg_niubiz: 'pi pi-credit-card',
+  pg_culqi: 'pi pi-credit-card',
+  pg_mercadopago: 'pi pi-credit-card',
+  pg_openpay: 'pi pi-credit-card',
+  pg_powerpay: 'pi pi-credit-card',
+  pg_paypal: 'pi pi-credit-card',
+  'pg_qr-wallets': 'pi pi-qrcode',
+  'pg_bank-transfer': 'pi pi-building',
+  'pg_cash-on-delivery': 'pi pi-wallet',
+  // Courier Providers
+  cr_urbaner: 'pi pi-truck',
+  'cr_99minutos': 'pi pi-truck',
+  cr_chazki: 'pi pi-truck',
+  cr_nirex: 'pi pi-truck',
+  cr_urbano: 'pi pi-truck',
+  cr_yango: 'pi pi-truck',
+  cr_hop: 'pi pi-truck',
 }
 
 function navigateToProvider(provider: IntegrationProvider) {
@@ -107,14 +179,14 @@ function getStatusVariant(provider: IntegrationProvider): BadgeVariant {
 <template>
   <div class="p-6 max-w-6xl mx-auto">
     <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-800">Proveedores de Integración</h1>
+      <h1 class="text-2xl font-bold text-gray-800">Integraciones</h1>
       <p class="text-gray-500 mt-1">
-        Conecta tu tienda con plataformas de marketing, publicidad y automatización
+        Conecta tu tienda con pasarelas de pago, servicios de reparto, marketing y automatización
       </p>
     </div>
 
     <!-- Loading -->
-    <div v-if="store.isLoading" class="flex justify-center py-12">
+    <div v-if="isLoading" class="flex justify-center py-12">
       <i class="pi pi-spinner pi-spin text-4xl text-primary" />
     </div>
 
@@ -123,7 +195,7 @@ function getStatusVariant(provider: IntegrationProvider): BadgeVariant {
 
     <!-- Empty -->
     <AppEmptyState
-      v-else-if="!store.providers.length"
+      v-else-if="!hasData"
       title="Sin proveedores"
       description="No hay proveedores de integración disponibles"
     />
@@ -161,7 +233,7 @@ function getStatusVariant(provider: IntegrationProvider): BadgeVariant {
               </AppBadge>
             </div>
             <p class="text-sm text-gray-500 mb-3">{{ provider.description }}</p>
-            <div v-if="provider.supported_events.length" class="flex flex-wrap gap-1">
+            <div v-if="provider.supported_events?.length" class="flex flex-wrap gap-1">
               <span
                 v-for="evt in provider.supported_events"
                 :key="evt"
@@ -187,10 +259,9 @@ function getStatusVariant(provider: IntegrationProvider): BadgeVariant {
           <i class="pi pi-info-circle mr-2" />Acerca de las integraciones
         </h3>
         <p class="text-sm text-gray-600">
-          Las integraciones conectan tu tienda con plataformas externas. Los widgets de chat,
+          Las integraciones conectan tu tienda con plataformas externas. Las pasarelas de pago y
+          servicios de reparto se configuran desde sus secciones dedicadas. Los widgets de chat,
           analytics y popups se cargan automáticamente en tu tienda online cuando están activados.
-          Las integraciones de email marketing sincronizan datos de clientes y pedidos con tus
-          plataformas de marketing.
         </p>
       </div>
     </template>
