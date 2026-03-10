@@ -831,3 +831,69 @@ body {
   text-align: center;
   color: #9ca3af;
 }
+
+/* PrimeVue RadioButton - mejorar visibilidad del estado no seleccionado */
+.p-radiobutton {
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+}
+
+.p-radiobutton .p-radiobutton-input {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  position: absolute !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  opacity: 0 !important;
+  cursor: pointer !important;
+  z-index: 1 !important;
+}
+
+.p-radiobutton .p-radiobutton-box {
+  border: 2px solid #d1d5db !important;
+  background: #ffffff !important;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  border-radius: 50% !important;
+  transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  position: relative !important;
+}
+
+.p-radiobutton .p-radiobutton-box:not(.p-disabled):hover {
+  border-color: var(--primary-500) !important;
+}
+
+.p-radiobutton .p-radiobutton-box.p-focus,
+.p-radiobutton:focus-within .p-radiobutton-box {
+  outline: 0 none !important;
+  box-shadow: 0 0 0 3px rgba(0, 178, 166, 0.2) !important;
+  border-color: var(--primary-500) !important;
+}
+
+/* Estado seleccionado */
+.p-radiobutton .p-radiobutton-box.p-highlight,
+.p-radiobutton.p-highlight .p-radiobutton-box,
+.p-radiobutton[data-p-highlight="true"] .p-radiobutton-box,
+.p-radiobutton[aria-checked="true"] .p-radiobutton-box {
+  border-color: var(--primary-500) !important;
+  background: var(--primary-500) !important;
+}
+
+/* Icono interior del radio (dot) */
+.p-radiobutton .p-radiobutton-box .p-radiobutton-icon {
+  width: 0.5rem !important;
+  height: 0.5rem !important;
+  background-color: #ffffff !important;
+  border-radius: 50% !important;
+  display: block !important;
+}

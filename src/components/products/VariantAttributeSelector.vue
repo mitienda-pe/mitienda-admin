@@ -74,9 +74,9 @@
                 <span
                   v-if="attr.type === 2"
                   class="inline-block w-4 h-4 rounded border border-gray-200"
-                  :style="{ backgroundColor: opt.text }"
+                  :style="{ backgroundColor: extractHex(opt.text) }"
                 ></span>
-                {{ opt.text }}
+                {{ extractName(opt.text) }}
               </label>
             </div>
           </div>
@@ -161,6 +161,17 @@ const estimatedCombinations = computed(() => {
   }
   return hasAny ? total : 0
 })
+
+// Color helpers
+function extractHex(text: string): string {
+  const parts = text.split('|')
+  return parts.length > 1 ? parts[1] : text
+}
+
+function extractName(text: string): string {
+  const parts = text.split('|')
+  return parts[0]
+}
 
 // Methods
 function getTypeLabel(type: number): string {
