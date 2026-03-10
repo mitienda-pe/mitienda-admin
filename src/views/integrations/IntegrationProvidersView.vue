@@ -20,9 +20,10 @@ const categoryConfig: Record<string, { label: string; icon: string; iconColor: s
   lead_capture:       { label: 'Captura de leads y popups',   icon: 'pi pi-megaphone',  iconColor: 'text-pink-600',   bgColor: 'bg-pink-50' },
   ads:                { label: 'Publicidad y Anuncios',        icon: 'pi pi-megaphone',  iconColor: 'text-blue-600',   bgColor: 'bg-blue-50' },
   email_marketing:    { label: 'Email Marketing',              icon: 'pi pi-envelope',   iconColor: 'text-primary',    bgColor: 'bg-teal-50' },
+  fulfillment:        { label: 'Fulfillment y Logística 3PL',  icon: 'pi pi-box',        iconColor: 'text-indigo-600', bgColor: 'bg-indigo-50' },
 }
 
-const categoryOrder = ['ads', 'analytics', 'email_marketing', 'lead_capture', 'chat', 'push_notifications']
+const categoryOrder = ['ads', 'analytics', 'email_marketing', 'fulfillment', 'lead_capture', 'chat', 'push_notifications']
 
 const categories = computed(() => {
   const groups: Record<string, IntegrationProvider[]> = {}
@@ -76,6 +77,8 @@ const providerIcons: Record<string, string> = {
   poptin: 'pi pi-megaphone',
   // Analytics (additional)
   crazyegg: 'pi pi-chart-bar',
+  // Fulfillment
+  mintsoft: 'pi pi-box',
 }
 
 function navigateToProvider(provider: IntegrationProvider) {
