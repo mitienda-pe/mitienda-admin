@@ -43,7 +43,7 @@ const paymentProviders = computed<IntegrationProvider[]>(() =>
     supported_events: [],
     config_fields: [],
     configured: g.configured,
-    enabled: g.enabled,
+    enabled: g.configured,
     frontend_only: false,
     config_url: `/payment-gateways/${g.code}`,
   }))
@@ -59,7 +59,7 @@ const courierProviders = computed<IntegrationProvider[]>(() =>
     supported_events: [],
     config_fields: [],
     configured: c.configured,
-    enabled: c.enabled,
+    enabled: c.configured,
     frontend_only: false,
     config_url: `/shipping/couriers/${c.code}`,
   }))
