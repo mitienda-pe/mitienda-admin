@@ -38,7 +38,7 @@ const isChangingStatus = ref(false)
 
 const availableStates = computed(() => {
   if (!order.value) return []
-  return states.value.filter(s => order.value!.available_transitions.includes(s.id))
+  return order.value!.available_transitions
 })
 
 const currentStateBadgeClass = computed(() => {
@@ -250,13 +250,6 @@ onMounted(() => {
                   <p v-if="order.customer.email" class="text-sm text-gray-600">
                     <i class="pi pi-envelope text-xs mr-1"></i> {{ order.customer.email }}
                   </p>
-                  <div v-if="order.recipient.name?.trim()" class="mt-3 pt-3 border-t">
-                    <p class="text-xs text-gray-400 uppercase mb-1">Destinatario</p>
-                    <p class="text-sm text-gray-900">{{ order.recipient.name }}</p>
-                    <p v-if="order.recipient.phone" class="text-sm text-gray-600">
-                      <i class="pi pi-phone text-xs mr-1"></i> {{ order.recipient.phone }}
-                    </p>
-                  </div>
                 </div>
               </div>
 
@@ -270,9 +263,6 @@ onMounted(() => {
                   </div>
                   <p class="text-sm text-gray-600">{{ order.delivery.address }}</p>
                   <p v-if="order.delivery.ubigeo" class="text-sm text-gray-500">{{ order.delivery.ubigeo }}</p>
-                  <p v-if="order.delivery.reference" class="text-sm text-gray-500">
-                    <span class="text-gray-400">Ref:</span> {{ order.delivery.reference }}
-                  </p>
                   <p v-if="order.delivery.scheduled_date" class="text-sm text-gray-600">
                     <i class="pi pi-calendar text-xs mr-1"></i>
                     Programado: {{ formatDate(order.delivery.scheduled_date) }}
@@ -462,15 +452,15 @@ onMounted(() => {
               <template #marker="{ item }">
                 <span
                   class="flex items-center justify-center w-8 h-8 rounded-full text-white text-sm"
-                  :style="{ backgroundColor: getTimelineColor(item.state_id) }"
+                  :style="{ backgroundColor: getTimelineColor(item.state.id) }"
                 >
-                  <i :class="getTimelineIcon(item.state_id)"></i>
+                  <i :class="getTimelineIcon(item.state.id)"></i>
                 </span>
               </template>
               <template #content="{ item }">
                 <div class="mb-4">
                   <div class="flex items-center gap-2 mb-1">
-                    <span class="font-medium text-sm text-gray-900">{{ item.state_name }}</span>
+                    <span class="font-medium text-sm text-gray-900">{{ item.state.name }}</span>
                     <i
                       v-if="item.customer_notified"
                       class="pi pi-envelope text-xs text-primary"
