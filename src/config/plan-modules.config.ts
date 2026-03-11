@@ -51,6 +51,9 @@ export const MODULE_ROUTE_MAP: Record<string, string[]> = {
   // Billing
   mod_facturacion_electronica: ['/billing'],
 
+  // Dispatch
+  mod_panel_despacho: ['/dispatch'],
+
   // Shipping
   mod_tarifas_envio: ['/shipping'],
 
