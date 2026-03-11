@@ -818,8 +818,18 @@ const routes: RouteRecordRaw[] = [
         path: 'queue',
         name: 'QueueManagement',
         component: () => import('@/views/configuracion/NetsuiteQueueView.vue')
+      },
+      {
+        path: 'fulfillment',
+        name: 'FulfillmentWms',
+        component: () => import('@/views/integrations/FulfillmentWmsView.vue')
       }
     ]
+  },
+  // Shortcut: /fulfillment redirects to /integrations/fulfillment
+  {
+    path: '/fulfillment',
+    redirect: '/integrations/fulfillment'
   },
   {
     path: '/configuracion',

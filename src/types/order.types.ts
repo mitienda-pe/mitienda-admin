@@ -30,6 +30,13 @@ export interface Order {
   tiendaventa_mensaje_notif_erp?: string
   tiendaventa_payload_notif_erp?: string // Request payload sent to NetSuite
   erp_sync?: ErpSync
+  fulfillment?: {
+    status: 'not_sent' | 'sent' | 'error' | 'processing' | 'unknown'
+    status_code: number
+    tracking_code: string | null
+    message: string | null
+    provider: string | null
+  }
   billing_document?: BillingDocument
   promotions?: OrderPromotion[] // Applied promotions (2x1, discounts, etc.)
   promotions_discount?: number // Total discount from promotions

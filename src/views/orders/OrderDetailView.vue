@@ -17,7 +17,9 @@ import DeliveryMap from '@/components/map/DeliveryMap.vue'
 import FraudRiskCard from '@/components/fraud/FraudRiskCard.vue'
 import StarRating from '@/components/reviews/StarRating.vue'
 import { reviewsApi } from '@/api/reviews.api'
+import { fulfillmentApi } from '@/api/fulfillment.api'
 import type { OrderItemReview } from '@/types/review.types'
+import type { FulfillmentProvider } from '@/types/fulfillment.types'
 import apiClient from '@/api/axios'
 import type { Order, OrderStatus } from '@/types/order.types'
 import type { SenderInfo } from '@/types/store.types'
@@ -40,6 +42,10 @@ const debugPaymentError = ref<string | null>(null)
 const downloadMenu = ref()
 const senderInfo = ref<SenderInfo | undefined>(undefined)
 const orderReviews = ref<OrderItemReview[]>([])
+
+// Fulfillment state
+const fulfillmentProvider = ref<FulfillmentProvider | null>(null)
+const isSendingToFulfillment = ref(false)
 
 // Store name for documents
 const storeName = computed(() => authStore.selectedStore?.name || 'Mi Tienda')
@@ -141,10 +147,11 @@ onMounted(async () => {
   await ordersStore.fetchOrder(orderId)
   console.log('✅ [OrderDetailView] Orden cargada:', ordersStore.currentOrder)
 
-  // Load sender info and order reviews in parallel
+  // Load sender info, order reviews, and fulfillment provider in parallel
   await Promise.all([
     loadSenderInfo(),
     loadOrderReviews(),
+    loadFulfillmentProvider(),
   ])
 })
 
@@ -161,6 +168,49 @@ const loadOrderReviews = async () => {
 
 const getProductReview = (productId: number) => {
   return orderReviews.value.find((r) => r.product_id === productId)
+}
+
+// Fulfillment
+const loadFulfillmentProvider = async () => {
+  try {
+    const response = await fulfillmentApi.getProvider()
+    if (response.data) {
+      fulfillmentProvider.value = response.data
+    }
+  } catch (err) {
+    // Non-critical, silently fail
+  }
+}
+
+const fulfillmentStatus = computed(() => {
+  const status = order.value?.fulfillment?.status
+  if (!status || status === 'unknown') return null
+  const map: Record<string, { label: string; icon: string; bgClass: string; textClass: string }> = {
+    not_sent: { label: 'No enviado', icon: 'pi-inbox', bgClass: 'bg-gray-100', textClass: 'text-gray-600' },
+    sent: { label: 'Enviado', icon: 'pi-check-circle', bgClass: 'bg-green-100', textClass: 'text-green-700' },
+    error: { label: 'Error', icon: 'pi-times-circle', bgClass: 'bg-red-100', textClass: 'text-red-700' },
+    processing: { label: 'Procesando', icon: 'pi-spin pi-spinner', bgClass: 'bg-yellow-100', textClass: 'text-yellow-700' },
+  }
+  return map[status] || null
+})
+
+const handleSendToFulfillment = async (force = false) => {
+  if (!order.value || isSendingToFulfillment.value) return
+  isSendingToFulfillment.value = true
+  try {
+    const response = await fulfillmentApi.sendToFulfillment(order.value.id, force)
+    if (response.data?.success) {
+      toast.add({ severity: 'success', summary: 'Orden enviada', detail: response.data.message, life: 4000 })
+      // Reload order to reflect updated status
+      await ordersStore.fetchOrder(orderId)
+    } else {
+      toast.add({ severity: 'error', summary: 'Error', detail: response.data?.message || 'No se pudo enviar la orden', life: 5000 })
+    }
+  } catch (err: any) {
+    toast.add({ severity: 'error', summary: 'Error', detail: err.message || 'Error al enviar al almacén', life: 5000 })
+  } finally {
+    isSendingToFulfillment.value = false
+  }
 }
 
 // Load sender info (store info + sender address)
@@ -1465,6 +1515,106 @@ const handleDebugPayments = async () => {
                     <div v-if="debugPaymentError" class="p-3 bg-red-50 border border-red-200 rounded-lg">
                       <p class="text-sm text-red-800">{{ debugPaymentError }}</p>
                     </div>
+                  </div>
+                </div>
+              </template>
+            </Card>
+          </div>
+
+            <!-- Fulfillment / WMS -->
+            <Card v-if="fulfillmentProvider">
+              <template #title>
+                <div class="flex items-center justify-between w-full">
+                  <div class="flex items-center gap-2">
+                    <i class="pi pi-box text-primary"></i>
+                    Fulfillment ({{ fulfillmentProvider.name }})
+                  </div>
+                  <span
+                    v-if="fulfillmentStatus"
+                    :class="[
+                      'px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1.5',
+                      fulfillmentStatus.bgClass,
+                      fulfillmentStatus.textClass
+                    ]"
+                  >
+                    <i :class="['pi', fulfillmentStatus.icon]"></i>
+                    {{ fulfillmentStatus.label }}
+                  </span>
+                </div>
+              </template>
+              <template #content>
+                <div class="space-y-4">
+                  <!-- Tracking code -->
+                  <div v-if="order.fulfillment?.tracking_code" class="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <p class="text-xs text-gray-500 mb-1">Tracking WMS</p>
+                        <p class="font-mono text-lg font-bold text-gray-900">{{ order.fulfillment.tracking_code }}</p>
+                      </div>
+                      <Button
+                        icon="pi pi-copy"
+                        severity="secondary"
+                        size="small"
+                        text
+                        @click="navigator.clipboard.writeText(order.fulfillment!.tracking_code!); toast.add({ severity: 'info', summary: 'Copiado', life: 1500 })"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Error message -->
+                  <div v-if="order.fulfillment?.status === 'error' && order.fulfillment?.message" class="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <div class="flex items-center gap-2 mb-1">
+                      <i class="pi pi-exclamation-triangle text-red-600 text-sm"></i>
+                      <span class="text-sm font-medium text-red-800">Error de envío</span>
+                    </div>
+                    <details>
+                      <summary class="text-sm text-red-700 cursor-pointer">Ver detalle del error</summary>
+                      <pre class="mt-2 text-xs bg-red-100 rounded p-2 overflow-auto max-h-32">{{ order.fulfillment.message }}</pre>
+                    </details>
+                  </div>
+
+                  <!-- Send / Retry buttons -->
+                  <div class="flex gap-2">
+                    <Button
+                      v-if="!order.fulfillment?.status || order.fulfillment?.status === 'not_sent'"
+                      label="Enviar al almacén"
+                      icon="pi pi-send"
+                      size="small"
+                      :loading="isSendingToFulfillment"
+                      @click="handleSendToFulfillment(false)"
+                      class="w-full"
+                    />
+                    <Button
+                      v-else-if="order.fulfillment?.status === 'error'"
+                      label="Reintentar envío"
+                      icon="pi pi-refresh"
+                      severity="warning"
+                      size="small"
+                      :loading="isSendingToFulfillment"
+                      @click="handleSendToFulfillment(true)"
+                      class="w-full"
+                    />
+                    <Button
+                      v-else-if="order.fulfillment?.status === 'sent'"
+                      label="Reenviar"
+                      icon="pi pi-refresh"
+                      severity="secondary"
+                      size="small"
+                      text
+                      :loading="isSendingToFulfillment"
+                      @click="handleSendToFulfillment(true)"
+                    />
+                  </div>
+
+                  <!-- Link to WMS management view -->
+                  <div class="pt-2 border-t border-gray-200">
+                    <router-link
+                      to="/fulfillment"
+                      class="text-sm text-primary hover:underline flex items-center gap-1"
+                    >
+                      <i class="pi pi-external-link text-xs"></i>
+                      Ver gestión de fulfillment
+                    </router-link>
                   </div>
                 </div>
               </template>
