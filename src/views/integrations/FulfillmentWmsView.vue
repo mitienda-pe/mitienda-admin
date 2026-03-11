@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { useFormatters } from '@/composables/useFormatters'
 import { fulfillmentApi } from '@/api/fulfillment.api'
@@ -19,7 +18,6 @@ import Dropdown from 'primevue/dropdown'
 import InputText from 'primevue/inputtext'
 import Calendar from 'primevue/calendar'
 
-const router = useRouter()
 const toast = useToast()
 const { formatCurrency, formatDate } = useFormatters()
 
@@ -43,6 +41,20 @@ const filters = ref<FulfillmentOrdersFilters>({
   per_page: 20
 })
 
+// Computed Date wrappers for Calendar v-model (Calendar expects Date, filters use string)
+const dateFrom = computed({
+  get: () => filters.value.date_from ? new Date(filters.value.date_from + 'T00:00:00') : null,
+  set: (val: Date | null) => {
+    filters.value.date_from = val ? val.toISOString().slice(0, 10) : undefined
+  }
+})
+const dateTo = computed({
+  get: () => filters.value.date_to ? new Date(filters.value.date_to + 'T00:00:00') : null,
+  set: (val: Date | null) => {
+    filters.value.date_to = val ? val.toISOString().slice(0, 10) : undefined
+  }
+})
+
 const statusOptions = [
   { label: 'Todos', value: 'all' },
   { label: 'No enviados', value: 'not_sent' },
@@ -55,7 +67,7 @@ const statusOptions = [
 onMounted(async () => {
   try {
     const response = await fulfillmentApi.getProvider()
-    provider.value = response.data
+    provider.value = response.data ?? null
     if (provider.value) {
       await loadOrders()
     }
@@ -183,16 +195,6 @@ const handleSyncStock = async () => {
 }
 
 // Helpers
-const getStatusSeverity = (status: string) => {
-  const map: Record<string, string> = {
-    not_sent: 'secondary',
-    sent: 'success',
-    error: 'danger',
-    processing: 'warning'
-  }
-  return map[status] || 'secondary'
-}
-
 const getStatusLabel = (status: string) => {
   const map: Record<string, string> = {
     not_sent: 'No enviado',
@@ -294,7 +296,7 @@ const getReservedStock = (item: any): number => {
           <div>
             <label class="text-xs text-gray-500 block mb-1">Desde</label>
             <Calendar
-              v-model="filters.date_from"
+              v-model="dateFrom"
               dateFormat="yy-mm-dd"
               showIcon
               class="w-40"
@@ -304,7 +306,7 @@ const getReservedStock = (item: any): number => {
           <div>
             <label class="text-xs text-gray-500 block mb-1">Hasta</label>
             <Calendar
-              v-model="filters.date_to"
+              v-model="dateTo"
               dateFormat="yy-mm-dd"
               showIcon
               class="w-40"

@@ -47,6 +47,11 @@ const orderReviews = ref<OrderItemReview[]>([])
 const fulfillmentProvider = ref<FulfillmentProvider | null>(null)
 const isSendingToFulfillment = ref(false)
 
+function copyToClipboard(text: string) {
+  navigator.clipboard.writeText(text)
+  toast.add({ severity: 'info', summary: 'Copiado', life: 1500 })
+}
+
 // Store name for documents
 const storeName = computed(() => authStore.selectedStore?.name || 'Mi Tienda')
 
@@ -1556,7 +1561,7 @@ const handleDebugPayments = async () => {
                         severity="secondary"
                         size="small"
                         text
-                        @click="navigator.clipboard.writeText(order.fulfillment!.tracking_code!); toast.add({ severity: 'info', summary: 'Copiado', life: 1500 })"
+                        @click="copyToClipboard(order.fulfillment!.tracking_code!)"
                       />
                     </div>
                   </div>
