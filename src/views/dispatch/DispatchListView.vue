@@ -266,10 +266,34 @@ async function submitBatchStatus() {
 
 // ─── Lifecycle ────────────────────────────────────────────────
 
+async function checkEnabledAndLoad() {
+  // Quick check: load stats first (lightweight) to detect if dispatch is enabled
+  try {
+    const response = await dispatchApi.getStats()
+    if (response.error === 0) {
+      stats.value = response.data
+      isDispatchEnabled.value = true
+      // Now load the full data
+      loadStates()
+      loadOrders()
+    }
+  } catch (err: any) {
+    // If stats returns error, dispatch is not enabled for this store
+    const msg = err?.response?.data?.messages?.error || err?.response?.data?.message
+    if (msg) {
+      isDispatchEnabled.value = false
+      dispatchDisabledMessage.value = msg
+    } else {
+      // Unexpected error — still try to load orders which has its own error handling
+      loadStates()
+      loadStats()
+      loadOrders()
+    }
+  }
+}
+
 onMounted(() => {
-  loadStates()
-  loadStats()
-  loadOrders()
+  checkEnabledAndLoad()
 })
 </script>
 
