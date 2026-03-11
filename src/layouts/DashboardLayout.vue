@@ -1178,6 +1178,7 @@ const appearanceMenuItems = [
 // Items del grupo Ventas
 const salesMenuItems = [
   { label: 'Pedidos', icon: 'pi pi-shopping-cart', to: '/orders' },
+  { label: 'Despacho', icon: 'pi pi-truck', to: '/dispatch' },
   { label: 'Opiniones', icon: 'pi pi-star', to: '/reviews' },
   { label: 'Reclamaciones', icon: 'pi pi-book', to: '/complaints' },
   { label: 'Carritos Abandonados', icon: 'pi pi-shopping-bag', to: '/marketing/abandoned-carts' }
@@ -1283,7 +1284,7 @@ const isAppearanceActive = computed(() => {
 
 // Detectar si estamos en alguna ruta de ventas
 const isSalesActive = computed(() => {
-  return route.path.startsWith('/orders') || route.path.startsWith('/reviews') || route.path.startsWith('/complaints') || route.path.includes('abandoned-carts')
+  return route.path.startsWith('/orders') || route.path.startsWith('/dispatch') || route.path.startsWith('/reviews') || route.path.startsWith('/complaints') || route.path.includes('abandoned-carts')
 })
 
 // Detectar si estamos en alguna ruta de reportes

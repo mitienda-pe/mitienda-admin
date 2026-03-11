@@ -144,6 +144,23 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/dispatch',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: '',
+        name: 'Dispatch',
+        component: () => import('@/views/dispatch/DispatchListView.vue')
+      },
+      {
+        path: ':id',
+        name: 'DispatchDetail',
+        component: () => import('@/views/dispatch/DispatchDetailView.vue')
+      }
+    ]
+  },
+  {
     path: '/customers',
     component: DashboardLayout,
     meta: { requiresAuth: true, requiresStore: true },

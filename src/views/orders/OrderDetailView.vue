@@ -1524,7 +1524,6 @@ const handleDebugPayments = async () => {
                 </div>
               </template>
             </Card>
-          </div>
 
             <!-- Fulfillment / WMS -->
             <Card v-if="fulfillmentProvider">
