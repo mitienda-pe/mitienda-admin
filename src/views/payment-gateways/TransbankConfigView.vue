@@ -188,7 +188,7 @@
                 icon="pi pi-external-link"
                 link
                 class="w-full"
-                @click="window.open('https://www.transbank.cl/', '_blank')"
+                @click="openExternal('https://www.transbank.cl/')"
               />
             </div>
           </div>
@@ -302,6 +302,10 @@ function handleDelete() {
       }
     },
   })
+}
+
+function openExternal(url: string) {
+  window.open(url, '_blank')
 }
 </script>
 

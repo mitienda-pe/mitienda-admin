@@ -149,7 +149,7 @@
             </div>
             <Divider />
             <Button label="Ir a PayU" icon="pi pi-external-link" link class="w-full"
-              @click="window.open('https://www.payulatam.com/', '_blank')" />
+              @click="openExternal('https://www.payulatam.com/')" />
           </div>
         </template>
       </Card>
@@ -251,6 +251,10 @@ function handleDelete() {
       }
     },
   })
+}
+
+function openExternal(url: string) {
+  window.open(url, '_blank')
 }
 </script>
 

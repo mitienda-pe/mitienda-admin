@@ -138,7 +138,7 @@
             </div>
             <Divider />
             <Button label="Ir a PayPhone" icon="pi pi-external-link" link class="w-full"
-              @click="window.open('https://payphonetodoesposible.com/', '_blank')" />
+              @click="openExternal('https://payphonetodoesposible.com/')" />
           </div>
         </template>
       </Card>
@@ -237,6 +237,10 @@ function handleDelete() {
       }
     },
   })
+}
+
+function openExternal(url: string) {
+  window.open(url, '_blank')
 }
 </script>
 
