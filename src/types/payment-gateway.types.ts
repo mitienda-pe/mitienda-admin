@@ -149,6 +149,37 @@ export interface PayPhoneCredentials {
   environment: GatewayEnvironment
 }
 
+// Wompi (Colombia)
+export interface WompiCredentials {
+  public_key: string
+  private_key: string
+  events_secret: string
+  environment: GatewayEnvironment
+}
+
+// Conekta (Mexico)
+export interface ConektaCredentials {
+  public_key: string
+  private_key: string
+  webhook_key: string
+  environment: GatewayEnvironment
+}
+
+// Flow (Chile)
+export interface FlowCredentials {
+  api_key: string
+  secret_key: string
+  environment: GatewayEnvironment
+}
+
+// dLocal (Multi-country)
+export interface DLocalCredentials {
+  api_key: string
+  secret_key: string
+  webhook_secret: string
+  environment: GatewayEnvironment
+}
+
 // Request/Response types
 export interface SaveGatewayCredentialsRequest {
   credentials: Record<string, unknown>
@@ -254,5 +285,33 @@ export const GATEWAY_CATALOG: Omit<PaymentGateway, 'configured' | 'enabled'>[] =
     name: 'PayPhone',
     logo: 'payphone.png',
     description: 'Pagos móviles en Ecuador. Tarjetas de crédito, débito y billetera PayPhone.'
+  },
+  {
+    id: 14,
+    code: 'wompi',
+    name: 'Wompi',
+    logo: 'wompi.png',
+    description: 'Pasarela de Bancolombia. Tarjetas, PSE, Nequi y transferencias Bancolombia.'
+  },
+  {
+    id: 15,
+    code: 'conekta',
+    name: 'Conekta',
+    logo: 'conekta.png',
+    description: 'Plataforma líder de pagos en México. Tarjetas, OXXO y SPEI.'
+  },
+  {
+    id: 16,
+    code: 'flow',
+    name: 'Flow',
+    logo: 'flow.png',
+    description: 'Pagos online en Chile. Tarjetas, transferencias bancarias y más.'
+  },
+  {
+    id: 17,
+    code: 'dlocal',
+    name: 'dLocal',
+    logo: 'dlocal.png',
+    description: 'Pagos multi-país en Latinoamérica. Una integración para toda la región.'
   }
 ]

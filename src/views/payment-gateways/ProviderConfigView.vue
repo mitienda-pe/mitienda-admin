@@ -72,7 +72,11 @@ const gatewayNames: Record<string, string> = {
   'cash-on-delivery': 'Pago Contra Entrega',
   'transbank': 'Transbank',
   'payu': 'PayU',
-  'payphone': 'PayPhone'
+  'payphone': 'PayPhone',
+  'wompi': 'Wompi',
+  'conekta': 'Conekta',
+  'flow': 'Flow',
+  'dlocal': 'dLocal'
 }
 
 const gatewayName = computed(() => gatewayNames[gatewayCode.value] || 'Pasarela Desconocida')
@@ -91,7 +95,11 @@ const configComponents: Record<string, Component> = {
   'cash-on-delivery': defineAsyncComponent(() => import('./CashOnDeliveryConfigView.vue')),
   'transbank': defineAsyncComponent(() => import('./TransbankConfigView.vue')),
   'payu': defineAsyncComponent(() => import('./PayUConfigView.vue')),
-  'payphone': defineAsyncComponent(() => import('./PayPhoneConfigView.vue'))
+  'payphone': defineAsyncComponent(() => import('./PayPhoneConfigView.vue')),
+  'wompi': defineAsyncComponent(() => import('./WompiConfigView.vue')),
+  'conekta': defineAsyncComponent(() => import('./ConektaConfigView.vue')),
+  'flow': defineAsyncComponent(() => import('./FlowConfigView.vue')),
+  'dlocal': defineAsyncComponent(() => import('./DLocalConfigView.vue'))
 }
 
 const configComponent = computed(() => {

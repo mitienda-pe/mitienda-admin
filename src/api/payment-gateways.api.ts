@@ -132,6 +132,42 @@ const MOCK_GATEWAYS: PaymentGateway[] = [
     description: 'Pagos móviles en Ecuador.',
     configured: false,
     enabled: false
+  },
+  {
+    id: 14,
+    code: 'wompi',
+    name: 'Wompi',
+    logo: 'wompi.png',
+    description: 'Pasarela de Bancolombia. Tarjetas, PSE, Nequi y transferencias.',
+    configured: false,
+    enabled: false
+  },
+  {
+    id: 15,
+    code: 'conekta',
+    name: 'Conekta',
+    logo: 'conekta.png',
+    description: 'Plataforma líder de pagos en México. Tarjetas, OXXO y SPEI.',
+    configured: false,
+    enabled: false
+  },
+  {
+    id: 16,
+    code: 'flow',
+    name: 'Flow',
+    logo: 'flow.png',
+    description: 'Pagos online en Chile. Tarjetas y transferencias.',
+    configured: false,
+    enabled: false
+  },
+  {
+    id: 17,
+    code: 'dlocal',
+    name: 'dLocal',
+    logo: 'dlocal.png',
+    description: 'Pagos multi-país en Latinoamérica.',
+    configured: false,
+    enabled: false
   }
 ]
 
