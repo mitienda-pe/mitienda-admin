@@ -125,6 +125,30 @@ export interface CashOnDeliveryCredentials {
   optional_text?: string
 }
 
+// Transbank (Chile)
+export interface TransbankCredentials {
+  commerce_code: string
+  api_key_secret: string
+  environment: GatewayEnvironment
+}
+
+// PayU (Colombia / Ecuador)
+export interface PayUCredentials {
+  api_key: string
+  api_login: string
+  merchant_id: string
+  account_id: string
+  environment: GatewayEnvironment
+}
+
+// PayPhone (Ecuador)
+export interface PayPhoneCredentials {
+  store_token: string
+  app_id: string
+  app_secret: string
+  environment: GatewayEnvironment
+}
+
 // Request/Response types
 export interface SaveGatewayCredentialsRequest {
   credentials: Record<string, unknown>
@@ -209,5 +233,26 @@ export const GATEWAY_CATALOG: Omit<PaymentGateway, 'configured' | 'enabled'>[] =
     name: 'Contra Entrega',
     logo: 'cash-on-delivery.png',
     description: 'Pago en efectivo al momento de la entrega.'
+  },
+  {
+    id: 11,
+    code: 'transbank',
+    name: 'Transbank',
+    logo: 'transbank.png',
+    description: 'Webpay Plus - Principal procesador de pagos en Chile. Tarjetas de crédito y débito.'
+  },
+  {
+    id: 12,
+    code: 'payu',
+    name: 'PayU',
+    logo: 'payu.png',
+    description: 'PayU Latam - Pasarela líder en Colombia y Ecuador. Tarjetas, PSE y métodos locales.'
+  },
+  {
+    id: 13,
+    code: 'payphone',
+    name: 'PayPhone',
+    logo: 'payphone.png',
+    description: 'Pagos móviles en Ecuador. Tarjetas de crédito, débito y billetera PayPhone.'
   }
 ]

@@ -105,6 +105,33 @@ const MOCK_GATEWAYS: PaymentGateway[] = [
     description: 'Pago en efectivo al momento de la entrega.',
     configured: false,
     enabled: false
+  },
+  {
+    id: 11,
+    code: 'transbank',
+    name: 'Transbank',
+    logo: 'transbank.png',
+    description: 'Webpay Plus - Principal procesador de pagos en Chile.',
+    configured: false,
+    enabled: false
+  },
+  {
+    id: 12,
+    code: 'payu',
+    name: 'PayU',
+    logo: 'payu.png',
+    description: 'PayU Latam - Pasarela líder en Colombia y Ecuador.',
+    configured: false,
+    enabled: false
+  },
+  {
+    id: 13,
+    code: 'payphone',
+    name: 'PayPhone',
+    logo: 'payphone.png',
+    description: 'Pagos móviles en Ecuador.',
+    configured: false,
+    enabled: false
   }
 ]
 

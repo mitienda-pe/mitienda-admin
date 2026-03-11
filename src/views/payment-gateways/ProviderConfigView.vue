@@ -69,7 +69,10 @@ const gatewayNames: Record<string, string> = {
   'paypal': 'PayPal',
   'qr-wallets': 'Billeteras QR (Yape / Plin)',
   'bank-transfer': 'Transferencia Bancaria',
-  'cash-on-delivery': 'Pago Contra Entrega'
+  'cash-on-delivery': 'Pago Contra Entrega',
+  'transbank': 'Transbank',
+  'payu': 'PayU',
+  'payphone': 'PayPhone'
 }
 
 const gatewayName = computed(() => gatewayNames[gatewayCode.value] || 'Pasarela Desconocida')
@@ -85,7 +88,10 @@ const configComponents: Record<string, Component> = {
   'paypal': defineAsyncComponent(() => import('./PaypalConfigView.vue')),
   'qr-wallets': defineAsyncComponent(() => import('./QrWalletsConfigView.vue')),
   'bank-transfer': defineAsyncComponent(() => import('./BankTransferConfigView.vue')),
-  'cash-on-delivery': defineAsyncComponent(() => import('./CashOnDeliveryConfigView.vue'))
+  'cash-on-delivery': defineAsyncComponent(() => import('./CashOnDeliveryConfigView.vue')),
+  'transbank': defineAsyncComponent(() => import('./TransbankConfigView.vue')),
+  'payu': defineAsyncComponent(() => import('./PayUConfigView.vue')),
+  'payphone': defineAsyncComponent(() => import('./PayPhoneConfigView.vue'))
 }
 
 const configComponent = computed(() => {
