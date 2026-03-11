@@ -115,9 +115,14 @@ async function loadOrders() {
   isLoading.value = true
   try {
     const response = await dispatchApi.getOrders(filters.value)
-    if (response.error !== 0) {
-      isDispatchEnabled.value = false
-      dispatchDisabledMessage.value = (response as any).message || 'Panel de despacho no habilitado'
+    if (!response.success) {
+      // Only treat as "not enabled" if the message specifically says so
+      if (response.message?.includes('no habilitado')) {
+        isDispatchEnabled.value = false
+        dispatchDisabledMessage.value = response.message
+      } else {
+        toast.add({ severity: 'error', summary: 'Error', detail: response.message || 'No se pudieron cargar los pedidos', life: 3000 })
+      }
       return
     }
     orders.value = response.data
@@ -125,12 +130,8 @@ async function loadOrders() {
     totalPages.value = response.pagination.pages
     isDispatchEnabled.value = true
   } catch (err: any) {
-    if (err?.response?.data?.messages?.error) {
-      isDispatchEnabled.value = false
-      dispatchDisabledMessage.value = err.response.data.messages.error
-    } else {
-      toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los pedidos', life: 3000 })
-    }
+    // API errors (500, etc.) should show toast, NOT disable the panel
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los pedidos', life: 3000 })
   } finally {
     isLoading.value = false
   }
@@ -139,7 +140,7 @@ async function loadOrders() {
 async function loadStats() {
   try {
     const response = await dispatchApi.getStats()
-    if (response.error === 0) {
+    if (response.success) {
       stats.value = response.data
     }
   } catch {
@@ -150,7 +151,7 @@ async function loadStats() {
 async function loadStates() {
   try {
     const response = await dispatchApi.getStates()
-    if (response.error === 0) {
+    if (response.success) {
       states.value = response.data
     }
   } catch {
@@ -270,25 +271,26 @@ async function checkEnabledAndLoad() {
   // Quick check: load stats first (lightweight) to detect if dispatch is enabled
   try {
     const response = await dispatchApi.getStats()
-    if (response.error === 0) {
+    if (response.success) {
       stats.value = response.data
       isDispatchEnabled.value = true
       // Now load the full data
       loadStates()
       loadOrders()
-    }
-  } catch (err: any) {
-    // If stats returns error, dispatch is not enabled for this store
-    const msg = err?.response?.data?.messages?.error || err?.response?.data?.message
-    if (msg) {
+    } else if (response.message?.includes('no habilitado')) {
       isDispatchEnabled.value = false
-      dispatchDisabledMessage.value = msg
+      dispatchDisabledMessage.value = response.message
     } else {
-      // Unexpected error — still try to load orders which has its own error handling
+      // Other error — still try to load
+      isDispatchEnabled.value = true
       loadStates()
-      loadStats()
       loadOrders()
     }
+  } catch {
+    // Network error — still try to load the full panel
+    isDispatchEnabled.value = true
+    loadStates()
+    loadOrders()
   }
 }
 

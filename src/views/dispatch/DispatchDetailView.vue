@@ -63,7 +63,7 @@ async function loadOrder() {
   try {
     const mode = showPrices.value ? undefined : 'picking'
     const response = await dispatchApi.getOrder(orderId, mode)
-    if (response.error === 0) {
+    if (response.success) {
       order.value = response.data
     }
   } catch (err: any) {
@@ -81,7 +81,7 @@ async function loadOrder() {
 async function loadStates() {
   try {
     const response = await dispatchApi.getStates()
-    if (response.error === 0) {
+    if (response.success) {
       states.value = response.data
     }
   } catch {
