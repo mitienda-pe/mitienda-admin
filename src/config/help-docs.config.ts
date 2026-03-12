@@ -24,6 +24,9 @@ export const routeToDocMap: [string, string][] = [
   // Complaints (Ventas > Libro de Reclamaciones)
   ['/complaints', '03-ventas/03-libro-reclamaciones'],
 
+  // Dispatch (Ventas > Panel de Despacho)
+  ['/dispatch', '03-ventas/05-despacho'],
+
   // Reports (Reportes)
   ['/reports', '04-reportes'],
 
