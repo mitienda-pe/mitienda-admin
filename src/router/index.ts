@@ -840,6 +840,11 @@ const routes: RouteRecordRaw[] = [
         path: 'fulfillment',
         name: 'FulfillmentWms',
         component: () => import('@/views/integrations/FulfillmentWmsView.vue')
+      },
+      {
+        path: 'whatsapp',
+        name: 'WhatsAppConfig',
+        component: () => import('@/views/integrations/WhatsAppConfigView.vue')
       }
     ]
   },
