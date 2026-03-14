@@ -114,7 +114,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed, onMounted } from 'vue'
+import { reactive, computed, onMounted, watch } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { usePaymentGatewaysStore } from '@/stores/payment-gateways.store'
@@ -142,6 +142,20 @@ const formData = reactive({
 })
 
 const isConfigured = computed(() => store.currentConfig?.gateway?.configured || false)
+
+watch(() => store.currentConfig, (config) => {
+  if (config?.credentials) {
+    const c = config.credentials as Record<string, any>
+    formData.public_key = c.public_key ?? ''
+    formData.private_key = c.private_key ?? ''
+    formData.app_id = c.app_id ?? ''
+    formData.environment = c.environment ?? 'integracion'
+    if (c.payment_methods && typeof c.payment_methods === 'object') {
+      Object.assign(formData.payment_methods, c.payment_methods)
+    }
+  }
+}, { immediate: true })
+
 onMounted(() => { store.clearMessages() })
 
 async function handleSubmit() {

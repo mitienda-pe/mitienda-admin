@@ -92,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed, onMounted } from 'vue'
+import { reactive, computed, onMounted, watch } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { usePaymentGatewaysStore } from '@/stores/payment-gateways.store'
@@ -113,6 +113,15 @@ const formData = reactive({
 })
 
 const isConfigured = computed(() => store.currentConfig?.gateway?.configured || false)
+
+watch(() => store.currentConfig, (config) => {
+  if (config?.credentials) {
+    const c = config.credentials as Record<string, any>
+    formData.instructions = c.instructions || ''
+    formData.optional_text = c.optional_text || ''
+  }
+}, { immediate: true })
+
 onMounted(() => { store.clearMessages() })
 
 async function handleSubmit() {

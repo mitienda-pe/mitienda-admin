@@ -158,7 +158,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed, onMounted } from 'vue'
+import { reactive, computed, onMounted, watch } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { usePaymentGatewaysStore } from '@/stores/payment-gateways.store'
@@ -191,6 +191,17 @@ const formData = reactive<PayUFormData>({
 
 const errors = reactive({ api_key: '', api_login: '', merchant_id: '', account_id: '' })
 const isConfigured = computed(() => store.currentConfig?.gateway?.configured || false)
+
+watch(() => store.currentConfig, (config) => {
+  if (config?.credentials) {
+    const c = config.credentials as Record<string, any>
+    formData.api_key = c.api_key || ''
+    formData.api_login = c.api_login || ''
+    formData.merchant_id = c.merchant_id || ''
+    formData.account_id = c.account_id || ''
+    formData.environment = c.environment || 'prueba'
+  }
+}, { immediate: true })
 
 onMounted(async () => {
   store.clearMessages()

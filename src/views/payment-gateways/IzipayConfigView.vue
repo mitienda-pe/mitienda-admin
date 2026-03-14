@@ -298,7 +298,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed, onMounted } from 'vue'
+import { reactive, computed, onMounted, watch } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { usePaymentGatewaysStore } from '@/stores/payment-gateways.store'
@@ -343,22 +343,21 @@ const errors = reactive({
 
 const isConfigured = computed(() => store.currentConfig?.gateway?.configured || false)
 
-onMounted(async () => {
-  store.clearMessages()
-
-  // Llenar formulario si ya hay configuración
-  if (store.currentConfig?.credentials) {
-    const creds = store.currentConfig.credentials.credentials as unknown as IzipayCredentials
-    if (creds) {
-      Object.assign(formData, {
-        api_key: creds.api_key || '',
-        merchant_code: creds.merchant_code || '',
-        secret: creds.secret || '',
-        environment: creds.environment || 'integracion',
-        payment_methods: creds.payment_methods || formData.payment_methods
-      })
+watch(() => store.currentConfig, (config) => {
+  if (config?.credentials) {
+    const c = config.credentials as Record<string, any>
+    formData.api_key = c.api_key ?? ''
+    formData.merchant_code = c.merchant_code ?? ''
+    formData.secret = c.secret ?? ''
+    formData.environment = c.environment ?? 'integracion'
+    if (c.payment_methods && typeof c.payment_methods === 'object') {
+      Object.assign(formData.payment_methods, c.payment_methods)
     }
   }
+}, { immediate: true })
+
+onMounted(() => {
+  store.clearMessages()
 })
 
 function validateForm(): boolean {

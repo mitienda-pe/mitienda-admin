@@ -8,7 +8,7 @@ import type {
 } from '@/types/payment-gateway.types'
 
 // Flag para usar mocks mientras el backend no esté listo
-const USE_MOCKS = true
+const USE_MOCKS = false
 
 // Mock data para desarrollo
 const MOCK_GATEWAYS: PaymentGateway[] = [
