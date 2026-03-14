@@ -30,8 +30,8 @@
           <span class="inline-flex rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">
             {{ typeLabels[rule.type as keyof typeof typeLabels] || rule.type }}
           </span>
-          <div v-if="rule.config" class="mt-1 text-xs text-gray-500">
-            <code class="rounded bg-gray-50 px-1 py-0.5">{{ formatConfig(rule.config) }}</code>
+          <div class="mt-1 text-xs text-gray-500">
+            {{ formatConfigHumanReadable(rule.type, rule.config) }}
           </div>
         </div>
         <div class="flex gap-1">
@@ -58,7 +58,7 @@
       v-model:visible="showDialog"
       :modal="true"
       :header="isEditing ? 'Editar regla' : 'Agregar regla'"
-      :style="{ width: '500px' }"
+      :style="{ width: '550px' }"
     >
       <div class="space-y-4">
         <div>
@@ -73,8 +73,19 @@
             </option>
           </select>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-secondary-700">Configuración (JSON)</label>
+
+        <!-- Type-specific form (when schema exists) -->
+        <div v-if="dialogForm.type && !advancedMode && useFormMode">
+          <RuleConfigForm
+            :ruleCategory="ruleCategory"
+            :type="dialogForm.type"
+            v-model="configObject"
+          />
+        </div>
+
+        <!-- JSON textarea (advanced mode or fallback) -->
+        <div v-else-if="dialogForm.type && (advancedMode || !useFormMode)">
+          <label class="block text-sm font-medium text-secondary-700">Configuraci&oacute;n (JSON)</label>
           <textarea
             v-model="configText"
             rows="5"
@@ -83,6 +94,18 @@
             :class="{ 'border-red-300': configError }"
           ></textarea>
           <p v-if="configError" class="mt-1 text-xs text-red-600">{{ configError }}</p>
+        </div>
+
+        <!-- Toggle advanced mode -->
+        <div v-if="dialogForm.type && hasSchema" class="flex items-center justify-end">
+          <button
+            type="button"
+            class="text-xs text-gray-500 hover:text-gray-700"
+            @click="toggleAdvancedMode"
+          >
+            <i class="pi pi-code mr-1"></i>
+            {{ advancedMode ? 'Modo formulario' : 'Modo avanzado (JSON)' }}
+          </button>
         </div>
       </div>
       <template #footer>
@@ -105,8 +128,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import Dialog from 'primevue/dialog'
+import RuleConfigForm from './RuleConfigForm.vue'
+import {
+  hasConfigSchema,
+  formatConfigHuman,
+  type RuleCategory,
+} from '@/config/promotion-v2-config-schemas'
 
 const props = defineProps<{
   title: string
@@ -116,6 +145,7 @@ const props = defineProps<{
   typeLabels: Record<string, string>
   validTypes: string[]
   idField: string
+  ruleCategory: RuleCategory
 }>()
 
 const emit = defineEmits<{
@@ -128,14 +158,49 @@ const showDialog = ref(false)
 const isEditing = ref(false)
 const editingId = ref<number | null>(null)
 const configError = ref('')
+const advancedMode = ref(false)
 
 const dialogForm = reactive({
   type: '',
 })
 const configText = ref('')
+const configObject = ref<Record<string, any>>({})
 
-function formatConfig(config: Record<string, any>): string {
-  return JSON.stringify(config)
+const hasSchema = computed(() =>
+  dialogForm.type ? hasConfigSchema(props.ruleCategory, dialogForm.type) : false
+)
+
+const useFormMode = computed(() => hasSchema.value)
+
+// Sync configObject <-> configText when toggling modes
+watch(advancedMode, (isAdvanced) => {
+  if (isAdvanced) {
+    // Form → JSON
+    configText.value = Object.keys(configObject.value).length > 0
+      ? JSON.stringify(configObject.value, null, 2)
+      : ''
+  } else {
+    // JSON → Form
+    try {
+      const parsed = configText.value.trim() ? JSON.parse(configText.value) : {}
+      configObject.value = parsed
+      configError.value = ''
+    } catch {
+      // Keep current configObject if JSON is invalid
+    }
+  }
+})
+
+// Reset config when type changes
+watch(() => dialogForm.type, () => {
+  configObject.value = {}
+  configText.value = ''
+  configError.value = ''
+  advancedMode.value = false
+})
+
+function formatConfigHumanReadable(type: string, config: Record<string, any> | null): string {
+  return formatConfigHuman(props.ruleCategory, type, config)
 }
 
 function openAddDialog() {
@@ -143,7 +208,9 @@ function openAddDialog() {
   editingId.value = null
   dialogForm.type = ''
   configText.value = ''
+  configObject.value = {}
   configError.value = ''
+  advancedMode.value = false
   showDialog.value = true
 }
 
@@ -151,27 +218,37 @@ function openEditDialog(rule: any) {
   isEditing.value = true
   editingId.value = rule[props.idField]
   dialogForm.type = rule.type
-  configText.value = rule.config ? JSON.stringify(rule.config, null, 2) : ''
+  const existingConfig = rule.config || {}
+  configObject.value = { ...existingConfig }
+  configText.value = Object.keys(existingConfig).length > 0
+    ? JSON.stringify(existingConfig, null, 2)
+    : ''
   configError.value = ''
+  advancedMode.value = false
   showDialog.value = true
 }
 
-function parseConfig(): Record<string, any> | null {
-  const text = configText.value.trim()
-  if (!text) return null
-
-  try {
-    const parsed = JSON.parse(text)
-    configError.value = ''
-    return parsed
-  } catch {
-    configError.value = 'JSON inválido'
-    return undefined as any
+function getConfig(): Record<string, any> | null | undefined {
+  if (advancedMode.value || !useFormMode.value) {
+    // Parse JSON text
+    const text = configText.value.trim()
+    if (!text) return null
+    try {
+      const parsed = JSON.parse(text)
+      configError.value = ''
+      return parsed
+    } catch {
+      configError.value = 'JSON inv\u00e1lido'
+      return undefined
+    }
+  } else {
+    // Use form object
+    return Object.keys(configObject.value).length > 0 ? configObject.value : null
   }
 }
 
 async function handleSave() {
-  const config = parseConfig()
+  const config = getConfig()
   if (config === undefined) return // parse error
 
   const data = { type: dialogForm.type, config }
@@ -187,5 +264,9 @@ async function handleSave() {
 
 function handleDelete(id: number) {
   emit('delete', id)
+}
+
+function toggleAdvancedMode() {
+  advancedMode.value = !advancedMode.value
 }
 </script>
