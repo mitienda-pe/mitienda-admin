@@ -11,6 +11,7 @@ import type {
 export const usePaymentGatewaysStore = defineStore('payment-gateways', () => {
   // State
   const gateways = ref<PaymentGateway[]>([])
+  const activeGateway = ref<string | null>(null)
   const currentConfig = ref<GatewayConfig | null>(null)
   const isLoading = ref(false)
   const isSaving = ref(false)
@@ -31,7 +32,15 @@ export const usePaymentGatewaysStore = defineStore('payment-gateways', () => {
       const response = await paymentGatewaysApi.getGateways()
 
       if (response.success && response.data) {
-        gateways.value = response.data
+        // New format: { gateways: [...], active_gateway: 'code' }
+        if (response.data.gateways) {
+          gateways.value = response.data.gateways
+          activeGateway.value = response.data.active_gateway ?? null
+        } else {
+          // Fallback for old format
+          gateways.value = response.data
+          activeGateway.value = null
+        }
       } else {
         error.value = response.message || 'Error al cargar pasarelas'
       }
@@ -194,11 +203,8 @@ export const usePaymentGatewaysStore = defineStore('payment-gateways', () => {
       const response = await paymentGatewaysApi.toggleGateway(code, enabled)
 
       if (response.success) {
-        // Actualizar en la lista local
-        const gateway = gateways.value.find(g => g.code === code)
-        if (gateway) {
-          gateway.enabled = enabled
-        }
+        // Refresh full list since toggling exclusive gateways may deactivate others
+        await fetchGateways()
         return { success: true }
       } else {
         error.value = response.message || 'Error al cambiar estado'
@@ -229,6 +235,7 @@ export const usePaymentGatewaysStore = defineStore('payment-gateways', () => {
   return {
     // State
     gateways,
+    activeGateway,
     currentConfig,
     isLoading,
     isSaving,
