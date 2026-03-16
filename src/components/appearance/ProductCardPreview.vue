@@ -8,26 +8,39 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const previewImages = [
-  'https://picsum.photos/seed/mitienda-preview/400/400',
-  'https://picsum.photos/seed/mitienda-preview2/400/400',
-  'https://picsum.photos/seed/mitienda-preview3/400/400'
-]
+const previewImages = computed(() => {
+  if (props.config.image_aspect_ratio === '4/5') {
+    return [
+      'https://picsum.photos/seed/mitienda-preview/400/500',
+      'https://picsum.photos/seed/mitienda-preview2/400/500',
+      'https://picsum.photos/seed/mitienda-preview3/400/500'
+    ]
+  }
+  return [
+    'https://picsum.photos/seed/mitienda-preview/400/400',
+    'https://picsum.photos/seed/mitienda-preview2/400/400',
+    'https://picsum.photos/seed/mitienda-preview3/400/400'
+  ]
+})
 
 const currentImageIndex = ref(0)
 
 function nextImage() {
-  currentImageIndex.value = (currentImageIndex.value + 1) % previewImages.length
+  currentImageIndex.value = (currentImageIndex.value + 1) % previewImages.value.length
 }
 
 function prevImage() {
   currentImageIndex.value =
-    (currentImageIndex.value - 1 + previewImages.length) % previewImages.length
+    (currentImageIndex.value - 1 + previewImages.value.length) % previewImages.value.length
 }
 
 function goToImage(index: number) {
   currentImageIndex.value = index
 }
+
+const imageRatioCss = computed(() => {
+  return props.config.image_aspect_ratio === '4/5' ? '4 / 5' : '1 / 1'
+})
 
 const cardClasses = computed(() => {
   const classes: string[] = ['pc-preview']
@@ -87,7 +100,7 @@ const buttonLabel = computed(() => {
     </p>
     <div :class="cardClasses">
       <!-- Image -->
-      <div class="pc-image-wrapper">
+      <div class="pc-image-wrapper" :style="{ aspectRatio: imageRatioCss }">
         <!-- Default / hover-swap -->
         <template v-if="config.image_display === 'none' || config.image_display === 'hover-swap'">
           <img

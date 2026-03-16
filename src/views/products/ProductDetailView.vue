@@ -792,6 +792,7 @@
 
     <!-- Modal de subida de imagen -->
     <ProductImageUploader v-if="product" v-model:visible="showImageUploader" :product-id="product.id"
+      :aspect-ratio="cropperAspectRatio"
       @upload-success="handleImageUploadSuccess" @upload-error="handleImageUploadError" />
 
     <!-- Modal de subida de video -->
@@ -903,6 +904,7 @@ import ProductTagAssignment from '@/components/ProductTagAssignment.vue'
 import ProductReviewsCard from '@/components/reviews/ProductReviewsCard.vue'
 import type { ProductUpdatePayload, ExternalCategoryOption } from '@/types/product.types'
 import { useShippingConfigStore } from '@/stores/shipping-config.store'
+import { useProductCardStore } from '@/stores/product-card.store'
 import { productsApi } from '@/api/products.api'
 
 const route = useRoute()
@@ -913,6 +915,16 @@ const gammaStore = useGammaStore()
 const authStore = useAuthStore()
 const toast = useToast()
 const shippingConfigStore = useShippingConfigStore()
+const productCardStore = useProductCardStore()
+
+// Load product card config for aspect ratio (if not already loaded)
+if (!productCardStore.isLoaded) {
+  productCardStore.fetchConfig()
+}
+
+const cropperAspectRatio = computed(() => {
+  return productCardStore.savedConfig.image_aspect_ratio === '4/5' ? 4 / 5 : 1
+})
 const { formatCurrency, formatDate } = useFormatters()
 
 const product = computed(() => productsStore.currentProduct)

@@ -19,12 +19,15 @@ export type ButtonType = 0 | 1 | 2 | 4
 
 export type ImageDisplay = 'none' | 'hover-swap' | 'carousel' | 'thumbnails'
 
+export type ImageAspectRatio = '1/1' | '4/5'
+
 export interface ProductCardConfig {
   card_style: CardStyle
   border_radius: BorderRadius
   hover_effect: HoverEffect
   button_type: ButtonType
   image_display: ImageDisplay
+  image_aspect_ratio: ImageAspectRatio
   show_color_swatches: boolean
   show_size_buttons: boolean
 }
@@ -35,6 +38,7 @@ export const DEFAULT_PRODUCT_CARD_CONFIG: ProductCardConfig = {
   hover_effect: 'translate-y',
   button_type: 0,
   image_display: 'none',
+  image_aspect_ratio: '1/1',
   show_color_swatches: false,
   show_size_buttons: false
 }
@@ -129,6 +133,28 @@ export const BORDER_RADIUS_OPTIONS: BorderRadiusOption[] = [
   { value: 4, label: 'Sutil (4px)' },
   { value: 8, label: 'Moderado (8px)' },
   { value: 12, label: 'Redondeado (12px)' }
+]
+
+export interface ImageAspectRatioOption {
+  value: ImageAspectRatio
+  label: string
+  description: string
+  cssRatio: string
+}
+
+export const IMAGE_ASPECT_RATIO_OPTIONS: ImageAspectRatioOption[] = [
+  {
+    value: '1/1',
+    label: 'Cuadrado',
+    description: 'Proporción 1:1',
+    cssRatio: '1 / 1'
+  },
+  {
+    value: '4/5',
+    label: 'Vertical',
+    description: 'Proporción 4:5',
+    cssRatio: '4 / 5'
+  }
 ]
 
 export interface ImageDisplayOption {

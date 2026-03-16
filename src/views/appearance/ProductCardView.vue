@@ -8,13 +8,15 @@ import BorderRadiusSelector from '@/components/appearance/BorderRadiusSelector.v
 import HoverEffectSelector from '@/components/appearance/HoverEffectSelector.vue'
 import ButtonTypeSelector from '@/components/appearance/ButtonTypeSelector.vue'
 import ImageDisplaySelector from '@/components/appearance/ImageDisplaySelector.vue'
+import ImageAspectRatioSelector from '@/components/appearance/ImageAspectRatioSelector.vue'
 import ProductCardPreview from '@/components/appearance/ProductCardPreview.vue'
 import type {
   CardStyle,
   BorderRadius,
   HoverEffect,
   ButtonType,
-  ImageDisplay
+  ImageDisplay,
+  ImageAspectRatio
 } from '@/types/product-card.types'
 
 const toast = useToast()
@@ -137,6 +139,22 @@ onMounted(() => {
             <ButtonTypeSelector
               :modelValue="store.draftConfig.button_type"
               @update:modelValue="store.updateField('button_type', $event as ButtonType)"
+            />
+          </div>
+        </div>
+
+        <!-- Image Aspect Ratio -->
+        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+            <h2 class="text-base font-semibold text-gray-800">Foto del Producto</h2>
+            <p class="text-xs text-gray-500 mt-0.5">
+              Proporción de la imagen en la viñeta y el recorte
+            </p>
+          </div>
+          <div class="p-6">
+            <ImageAspectRatioSelector
+              :modelValue="store.draftConfig.image_aspect_ratio"
+              @update:modelValue="store.updateField('image_aspect_ratio', $event as ImageAspectRatio)"
             />
           </div>
         </div>

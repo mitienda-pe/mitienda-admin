@@ -10,6 +10,7 @@ import { getValidationRules, formatFileSize } from '@/config/image-validation.co
 interface Props {
   visible: boolean
   productId: number
+  aspectRatio?: number
 }
 
 const props = defineProps<Props>()
@@ -239,6 +240,7 @@ const handleClose = () => {
           :image-file="selectedFile"
           :min-width="validationRules.minWidth"
           :min-height="validationRules.minHeight"
+          :aspect-ratio="aspectRatio"
           @crop-complete="handleCropComplete"
           @skip="handleSkipCrop"
           @cancel="handleCancelCrop"

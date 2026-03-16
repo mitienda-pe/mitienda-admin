@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { Cropper } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
 import Button from 'primevue/button'
@@ -8,11 +8,13 @@ interface Props {
   imageFile: File
   minWidth?: number
   minHeight?: number
+  aspectRatio?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   minWidth: 600,
-  minHeight: 600
+  minHeight: 600,
+  aspectRatio: 1
 })
 
 const emit = defineEmits<{
@@ -84,10 +86,10 @@ const handleCancel = () => {
   emit('cancel')
 }
 
-// Stencil props for square cropping
-const stencilProps = {
-  aspectRatio: 1
-}
+// Stencil props for cropping with configured aspect ratio
+const stencilProps = computed(() => ({
+  aspectRatio: props.aspectRatio
+}))
 </script>
 
 <template>
@@ -108,7 +110,7 @@ const stencilProps = {
 
     <div class="info-message">
       <i class="pi pi-info-circle"></i>
-      <span>Ajusta el área de recorte para crear una imagen cuadrada. Mínimo {{ minWidth }}x{{ minHeight }}px.</span>
+      <span>Ajusta el área de recorte para crear una imagen {{ aspectRatio === 1 ? 'cuadrada' : 'vertical (4:5)' }}. Mínimo {{ minWidth }}x{{ minHeight }}px.</span>
     </div>
 
     <div class="actions">
