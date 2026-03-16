@@ -47,6 +47,43 @@ const orderReviews = ref<OrderItemReview[]>([])
 const fulfillmentProvider = ref<FulfillmentProvider | null>(null)
 const isSendingToFulfillment = ref(false)
 
+// Payment status actions
+const isUpdatingPayment = ref(false)
+
+const canConfirmPayment = computed(() => {
+  return order.value?.status === 'pending'
+})
+
+const canRejectPayment = computed(() => {
+  return order.value?.status === 'pending'
+})
+
+async function handleConfirmPayment() {
+  if (!order.value || isUpdatingPayment.value) return
+  isUpdatingPayment.value = true
+  try {
+    await ordersStore.updateOrderStatus(order.value.id, 'paid')
+    toast.add({ severity: 'success', summary: 'Pago confirmado', detail: 'El pedido fue marcado como pagado', life: 3000 })
+  } catch (err: any) {
+    toast.add({ severity: 'error', summary: 'Error', detail: err.message || 'No se pudo confirmar el pago', life: 5000 })
+  } finally {
+    isUpdatingPayment.value = false
+  }
+}
+
+async function handleRejectPayment() {
+  if (!order.value || isUpdatingPayment.value) return
+  isUpdatingPayment.value = true
+  try {
+    await ordersStore.updateOrderStatus(order.value.id, 'cancelled')
+    toast.add({ severity: 'warn', summary: 'Pago rechazado', detail: 'El pedido fue marcado como rechazado', life: 3000 })
+  } catch (err: any) {
+    toast.add({ severity: 'error', summary: 'Error', detail: err.message || 'No se pudo rechazar el pago', life: 5000 })
+  } finally {
+    isUpdatingPayment.value = false
+  }
+}
+
 function copyToClipboard(text: string) {
   navigator.clipboard.writeText(text)
   toast.add({ severity: 'info', summary: 'Copiado', life: 1500 })
@@ -704,6 +741,23 @@ const handleDebugPayments = async () => {
           icon="pi pi-file-pdf"
           severity="success"
           @click="showEmitDialog = true"
+        />
+        <Button
+          v-if="canConfirmPayment"
+          label="Confirmar pago"
+          icon="pi pi-check"
+          severity="success"
+          :loading="isUpdatingPayment"
+          @click="handleConfirmPayment"
+        />
+        <Button
+          v-if="canRejectPayment"
+          label="Rechazar"
+          icon="pi pi-times"
+          severity="danger"
+          outlined
+          :loading="isUpdatingPayment"
+          @click="handleRejectPayment"
         />
         <span
           v-if="statusConfig"
