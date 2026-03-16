@@ -32,13 +32,14 @@ export const usePaymentGatewaysStore = defineStore('payment-gateways', () => {
       const response = await paymentGatewaysApi.getGateways()
 
       if (response.success && response.data) {
+        const data = response.data as PaymentGateway[] | { gateways: PaymentGateway[]; active_gateway?: string }
         // New format: { gateways: [...], active_gateway: 'code' }
-        if (response.data.gateways) {
-          gateways.value = response.data.gateways
-          activeGateway.value = response.data.active_gateway ?? null
+        if (!Array.isArray(data) && data.gateways) {
+          gateways.value = data.gateways
+          activeGateway.value = data.active_gateway ?? null
         } else {
-          // Fallback for old format
-          gateways.value = response.data
+          // Fallback for old format (plain array)
+          gateways.value = Array.isArray(data) ? data : []
           activeGateway.value = null
         }
       } else {
