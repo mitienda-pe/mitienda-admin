@@ -161,16 +161,19 @@ import { useOnboarding } from '@/composables/useOnboarding'
 import Card from 'primevue/card'
 import ProgressSpinner from 'primevue/progressspinner'
 
-// Logos de las pasarelas (prefer SVG over PNG)
-import logoIzipay from '@/assets/images/logo_izipay.svg'
+// Logos de las pasarelas (SVG preferred, kebab-case naming)
+import logoIzipay from '@/assets/images/logo-izipay.svg'
 import logoNiubiz from '@/assets/images/logo-niubiz.svg'
-import logoCulqi from '@/assets/images/Logo-Culqi.png'
-import logoMercadopago from '@/assets/images/logo_mercadopago.svg'
-import logoOpenpay from '@/assets/images/logo_openpay.svg'
-import logoPowerpay from '@/assets/images/logo_powerpay.svg'
-import logoPaypal from '@/assets/images/Logo_PayPal.png'
+import logoCulqi from '@/assets/images/logo-culqi.svg'
+import logoMercadopago from '@/assets/images/logo-mercadopago.svg'
+import logoOpenpay from '@/assets/images/logo-openpay.svg'
+import logoPowerpay from '@/assets/images/logo-powerpay.svg'
+import logoPaypal from '@/assets/images/logo-paypal.svg'
 import logoYape from '@/assets/images/logo-yape.svg'
-import logoPlin from '@/assets/images/logo_plin.svg'
+import logoPlin from '@/assets/images/logo-plin.svg'
+import logoPayme from '@/assets/images/logo-payme.png'
+import logoPayu from '@/assets/images/logo-payu.svg'
+import logoPayphone from '@/assets/images/logo-payphone.svg'
 
 const router = useRouter()
 const store = usePaymentGatewaysStore()
@@ -186,6 +189,9 @@ const gatewayLogos: Record<string, string> = {
   'paypal': logoPaypal,
   'yape_manual': logoYape,
   'plin': logoPlin,
+  'payme': logoPayme,
+  'payu': logoPayu,
+  'payphone': logoPayphone,
 }
 
 const exclusiveGateways = computed(() =>
