@@ -174,6 +174,10 @@ import logoPlin from '@/assets/images/logo-plin.svg'
 import logoPayme from '@/assets/images/logo-payme.png'
 import logoPayu from '@/assets/images/logo-payu.svg'
 import logoPayphone from '@/assets/images/logo-payphone.svg'
+import logoWebpay from '@/assets/images/logo-webpay.svg'
+import logoWompi from '@/assets/images/logo-wompi.svg'
+import logoDlocal from '@/assets/images/logo-dlocal.svg'
+import logoFlow from '@/assets/images/logo-flow.svg'
 
 const router = useRouter()
 const store = usePaymentGatewaysStore()
@@ -192,6 +196,10 @@ const gatewayLogos: Record<string, string> = {
   'payme': logoPayme,
   'payu': logoPayu,
   'payphone': logoPayphone,
+  'transbank': logoWebpay,
+  'wompi': logoWompi,
+  'dlocal': logoDlocal,
+  'flow': logoFlow,
 }
 
 const exclusiveGateways = computed(() =>
