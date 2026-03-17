@@ -178,6 +178,7 @@ import logoWebpay from '@/assets/images/logo-webpay.svg'
 import logoWompi from '@/assets/images/logo-wompi.svg'
 import logoDlocal from '@/assets/images/logo-dlocal.svg'
 import logoFlow from '@/assets/images/logo-flow.svg'
+import logoConekta from '@/assets/images/logo-conekta.svg'
 
 const router = useRouter()
 const store = usePaymentGatewaysStore()
@@ -200,6 +201,7 @@ const gatewayLogos: Record<string, string> = {
   'wompi': logoWompi,
   'dlocal': logoDlocal,
   'flow': logoFlow,
+  'conekta': logoConekta,
 }
 
 const exclusiveGateways = computed(() =>
