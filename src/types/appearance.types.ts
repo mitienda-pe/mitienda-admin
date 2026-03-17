@@ -215,6 +215,7 @@ export interface CatalogPreferences {
   product_order: number
   hide_out_of_stock: number
   pricing_mode: number // 0 = con IGV (default), 1 = sin IGV
+  layout_width: number // 0 = contained (1280px), 1 = fluid (100%)
 }
 
 export const DEFAULT_CATALOG_PREFERENCES: CatalogPreferences = {
@@ -225,7 +226,20 @@ export const DEFAULT_CATALOG_PREFERENCES: CatalogPreferences = {
   product_order: 1,
   hide_out_of_stock: 1,
   pricing_mode: 0,
+  layout_width: 0,
 }
+
+export interface LayoutWidthOption {
+  value: number
+  label: string
+  description: string
+  icon: string
+}
+
+export const LAYOUT_WIDTH_OPTIONS: LayoutWidthOption[] = [
+  { value: 0, label: 'Contenido', description: 'Ancho máximo de 1280px', icon: 'pi pi-align-center' },
+  { value: 1, label: 'Fluido', description: 'Ocupa el 100% del ancho', icon: 'pi pi-arrows-h' },
+]
 
 export interface PricingModeOption {
   value: number
