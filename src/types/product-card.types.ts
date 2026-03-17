@@ -69,14 +69,14 @@ export interface ButtonTypeOption {
 
 export const CARD_STYLE_OPTIONS: CardStyleOption[] = [
   {
-    value: 'default',
+    value: 'bordered',
     label: 'Predeterminado',
-    description: 'Fondo blanco con sombra sutil'
+    description: 'Con borde y sin sombra'
   },
   {
-    value: 'bordered',
-    label: 'Con borde',
-    description: 'Borde visible sin sombra'
+    value: 'default',
+    label: 'Sin borde',
+    description: 'Fondo blanco con sombra sutil'
   },
   {
     value: 'border-image',
