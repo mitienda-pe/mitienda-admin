@@ -1,11 +1,22 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { StoreColorConfig } from '@/types/appearance.types'
 
 interface Props {
   colors: StoreColorConfig
+  logoPosition?: number // 0 = center, 2 = left
 }
 
-defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  logoPosition: 0
+})
+
+const isLogoLeft = computed(() => props.logoPosition === 2)
+// Left mode: icons share the navbar row, use navbar color
+// Center mode: icons are in the header row, use header color
+const iconColor = computed(() =>
+  isLogoLeft.value ? props.colors.navbar.links : props.colors.header.accent
+)
 </script>
 
 <template>
@@ -15,58 +26,82 @@ defineProps<Props>()
     </div>
 
     <div class="w-full" style="font-family: 'Inter', sans-serif">
-      <!-- Header -->
-      <div
-        class="px-4 py-3 flex items-center justify-between"
-        :style="{ backgroundColor: colors.header.background }"
-      >
-        <div class="flex items-center gap-2">
-          <div
-            class="w-5 h-5 rounded-full"
-            :style="{ backgroundColor: colors.header.accent }"
-          />
+      <!-- Logo Left: Header + Navbar merged in one row -->
+      <template v-if="isLogoLeft">
+        <div
+          class="px-4 py-2.5 flex items-center gap-3"
+          :style="{ backgroundColor: colors.navbar.background }"
+        >
+          <div class="flex items-center gap-2 mr-2">
+            <div
+              class="w-5 h-5 rounded-full"
+              :style="{ backgroundColor: colors.header.accent }"
+            />
+            <span
+              class="text-sm font-semibold"
+              :style="{ color: colors.navbar.links }"
+            >Mi Tienda</span>
+          </div>
           <span
-            class="text-sm font-semibold"
-            :style="{ color: colors.header.text }"
-          >Mi Tienda</span>
+            class="text-xs font-medium border-b"
+            :style="{
+              color: colors.navbar.activeLink,
+              borderColor: colors.navbar.activeLink
+            }"
+          >Inicio</span>
+          <span class="text-xs" :style="{ color: colors.navbar.links }">Catálogo</span>
+          <span class="text-xs" :style="{ color: colors.navbar.links }">Ofertas</span>
+          <div class="ml-auto flex items-center gap-1">
+            <i class="pi pi-search text-xs" :style="{ color: iconColor }" />
+            <i class="pi pi-shopping-cart text-xs ml-1" :style="{ color: iconColor }" />
+          </div>
         </div>
-        <div class="flex items-center gap-1">
-          <i
-            class="pi pi-search text-xs"
-            :style="{ color: colors.header.accent }"
-          />
-          <i
-            class="pi pi-shopping-cart text-xs ml-1"
-            :style="{ color: colors.header.accent }"
-          />
-        </div>
-      </div>
+      </template>
 
-      <!-- Navbar -->
-      <div
-        class="px-4 py-2 flex items-center gap-3"
-        :style="{ backgroundColor: colors.navbar.background }"
-      >
-        <span
-          class="text-xs font-medium border-b"
-          :style="{
-            color: colors.navbar.activeLink,
-            borderColor: colors.navbar.activeLink
-          }"
-        >Inicio</span>
-        <span
-          class="text-xs"
-          :style="{ color: colors.navbar.links }"
-        >Catálogo</span>
-        <span
-          class="text-xs"
-          :style="{ color: colors.navbar.links }"
-        >Ofertas</span>
-        <span
-          class="text-xs"
-          :style="{ color: colors.navbar.links }"
-        >Contacto</span>
-      </div>
+      <!-- Logo Center: Header row + Navbar row separated -->
+      <template v-else>
+        <!-- Header row: icons | logo | icons -->
+        <div
+          class="px-4 py-3 flex items-center justify-between"
+          :style="{ backgroundColor: colors.header.background }"
+        >
+          <div class="flex items-center gap-1">
+            <i class="pi pi-user text-xs" :style="{ color: colors.header.text }" />
+            <i class="pi pi-heart text-xs ml-1" :style="{ color: colors.header.text }" />
+          </div>
+          <div class="flex items-center gap-2">
+            <div
+              class="w-5 h-5 rounded-full"
+              :style="{ backgroundColor: colors.header.accent }"
+            />
+            <span
+              class="text-sm font-semibold"
+              :style="{ color: colors.header.text }"
+            >Mi Tienda</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <i class="pi pi-search text-xs" :style="{ color: iconColor }" />
+            <i class="pi pi-shopping-cart text-xs ml-1" :style="{ color: iconColor }" />
+          </div>
+        </div>
+
+        <!-- Navbar row -->
+        <div
+          class="px-4 py-2 flex items-center justify-center gap-3"
+          :style="{ backgroundColor: colors.navbar.background }"
+        >
+          <span
+            class="text-xs font-medium border-b"
+            :style="{
+              color: colors.navbar.activeLink,
+              borderColor: colors.navbar.activeLink
+            }"
+          >Inicio</span>
+          <span class="text-xs" :style="{ color: colors.navbar.links }">Catálogo</span>
+          <span class="text-xs" :style="{ color: colors.navbar.links }">Ofertas</span>
+          <span class="text-xs" :style="{ color: colors.navbar.links }">Contacto</span>
+        </div>
+      </template>
 
       <!-- Body -->
       <div

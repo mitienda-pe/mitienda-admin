@@ -5,6 +5,7 @@ import { useAppearanceStore } from '@/stores/appearance.store'
 import { COLOR_SECTIONS } from '@/types/appearance.types'
 import type { StoreColorConfig, ColorPreset } from '@/types/appearance.types'
 import { COLOR_PRESETS } from '@/config/color-presets'
+import { useAppearanceConfigStore } from '@/stores/appearance-config.store'
 import ColorPickerField from '@/components/appearance/ColorPickerField.vue'
 import ColorPreview from '@/components/appearance/ColorPreview.vue'
 import PresetCard from '@/components/appearance/PresetCard.vue'
@@ -12,6 +13,7 @@ import { AppButton } from '@/components/ui'
 
 const toast = useToast()
 const store = useAppearanceStore()
+const configStore = useAppearanceConfigStore()
 
 const quickPresets = COLOR_PRESETS.slice(0, 4)
 const expandedSections = ref<Record<string, boolean>>({
@@ -215,7 +217,7 @@ onMounted(() => {
         <!-- Right: Live preview -->
         <div class="lg:col-span-2">
           <div class="lg:sticky lg:top-6">
-            <ColorPreview :colors="store.draftColors" />
+            <ColorPreview :colors="store.draftColors" :logo-position="configStore.draftCatalog.logo_position" />
           </div>
         </div>
       </div>
