@@ -161,14 +161,16 @@ import { useOnboarding } from '@/composables/useOnboarding'
 import Card from 'primevue/card'
 import ProgressSpinner from 'primevue/progressspinner'
 
-// Logos de las pasarelas
-import logoIzipay from '@/assets/images/logo_izipay.png'
+// Logos de las pasarelas (prefer SVG over PNG)
+import logoIzipay from '@/assets/images/logo_izipay.svg'
 import logoNiubiz from '@/assets/images/logo-niubiz.svg'
 import logoCulqi from '@/assets/images/Logo-Culqi.png'
 import logoMercadopago from '@/assets/images/logo_mercadopago.svg'
-import logoOpenpay from '@/assets/images/logo_Openpay.png'
-import logoPowerpay from '@/assets/images/logo_powerpay.png'
+import logoOpenpay from '@/assets/images/logo_openpay.svg'
+import logoPowerpay from '@/assets/images/logo_powerpay.svg'
 import logoPaypal from '@/assets/images/Logo_PayPal.png'
+import logoYape from '@/assets/images/logo-yape.svg'
+import logoPlin from '@/assets/images/logo_plin.svg'
 
 const router = useRouter()
 const store = usePaymentGatewaysStore()
@@ -181,7 +183,9 @@ const gatewayLogos: Record<string, string> = {
   'mercadopago': logoMercadopago,
   'openpay': logoOpenpay,
   'powerpay': logoPowerpay,
-  'paypal': logoPaypal
+  'paypal': logoPaypal,
+  'yape_manual': logoYape,
+  'plin': logoPlin,
 }
 
 const exclusiveGateways = computed(() =>
