@@ -137,13 +137,15 @@ const selectorRef = ref<InstanceType<typeof VariantAttributeSelector> | null>(nu
 
 // Methods
 async function loadExistingVariants() {
-  if (!props.hasVariantsProp) return
-
   isLoading.value = true
   try {
     const response = await productsApi.getVariants(props.productId)
     if (response.success && response.data) {
       variants.value = response.data.variants || []
+      // Auto-activate toggle if variants exist in DB
+      if (variants.value.length > 0) {
+        hasVariants.value = true
+      }
     }
   } catch (err) {
     console.error('Error loading variants:', err)
@@ -285,11 +287,13 @@ onMounted(() => {
   loadExistingVariants()
 })
 
-// React to prop changes (e.g., product data loads after mount)
+// Sync toggle when prop changes (e.g., product data loads after mount)
 watch(() => props.hasVariantsProp, (newVal) => {
-  hasVariants.value = newVal
-  if (newVal && variants.value.length === 0) {
-    loadExistingVariants()
+  if (newVal && !hasVariants.value) {
+    hasVariants.value = true
+    if (variants.value.length === 0) {
+      loadExistingVariants()
+    }
   }
 })
 </script>

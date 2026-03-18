@@ -127,6 +127,17 @@
           </template>
         </Card>
 
+        <!-- Variantes del Producto -->
+        <ProductVariantEditor
+          v-if="product"
+          :product-id="product.id"
+          :has-variants-prop="product.has_variation_attributes || false"
+          :default-price="form.price"
+          :images="product.images || []"
+          @variants-saved="reloadProduct"
+          @variants-toggle="handleVariantsToggle"
+        />
+
         <!-- Galeria de imagenes -->
         <ProductImageGallery
           v-if="product"
@@ -491,16 +502,6 @@
           </template>
         </Card>
 
-        <!-- Variantes del Producto -->
-        <ProductVariantEditor
-          v-if="product"
-          :product-id="product.id"
-          :has-variants-prop="product.has_variation_attributes || false"
-          :default-price="form.price"
-          :images="product.images || []"
-          @variants-saved="reloadProduct"
-          @variants-toggle="handleVariantsToggle"
-        />
       </div>
 
       <!-- Columna Derecha: Sidebar 1/3 -->
