@@ -62,18 +62,17 @@
         </template>
       </Column>
 
-      <!-- Offer Price -->
-      <Column header="P. Oferta" style="min-width: 130px">
+      <!-- Price without tax (auto-calculated) -->
+      <Column header="P. sin IGV" style="min-width: 130px">
         <template #body="{ data }">
           <InputNumber
-            v-model="data.offer_price"
+            :modelValue="calcPriceSinIgv(data.price)"
             mode="decimal"
             :minFractionDigits="2"
             :maxFractionDigits="2"
             prefix="S/ "
             class="w-full p-inputtext-sm"
-            placeholder="Opcional"
-            @input="emitUpdate"
+            disabled
           />
         </template>
       </Column>
@@ -171,6 +170,7 @@ const props = defineProps<{
   variants: ProductVariant[]
   images: ProductImage[]
   loading?: boolean
+  igvPercent?: number
 }>()
 
 const emit = defineEmits<{
@@ -205,6 +205,12 @@ function selectImage(imageId: number | null) {
     emitUpdate()
   }
   imagePickerRef.value?.hide()
+}
+
+function calcPriceSinIgv(price: number | null): number | null {
+  if (!price || price <= 0) return null
+  const igv = (props.igvPercent || 18) / 100
+  return parseFloat((price / (1 + igv)).toFixed(2))
 }
 
 const priceRange = computed(() => {

@@ -134,6 +134,7 @@
           :has-variants-prop="product.has_variation_attributes || false"
           :default-price="form.price"
           :images="product.images || []"
+          :igv-percent="form.igv_percent || 18"
           @variants-saved="reloadProduct"
           @variants-toggle="handleVariantsToggle"
         />

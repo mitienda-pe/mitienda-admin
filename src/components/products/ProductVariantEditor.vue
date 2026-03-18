@@ -80,6 +80,7 @@
           :variants="variants"
           :images="props.images"
           :loading="isSaving"
+          :igv-percent="props.igvPercent"
           @update="isDirty = true"
           @remove="handleRemoveVariant"
         />
@@ -116,6 +117,7 @@ const props = defineProps<{
   hasVariantsProp: boolean
   defaultPrice?: number
   images: ProductImage[]
+  igvPercent?: number
 }>()
 
 const emit = defineEmits<{
