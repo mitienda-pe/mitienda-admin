@@ -96,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { productsApi } from '@/api/products.api'
 import type {
   ProductVariant,
@@ -283,5 +283,13 @@ async function handleSave() {
 // Lifecycle
 onMounted(() => {
   loadExistingVariants()
+})
+
+// React to prop changes (e.g., product data loads after mount)
+watch(() => props.hasVariantsProp, (newVal) => {
+  hasVariants.value = newVal
+  if (newVal && variants.value.length === 0) {
+    loadExistingVariants()
+  }
 })
 </script>
