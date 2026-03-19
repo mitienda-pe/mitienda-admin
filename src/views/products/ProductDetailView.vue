@@ -107,6 +107,18 @@
           </template>
         </Card>
 
+        <!-- Variantes del Producto -->
+        <ProductVariantEditor
+          v-if="product"
+          :product-id="product.id"
+          :has-variants-prop="product.has_variation_attributes || false"
+          :default-price="form.price"
+          :images="product.images || []"
+          :igv-percent="form.igv_percent || 18"
+          @variants-saved="reloadProduct"
+          @variants-toggle="handleVariantsToggle"
+        />
+
         <!-- Descripcion -->
         <Card v-if="product.description_html || product.description">
           <template #title>
@@ -126,18 +138,6 @@
             <p v-else class="text-secondary-600">{{ product.description }}</p>
           </template>
         </Card>
-
-        <!-- Variantes del Producto -->
-        <ProductVariantEditor
-          v-if="product"
-          :product-id="product.id"
-          :has-variants-prop="product.has_variation_attributes || false"
-          :default-price="form.price"
-          :images="product.images || []"
-          :igv-percent="form.igv_percent || 18"
-          @variants-saved="reloadProduct"
-          @variants-toggle="handleVariantsToggle"
-        />
 
         <!-- Galeria de imagenes -->
         <ProductImageGallery
