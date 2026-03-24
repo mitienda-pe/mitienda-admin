@@ -7,6 +7,7 @@ import { AppButton, AppBadge, AppErrorState } from '@/components/ui'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Checkbox from 'primevue/checkbox'
+import Dropdown from 'primevue/dropdown'
 
 const route = useRoute()
 const router = useRouter()
@@ -45,15 +46,24 @@ function initForm() {
   const config = store.currentConfig
   if (!config) return
 
-  // Initialize credentials form
+  // Initialize credentials form (use saved value, then default, then empty)
   const creds: Record<string, string> = {}
   for (const field of config.provider.config_fields) {
-    creds[field.key] = config.credentials?.[field.key] ?? ''
+    creds[field.key] = config.credentials?.[field.key] ?? field.default ?? ''
   }
   formCredentials.value = creds
 
   // Initialize events
   formEvents.value = config.config?.events ?? [...config.provider.supported_events]
+}
+
+/** Normalize options to { value, label } format (handles both string[] and object[]) */
+function normalizeOptions(options: any[]): { value: string; label: string }[] {
+  if (!options?.length) return []
+  if (typeof options[0] === 'string') {
+    return options.map((o: string) => ({ value: o, label: o }))
+  }
+  return options
 }
 
 const provider = computed(() => store.currentConfig?.provider)
@@ -240,6 +250,15 @@ async function handleDelete() {
                 toggleMask
                 class="w-full"
                 inputClass="w-full"
+              />
+              <Dropdown
+                v-else-if="field.type === 'select' && field.options"
+                v-model="formCredentials[field.key]"
+                :options="normalizeOptions(field.options)"
+                optionLabel="label"
+                optionValue="value"
+                :placeholder="field.placeholder || 'Seleccionar...'"
+                class="w-full"
               />
               <InputText
                 v-else

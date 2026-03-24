@@ -5,6 +5,7 @@ export interface IntegrationProviderField {
   required: boolean
   placeholder?: string
   help?: string
+  default?: string
   options?: { label: string; value: string }[]
 }
 
