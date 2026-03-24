@@ -102,6 +102,18 @@ const statusConfig = (status: OrderStatus) => {
       bgClass: 'bg-green-100',
       textClass: 'text-green-800',
       iconClass: 'pi-check'
+    },
+    chargeback: {
+      label: 'Contracargo',
+      bgClass: 'bg-orange-100',
+      textClass: 'text-orange-800',
+      iconClass: 'pi-exclamation-triangle'
+    },
+    refunded: {
+      label: 'Reembolsado',
+      bgClass: 'bg-gray-100',
+      textClass: 'text-gray-800',
+      iconClass: 'pi-replay'
     }
   }
 

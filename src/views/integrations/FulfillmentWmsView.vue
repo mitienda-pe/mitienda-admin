@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useFormatters } from '@/composables/useFormatters'
 import { fulfillmentApi } from '@/api/fulfillment.api'
+import { useIntegrationProvidersStore } from '@/stores/integration-providers.store'
 import type {
   FulfillmentProvider,
   FulfillmentOrder,
@@ -20,6 +21,12 @@ import Calendar from 'primevue/calendar'
 
 const toast = useToast()
 const { formatCurrency, formatDate } = useFormatters()
+const integrationStore = useIntegrationProvidersStore()
+
+// Available fulfillment providers for the picker
+const fulfillmentProviders = computed(() =>
+  integrationStore.providers.filter(p => p.category === 'fulfillment')
+)
 
 // State
 const provider = ref<FulfillmentProvider | null>(null)
@@ -70,6 +77,9 @@ onMounted(async () => {
     provider.value = response.data ?? null
     if (provider.value) {
       await loadOrders()
+    } else {
+      // No provider configured — load available fulfillment providers for picker
+      await integrationStore.fetchProviders()
     }
   } catch (err) {
     toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cargar el proveedor de fulfillment', life: 4000 })
@@ -263,18 +273,46 @@ const getReservedStock = (item: any): number => {
       </div>
     </div>
 
-    <!-- No provider configured -->
-    <Card v-if="!provider" class="text-center py-12">
-      <template #content>
-        <div class="flex flex-col items-center gap-4">
-          <i class="pi pi-box text-4xl text-gray-300"></i>
-          <p class="text-gray-500">No hay proveedor de fulfillment configurado</p>
-          <router-link to="/integrations/providers">
-            <Button label="Configurar proveedor" icon="pi pi-plus" size="small" />
-          </router-link>
-        </div>
-      </template>
-    </Card>
+    <!-- No provider configured — show picker -->
+    <div v-if="!provider">
+      <Card class="mb-6">
+        <template #content>
+          <div class="flex flex-col items-center gap-4 py-8">
+            <i class="pi pi-box text-4xl text-gray-300"></i>
+            <p class="text-gray-500">No hay proveedor de fulfillment configurado</p>
+            <p class="text-sm text-gray-400">Selecciona un proveedor para comenzar</p>
+          </div>
+        </template>
+      </Card>
+
+      <!-- Loading providers -->
+      <div v-if="integrationStore.isLoading" class="flex justify-center py-8">
+        <i class="pi pi-spinner pi-spin text-3xl text-primary" />
+      </div>
+
+      <!-- Provider cards -->
+      <div v-else-if="fulfillmentProviders.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <router-link
+          v-for="fp in fulfillmentProviders"
+          :key="fp.code"
+          :to="`/integrations/providers/${fp.code}`"
+          class="block bg-white border rounded-lg p-5 hover:shadow-md transition-shadow hover:border-primary"
+        >
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-indigo-50">
+              <i class="pi pi-box text-xl text-indigo-600" />
+            </div>
+            <h3 class="font-semibold text-gray-800">{{ fp.name }}</h3>
+          </div>
+          <p class="text-sm text-gray-500">{{ fp.description }}</p>
+        </router-link>
+      </div>
+
+      <!-- No fulfillment providers available -->
+      <div v-else class="text-center py-8 text-gray-400">
+        <p>No hay proveedores de fulfillment disponibles</p>
+      </div>
+    </div>
 
     <!-- Tabs -->
     <TabView v-else>
