@@ -315,6 +315,20 @@ export const paymentGatewaysApi = {
   /**
    * Activa o desactiva una pasarela
    */
+  /**
+   * Sube imagen QR para Yape o Plin
+   */
+  async uploadQrImage(wallet: 'yape' | 'plin', file: File): Promise<ApiResponse<{ qr_url: string; wallet: string }>> {
+    const formData = new FormData()
+    formData.append('wallet', wallet)
+    formData.append('qr_image', file)
+
+    const response = await apiClient.post('/payment-gateways/qr-wallets/upload-qr', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+    return response.data
+  },
+
   async toggleGateway(code: string, enabled: boolean): Promise<ApiResponse<void>> {
     if (USE_MOCKS) {
       await delay(200)
