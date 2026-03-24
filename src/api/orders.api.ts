@@ -24,9 +24,11 @@ export interface OrderStats {
 // tiendaventa_pagado: '0' = rechazado, '1' = confirmado/pagado, '2' = pendiente
 function mapPaymentToOrderStatus(pagado: string | number): OrderStatus {
   const statusStr = String(pagado)
-  if (statusStr === '1') return 'paid'      // confirmado
-  if (statusStr === '0') return 'cancelled' // rechazado
-  return 'pending' // '2' = pendiente
+  if (statusStr === '1') return 'paid'
+  if (statusStr === '0') return 'cancelled'
+  if (statusStr === '5') return 'chargeback'
+  if (statusStr === '6') return 'refunded'
+  return 'pending'
 }
 
 // Helper para mapear el estado del pago a texto
@@ -34,6 +36,8 @@ function mapPaymentStatusText(pagado: string | number): string {
   const statusStr = String(pagado)
   if (statusStr === '1') return 'confirmado'
   if (statusStr === '0') return 'rechazado'
+  if (statusStr === '5') return 'contracargo'
+  if (statusStr === '6') return 'reembolsado'
   return 'pendiente'
 }
 
@@ -45,7 +49,9 @@ function statusToPaymentCode(status: OrderStatus): string {
     pending: '2',     // pendiente
     processing: '1',  // procesando = ya está pagado
     shipped: '1',     // enviado = ya está pagado
-    delivered: '1'    // entregado = ya está pagado
+    delivered: '1',   // entregado = ya está pagado
+    chargeback: '13', // contracargo
+    refunded: '14'    // reembolsado
   }
   return statusMap[status] || '2'
 }

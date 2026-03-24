@@ -58,6 +58,10 @@ const canRejectPayment = computed(() => {
   return order.value?.status === 'pending'
 })
 
+const canMarkAsChargeback = computed(() => {
+  return order.value?.status === 'paid'
+})
+
 async function handleConfirmPayment() {
   if (!order.value || isUpdatingPayment.value) return
   isUpdatingPayment.value = true
@@ -79,6 +83,20 @@ async function handleRejectPayment() {
     toast.add({ severity: 'warn', summary: 'Pago rechazado', detail: 'El pedido fue marcado como rechazado', life: 3000 })
   } catch (err: any) {
     toast.add({ severity: 'error', summary: 'Error', detail: err.message || 'No se pudo rechazar el pago', life: 5000 })
+  } finally {
+    isUpdatingPayment.value = false
+  }
+}
+
+async function handleMarkAsChargeback() {
+  if (!order.value || isUpdatingPayment.value) return
+  if (!window.confirm('¿Estás seguro de marcar esta venta como contracargo? Esta acción registrará un fraude confirmado.')) return
+  isUpdatingPayment.value = true
+  try {
+    await ordersStore.updateOrderStatus(order.value.id, 'chargeback')
+    toast.add({ severity: 'error', summary: 'Contracargo registrado', detail: 'La venta fue marcada como contracargo', life: 5000 })
+  } catch (err: any) {
+    toast.add({ severity: 'error', summary: 'Error', detail: err.message || 'No se pudo registrar el contracargo', life: 5000 })
   } finally {
     isUpdatingPayment.value = false
   }
@@ -332,6 +350,18 @@ const statusConfig = computed(() => {
       bgClass: 'bg-red-100',
       textClass: 'text-red-800',
       iconClass: 'pi-times-circle'
+    },
+    chargeback: {
+      label: 'Contracargo',
+      bgClass: 'bg-red-100',
+      textClass: 'text-red-800',
+      iconClass: 'pi-exclamation-triangle'
+    },
+    refunded: {
+      label: 'Reembolsado',
+      bgClass: 'bg-orange-100',
+      textClass: 'text-orange-800',
+      iconClass: 'pi-replay'
     },
     // Fallbacks (no deberían usarse con el backend actual)
     processing: {
@@ -758,6 +788,15 @@ const handleDebugPayments = async () => {
           outlined
           :loading="isUpdatingPayment"
           @click="handleRejectPayment"
+        />
+        <Button
+          v-if="canMarkAsChargeback"
+          label="Marcar contracargo"
+          icon="pi pi-exclamation-triangle"
+          severity="danger"
+          outlined
+          :loading="isUpdatingPayment"
+          @click="handleMarkAsChargeback"
         />
         <span
           v-if="statusConfig"

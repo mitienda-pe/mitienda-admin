@@ -34,6 +34,18 @@ const statusConfig = (status: OrderStatus) => {
       textClass: 'text-red-800',
       iconClass: 'pi-times-circle'
     },
+    chargeback: {
+      label: 'Contracargo',
+      bgClass: 'bg-red-100',
+      textClass: 'text-red-800',
+      iconClass: 'pi-exclamation-triangle'
+    },
+    refunded: {
+      label: 'Reembolsado',
+      bgClass: 'bg-orange-100',
+      textClass: 'text-orange-800',
+      iconClass: 'pi-replay'
+    },
     // Fallbacks (no deberían usarse con el backend actual)
     processing: {
       label: 'Procesando',
