@@ -52,6 +52,22 @@
               </div>
             </div>
 
+            <Divider />
+
+            <div>
+              <h3 class="text-lg font-semibold text-secondary-800 mb-4">Widgets en la tienda</h3>
+              <div class="space-y-3">
+                <div class="flex items-center gap-3">
+                  <Checkbox v-model="formData.show_header" inputId="show_header" :binary="true" />
+                  <label for="show_header" class="text-sm text-secondary-700">Mostrar barra superior (header) de Powerpay</label>
+                </div>
+                <div class="flex items-center gap-3">
+                  <Checkbox v-model="formData.show_banner" inputId="show_banner" :binary="true" />
+                  <label for="show_banner" class="text-sm text-secondary-700">Mostrar banner de Powerpay antes del footer</label>
+                </div>
+              </div>
+            </div>
+
             <Message v-if="store.error" severity="error" :closable="false">{{ store.error }}</Message>
 
             <div class="flex gap-3 pt-4">
@@ -89,6 +105,7 @@ import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import RadioButton from 'primevue/radiobutton'
+import Checkbox from 'primevue/checkbox'
 import Divider from 'primevue/divider'
 import Message from 'primevue/message'
 
@@ -101,7 +118,9 @@ const formData = reactive({
   client_id: '',
   secret_key: '',
   merchant_id: '',
-  environment: 'integracion' as 'produccion' | 'integracion'
+  environment: 'integracion' as 'produccion' | 'integracion',
+  show_header: true,
+  show_banner: true,
 })
 
 const isConfigured = computed(() => store.currentConfig?.gateway?.configured || false)
@@ -113,6 +132,8 @@ watch(() => store.currentConfig, (config) => {
     formData.secret_key = c.secret_key || ''
     formData.merchant_id = c.merchant_id || ''
     formData.environment = c.environment || 'integracion'
+    formData.show_header = c.show_header !== '0' && c.show_header !== false
+    formData.show_banner = c.show_banner !== '0' && c.show_banner !== false
   }
 }, { immediate: true })
 
