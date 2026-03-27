@@ -20,11 +20,18 @@
               <div class="space-y-4">
                 <div>
                   <label class="block text-sm font-medium text-secondary-700 mb-2">Client ID <span class="text-red-500">*</span></label>
-                  <Password v-model="formData.client_id" placeholder="Tu Client ID" class="w-full" :feedback="false" toggleMask />
+                  <InputText v-model="formData.client_id" placeholder="ck_xxxxx (Client Key proporcionado por Powerpay)" class="w-full" />
+                  <small class="text-secondary-500">Se usa para los widgets de cuotas en la tienda.</small>
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-secondary-700 mb-2">Public Key <span class="text-red-500">*</span></label>
-                  <InputText v-model="formData.public_key" placeholder="Tu Public Key" class="w-full" />
+                  <label class="block text-sm font-medium text-secondary-700 mb-2">Secret Key <span class="text-red-500">*</span></label>
+                  <Password v-model="formData.secret_key" placeholder="Tu Secret Key" class="w-full" :feedback="false" toggleMask />
+                  <small class="text-secondary-500">Clave secreta para autenticación con la API.</small>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-secondary-700 mb-2">Merchant ID <span class="text-red-500">*</span></label>
+                  <InputText v-model="formData.merchant_id" placeholder="Código de Merchant brindado por Powerpay" class="w-full" />
+                  <small class="text-secondary-500">Identificador del comercio en la plataforma Powerpay.</small>
                 </div>
               </div>
             </div>
@@ -92,7 +99,8 @@ const GATEWAY_CODE = 'powerpay'
 
 const formData = reactive({
   client_id: '',
-  public_key: '',
+  secret_key: '',
+  merchant_id: '',
   environment: 'integracion' as 'produccion' | 'integracion'
 })
 
@@ -102,7 +110,8 @@ watch(() => store.currentConfig, (config) => {
   if (config?.credentials) {
     const c = config.credentials as Record<string, any>
     formData.client_id = c.client_id || ''
-    formData.public_key = c.public_key || ''
+    formData.secret_key = c.secret_key || ''
+    formData.merchant_id = c.merchant_id || ''
     formData.environment = c.environment || 'integracion'
   }
 }, { immediate: true })
@@ -110,7 +119,7 @@ watch(() => store.currentConfig, (config) => {
 onMounted(() => { store.clearMessages() })
 
 async function handleSubmit() {
-  if (!formData.client_id || !formData.public_key) {
+  if (!formData.client_id || !formData.secret_key || !formData.merchant_id) {
     toast.add({ severity: 'warn', summary: 'Campos requeridos', life: 3000 })
     return
   }
