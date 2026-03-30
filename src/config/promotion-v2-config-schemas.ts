@@ -223,12 +223,6 @@ const conditionSchemas: Record<string, ConfigFieldSchema[]> = {
 const effectSchemas: Record<string, ConfigFieldSchema[]> = {
   percentage_discount_product: [
     {
-      key: 'product_id',
-      label: 'Producto a descontar',
-      type: 'product-picker',
-      required: true,
-    },
-    {
       key: 'percentage',
       label: 'Porcentaje de descuento',
       type: 'percentage',
@@ -309,18 +303,12 @@ const effectSchemas: Record<string, ConfigFieldSchema[]> = {
   ],
   override_price: [
     {
-      key: 'product_id',
-      label: 'Producto',
-      type: 'product-picker',
-      required: true,
-    },
-    {
       key: 'new_price',
       label: 'Nuevo precio',
       type: 'currency',
       required: true,
       min: 0,
-      helpText: 'Precio especial en soles',
+      helpText: 'Precio especial en soles. Los productos se vinculan abajo.',
     },
   ],
 }
@@ -443,8 +431,10 @@ export function formatConfigHuman(
     }
 
     // Effects
-    case 'percentage_discount_product':
-      return `${config.percentage}% desc. producto${config.max_discount ? ` (máx S/ ${formatCentavos(config.max_discount)})` : ''}`
+    case 'percentage_discount_product': {
+      const pCount = (config.product_ids || []).length
+      return `${config.percentage}% desc. ${pCount} producto(s)${config.max_discount ? ` (máx S/ ${formatCentavos(config.max_discount)})` : ''}`
+    }
     case 'percentage_discount_cart':
       return `${config.percentage}% desc. al carrito${config.max_discount ? ` (máx S/ ${formatCentavos(config.max_discount)})` : ''}`
     case 'fixed_discount_cart':
@@ -455,8 +445,10 @@ export function formatConfigHuman(
         : 'Envío gratis'
     case 'buy_x_get_y':
       return `Compra ${config.trigger_quantity}, lleva ${config.gift_quantity} gratis`
-    case 'override_price':
-      return `Precio especial: S/ ${formatCentavos(config.new_price)}`
+    case 'override_price': {
+      const opCount = (config.product_ids || []).length
+      return `Precio especial: S/ ${formatCentavos(config.new_price)} (${opCount} producto(s))`
+    }
 
     // Constraints
     case 'max_global_uses':

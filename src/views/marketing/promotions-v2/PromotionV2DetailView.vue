@@ -97,6 +97,14 @@
             @delete="id => store.removeRule(promotion!.promotions_v2_id, 'effects', id)"
           />
 
+          <!-- Effect Products (for product-level effects) -->
+          <EffectProductsSection
+            v-for="effect in productEffects"
+            :key="effect.effect_id"
+            :promotion-id="promotion.promotions_v2_id"
+            :effect="effect"
+          />
+
           <!-- Constraints -->
           <RuleSection
             title="Restricciones"
@@ -315,6 +323,7 @@ import { usePromotionV2Store } from '@/stores/promotion-v2.store'
 import { useFormatters } from '@/composables/useFormatters'
 import RuleSection from '@/components/promotions-v2/RuleSection.vue'
 import CouponsSection from '@/components/promotions-v2/CouponsSection.vue'
+import EffectProductsSection from '@/components/promotions-v2/EffectProductsSection.vue'
 import {
   STATUS_LABELS,
   ACTIVATION_TYPE_LABELS,
@@ -348,6 +357,12 @@ const promotion = computed(() => store.currentPromotion)
 
 const hasCouponActivation = computed(() =>
   (promotion.value?.activations || []).some((a: any) => a.type === 'coupon')
+)
+
+const PRODUCT_EFFECT_TYPES = ['percentage_discount_product', 'override_price']
+
+const productEffects = computed(() =>
+  (promotion.value?.effects || []).filter((e: any) => PRODUCT_EFFECT_TYPES.includes(e.type))
 )
 
 const showEditDialog = ref(false)
