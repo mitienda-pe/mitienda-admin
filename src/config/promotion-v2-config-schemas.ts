@@ -12,6 +12,7 @@ export type FieldType =
   | 'text'
   | 'product-picker'
   | 'category-picker'
+  | 'referral-code-picker'
   | 'select'
   | 'multiselect'
   | 'switch'
@@ -46,11 +47,11 @@ const activationSchemas: Record<string, ConfigFieldSchema[]> = {
   coupon: [],
   referral: [
     {
-      key: 'referral_code_prefix',
-      label: 'Prefijo del código de referido',
-      type: 'text',
-      placeholder: 'REF-',
-      helpText: 'Se generará un código único con este prefijo',
+      key: 'referral_code_ids',
+      label: 'Códigos de referido',
+      type: 'referral-code-picker',
+      required: true,
+      helpText: 'Selecciona los códigos de referido que activan esta promoción',
     },
   ],
   permalink: [
@@ -351,9 +352,15 @@ export function getConfigSchema(
   return allSchemas[category]?.[type] ?? null
 }
 
-export function hasConfigSchema(category: RuleCategory, type: string): boolean {
+/** Returns true when the type has fields to render (non-empty schema) */
+export function hasConfigFields(category: RuleCategory, type: string): boolean {
   const schema = getConfigSchema(category, type)
   return schema !== null && schema.length > 0
+}
+
+/** Returns true when the type is registered in the schema map (even if empty) */
+export function isKnownType(category: RuleCategory, type: string): boolean {
+  return allSchemas[category]?.[type] !== undefined
 }
 
 // --- HUMAN-READABLE FORMATTERS ---
@@ -426,8 +433,10 @@ export function formatConfigHuman(
       return 'Activación automática'
     case 'coupon':
       return 'Requiere cupón'
-    case 'referral':
-      return `Referido: ${config.referral_code_prefix || ''}`
+    case 'referral': {
+      const ids = config.referral_code_ids || []
+      return ids.length > 0 ? `${ids.length} código(s) de referido` : 'Sin códigos seleccionados'
+    }
     case 'permalink':
       return `Enlace: ${config.slug || ''}`
     case 'event':

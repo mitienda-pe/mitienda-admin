@@ -109,6 +109,46 @@
         :loading="loadingCategories"
       />
 
+      <!-- Referral Code Picker -->
+      <div v-else-if="field.type === 'referral-code-picker'">
+        <div v-if="loadingReferralCodes" class="flex items-center gap-2 py-2 text-sm text-gray-500">
+          <i class="pi pi-spinner pi-spin"></i> Cargando códigos de referido...
+        </div>
+        <div v-else-if="referralCodes.length === 0" class="rounded-md bg-yellow-50 px-4 py-3">
+          <p class="text-sm text-yellow-700">
+            No hay códigos de referido configurados.
+            <a href="/marketing/referrals" class="font-medium underline hover:text-yellow-800">Crear códigos de referido</a>
+          </p>
+        </div>
+        <div v-else class="max-h-48 space-y-2 overflow-y-auto rounded-md border border-gray-200 p-3">
+          <label
+            v-for="rc in referralCodes"
+            :key="rc.tiendacodigoreferido_id"
+            class="flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-gray-50"
+          >
+            <input
+              type="checkbox"
+              :checked="(modelValue[field.key] || []).includes(rc.tiendacodigoreferido_id)"
+              @change="toggleReferralCode(field.key, rc.tiendacodigoreferido_id)"
+              class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+            />
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-gray-900 truncate">{{ rc.tiendacodigoreferido_nombre }}</div>
+              <div class="text-xs text-gray-500 font-mono">{{ rc.tiendacodigoreferido_codigo }}</div>
+            </div>
+            <span
+              class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
+              :class="rc.tiendacodigoreferido_activo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'"
+            >
+              {{ rc.tiendacodigoreferido_activo ? 'Activo' : 'Inactivo' }}
+            </span>
+          </label>
+        </div>
+        <div v-if="referralCodes.length > 0" class="mt-1 text-xs text-gray-500">
+          {{ (modelValue[field.key] || []).length }} de {{ referralCodes.length }} seleccionados
+        </div>
+      </div>
+
       <!-- Select -->
       <Dropdown
         v-else-if="field.type === 'select'"
@@ -207,6 +247,8 @@ import Dropdown from 'primevue/dropdown'
 import MultiSelect from 'primevue/multiselect'
 import { productsApi } from '@/api/products.api'
 import { categoryApi } from '@/api/category.api'
+import { referralApi } from '@/api/referral.api'
+import type { ReferralCode } from '@/types/referral.types'
 import {
   getConfigSchema,
   type RuleCategory,
@@ -291,6 +333,43 @@ const loadCategories = async () => {
 onMounted(loadCategories)
 watch(needsCategories, (val) => {
   if (val) loadCategories()
+})
+
+// --- Referral Codes ---
+const referralCodes = ref<ReferralCode[]>([])
+const loadingReferralCodes = ref(false)
+
+const needsReferralCodes = computed(() =>
+  schema.value?.some((f) => f.type === 'referral-code-picker') ?? false
+)
+
+const loadReferralCodes = async () => {
+  if (!needsReferralCodes.value || referralCodes.value.length > 0) return
+  loadingReferralCodes.value = true
+  try {
+    const response = await referralApi.getAll({ per_page: 100 })
+    referralCodes.value = response.data || []
+  } catch {
+    referralCodes.value = []
+  } finally {
+    loadingReferralCodes.value = false
+  }
+}
+
+const toggleReferralCode = (fieldKey: string, id: number) => {
+  const current = [...(props.modelValue[fieldKey] || [])]
+  const index = current.indexOf(id)
+  if (index >= 0) {
+    current.splice(index, 1)
+  } else {
+    current.push(id)
+  }
+  updateField(fieldKey, current)
+}
+
+onMounted(loadReferralCodes)
+watch(needsReferralCodes, (val) => {
+  if (val) loadReferralCodes()
 })
 
 // --- Weekdays ---

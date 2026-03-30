@@ -96,8 +96,8 @@
           <p v-if="configError" class="mt-1 text-xs text-red-600">{{ configError }}</p>
         </div>
 
-        <!-- Toggle advanced mode -->
-        <div v-if="dialogForm.type && hasSchema" class="flex items-center justify-end">
+        <!-- Toggle advanced mode (only when type has form fields) -->
+        <div v-if="dialogForm.type && hasFields" class="flex items-center justify-end">
           <button
             type="button"
             class="text-xs text-gray-500 hover:text-gray-700"
@@ -132,7 +132,8 @@ import { ref, reactive, computed, watch } from 'vue'
 import Dialog from 'primevue/dialog'
 import RuleConfigForm from './RuleConfigForm.vue'
 import {
-  hasConfigSchema,
+  hasConfigFields,
+  isKnownType,
   formatConfigHuman,
   type RuleCategory,
 } from '@/config/promotion-v2-config-schemas'
@@ -166,11 +167,15 @@ const dialogForm = reactive({
 const configText = ref('')
 const configObject = ref<Record<string, any>>({})
 
-const hasSchema = computed(() =>
-  dialogForm.type ? hasConfigSchema(props.ruleCategory, dialogForm.type) : false
+// True when the type has actual form fields (for toggle button visibility)
+const hasFields = computed(() =>
+  dialogForm.type ? hasConfigFields(props.ruleCategory, dialogForm.type) : false
 )
 
-const useFormMode = computed(() => hasSchema.value)
+// True when the type is registered (even with empty schema) → use form, not JSON fallback
+const useFormMode = computed(() =>
+  dialogForm.type ? isKnownType(props.ruleCategory, dialogForm.type) : false
+)
 
 // Sync configObject <-> configText when toggling modes
 watch(advancedMode, (isAdvanced) => {

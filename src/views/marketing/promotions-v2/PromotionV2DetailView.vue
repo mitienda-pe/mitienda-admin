@@ -111,8 +111,9 @@
             @delete="id => store.removeRule(promotion!.promotions_v2_id, 'constraints', id)"
           />
 
-          <!-- Coupons -->
+          <!-- Coupons (solo visible cuando hay activación tipo cupón) -->
           <CouponsSection
+            v-if="hasCouponActivation"
             :coupons="promotion.coupons || []"
             :promotion-id="promotion.promotions_v2_id"
           />
@@ -343,6 +344,10 @@ const store = usePromotionV2Store()
 const { formatDate } = useFormatters()
 
 const promotion = computed(() => store.currentPromotion)
+
+const hasCouponActivation = computed(() =>
+  (promotion.value?.activations || []).some((a: any) => a.type === 'coupon')
+)
 
 const showEditDialog = ref(false)
 const showDeleteDialog = ref(false)
