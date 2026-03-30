@@ -12,6 +12,8 @@ export type ConditionType =
   | 'cart_minimum_amount'
   | 'cart_minimum_quantity'
   | 'payment_method'
+  | 'card_brand'
+  | 'bin_bank'
   | 'location'
   | 'first_purchase'
 
@@ -176,6 +178,8 @@ export const CONDITION_TYPE_LABELS: Record<ConditionType, string> = {
   cart_minimum_amount: 'Monto mínimo del carrito',
   cart_minimum_quantity: 'Cantidad mínima del carrito',
   payment_method: 'Método de pago',
+  card_brand: 'Marca de tarjeta',
+  bin_bank: 'BIN banco emisor',
   location: 'Ubicación',
   first_purchase: 'Primera compra',
 }

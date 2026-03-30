@@ -63,6 +63,16 @@
         class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
       />
 
+      <!-- Textarea -->
+      <textarea
+        v-else-if="field.type === 'textarea'"
+        :value="modelValue[field.key] ?? ''"
+        @input="updateField(field.key, ($event.target as HTMLTextAreaElement).value)"
+        :placeholder="field.placeholder"
+        rows="4"
+        class="block w-full rounded-md border-gray-300 font-mono text-sm shadow-sm focus:border-primary focus:ring-primary"
+      ></textarea>
+
       <!-- Product Picker -->
       <div v-else-if="field.type === 'product-picker'">
         <AutoComplete

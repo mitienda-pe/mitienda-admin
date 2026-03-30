@@ -10,6 +10,7 @@ export type FieldType =
   | 'currency' // number displayed as soles, stored as centavos
   | 'percentage'
   | 'text'
+  | 'textarea'
   | 'product-picker'
   | 'category-picker'
   | 'brand-picker'
@@ -158,6 +159,33 @@ const conditionSchemas: Record<string, ConfigFieldSchema[]> = {
         { label: 'Billetera digital (Yape, Plin)', value: 'mobile_wallet' },
         { label: 'PayPal / MercadoPago', value: 'digital_wallet' },
       ],
+    },
+  ],
+  card_brand: [
+    {
+      key: 'brands',
+      label: 'Marcas de tarjeta',
+      type: 'multiselect',
+      required: true,
+      options: [
+        { label: 'Visa', value: 'visa' },
+        { label: 'Mastercard', value: 'mastercard' },
+        { label: 'American Express', value: 'amex' },
+        { label: 'Diners Club', value: 'diners' },
+        { label: 'Discover', value: 'discover' },
+        { label: 'JCB', value: 'jcb' },
+      ],
+      helpText: 'La promoción aplica solo para pagos con estas marcas de tarjeta',
+    },
+  ],
+  bin_bank: [
+    {
+      key: 'bins',
+      label: 'BINs de banco emisor',
+      type: 'textarea',
+      required: true,
+      placeholder: '411111\n454720\n523468',
+      helpText: 'Pega los BINs (6 dígitos) separados por salto de línea o coma. Identifica el banco emisor de la tarjeta.',
     },
   ],
   location: [
@@ -401,6 +429,12 @@ export function formatConfigHuman(
       return `Marca ID: ${config.brand_id}, Cant: ${config.quantity ?? 1}`
     case 'payment_method':
       return `Métodos: ${(config.methods || []).join(', ')}`
+    case 'card_brand':
+      return `Tarjeta: ${(config.brands || []).join(', ')}`
+    case 'bin_bank': {
+      const bins = parseBins(config.bins)
+      return `${bins.length} BIN(s) configurados`
+    }
     case 'location':
       return `${config.department || ''}${config.province ? ' / ' + config.province : ''}`
     case 'first_purchase': {
@@ -477,6 +511,15 @@ function getEmptyConfigLabel(_category: RuleCategory, type: string): string {
     default:
       return 'Sin configuración adicional'
   }
+}
+
+/** Parse BINs from textarea string (newline or comma separated) */
+function parseBins(value: string | undefined): string[] {
+  if (!value) return []
+  return value
+    .split(/[\n,]+/)
+    .map((b) => b.trim())
+    .filter((b) => /^\d{6,8}$/.test(b))
 }
 
 function formatCentavos(value: number | undefined): string {
