@@ -8,9 +8,9 @@ export type ConditionType =
   | 'none'
   | 'cart_contains_product'
   | 'cart_contains_category'
+  | 'cart_contains_brand'
   | 'cart_minimum_amount'
   | 'cart_minimum_quantity'
-  | 'customer_segment'
   | 'payment_method'
   | 'location'
   | 'first_purchase'
@@ -172,9 +172,9 @@ export const CONDITION_TYPE_LABELS: Record<ConditionType, string> = {
   none: 'Ninguna (apto para todos)',
   cart_contains_product: 'Carrito contiene producto',
   cart_contains_category: 'Carrito contiene categoría',
+  cart_contains_brand: 'Carrito contiene marca',
   cart_minimum_amount: 'Monto mínimo del carrito',
   cart_minimum_quantity: 'Cantidad mínima del carrito',
-  customer_segment: 'Segmento de cliente',
   payment_method: 'Método de pago',
   location: 'Ubicación',
   first_purchase: 'Primera compra',

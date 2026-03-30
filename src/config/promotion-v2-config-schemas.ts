@@ -12,6 +12,7 @@ export type FieldType =
   | 'text'
   | 'product-picker'
   | 'category-picker'
+  | 'brand-picker'
   | 'referral-code-picker'
   | 'select'
   | 'multiselect'
@@ -109,6 +110,21 @@ const conditionSchemas: Record<string, ConfigFieldSchema[]> = {
       defaultValue: 1,
     },
   ],
+  cart_contains_brand: [
+    {
+      key: 'brand_id',
+      label: 'Marca',
+      type: 'brand-picker',
+      required: true,
+    },
+    {
+      key: 'quantity',
+      label: 'Cantidad mínima',
+      type: 'number',
+      min: 1,
+      defaultValue: 1,
+    },
+  ],
   cart_minimum_amount: [
     {
       key: 'amount',
@@ -128,20 +144,6 @@ const conditionSchemas: Record<string, ConfigFieldSchema[]> = {
       min: 1,
     },
   ],
-  customer_segment: [
-    {
-      key: 'segment',
-      label: 'Segmento de cliente',
-      type: 'select',
-      required: true,
-      options: [
-        { label: 'Nuevo', value: 'new' },
-        { label: 'Recurrente', value: 'returning' },
-        { label: 'VIP', value: 'vip' },
-        { label: 'Mayorista', value: 'wholesale' },
-      ],
-    },
-  ],
   payment_method: [
     {
       key: 'methods',
@@ -149,16 +151,12 @@ const conditionSchemas: Record<string, ConfigFieldSchema[]> = {
       type: 'multiselect',
       required: true,
       options: [
-        { label: 'Efectivo', value: 'cash' },
         { label: 'Tarjeta de crédito', value: 'credit_card' },
         { label: 'Tarjeta de débito', value: 'debit_card' },
-        { label: 'Transferencia bancaria', value: 'bank_transfer' },
-        { label: 'Yape / Plin', value: 'mobile_wallet' },
-        { label: 'Culqi', value: 'culqi' },
-        { label: 'Niubiz', value: 'niubiz' },
-        { label: 'MercadoPago', value: 'mercadopago' },
-        { label: 'Izipay', value: 'izipay' },
-        { label: 'OpenPay', value: 'openpay' },
+        { label: 'Efectivo / Contra entrega', value: 'cash' },
+        { label: 'Transferencia / Depósito', value: 'bank_transfer' },
+        { label: 'Billetera digital (Yape, Plin)', value: 'mobile_wallet' },
+        { label: 'PayPal / MercadoPago', value: 'digital_wallet' },
       ],
     },
   ],
@@ -176,7 +174,20 @@ const conditionSchemas: Record<string, ConfigFieldSchema[]> = {
       placeholder: 'Lima',
     },
   ],
-  first_purchase: [],
+  first_purchase: [
+    {
+      key: 'match_by',
+      label: 'Validar primera compra por',
+      type: 'multiselect',
+      required: true,
+      options: [
+        { label: 'Email', value: 'email' },
+        { label: 'DNI', value: 'dni' },
+        { label: 'RUC (factura)', value: 'ruc' },
+      ],
+      helpText: 'Se verificará que no existan compras previas con estos datos',
+    },
+  ],
 }
 
 // --- EFFECT SCHEMAS ---
@@ -386,14 +397,16 @@ export function formatConfigHuman(
       return `Producto ID: ${config.product_id}, Cant: ${config.quantity ?? 1}`
     case 'cart_contains_category':
       return `Categoría ID: ${config.category_id}, Cant: ${config.quantity ?? 1}`
-    case 'customer_segment':
-      return `Segmento: ${config.segment}`
+    case 'cart_contains_brand':
+      return `Marca ID: ${config.brand_id}, Cant: ${config.quantity ?? 1}`
     case 'payment_method':
       return `Métodos: ${(config.methods || []).join(', ')}`
     case 'location':
       return `${config.department || ''}${config.province ? ' / ' + config.province : ''}`
-    case 'first_purchase':
-      return 'Solo primera compra'
+    case 'first_purchase': {
+      const matchBy = config.match_by || []
+      return `Primera compra (valida: ${matchBy.join(', ') || 'email'})`
+    }
 
     // Effects
     case 'percentage_discount_product':

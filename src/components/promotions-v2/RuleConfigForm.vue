@@ -109,6 +109,19 @@
         :loading="loadingCategories"
       />
 
+      <!-- Brand Picker -->
+      <Dropdown
+        v-else-if="field.type === 'brand-picker'"
+        :modelValue="modelValue[field.key]"
+        @update:modelValue="updateField(field.key, $event)"
+        :options="brands"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Seleccionar marca..."
+        class="w-full"
+        :loading="loadingBrands"
+      />
+
       <!-- Referral Code Picker -->
       <div v-else-if="field.type === 'referral-code-picker'">
         <div v-if="loadingReferralCodes" class="flex items-center gap-2 py-2 text-sm text-gray-500">
@@ -247,6 +260,7 @@ import Dropdown from 'primevue/dropdown'
 import MultiSelect from 'primevue/multiselect'
 import { productsApi } from '@/api/products.api'
 import { categoryApi } from '@/api/category.api'
+import { brandApi } from '@/api/brand.api'
 import { referralApi } from '@/api/referral.api'
 import type { ReferralCode } from '@/types/referral.types'
 import {
@@ -334,6 +348,35 @@ const loadCategories = async () => {
 onMounted(loadCategories)
 watch(needsCategories, (val) => {
   if (val) loadCategories()
+})
+
+// --- Brands ---
+const brands = ref<{ label: string; value: number }[]>([])
+const loadingBrands = ref(false)
+
+const needsBrands = computed(() =>
+  schema.value?.some((f) => f.type === 'brand-picker') ?? false
+)
+
+const loadBrands = async () => {
+  if (!needsBrands.value || brands.value.length > 0) return
+  loadingBrands.value = true
+  try {
+    const response = await brandApi.getAll()
+    brands.value = (response.data || []).map((b: any) => ({
+      label: b.name,
+      value: b.id,
+    }))
+  } catch {
+    brands.value = []
+  } finally {
+    loadingBrands.value = false
+  }
+}
+
+onMounted(loadBrands)
+watch(needsBrands, (val) => {
+  if (val) loadBrands()
 })
 
 // --- Referral Codes ---
