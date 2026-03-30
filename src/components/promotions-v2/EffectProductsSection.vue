@@ -253,6 +253,9 @@ const effectLabel = computed(() => {
     const price = config.new_price
     return price ? `Precio especial: S/ ${(price / 100).toFixed(2)}` : 'Precio especial'
   }
+  if (props.effect.type === 'gift_product') {
+    return `${config.gift_quantity || 1} unidad(es) gratis`
+  }
   return props.effect.type
 })
 

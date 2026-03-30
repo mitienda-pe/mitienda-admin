@@ -14,6 +14,7 @@ export type FieldType =
   | 'product-picker'
   | 'category-picker'
   | 'brand-picker'
+  | 'gamma-picker'
   | 'referral-code-picker'
   | 'select'
   | 'multiselect'
@@ -253,6 +254,82 @@ const effectSchemas: Record<string, ConfigFieldSchema[]> = {
       helpText: 'Opcional. Límite del descuento en soles',
     },
   ],
+  percentage_discount_shipping: [
+    {
+      key: 'percentage',
+      label: 'Porcentaje de descuento al envío',
+      type: 'percentage',
+      required: true,
+      min: 1,
+      max: 100,
+    },
+  ],
+  percentage_discount_category: [
+    {
+      key: 'category_id',
+      label: 'Categoría',
+      type: 'category-picker',
+      required: true,
+    },
+    {
+      key: 'percentage',
+      label: 'Porcentaje de descuento',
+      type: 'percentage',
+      required: true,
+      min: 1,
+      max: 100,
+    },
+    {
+      key: 'max_discount',
+      label: 'Descuento máximo',
+      type: 'currency',
+      helpText: 'Opcional. Límite del descuento en soles',
+    },
+  ],
+  percentage_discount_brand: [
+    {
+      key: 'brand_id',
+      label: 'Marca',
+      type: 'brand-picker',
+      required: true,
+    },
+    {
+      key: 'percentage',
+      label: 'Porcentaje de descuento',
+      type: 'percentage',
+      required: true,
+      min: 1,
+      max: 100,
+    },
+    {
+      key: 'max_discount',
+      label: 'Descuento máximo',
+      type: 'currency',
+      helpText: 'Opcional. Límite del descuento en soles',
+    },
+  ],
+  percentage_discount_gamma: [
+    {
+      key: 'gamma_id',
+      label: 'Gamma',
+      type: 'gamma-picker',
+      required: true,
+    },
+    {
+      key: 'percentage',
+      label: 'Porcentaje de descuento',
+      type: 'percentage',
+      required: true,
+      min: 1,
+      max: 100,
+    },
+    {
+      key: 'max_discount',
+      label: 'Descuento máximo',
+      type: 'currency',
+      helpText: 'Opcional. Límite del descuento en soles',
+    },
+  ],
   fixed_discount_cart: [
     {
       key: 'amount',
@@ -271,27 +348,7 @@ const effectSchemas: Record<string, ConfigFieldSchema[]> = {
       helpText: 'Opcional. Dejar vacío para envío gratis total',
     },
   ],
-  buy_x_get_y: [
-    {
-      key: 'trigger_product_id',
-      label: 'Producto que se compra',
-      type: 'product-picker',
-      required: true,
-    },
-    {
-      key: 'trigger_quantity',
-      label: 'Cantidad a comprar',
-      type: 'number',
-      required: true,
-      min: 1,
-      defaultValue: 2,
-    },
-    {
-      key: 'gift_product_id',
-      label: 'Producto de regalo',
-      type: 'product-picker',
-      required: true,
-    },
+  gift_product: [
     {
       key: 'gift_quantity',
       label: 'Cantidad de regalo',
@@ -299,6 +356,7 @@ const effectSchemas: Record<string, ConfigFieldSchema[]> = {
       required: true,
       min: 1,
       defaultValue: 1,
+      helpText: 'Unidades gratis. Los productos se vinculan abajo.',
     },
   ],
   override_price: [
@@ -437,14 +495,24 @@ export function formatConfigHuman(
     }
     case 'percentage_discount_cart':
       return `${config.percentage}% desc. al carrito${config.max_discount ? ` (máx S/ ${formatCentavos(config.max_discount)})` : ''}`
+    case 'percentage_discount_shipping':
+      return `${config.percentage}% desc. al envío`
+    case 'percentage_discount_category':
+      return `${config.percentage}% desc. categoría${config.max_discount ? ` (máx S/ ${formatCentavos(config.max_discount)})` : ''}`
+    case 'percentage_discount_brand':
+      return `${config.percentage}% desc. marca${config.max_discount ? ` (máx S/ ${formatCentavos(config.max_discount)})` : ''}`
+    case 'percentage_discount_gamma':
+      return `${config.percentage}% desc. gamma${config.max_discount ? ` (máx S/ ${formatCentavos(config.max_discount)})` : ''}`
     case 'fixed_discount_cart':
       return `S/ ${formatCentavos(config.amount)} desc. al carrito`
     case 'free_shipping':
       return config.max_shipping_discount
         ? `Envío gratis (máx S/ ${formatCentavos(config.max_shipping_discount)})`
         : 'Envío gratis'
-    case 'buy_x_get_y':
-      return `Compra ${config.trigger_quantity}, lleva ${config.gift_quantity} gratis`
+    case 'gift_product': {
+      const gpCount = (config.product_ids || []).length
+      return `${config.gift_quantity || 1} unidad(es) gratis (${gpCount} producto(s))`
+    }
     case 'override_price': {
       const opCount = (config.product_ids || []).length
       return `Precio especial: S/ ${formatCentavos(config.new_price)} (${opCount} producto(s))`

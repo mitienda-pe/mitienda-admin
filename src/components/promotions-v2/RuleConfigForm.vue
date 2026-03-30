@@ -132,6 +132,19 @@
         :loading="loadingBrands"
       />
 
+      <!-- Gamma Picker -->
+      <Dropdown
+        v-else-if="field.type === 'gamma-picker'"
+        :modelValue="modelValue[field.key]"
+        @update:modelValue="updateField(field.key, $event)"
+        :options="gammas"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Seleccionar gamma..."
+        class="w-full"
+        :loading="loadingGammas"
+      />
+
       <!-- Referral Code Picker -->
       <div v-else-if="field.type === 'referral-code-picker'">
         <div v-if="loadingReferralCodes" class="flex items-center gap-2 py-2 text-sm text-gray-500">
@@ -271,6 +284,7 @@ import MultiSelect from 'primevue/multiselect'
 import { productsApi } from '@/api/products.api'
 import { categoryApi } from '@/api/category.api'
 import { brandApi } from '@/api/brand.api'
+import { gammaApi } from '@/api/gamma.api'
 import { referralApi } from '@/api/referral.api'
 import type { ReferralCode } from '@/types/referral.types'
 import {
@@ -387,6 +401,35 @@ const loadBrands = async () => {
 onMounted(loadBrands)
 watch(needsBrands, (val) => {
   if (val) loadBrands()
+})
+
+// --- Gammas ---
+const gammas = ref<{ label: string; value: number }[]>([])
+const loadingGammas = ref(false)
+
+const needsGammas = computed(() =>
+  schema.value?.some((f) => f.type === 'gamma-picker') ?? false
+)
+
+const loadGammas = async () => {
+  if (!needsGammas.value || gammas.value.length > 0) return
+  loadingGammas.value = true
+  try {
+    const response = await gammaApi.getAll()
+    gammas.value = (response.data || []).map((g: any) => ({
+      label: g.tiendagamma_nombre || g.name,
+      value: g.tiendagamma_id || g.id,
+    }))
+  } catch {
+    gammas.value = []
+  } finally {
+    loadingGammas.value = false
+  }
+}
+
+onMounted(loadGammas)
+watch(needsGammas, (val) => {
+  if (val) loadGammas()
 })
 
 // --- Referral Codes ---

@@ -20,9 +20,13 @@ export type ConditionType =
 export type EffectType =
   | 'percentage_discount_product'
   | 'percentage_discount_cart'
+  | 'percentage_discount_shipping'
+  | 'percentage_discount_category'
+  | 'percentage_discount_brand'
+  | 'percentage_discount_gamma'
   | 'fixed_discount_cart'
   | 'free_shipping'
-  | 'buy_x_get_y'
+  | 'gift_product'
   | 'override_price'
 
 export type ConstraintType =
@@ -187,9 +191,13 @@ export const CONDITION_TYPE_LABELS: Record<ConditionType, string> = {
 export const EFFECT_TYPE_LABELS: Record<EffectType, string> = {
   percentage_discount_product: '% descuento por producto',
   percentage_discount_cart: '% descuento al carrito',
+  percentage_discount_shipping: '% descuento al envío',
+  percentage_discount_category: '% descuento por categoría',
+  percentage_discount_brand: '% descuento por marca',
+  percentage_discount_gamma: '% descuento por gamma',
   fixed_discount_cart: 'Descuento fijo al carrito',
   free_shipping: 'Envío gratis',
-  buy_x_get_y: 'Compra X lleva Y',
+  gift_product: 'Producto gratis',
   override_price: 'Precio especial',
 }
 
