@@ -2,9 +2,10 @@
 
 export type PromotionV2Status = 'draft' | 'scheduled' | 'active' | 'paused' | 'expired'
 
-export type ActivationType = 'automatic' | 'coupon' | 'referral' | 'permalink' | 'event'
+export type ActivationType = 'automatic' | 'coupon' | 'referral' | 'permalink'
 
 export type ConditionType =
+  | 'none'
   | 'cart_contains_product'
   | 'cart_contains_category'
   | 'cart_minimum_amount'
@@ -165,10 +166,10 @@ export const ACTIVATION_TYPE_LABELS: Record<ActivationType, string> = {
   coupon: 'Cupón',
   referral: 'Referido',
   permalink: 'Enlace permanente',
-  event: 'Evento',
 }
 
 export const CONDITION_TYPE_LABELS: Record<ConditionType, string> = {
+  none: 'Ninguna (apto para todos)',
   cart_contains_product: 'Carrito contiene producto',
   cart_contains_category: 'Carrito contiene categoría',
   cart_minimum_amount: 'Monto mínimo del carrito',

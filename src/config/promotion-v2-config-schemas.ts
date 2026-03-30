@@ -56,21 +56,20 @@ const activationSchemas: Record<string, ConfigFieldSchema[]> = {
   ],
   permalink: [
     {
-      key: 'slug',
-      label: 'Slug del enlace',
+      key: 'param_key',
+      label: 'Parámetro (key)',
       type: 'text',
       required: true,
-      placeholder: 'black-friday-2026',
-      helpText: 'URL amigable para activar la promoción',
+      placeholder: 'promo',
+      helpText: 'Nombre del parámetro en la URL (ej: ?promo=verano)',
     },
-  ],
-  event: [
     {
-      key: 'event_name',
-      label: 'Nombre del evento',
+      key: 'param_value',
+      label: 'Valor (value)',
       type: 'text',
       required: true,
-      placeholder: 'birthday_month',
+      placeholder: 'verano',
+      helpText: 'Valor esperado del parámetro',
     },
   ],
 }
@@ -78,6 +77,7 @@ const activationSchemas: Record<string, ConfigFieldSchema[]> = {
 // --- CONDITION SCHEMAS ---
 
 const conditionSchemas: Record<string, ConfigFieldSchema[]> = {
+  none: [],
   cart_contains_product: [
     {
       key: 'product_id',
@@ -376,6 +376,8 @@ export function formatConfigHuman(
 
   switch (type) {
     // Conditions
+    case 'none':
+      return 'Sin condiciones — apto para todos'
     case 'cart_minimum_amount':
       return `Monto mínimo: S/ ${formatCentavos(config.amount)}`
     case 'cart_minimum_quantity':
@@ -438,9 +440,7 @@ export function formatConfigHuman(
       return ids.length > 0 ? `${ids.length} código(s) de referido` : 'Sin códigos seleccionados'
     }
     case 'permalink':
-      return `Enlace: ${config.slug || ''}`
-    case 'event':
-      return `Evento: ${config.event_name || ''}`
+      return `URL: ?${config.param_key || ''}=${config.param_value || ''}`
 
     default:
       return JSON.stringify(config)
@@ -457,6 +457,8 @@ function getEmptyConfigLabel(_category: RuleCategory, type: string): string {
       return 'Solo primera compra'
     case 'non_stackable':
       return 'No acumulable con otras promociones'
+    case 'none':
+      return 'Sin condiciones — apto para todos'
     case 'free_shipping':
       return 'Envío gratis'
     default:
