@@ -9,7 +9,11 @@
         </div>
       </div>
       <button
-        class="inline-flex items-center rounded-md bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/20"
+        class="inline-flex items-center rounded-md px-3 py-1.5 text-xs font-medium"
+        :class="isMaxReached
+          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+          : 'bg-primary/10 text-primary hover:bg-primary/20'"
+        :disabled="isMaxReached"
         @click="openAddDialog"
       >
         <i class="pi pi-plus mr-1"></i> Agregar
@@ -138,7 +142,7 @@ import {
   type RuleCategory,
 } from '@/config/promotion-v2-config-schemas'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   title: string
   description: string
   icon: string
@@ -147,13 +151,20 @@ const props = defineProps<{
   validTypes: string[]
   idField: string
   ruleCategory: RuleCategory
-}>()
+  maxRules?: number
+}>(), {
+  maxRules: 0, // 0 = unlimited
+})
 
 const emit = defineEmits<{
   add: [data: { type: string; config: Record<string, any> | null }]
   update: [id: number, data: { type: string; config: Record<string, any> | null }]
   delete: [id: number]
 }>()
+
+const isMaxReached = computed(() =>
+  props.maxRules > 0 && props.rules.length >= props.maxRules
+)
 
 const showDialog = ref(false)
 const isEditing = ref(false)

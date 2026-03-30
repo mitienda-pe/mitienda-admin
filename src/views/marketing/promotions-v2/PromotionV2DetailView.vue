@@ -53,7 +53,7 @@
         <div class="lg:col-span-2 space-y-6">
           <!-- Activations -->
           <RuleSection
-            title="Activaciones"
+            title="Activación"
             description="Cómo se activa la promoción"
             icon="pi pi-bolt"
             :rules="promotion.activations || []"
@@ -61,6 +61,7 @@
             :valid-types="ACTIVATION_TYPES"
             id-field="activation_id"
             rule-category="activations"
+            :max-rules="1"
             @add="data => store.addRule(promotion!.promotions_v2_id, 'activations', data)"
             @update="(id, data) => store.editRule(promotion!.promotions_v2_id, 'activations', id, data)"
             @delete="id => store.removeRule(promotion!.promotions_v2_id, 'activations', id)"
