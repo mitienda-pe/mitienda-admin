@@ -66,16 +66,15 @@
     >
       <div class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-secondary-700">Tipo</label>
-          <select
+          <label class="mb-1 block text-sm font-medium text-secondary-700">Tipo</label>
+          <Dropdown
             v-model="dialogForm.type"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-          >
-            <option value="">Seleccionar tipo...</option>
-            <option v-for="t in validTypes" :key="t" :value="t">
-              {{ typeLabels[t as keyof typeof typeLabels] || t }}
-            </option>
-          </select>
+            :options="typeOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Seleccionar tipo..."
+            class="w-full"
+          />
         </div>
 
         <!-- Type-specific form (when schema exists) -->
@@ -89,14 +88,14 @@
 
         <!-- JSON textarea (advanced mode or fallback) -->
         <div v-else-if="dialogForm.type && (advancedMode || !useFormMode)">
-          <label class="block text-sm font-medium text-secondary-700">Configuraci&oacute;n (JSON)</label>
-          <textarea
+          <label class="mb-1 block text-sm font-medium text-secondary-700">Configuración (JSON)</label>
+          <Textarea
             v-model="configText"
-            rows="5"
+            :rows="5"
             placeholder='{"key": "value"}'
-            class="mt-1 block w-full rounded-md border-gray-300 font-mono text-sm shadow-sm focus:border-primary focus:ring-primary"
-            :class="{ 'border-red-300': configError }"
-          ></textarea>
+            class="w-full font-mono text-sm"
+            :class="{ 'p-invalid': configError }"
+          />
           <p v-if="configError" class="mt-1 text-xs text-red-600">{{ configError }}</p>
         </div>
 
@@ -113,19 +112,16 @@
         </div>
       </div>
       <template #footer>
-        <button
-          class="mr-2 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        <Button
+          label="Cancelar"
+          severity="secondary"
           @click="showDialog = false"
-        >
-          Cancelar
-        </button>
-        <button
-          class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
+        />
+        <Button
+          :label="isEditing ? 'Guardar' : 'Agregar'"
           :disabled="!dialogForm.type"
           @click="handleSave"
-        >
-          {{ isEditing ? 'Guardar' : 'Agregar' }}
-        </button>
+        />
       </template>
     </Dialog>
   </div>
@@ -134,6 +130,9 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
 import Dialog from 'primevue/dialog'
+import Dropdown from 'primevue/dropdown'
+import Button from 'primevue/button'
+import Textarea from 'primevue/textarea'
 import RuleConfigForm from './RuleConfigForm.vue'
 import {
   hasConfigFields,
@@ -177,6 +176,13 @@ const dialogForm = reactive({
 })
 const configText = ref('')
 const configObject = ref<Record<string, any>>({})
+
+const typeOptions = computed(() =>
+  props.validTypes.map(t => ({
+    label: props.typeLabels[t as keyof typeof props.typeLabels] || t,
+    value: t,
+  }))
+)
 
 // True when the type has actual form fields (for toggle button visibility)
 const hasFields = computed(() =>

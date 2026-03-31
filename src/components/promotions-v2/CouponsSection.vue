@@ -60,68 +60,71 @@
     >
       <div class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-secondary-700">
+          <label class="mb-1 block text-sm font-medium text-secondary-700">
             Código <span class="text-red-500">*</span>
           </label>
-          <input
+          <InputText
             v-model="couponForm.code"
-            type="text"
             placeholder="Ej: VERANO2026"
-            class="mt-1 block w-full rounded-md border-gray-300 font-mono uppercase shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            class="w-full font-mono uppercase"
           />
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-secondary-700">Máximo usos</label>
-            <input
-              v-model.number="couponForm.max_uses"
-              type="number"
-              min="1"
+            <label class="mb-1 block text-sm font-medium text-secondary-700">Máximo usos</label>
+            <InputNumber
+              v-model="couponForm.max_uses"
+              :min="1"
               placeholder="Ilimitado"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+              class="w-full"
+              inputClass="w-full"
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-secondary-700">Usos por usuario</label>
-            <input
-              v-model.number="couponForm.max_uses_per_user"
-              type="number"
-              min="1"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            <label class="mb-1 block text-sm font-medium text-secondary-700">Usos por usuario</label>
+            <InputNumber
+              v-model="couponForm.max_uses_per_user"
+              :min="1"
+              class="w-full"
+              inputClass="w-full"
             />
           </div>
         </div>
         <div>
-          <label class="block text-sm font-medium text-secondary-700">Fecha expiración</label>
-          <input
-            v-model="couponForm.expires_at"
-            type="datetime-local"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+          <label class="mb-1 block text-sm font-medium text-secondary-700">Fecha expiración</label>
+          <Calendar
+            v-model="couponExpiresDate"
+            :showTime="true"
+            :showIcon="true"
+            dateFormat="dd/mm/yy"
+            placeholder="Sin expiración"
+            class="w-full"
           />
         </div>
       </div>
       <template #footer>
-        <button
-          class="mr-2 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        <Button
+          label="Cancelar"
+          severity="secondary"
           @click="showAddDialog = false"
-        >
-          Cancelar
-        </button>
-        <button
-          class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
+        />
+        <Button
+          label="Crear cupón"
           :disabled="!couponForm.code.trim()"
           @click="handleAdd"
-        >
-          Crear cupón
-        </button>
+        />
       </template>
     </Dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import Dialog from 'primevue/dialog'
+import Button from 'primevue/button'
+import InputText from 'primevue/inputtext'
+import InputNumber from 'primevue/inputnumber'
+import Calendar from 'primevue/calendar'
 import { usePromotionV2Store } from '@/stores/promotion-v2.store'
 import { useFormatters } from '@/composables/useFormatters'
 import type { PromotionV2Coupon } from '@/types/promotion-v2.types'
@@ -140,14 +143,24 @@ const couponForm = reactive({
   code: '',
   max_uses: null as number | null,
   max_uses_per_user: 1,
-  expires_at: '',
 })
+
+const couponExpiresDate = ref<Date | null>(null)
 
 function resetForm() {
   couponForm.code = ''
   couponForm.max_uses = null
   couponForm.max_uses_per_user = 1
-  couponForm.expires_at = ''
+  couponExpiresDate.value = null
+}
+
+function formatDateForApi(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  const h = String(date.getHours()).padStart(2, '0')
+  const min = String(date.getMinutes()).padStart(2, '0')
+  return `${y}-${m}-${d} ${h}:${min}:00`
 }
 
 async function handleAdd() {
@@ -157,7 +170,7 @@ async function handleAdd() {
     code: couponForm.code.trim().toUpperCase(),
     max_uses: couponForm.max_uses || undefined,
     max_uses_per_user: couponForm.max_uses_per_user,
-    expires_at: couponForm.expires_at ? couponForm.expires_at.replace('T', ' ') : undefined,
+    expires_at: couponExpiresDate.value ? formatDateForApi(couponExpiresDate.value) : undefined,
   })
 
   resetForm()

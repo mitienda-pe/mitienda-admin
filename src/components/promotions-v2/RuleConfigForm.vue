@@ -54,24 +54,23 @@
       />
 
       <!-- Text -->
-      <input
+      <InputText
         v-else-if="field.type === 'text'"
-        type="text"
-        :value="modelValue[field.key] ?? ''"
-        @input="updateField(field.key, ($event.target as HTMLInputElement).value)"
+        :modelValue="modelValue[field.key] ?? ''"
+        @update:modelValue="updateField(field.key, $event)"
         :placeholder="field.placeholder"
-        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+        class="w-full"
       />
 
       <!-- Textarea -->
-      <textarea
+      <Textarea
         v-else-if="field.type === 'textarea'"
-        :value="modelValue[field.key] ?? ''"
-        @input="updateField(field.key, ($event.target as HTMLTextAreaElement).value)"
+        :modelValue="modelValue[field.key] ?? ''"
+        @update:modelValue="updateField(field.key, $event)"
         :placeholder="field.placeholder"
-        rows="4"
-        class="block w-full rounded-md border-gray-300 font-mono text-sm shadow-sm focus:border-primary focus:ring-primary"
-      ></textarea>
+        :rows="4"
+        class="w-full font-mono text-sm"
+      />
 
       <!-- Product Picker -->
       <div v-else-if="field.type === 'product-picker'">
@@ -278,6 +277,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import InputNumber from 'primevue/inputnumber'
+import InputText from 'primevue/inputtext'
+import Textarea from 'primevue/textarea'
 import AutoComplete from 'primevue/autocomplete'
 import Dropdown from 'primevue/dropdown'
 import MultiSelect from 'primevue/multiselect'

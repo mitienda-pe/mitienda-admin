@@ -206,83 +206,54 @@
     >
       <div class="space-y-4" v-if="editForm">
         <div>
-          <label class="block text-sm font-medium text-secondary-700">Nombre</label>
-          <input
-            v-model="editForm.name"
-            type="text"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-          />
+          <label class="mb-1 block text-sm font-medium text-secondary-700">Nombre</label>
+          <InputText v-model="editForm.name" class="w-full" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-secondary-700">Descripción</label>
-          <textarea
-            v-model="editForm.description"
-            rows="3"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-          ></textarea>
+          <label class="mb-1 block text-sm font-medium text-secondary-700">Descripción</label>
+          <Textarea v-model="editForm.description" :rows="3" class="w-full" />
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-secondary-700">Prioridad</label>
-            <input
-              v-model.number="editForm.priority"
-              type="number"
-              min="0"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-            />
+            <label class="mb-1 block text-sm font-medium text-secondary-700">Prioridad</label>
+            <InputNumber v-model="editForm.priority" :min="0" class="w-full" inputClass="w-full" />
           </div>
           <div>
-            <label class="block text-sm font-medium text-secondary-700">Grupo exclusivo</label>
-            <input
-              v-model="editForm.exclusive_group"
-              type="text"
-              placeholder="Opcional"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
-            />
+            <label class="mb-1 block text-sm font-medium text-secondary-700">Grupo exclusivo</label>
+            <InputText v-model="editForm.exclusive_group" placeholder="Opcional" class="w-full" />
           </div>
         </div>
-        <div>
-          <label class="flex items-center">
-            <input
-              v-model="editForm.stackable"
-              type="checkbox"
-              class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-            />
-            <span class="ml-2 text-sm text-gray-700">Acumulable con otras promociones</span>
-          </label>
+        <div class="flex items-center gap-2">
+          <Checkbox v-model="editForm.stackable" :binary="true" inputId="stackable" />
+          <label for="stackable" class="text-sm text-gray-700">Acumulable con otras promociones</label>
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-secondary-700">Fecha inicio</label>
-            <input
-              v-model="editForm.starts_at"
-              type="datetime-local"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            <label class="mb-1 block text-sm font-medium text-secondary-700">Fecha inicio</label>
+            <Calendar
+              v-model="editStartsDate"
+              :showTime="true"
+              :showIcon="true"
+              dateFormat="dd/mm/yy"
+              class="w-full"
             />
           </div>
           <div>
-            <label class="block text-sm font-medium text-secondary-700">Fecha fin</label>
-            <input
-              v-model="editForm.ends_at"
-              type="datetime-local"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+            <label class="mb-1 block text-sm font-medium text-secondary-700">Fecha fin</label>
+            <Calendar
+              v-model="editEndsDate"
+              :showTime="true"
+              :showIcon="true"
+              dateFormat="dd/mm/yy"
+              placeholder="Sin fecha fin"
+              class="w-full"
             />
           </div>
         </div>
       </div>
       <template #footer>
-        <button
-          class="mr-2 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          @click="showEditDialog = false"
-        >
-          Cancelar
-        </button>
-        <button
-          class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
-          @click="handleEdit"
-        >
-          Guardar
-        </button>
+        <Button label="Cancelar" severity="secondary" @click="showEditDialog = false" />
+        <Button label="Guardar" @click="handleEdit" />
       </template>
     </Dialog>
 
@@ -298,18 +269,8 @@
         Se eliminarán todas las reglas, cupones y datos asociados.
       </p>
       <template #footer>
-        <button
-          class="mr-2 rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          @click="showDeleteDialog = false"
-        >
-          Cancelar
-        </button>
-        <button
-          class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-          @click="handleDelete"
-        >
-          Eliminar
-        </button>
+        <Button label="Cancelar" severity="secondary" @click="showDeleteDialog = false" />
+        <Button label="Eliminar" severity="danger" @click="handleDelete" />
       </template>
     </Dialog>
   </div>
@@ -319,6 +280,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import Dialog from 'primevue/dialog'
+import Button from 'primevue/button'
+import InputText from 'primevue/inputtext'
+import InputNumber from 'primevue/inputnumber'
+import Textarea from 'primevue/textarea'
+import Checkbox from 'primevue/checkbox'
+import Calendar from 'primevue/calendar'
 import { usePromotionV2Store } from '@/stores/promotion-v2.store'
 import { useFormatters } from '@/composables/useFormatters'
 import RuleSection from '@/components/promotions-v2/RuleSection.vue'
@@ -376,6 +343,8 @@ const editForm = ref<EditFormData>({
   starts_at: '',
   ends_at: '',
 })
+const editStartsDate = ref<Date | null>(null)
+const editEndsDate = ref<Date | null>(null)
 
 const availableStatuses = [
   { value: 'draft' as const, label: 'Borrador', icon: 'pi pi-file' },
@@ -405,6 +374,21 @@ async function handleStatusChange(status: PromotionV2Status) {
   await store.changeStatus(promotion.value.promotions_v2_id, status)
 }
 
+function parseDate(str: string | null): Date | null {
+  if (!str) return null
+  return new Date(str.replace(' ', 'T'))
+}
+
+function formatDateForApi(date: Date | null): string | undefined {
+  if (!date) return undefined
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  const h = String(date.getHours()).padStart(2, '0')
+  const min = String(date.getMinutes()).padStart(2, '0')
+  return `${y}-${m}-${d} ${h}:${min}:00`
+}
+
 function openEditDialog() {
   if (!promotion.value) return
   editForm.value = {
@@ -413,9 +397,11 @@ function openEditDialog() {
     priority: promotion.value.priority,
     stackable: !!promotion.value.stackable,
     exclusive_group: promotion.value.exclusive_group || '',
-    starts_at: promotion.value.starts_at?.replace(' ', 'T')?.slice(0, 16) || '',
-    ends_at: promotion.value.ends_at?.replace(' ', 'T')?.slice(0, 16) || '',
+    starts_at: promotion.value.starts_at || '',
+    ends_at: promotion.value.ends_at || '',
   }
+  editStartsDate.value = parseDate(promotion.value.starts_at)
+  editEndsDate.value = parseDate(promotion.value.ends_at)
   showEditDialog.value = true
 }
 
@@ -427,8 +413,8 @@ async function handleEdit() {
     priority: editForm.value.priority,
     stackable: editForm.value.stackable ? 1 : 0,
     exclusive_group: editForm.value.exclusive_group || undefined,
-    starts_at: editForm.value.starts_at?.replace('T', ' ') || undefined,
-    ends_at: editForm.value.ends_at?.replace('T', ' ') || undefined,
+    starts_at: formatDateForApi(editStartsDate.value),
+    ends_at: formatDateForApi(editEndsDate.value),
   }
   await store.modifyPromotion(promotion.value.promotions_v2_id, data)
   showEditDialog.value = false
