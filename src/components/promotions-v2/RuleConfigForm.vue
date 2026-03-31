@@ -312,7 +312,6 @@ const emptyMessage = computed(() => {
     automatic: 'Esta activación es automática. No requiere configuración adicional.',
     coupon: 'Los cupones se gestionan en la sección de cupones abajo.',
     first_purchase: 'Se aplica automáticamente a la primera compra del cliente.',
-    non_stackable: 'Esta promoción no se acumula con otras promociones.',
     none: 'Sin condiciones — esta promoción aplica para todos los clientes y carritos.',
     free_shipping: 'Se aplicará envío gratis sin límite.',
   }

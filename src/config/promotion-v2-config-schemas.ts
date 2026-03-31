@@ -394,7 +394,6 @@ const constraintSchemas: Record<string, ConfigFieldSchema[]> = {
       defaultValue: 1,
     },
   ],
-  non_stackable: [],
   schedule_window: [
     {
       key: 'weekdays',
@@ -407,16 +406,6 @@ const constraintSchemas: Record<string, ConfigFieldSchema[]> = {
       label: 'Ventanas horarias',
       type: 'time-windows',
       helpText: 'Horarios específicos en que aplica',
-    },
-  ],
-  inventory_limit: [
-    {
-      key: 'max_units',
-      label: 'Máximo de unidades',
-      type: 'number',
-      required: true,
-      min: 1,
-      helpText: 'Cantidad máxima de unidades que se pueden descontar',
     },
   ],
 }
@@ -523,8 +512,6 @@ export function formatConfigHuman(
       return `Máx ${config.max_uses} usos totales`
     case 'max_uses_per_user':
       return `Máx ${config.max_uses} usos por cliente`
-    case 'non_stackable':
-      return 'No acumulable'
     case 'schedule_window': {
       const days = config.weekdays
         ? Object.entries(config.weekdays)
@@ -534,8 +521,6 @@ export function formatConfigHuman(
         : 'Todos los días'
       return `Horario: ${days}`
     }
-    case 'inventory_limit':
-      return `Máx ${config.max_units} unidades`
 
     // Activations
     case 'automatic':
@@ -562,8 +547,6 @@ function getEmptyConfigLabel(_category: RuleCategory, type: string): string {
       return 'Requiere cupón (ver sección cupones)'
     case 'first_purchase':
       return 'Solo primera compra'
-    case 'non_stackable':
-      return 'No acumulable con otras promociones'
     case 'none':
       return 'Sin condiciones — apto para todos'
     case 'free_shipping':

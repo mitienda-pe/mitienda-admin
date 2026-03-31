@@ -32,9 +32,7 @@ export type EffectType =
 export type ConstraintType =
   | 'max_global_uses'
   | 'max_uses_per_user'
-  | 'non_stackable'
   | 'schedule_window'
-  | 'inventory_limit'
 
 export interface PromotionV2 {
   promotions_v2_id: number
@@ -204,7 +202,5 @@ export const EFFECT_TYPE_LABELS: Record<EffectType, string> = {
 export const CONSTRAINT_TYPE_LABELS: Record<ConstraintType, string> = {
   max_global_uses: 'Máximo usos globales',
   max_uses_per_user: 'Máximo usos por usuario',
-  non_stackable: 'No acumulable',
   schedule_window: 'Ventana horaria',
-  inventory_limit: 'Límite de inventario',
 }
