@@ -91,6 +91,19 @@
           </div>
         </template>
       </Card>
+
+      <Card v-if="isConfigured" class="mt-4">
+        <template #title><div class="flex items-center gap-2"><i class="pi pi-link"></i><span>Webhook</span></div></template>
+        <template #content>
+          <div class="space-y-3 text-sm">
+            <p class="text-secondary-600">Configura esta URL en tu panel de Powerpay para recibir notificaciones de pago:</p>
+            <div class="flex items-center gap-2">
+              <InputText :modelValue="webhookUrl" readonly class="w-full text-xs" />
+              <Button icon="pi pi-copy" severity="secondary" outlined @click="copyWebhookUrl" v-tooltip.top="'Copiar'" />
+            </div>
+          </div>
+        </template>
+      </Card>
     </div>
   </div>
 </template>
@@ -100,6 +113,7 @@ import { reactive, computed, onMounted, watch } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { usePaymentGatewaysStore } from '@/stores/payment-gateways.store'
+import { useAuthStore } from '@/stores/auth.store'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
@@ -112,7 +126,14 @@ import Message from 'primevue/message'
 const toast = useToast()
 const confirm = useConfirm()
 const store = usePaymentGatewaysStore()
+const authStore = useAuthStore()
 const GATEWAY_CODE = 'powerpay'
+
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api2.mitienda.pe'
+const webhookUrl = computed(() => {
+  const storeId = authStore.selectedStore?.id
+  return `${apiBaseUrl}/api/v1/webhooks/payments/powerpay/h/${storeId}`
+})
 
 const formData = reactive({
   client_id: '',
@@ -163,6 +184,11 @@ function handleDelete() {
       toast.add({ severity: result.success ? 'success' : 'error', summary: result.success ? 'Eliminadas' : 'Error', life: 3000 })
     }
   })
+}
+
+function copyWebhookUrl() {
+  navigator.clipboard.writeText(webhookUrl.value)
+  toast.add({ severity: 'success', summary: 'URL copiada', life: 2000 })
 }
 
 function openPowerpay() {
