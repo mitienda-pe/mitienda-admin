@@ -19,7 +19,7 @@
               <h3 class="text-lg font-semibold text-secondary-800 mb-4">Credenciales de Powerpay</h3>
               <div class="space-y-4">
                 <div>
-                  <label class="block text-sm font-medium text-secondary-700 mb-2">Client ID <span class="text-red-500">*</span></label>
+                  <label class="block text-sm font-medium text-secondary-700 mb-2">Client Key <span class="text-red-500">*</span></label>
                   <InputText v-model="formData.client_id" placeholder="ck_xxxxx (Client Key proporcionado por Powerpay)" class="w-full" />
                   <small class="text-secondary-500">Se usa para los widgets de cuotas en la tienda.</small>
                 </div>
