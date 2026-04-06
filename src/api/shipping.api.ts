@@ -628,7 +628,7 @@ export const shippingApi = {
   async toggleRate(_id: number, _enabled: boolean): Promise<ApiResponse<void>> {
     if (USE_MOCKS) {
       await delay(200)
-      return { success: true, message: enabled ? 'Tarifa habilitada' : 'Tarifa deshabilitada' }
+      return { success: true, message: _enabled ? 'Tarifa habilitada' : 'Tarifa deshabilitada' }
     }
 
     // Toggle is just an update of the enabled field — not yet supported for base rates
