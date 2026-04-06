@@ -449,7 +449,7 @@ export const shippingApi = {
     const COUNTRY_TO_COD: Record<string, number> = { PE: 1, EC: 58, CO: 46 }
     const codPais = COUNTRY_TO_COD[countryCode] || 1
     const response = await apiClient.get(`/shipping-rates/tree?codPais=${codPais}`)
-    if (response.data?.error === 0) {
+    if (response.data?.success) {
       return { success: true, data: response.data.data }
     }
     return { success: false, data: [] }
@@ -570,9 +570,9 @@ export const shippingApi = {
     }
 
     const response = await apiClient.post('/shipping-rates/base', data)
-    return response.data?.error === 0
+    return response.data?.success
       ? { success: true, data: response.data.data, message: response.data.data?.mensaje }
-      : response.data
+      : { success: false, message: response.data?.message || 'Error al crear tarifa' }
   },
 
   /**
@@ -602,9 +602,9 @@ export const shippingApi = {
     }
 
     const response = await apiClient.put(`/shipping-rates/base/${id}`, data)
-    return response.data?.error === 0
+    return response.data?.success
       ? { success: true, message: response.data.data?.mensaje }
-      : response.data
+      : { success: false, message: response.data?.message || 'Error al actualizar tarifa' }
   },
 
   /**
@@ -617,9 +617,9 @@ export const shippingApi = {
     }
 
     const response = await apiClient.delete(`/shipping-rates/base/${id}`)
-    return response.data?.error === 0
+    return response.data?.success
       ? { success: true, message: response.data.data?.mensaje }
-      : response.data
+      : { success: false, message: response.data?.message || 'Error al eliminar tarifa' }
   },
 
   /**
@@ -688,7 +688,7 @@ export const shippingServiceTypesApi = {
    */
   async getAll(): Promise<ApiResponse<ShippingServiceType[]>> {
     const response = await apiClient.get('/shipping-service-types')
-    return { success: !response.data?.error, data: response.data?.data || [] }
+    return { success: response.data?.success ?? true, data: response.data?.data || [] }
   },
 
   /**
@@ -696,7 +696,7 @@ export const shippingServiceTypesApi = {
    */
   async getCourierMapping(): Promise<ApiResponse<any[]>> {
     const response = await apiClient.get('/shipping-service-types/couriers')
-    return { success: !response.data?.error, data: response.data?.data || [] }
+    return { success: response.data?.success ?? true, data: response.data?.data || [] }
   },
 }
 
@@ -706,7 +706,7 @@ export const serviceRatesApi = {
    */
   async getAll(params?: { ubigeo_id?: number; service_type_id?: number }): Promise<ApiResponse<ServiceTypeRate[]>> {
     const response = await apiClient.get('/shipping-rates', { params })
-    return { success: !response.data?.error, data: response.data?.data || [] }
+    return { success: response.data?.success ?? true, data: response.data?.data || [] }
   },
 
   /**
@@ -720,7 +720,7 @@ export const serviceRatesApi = {
     tipo_tiempo: number
   }): Promise<ApiResponse<any>> {
     const response = await apiClient.post('/shipping-rates', data)
-    return { success: !response.data?.error, data: response.data?.data }
+    return { success: response.data?.success ?? true, data: response.data?.data }
   },
 
   /**
@@ -733,7 +733,7 @@ export const serviceRatesApi = {
     activo?: number
   }): Promise<ApiResponse<any>> {
     const response = await apiClient.put(`/shipping-rates/${id}`, data)
-    return { success: !response.data?.error, data: response.data?.data }
+    return { success: response.data?.success ?? true, data: response.data?.data }
   },
 
   /**
@@ -741,7 +741,7 @@ export const serviceRatesApi = {
    */
   async remove(id: number): Promise<ApiResponse<any>> {
     const response = await apiClient.delete(`/shipping-rates/${id}`)
-    return { success: !response.data?.error, data: response.data?.data }
+    return { success: response.data?.success ?? true, data: response.data?.data }
   },
 
   /**
@@ -754,7 +754,7 @@ export const serviceRatesApi = {
     tipo_tiempo: number
   }>): Promise<ApiResponse<any>> {
     const response = await apiClient.post('/shipping-rates/bulk', { ubigeo_id, rates })
-    return { success: !response.data?.error, data: response.data?.data }
+    return { success: response.data?.success ?? true, data: response.data?.data }
   },
 }
 
