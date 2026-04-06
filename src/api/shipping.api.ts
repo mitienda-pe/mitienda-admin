@@ -14,8 +14,8 @@ import type {
 } from '@/types/shipping.types'
 import { SUPPORTED_COUNTRIES } from '@/types/shipping.types'
 
-// Flag para usar mocks mientras el backend no esté listo
-const USE_MOCKS = true
+// Mocks disabled — using real API endpoints
+const USE_MOCKS = false
 
 // Mapping from ISO country code to ubigeo codPais
 const COUNTRY_COD_PAIS: Record<CountryCode, number> = {
@@ -446,8 +446,13 @@ export const shippingApi = {
       return { success: true, data }
     }
 
-    const response = await apiClient.get(`/shipping/rates?country=${countryCode}`)
-    return response.data
+    const COUNTRY_TO_COD: Record<string, number> = { PE: 1, EC: 58, CO: 46 }
+    const codPais = COUNTRY_TO_COD[countryCode] || 1
+    const response = await apiClient.get(`/shipping-rates/tree?codPais=${codPais}`)
+    if (response.data?.error === 0) {
+      return { success: true, data: response.data.data }
+    }
+    return { success: false, data: [] }
   },
 
   /**
@@ -636,8 +641,8 @@ export const shippingApi = {
       return { success: true, data: enabledCountries }
     }
 
-    const response = await apiClient.get('/shipping/countries')
-    return response.data
+    // No backend endpoint yet — return PE as default
+    return { success: true, data: SUPPORTED_COUNTRIES.filter(c => c.code === 'PE') }
   },
 
   /**
