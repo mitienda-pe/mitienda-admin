@@ -821,11 +821,11 @@ async function openServiceRatesDialog(node: RateTreeNode) {
     if (ratesRes.success && ratesRes.data) {
       for (const rate of ratesRes.data) {
         serviceRatesData.value.set(rate.service_type_code, {
-          id: rate.cobertura_servicio_id,
-          precio: rate.precio,
-          tiempo_envio: rate.tiempo_envio,
-          tipo_tiempo: rate.tipo_tiempo,
-          service_type_id: rate.service_type_id
+          id: Number(rate.cobertura_servicio_id),
+          precio: Number(rate.precio),
+          tiempo_envio: Number(rate.tiempo_envio),
+          tipo_tiempo: Number(rate.tipo_tiempo),
+          service_type_id: Number(rate.service_type_id)
         })
       }
     }
@@ -867,7 +867,7 @@ function setServiceRateTime(serviceTypeId: number, code: string, value: number |
 }
 
 function getServiceRateTimeUnit(code: string): number {
-  return serviceRatesData.value.get(code)?.tipo_tiempo ?? 1
+  return Number(serviceRatesData.value.get(code)?.tipo_tiempo ?? 1)
 }
 
 function mapTimeUnitToString(value: number): string {
