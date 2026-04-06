@@ -84,14 +84,14 @@ async function loadData() {
     if (rulesRes.success) rules.value = rulesRes.data ?? []
     if (typesRes.success) serviceTypes.value = typesRes.data ?? []
 
-    // Parse couriers from response
+    // Parse couriers — show all active couriers (configured or not)
     const couriersData = couriersRes.data?.data || couriersRes.data || []
     couriers.value = (Array.isArray(couriersData) ? couriersData : [])
-      .filter((c: any) => c.configured)
       .map((c: any) => ({
         courier_id: Number(c.courier_id),
-        courier_nombre: c.courier_nombre,
+        courier_nombre: c.courier_nombre + (c.configured ? '' : ' (no configurado)'),
         courier_nombrecorto: c.courier_nombrecorto,
+        configured: !!c.configured,
       }))
 
     // Parse zones
