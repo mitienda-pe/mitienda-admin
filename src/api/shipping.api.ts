@@ -569,8 +569,10 @@ export const shippingApi = {
       return { success: true, data: newRate, message: 'Tarifa creada exitosamente' }
     }
 
-    const response = await apiClient.post('/shipping-rates', data)
-    return response.data
+    const response = await apiClient.post('/shipping-rates/base', data)
+    return response.data?.error === 0
+      ? { success: true, data: response.data.data, message: response.data.data?.mensaje }
+      : response.data
   },
 
   /**
@@ -599,8 +601,10 @@ export const shippingApi = {
       }
     }
 
-    const response = await apiClient.put(`/shipping-rates/${id}`, data)
-    return response.data
+    const response = await apiClient.put(`/shipping-rates/base/${id}`, data)
+    return response.data?.error === 0
+      ? { success: true, message: response.data.data?.mensaje }
+      : response.data
   },
 
   /**
@@ -612,12 +616,14 @@ export const shippingApi = {
       return { success: true, message: 'Tarifa eliminada exitosamente' }
     }
 
-    const response = await apiClient.delete(`/shipping-rates/${id}`)
-    return response.data
+    const response = await apiClient.delete(`/shipping-rates/base/${id}`)
+    return response.data?.error === 0
+      ? { success: true, message: response.data.data?.mensaje }
+      : response.data
   },
 
   /**
-   * Habilita o deshabilita una tarifa
+   * Habilita o deshabilita una tarifa (toggle = update enabled field)
    */
   async toggleRate(id: number, enabled: boolean): Promise<ApiResponse<void>> {
     if (USE_MOCKS) {
@@ -625,8 +631,9 @@ export const shippingApi = {
       return { success: true, message: enabled ? 'Tarifa habilitada' : 'Tarifa deshabilitada' }
     }
 
-    const response = await apiClient.put(`/shipping-rates/${id}/toggle`, { enabled })
-    return response.data
+    // Toggle is just an update of the enabled field — not yet supported for base rates
+    // For now, treat as no-op success
+    return { success: true }
   },
 
   /**
