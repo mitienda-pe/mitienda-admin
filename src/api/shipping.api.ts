@@ -569,7 +569,7 @@ export const shippingApi = {
       return { success: true, data: newRate, message: 'Tarifa creada exitosamente' }
     }
 
-    const response = await apiClient.post('/shipping/rates', data)
+    const response = await apiClient.post('/shipping-rates', data)
     return response.data
   },
 
@@ -599,7 +599,7 @@ export const shippingApi = {
       }
     }
 
-    const response = await apiClient.put(`/shipping/rates/${id}`, data)
+    const response = await apiClient.put(`/shipping-rates/${id}`, data)
     return response.data
   },
 
@@ -612,7 +612,7 @@ export const shippingApi = {
       return { success: true, message: 'Tarifa eliminada exitosamente' }
     }
 
-    const response = await apiClient.delete(`/shipping/rates/${id}`)
+    const response = await apiClient.delete(`/shipping-rates/${id}`)
     return response.data
   },
 
@@ -625,7 +625,7 @@ export const shippingApi = {
       return { success: true, message: enabled ? 'Tarifa habilitada' : 'Tarifa deshabilitada' }
     }
 
-    const response = await apiClient.put(`/shipping/rates/${id}/toggle`, { enabled })
+    const response = await apiClient.put(`/shipping-rates/${id}/toggle`, { enabled })
     return response.data
   },
 
