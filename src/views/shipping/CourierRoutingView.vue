@@ -88,9 +88,9 @@ async function loadData() {
     const couriersData = couriersRes.data?.data || couriersRes.data || []
     couriers.value = (Array.isArray(couriersData) ? couriersData : [])
       .map((c: any) => ({
-        courier_id: Number(c.courier_id),
-        courier_nombre: c.courier_nombre + (c.configured ? '' : ' (no configurado)'),
-        courier_nombrecorto: c.courier_nombrecorto,
+        courier_id: Number(c.id || c.courier_id),
+        courier_nombre: (c.name || c.courier_nombre) + (c.configured ? '' : ' (no configurado)'),
+        courier_nombrecorto: c.code || c.courier_nombrecorto,
         configured: !!c.configured,
       }))
 
