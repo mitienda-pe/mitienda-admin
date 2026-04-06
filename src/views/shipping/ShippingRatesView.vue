@@ -424,23 +424,23 @@
                   class="w-full"
                 />
               </InputGroup>
-              <div class="flex items-center gap-1">
+              <InputGroup class="w-40">
                 <InputNumber
                   :modelValue="getServiceRateTime(st.service_type_code)"
                   @update:modelValue="setServiceRateTime(st.service_type_id, st.service_type_code, $event)"
                   :min="1"
                   placeholder="1"
-                  class="w-14"
+                  class="w-16"
                 />
-                <SelectButton
+                <Dropdown
                   :modelValue="mapTimeUnitToString(getServiceRateTimeUnit(st.service_type_code))"
                   @update:modelValue="setServiceRateTimeUnit(st.service_type_id, st.service_type_code, mapTimeUnitToInt($event))"
                   :options="timeUnitOptions"
                   optionLabel="label"
                   optionValue="value"
-                  class="text-xs"
+                  class="w-24"
                 />
-              </div>
+              </InputGroup>
             </div>
           </div>
         </div>
