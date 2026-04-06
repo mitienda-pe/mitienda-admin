@@ -2,7 +2,7 @@
 
 export type CountryCode = 'PE' | 'EC' | 'CO'
 
-export type DeliveryTimeUnit = 'days' | 'hours'
+export type DeliveryTimeUnit = 'days' | 'hours' | 'minutes'
 
 export type RateType = 'standard' | 'express' | 'same_day' | 'next_day'
 
@@ -145,6 +145,9 @@ export function getCountryByCode(code: CountryCode): Country | undefined {
 
 // Helper para formatear tiempo de entrega
 export function formatDeliveryTime(time: number, unit: DeliveryTimeUnit): string {
+  if (unit === 'minutes') {
+    return `${time} min`
+  }
   if (unit === 'hours') {
     return time === 1 ? '1 hora' : `${time} horas`
   }
