@@ -433,8 +433,8 @@
                   class="w-14"
                 />
                 <SelectButton
-                  :modelValue="getServiceRateTimeUnit(st.service_type_code) === 2 ? 'hours' : 'days'"
-                  @update:modelValue="setServiceRateTimeUnit(st.service_type_id, st.service_type_code, $event === 'hours' ? 2 : 1)"
+                  :modelValue="mapTimeUnitToString(getServiceRateTimeUnit(st.service_type_code))"
+                  @update:modelValue="setServiceRateTimeUnit(st.service_type_id, st.service_type_code, mapTimeUnitToInt($event))"
                   :options="timeUnitOptions"
                   optionLabel="label"
                   optionValue="value"
@@ -538,6 +538,7 @@ const level3Options = ref<Location[]>([])
 
 // Options
 const timeUnitOptions = [
+  { label: 'Min', value: 'minutes' },
   { label: 'Horas', value: 'hours' },
   { label: 'Días', value: 'days' }
 ]
@@ -861,6 +862,18 @@ function setServiceRateTime(serviceTypeId: number, code: string, value: number |
 
 function getServiceRateTimeUnit(code: string): number {
   return serviceRatesData.value.get(code)?.tipo_tiempo ?? 1
+}
+
+function mapTimeUnitToString(value: number): string {
+  if (value === 3) return 'minutes'
+  if (value === 2) return 'hours'
+  return 'days'
+}
+
+function mapTimeUnitToInt(value: string): number {
+  if (value === 'minutes') return 3
+  if (value === 'hours') return 2
+  return 1
 }
 
 function setServiceRateTimeUnit(serviceTypeId: number, code: string, value: number) {
