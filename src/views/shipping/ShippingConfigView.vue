@@ -264,7 +264,7 @@ onMounted(async () => {
               </div>
               <AppButton
                 variant="secondary"
-                size="sm"
+                size="small"
                 class="mt-2"
                 :disabled="!serviceTypeConfigsChanged"
                 @click="saveServiceTypeConfigs"
