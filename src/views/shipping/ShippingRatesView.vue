@@ -120,8 +120,8 @@
                     text
                     rounded
                     size="small"
-                    v-tooltip.top="'Editar'"
-                    @click="openEditDialog(node)"
+                    v-tooltip.top="serviceTypesEnabled && node.data.level === 3 ? 'Tarifas por servicio' : 'Editar'"
+                    @click="serviceTypesEnabled && node.data.level === 3 ? openServiceRatesDialog(node) : openEditDialog(node)"
                   />
                   <Button
                     v-if="node.data.hasRate"
@@ -142,16 +142,6 @@
                     size="small"
                     v-tooltip.top="'Eliminar'"
                     @click="confirmDelete(node)"
-                  />
-                  <Button
-                    v-if="node.data.hasRate && node.data.level === 3 && serviceTypesEnabled"
-                    icon="pi pi-list"
-                    severity="help"
-                    text
-                    rounded
-                    size="small"
-                    v-tooltip.top="'Tarifas por servicio'"
-                    @click="openServiceRatesDialog(node)"
                   />
                   <Button
                     v-if="!node.data.hasRate"
@@ -815,7 +805,19 @@ async function openServiceRatesDialog(node: RateTreeNode) {
       availableServiceTypes.value = typesRes.data ?? []
     }
 
-    // Initialize map with existing rates
+    // Pre-populate "standard" with base rate values from the node
+    const baseTimeUnit = node.data.deliveryTimeUnit === 'minutes' ? 3 : (node.data.deliveryTimeUnit === 'hours' ? 2 : 1)
+    const standardType = (typesRes.data ?? []).find((t: any) => t.service_type_code === 'standard')
+    if (standardType) {
+      serviceRatesData.value.set('standard', {
+        service_type_id: standardType.service_type_id,
+        precio: node.data.price ?? null,
+        tiempo_envio: node.data.deliveryTime ?? 1,
+        tipo_tiempo: baseTimeUnit,
+      })
+    }
+
+    // Override with existing saved rates (if any)
     if (ratesRes.success && ratesRes.data) {
       for (const rate of ratesRes.data) {
         serviceRatesData.value.set(rate.service_type_code, {
