@@ -800,7 +800,7 @@ async function openServiceRatesDialog(node: RateTreeNode) {
     ])
 
     if (typesRes.success) {
-      availableServiceTypes.value = typesRes.data
+      availableServiceTypes.value = typesRes.data ?? []
     }
 
     // Initialize map with existing rates
