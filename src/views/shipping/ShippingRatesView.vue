@@ -410,41 +410,40 @@
           >
             <p class="font-medium text-sm mb-1">{{ st.service_type_nombre }}</p>
             <p class="text-xs text-gray-500 mb-3">{{ st.service_type_descripcion }}</p>
-            <div class="flex items-center gap-3">
+            <div class="grid grid-cols-3 gap-2 items-end">
               <div>
                 <label class="block text-xs text-gray-500 mb-1">Precio</label>
                 <InputGroup>
-                  <InputGroupAddon class="text-xs">{{ currentCountry?.currencySymbol }}</InputGroupAddon>
+                  <InputGroupAddon class="text-xs !px-2">{{ currentCountry?.currencySymbol }}</InputGroupAddon>
                   <InputNumber
                     :modelValue="getServiceRateValue(st.service_type_code)"
                     @update:modelValue="setServiceRateValue(st.service_type_id, st.service_type_code, $event)"
                     :min="0"
                     :minFractionDigits="2"
                     :maxFractionDigits="2"
-                    placeholder="—"
-                    class="w-24"
+                    placeholder="0.00"
                   />
                 </InputGroup>
               </div>
-              <div class="flex-1">
-                <label class="block text-xs text-gray-500 mb-1">Tiempo de entrega</label>
-                <div class="flex items-center gap-2">
-                  <InputNumber
-                    :modelValue="getServiceRateTime(st.service_type_code)"
-                    @update:modelValue="setServiceRateTime(st.service_type_id, st.service_type_code, $event)"
-                    :min="1"
-                    placeholder="1"
-                    class="w-16"
-                  />
-                  <Dropdown
-                    :modelValue="mapTimeUnitToString(getServiceRateTimeUnit(st.service_type_code))"
-                    @update:modelValue="setServiceRateTimeUnit(st.service_type_id, st.service_type_code, mapTimeUnitToInt($event))"
-                    :options="timeUnitOptions"
-                    optionLabel="label"
-                    optionValue="value"
-                    class="w-28"
-                  />
-                </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1">Tiempo</label>
+                <InputNumber
+                  :modelValue="getServiceRateTime(st.service_type_code)"
+                  @update:modelValue="setServiceRateTime(st.service_type_id, st.service_type_code, $event)"
+                  :min="1"
+                  placeholder="1"
+                />
+              </div>
+              <div>
+                <label class="block text-xs text-gray-500 mb-1">Unidad</label>
+                <Dropdown
+                  :modelValue="mapTimeUnitToString(getServiceRateTimeUnit(st.service_type_code))"
+                  @update:modelValue="setServiceRateTimeUnit(st.service_type_id, st.service_type_code, mapTimeUnitToInt($event))"
+                  :options="timeUnitOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  class="w-full"
+                />
               </div>
             </div>
           </div>
