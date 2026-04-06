@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useShippingConfigStore } from '@/stores/shipping-config.store'
 import { storeToRefs } from 'pinia'
 import InputSwitch from 'primevue/inputswitch'
@@ -10,10 +10,69 @@ import { AppButton, AppErrorState } from '@/components/ui'
 import ShippingScheduleEditor from '@/components/shipping/ShippingScheduleEditor.vue'
 import BlockedDatesEditor from '@/components/shipping/BlockedDatesEditor.vue'
 import { useToast } from 'primevue/usetoast'
+import apiClient from '@/api/axios'
 
 const store = useShippingConfigStore()
 const { draftConfig, isLoading, isSaving, error, hasChanges } = storeToRefs(store)
 const toast = useToast()
+
+// Service type cutoff configs
+interface ServiceTypeConfig {
+  service_type_id: number
+  service_type_code: string
+  service_type_nombre: string
+  hora_corte: string | null
+  config_activo: number
+}
+const serviceTypeConfigs = ref<ServiceTypeConfig[]>([])
+const originalServiceTypeConfigs = ref<string>('')
+const serviceTypeConfigsChanged = computed(() => {
+  return JSON.stringify(serviceTypeConfigs.value) !== originalServiceTypeConfigs.value
+})
+
+async function loadServiceTypeConfigs() {
+  try {
+    const response = await apiClient.get('/shipping-service-types/config')
+    if (response.data?.success && response.data.data) {
+      serviceTypeConfigs.value = response.data.data
+      originalServiceTypeConfigs.value = JSON.stringify(response.data.data)
+    }
+  } catch {
+    // silently fail
+  }
+}
+
+function updateServiceTypeConfig(serviceTypeId: number, field: string, value: any) {
+  const idx = serviceTypeConfigs.value.findIndex(c => c.service_type_id === serviceTypeId)
+  if (idx >= 0) {
+    (serviceTypeConfigs.value[idx] as any)[field] = value
+  }
+}
+
+async function saveServiceTypeConfigs() {
+  try {
+    const response = await apiClient.put('/shipping-service-types/config', {
+      configs: serviceTypeConfigs.value.map(c => ({
+        service_type_id: c.service_type_id,
+        hora_corte: c.hora_corte || null,
+        config_activo: c.config_activo,
+      }))
+    })
+    if (response.data?.success) {
+      originalServiceTypeConfigs.value = JSON.stringify(serviceTypeConfigs.value)
+      toast.add({ severity: 'success', summary: 'Hora de corte guardada', life: 3000 })
+    }
+  } catch {
+    toast.add({ severity: 'error', summary: 'Error guardando hora de corte', life: 3000 })
+  }
+}
+
+// Load service type configs when toggle is enabled
+watch(() => draftConfig.value.swServiciosEnvio, (enabled) => {
+  if (enabled && serviceTypeConfigs.value.length === 0) {
+    loadServiceTypeConfigs()
+  }
+})
 
 const daysOptions = Array.from({ length: 11 }, (_, i) => ({
   label: i === 0 ? 'Mismo día (hoy)' : i === 1 ? '1 día' : `${i} días`,
@@ -39,9 +98,12 @@ async function handleSave() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (!store.isLoaded) {
-    store.fetchConfig()
+    await store.fetchConfig()
+  }
+  if (draftConfig.value.swServiciosEnvio) {
+    loadServiceTypeConfigs()
   }
 })
 </script>
@@ -168,14 +230,48 @@ onMounted(() => {
             </div>
             <InputSwitch v-model="draftConfig.swServiciosEnvio" />
           </div>
-          <div v-if="draftConfig.swServiciosEnvio" class="mt-3 ml-4">
+          <div v-if="draftConfig.swServiciosEnvio" class="mt-3 ml-4 space-y-3">
             <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
               <p class="text-sm text-blue-800">
                 <i class="pi pi-info-circle mr-1" />
                 Configura las tarifas por tipo de servicio en
                 <router-link to="/shipping/rates" class="underline font-medium">Tarifas de envío</router-link>.
-                Cada destino podrá tener precios distintos para cada tipo de servicio.
               </p>
+            </div>
+
+            <!-- Hora de corte por tipo de servicio -->
+            <div v-if="serviceTypeConfigs.length > 0">
+              <p class="font-medium text-gray-900 mb-2">Hora de corte por tipo de servicio</p>
+              <p class="text-xs text-gray-500 mb-3">
+                Después de esta hora, el tipo de servicio no estará disponible para compra
+              </p>
+              <div class="space-y-2">
+                <div
+                  v-for="stc in serviceTypeConfigs"
+                  :key="stc.service_type_id"
+                  class="flex items-center gap-4 p-2 border border-gray-100 rounded"
+                >
+                  <span class="text-sm font-medium w-32">{{ stc.service_type_nombre }}</span>
+                  <input
+                    type="time"
+                    :value="stc.hora_corte || ''"
+                    @input="updateServiceTypeConfig(stc.service_type_id, 'hora_corte', ($event.target as HTMLInputElement).value || null)"
+                    class="border border-gray-300 rounded px-2 py-1 text-sm w-28"
+                    placeholder="Sin corte"
+                  />
+                  <span class="text-xs text-gray-400">{{ stc.hora_corte ? '' : 'Sin corte (siempre disponible)' }}</span>
+                </div>
+              </div>
+              <AppButton
+                variant="secondary"
+                size="sm"
+                class="mt-2"
+                :disabled="!serviceTypeConfigsChanged"
+                @click="saveServiceTypeConfigs"
+              >
+                <i class="pi pi-save mr-1" />
+                Guardar hora de corte
+              </AppButton>
             </div>
           </div>
         </div>
