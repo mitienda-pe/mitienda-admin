@@ -424,7 +424,7 @@
                   class="w-full"
                 />
               </InputGroup>
-              <div class="flex items-center gap-1 w-24">
+              <div class="flex items-center gap-1">
                 <InputNumber
                   :modelValue="getServiceRateTime(st.service_type_code)"
                   @update:modelValue="setServiceRateTime(st.service_type_id, st.service_type_code, $event)"
@@ -432,7 +432,14 @@
                   placeholder="1"
                   class="w-14"
                 />
-                <span class="text-xs text-gray-500">{{ getServiceRateTimeUnit(st.service_type_code) === 2 ? 'hrs' : 'días' }}</span>
+                <SelectButton
+                  :modelValue="getServiceRateTimeUnit(st.service_type_code) === 2 ? 'hours' : 'days'"
+                  @update:modelValue="setServiceRateTimeUnit(st.service_type_id, st.service_type_code, $event === 'hours' ? 2 : 1)"
+                  :options="timeUnitOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  class="text-xs"
+                />
               </div>
             </div>
           </div>
@@ -854,6 +861,17 @@ function setServiceRateTime(serviceTypeId: number, code: string, value: number |
 
 function getServiceRateTimeUnit(code: string): number {
   return serviceRatesData.value.get(code)?.tipo_tiempo ?? 1
+}
+
+function setServiceRateTimeUnit(serviceTypeId: number, code: string, value: number) {
+  const existing = serviceRatesData.value.get(code)
+  serviceRatesData.value.set(code, {
+    ...existing,
+    service_type_id: serviceTypeId,
+    precio: existing?.precio ?? null,
+    tiempo_envio: existing?.tiempo_envio ?? 1,
+    tipo_tiempo: value
+  })
 }
 
 async function saveServiceRates() {
