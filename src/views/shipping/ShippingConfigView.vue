@@ -157,6 +157,29 @@ onMounted(() => {
           </div>
         </div>
 
+        <!-- Tipos de servicio de envío -->
+        <div class="border-t border-gray-100 pt-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="font-medium text-gray-900">Tipos de servicio de envío</p>
+              <p class="text-sm text-gray-500">
+                Permite configurar tarifas diferenciadas por tipo de servicio (Estándar, Express, Mismo día, etc.)
+              </p>
+            </div>
+            <InputSwitch v-model="draftConfig.swServiciosEnvio" />
+          </div>
+          <div v-if="draftConfig.swServiciosEnvio" class="mt-3 ml-4">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p class="text-sm text-blue-800">
+                <i class="pi pi-info-circle mr-1" />
+                Configura las tarifas por tipo de servicio en
+                <router-link to="/shipping/rates" class="underline font-medium">Tarifas de envío</router-link>.
+                Cada destino podrá tener precios distintos para cada tipo de servicio.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <!-- Cálculo de costo de envío -->
         <div class="border-t border-gray-100 pt-4">
           <p class="font-medium text-gray-900 mb-1">Como aplicar el precio de envío</p>

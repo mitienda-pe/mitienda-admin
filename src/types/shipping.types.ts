@@ -6,6 +6,33 @@ export type DeliveryTimeUnit = 'days' | 'hours'
 
 export type RateType = 'standard' | 'express' | 'same_day' | 'next_day'
 
+// Tipo de servicio de envío (del catálogo global)
+export interface ShippingServiceType {
+  service_type_id: number
+  service_type_code: RateType
+  service_type_nombre: string
+  service_type_descripcion?: string
+  service_type_icono?: string
+  service_type_orden: number
+}
+
+// Tarifa por tipo de servicio (tiendascoberturas_servicios)
+export interface ServiceTypeRate {
+  cobertura_servicio_id: number
+  tienda_id: number
+  ubigeo_id: number
+  service_type_id: number
+  service_type_code: string
+  service_type_nombre: string
+  precio: number
+  tiempo_envio: number
+  tipo_tiempo: number // 1=Días, 2=Horas
+  activo: number
+  departamento_nombre?: string
+  provincia_nombre?: string
+  distrito_nombre?: string
+}
+
 // Información de país
 export interface Country {
   code: CountryCode
@@ -157,6 +184,8 @@ export interface ShippingConfig {
   swHabilitarEstadoEnvio: boolean
   // Shipping cost method: 0=single price, 1=highest, 2=sum
   envioporProducto: number
+  // Service types (differentiated shipping rates)
+  swServiciosEnvio: boolean
   // Delivery schedule
   swMostrarHorarioEnvio: boolean
   horarioEnvio: ShippingSchedule | null

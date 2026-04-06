@@ -144,6 +144,16 @@
                     @click="confirmDelete(node)"
                   />
                   <Button
+                    v-if="node.data.hasRate && node.data.level === 3 && serviceTypesEnabled"
+                    icon="pi pi-list"
+                    severity="help"
+                    text
+                    rounded
+                    size="small"
+                    v-tooltip.top="'Tarifas por servicio'"
+                    @click="openServiceRatesDialog(node)"
+                  />
+                  <Button
                     v-if="!node.data.hasRate"
                     icon="pi pi-plus"
                     severity="success"
@@ -370,6 +380,76 @@
       </template>
     </Dialog>
 
+    <!-- Dialog Tarifas por Tipo de Servicio -->
+    <Dialog
+      v-model:visible="serviceRatesDialogVisible"
+      header="Tarifas por Tipo de Servicio"
+      :modal="true"
+      :style="{ width: '600px' }"
+    >
+      <div v-if="serviceRatesNode" class="space-y-4">
+        <div class="p-3 bg-gray-100 rounded-lg">
+          <p class="text-sm text-gray-600">Ubicación</p>
+          <p class="font-medium">{{ serviceRatesNode.data.fullName || serviceRatesNode.data.name }}</p>
+          <p class="text-xs text-gray-500 mt-1">
+            Tarifa base: {{ formatPrice(serviceRatesNode.data.price, currentCountry?.code || 'PE') }}
+          </p>
+        </div>
+
+        <div v-if="serviceRatesLoading" class="flex justify-center py-6">
+          <ProgressSpinner />
+        </div>
+
+        <div v-else class="space-y-3">
+          <div
+            v-for="st in availableServiceTypes"
+            :key="st.service_type_id"
+            class="flex items-center gap-3 p-3 border rounded-lg"
+            :class="getServiceRateValue(st.service_type_code) !== null ? 'border-primary bg-primary/5' : 'border-gray-200'"
+          >
+            <div class="flex-1">
+              <p class="font-medium text-sm">{{ st.service_type_nombre }}</p>
+              <p class="text-xs text-gray-500">{{ st.service_type_descripcion }}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <InputGroup class="w-36">
+                <InputGroupAddon class="text-xs">{{ currentCountry?.currencySymbol }}</InputGroupAddon>
+                <InputNumber
+                  :modelValue="getServiceRateValue(st.service_type_code)"
+                  @update:modelValue="setServiceRateValue(st.service_type_id, st.service_type_code, $event)"
+                  :min="0"
+                  :minFractionDigits="2"
+                  :maxFractionDigits="2"
+                  placeholder="—"
+                  class="w-full"
+                />
+              </InputGroup>
+              <div class="flex items-center gap-1 w-24">
+                <InputNumber
+                  :modelValue="getServiceRateTime(st.service_type_code)"
+                  @update:modelValue="setServiceRateTime(st.service_type_id, st.service_type_code, $event)"
+                  :min="1"
+                  placeholder="1"
+                  class="w-14"
+                />
+                <span class="text-xs text-gray-500">{{ getServiceRateTimeUnit(st.service_type_code) === 2 ? 'hrs' : 'días' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <Button label="Cancelar" severity="secondary" text @click="serviceRatesDialogVisible = false" />
+        <Button
+          label="Guardar"
+          icon="pi pi-check"
+          :loading="serviceRatesSaving"
+          @click="saveServiceRates"
+        />
+      </template>
+    </Dialog>
+
     <!-- Confirm Delete Dialog -->
     <ConfirmDialog />
   </div>
@@ -385,7 +465,9 @@ import {
   formatDeliveryTime,
   formatPrice as formatPriceHelper
 } from '@/types/shipping.types'
-import type { CountryCode, RateTreeNode, DeliveryTimeUnit, Location } from '@/types/shipping.types'
+import type { CountryCode, RateTreeNode, DeliveryTimeUnit, Location, ShippingServiceType } from '@/types/shipping.types'
+import { shippingServiceTypesApi, serviceRatesApi } from '@/api/shipping.api'
+import { useShippingConfigStore } from '@/stores/shipping-config.store'
 
 // PrimeVue Components
 import TabView from 'primevue/tabview'
@@ -412,7 +494,11 @@ import ConfirmDialog from 'primevue/confirmdialog'
 const toast = useToast()
 const confirm = useConfirm()
 const store = useShippingStore()
+const configStore = useShippingConfigStore()
 const { resumeTourIfPending } = useOnboarding()
+
+// Service types enabled check
+const serviceTypesEnabled = computed(() => configStore.savedConfig?.swServiciosEnvio ?? false)
 
 // State
 const activeTabIndex = ref(0)
@@ -692,8 +778,129 @@ function confirmDelete(node: RateTreeNode) {
   })
 }
 
+// --- Service Rates Dialog ---
+const serviceRatesDialogVisible = ref(false)
+const serviceRatesNode = ref<RateTreeNode | null>(null)
+const serviceRatesLoading = ref(false)
+const serviceRatesSaving = ref(false)
+const availableServiceTypes = ref<ShippingServiceType[]>([])
+const serviceRatesData = ref<Map<string, { id?: number; precio: number | null; tiempo_envio: number; tipo_tiempo: number; service_type_id: number }>>(new Map())
+
+async function openServiceRatesDialog(node: RateTreeNode) {
+  serviceRatesNode.value = node
+  serviceRatesLoading.value = true
+  serviceRatesDialogVisible.value = true
+  serviceRatesData.value = new Map()
+
+  try {
+    // Load service types and existing rates in parallel
+    const [typesRes, ratesRes] = await Promise.all([
+      shippingServiceTypesApi.getAll(),
+      serviceRatesApi.getAll({ ubigeo_id: node.data.locationId })
+    ])
+
+    if (typesRes.success) {
+      availableServiceTypes.value = typesRes.data
+    }
+
+    // Initialize map with existing rates
+    if (ratesRes.success && ratesRes.data) {
+      for (const rate of ratesRes.data) {
+        serviceRatesData.value.set(rate.service_type_code, {
+          id: rate.cobertura_servicio_id,
+          precio: rate.precio,
+          tiempo_envio: rate.tiempo_envio,
+          tipo_tiempo: rate.tipo_tiempo,
+          service_type_id: rate.service_type_id
+        })
+      }
+    }
+  } catch {
+    toast.add({ severity: 'error', summary: 'Error cargando tipos de servicio', life: 3000 })
+  } finally {
+    serviceRatesLoading.value = false
+  }
+}
+
+function getServiceRateValue(code: string): number | null {
+  return serviceRatesData.value.get(code)?.precio ?? null
+}
+
+function setServiceRateValue(serviceTypeId: number, code: string, value: number | null) {
+  const existing = serviceRatesData.value.get(code)
+  serviceRatesData.value.set(code, {
+    ...existing,
+    service_type_id: serviceTypeId,
+    precio: value,
+    tiempo_envio: existing?.tiempo_envio ?? 1,
+    tipo_tiempo: existing?.tipo_tiempo ?? 1
+  })
+}
+
+function getServiceRateTime(code: string): number {
+  return serviceRatesData.value.get(code)?.tiempo_envio ?? 1
+}
+
+function setServiceRateTime(serviceTypeId: number, code: string, value: number | null) {
+  const existing = serviceRatesData.value.get(code)
+  serviceRatesData.value.set(code, {
+    ...existing,
+    service_type_id: serviceTypeId,
+    precio: existing?.precio ?? null,
+    tiempo_envio: value ?? 1,
+    tipo_tiempo: existing?.tipo_tiempo ?? 1
+  })
+}
+
+function getServiceRateTimeUnit(code: string): number {
+  return serviceRatesData.value.get(code)?.tipo_tiempo ?? 1
+}
+
+async function saveServiceRates() {
+  if (!serviceRatesNode.value) return
+
+  serviceRatesSaving.value = true
+  const ubigeoId = serviceRatesNode.value.data.locationId
+
+  // Build rates array (only those with a price set)
+  const rates: Array<{ service_type_id: number; precio: number; tiempo_envio: number; tipo_tiempo: number }> = []
+  for (const [, data] of serviceRatesData.value) {
+    if (data.precio !== null && data.precio >= 0) {
+      rates.push({
+        service_type_id: data.service_type_id,
+        precio: data.precio,
+        tiempo_envio: data.tiempo_envio,
+        tipo_tiempo: data.tipo_tiempo
+      })
+    }
+  }
+
+  try {
+    const result = await serviceRatesApi.bulk(ubigeoId, rates)
+    if (result.success) {
+      toast.add({
+        severity: 'success',
+        summary: 'Tarifas por servicio guardadas',
+        detail: result.data?.mensaje,
+        life: 3000
+      })
+      serviceRatesDialogVisible.value = false
+    } else {
+      toast.add({ severity: 'error', summary: 'Error', life: 3000 })
+    }
+  } catch {
+    toast.add({ severity: 'error', summary: 'Error guardando tarifas', life: 3000 })
+  } finally {
+    serviceRatesSaving.value = false
+  }
+}
+
 // Lifecycle
 onMounted(async () => {
+  // Fetch config store to know if service types are enabled
+  if (!configStore.isLoaded) {
+    configStore.fetchConfig()
+  }
   // Fetch enabled countries first
   await store.fetchEnabledCountries()
   // Then fetch rates for the current country

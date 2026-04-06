@@ -15,6 +15,7 @@ const DEFAULT_CONFIG: ShippingConfig = {
   zonaRepartoGratis: null,
   swHabilitarEstadoEnvio: false,
   envioporProducto: 0,
+  swServiciosEnvio: false,
   swMostrarHorarioEnvio: false,
   horarioEnvio: null,
   tipoMostrarFecha: 1,

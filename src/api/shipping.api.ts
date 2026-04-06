@@ -8,7 +8,9 @@ import type {
   SaveShippingRateRequest,
   UpdateShippingRateRequest,
   Country,
-  ShippingConfig
+  ShippingConfig,
+  ShippingServiceType,
+  ServiceTypeRate
 } from '@/types/shipping.types'
 import { SUPPORTED_COUNTRIES } from '@/types/shipping.types'
 
@@ -666,6 +668,84 @@ export const shippingApi = {
   }
 }
 
+// --- Service Types & Service Rates API ---
+
+export const shippingServiceTypesApi = {
+  /**
+   * Lista todos los tipos de servicio disponibles
+   */
+  async getAll(): Promise<ApiResponse<ShippingServiceType[]>> {
+    const response = await apiClient.get('/shipping-service-types')
+    return { success: !response.data?.error, data: response.data?.data || [] }
+  },
+
+  /**
+   * Lista tipos de servicio con mapping de couriers
+   */
+  async getCourierMapping(): Promise<ApiResponse<any[]>> {
+    const response = await apiClient.get('/shipping-service-types/couriers')
+    return { success: !response.data?.error, data: response.data?.data || [] }
+  },
+}
+
+export const serviceRatesApi = {
+  /**
+   * Lista tarifas por servicio de la tienda
+   */
+  async getAll(params?: { ubigeo_id?: number; service_type_id?: number }): Promise<ApiResponse<ServiceTypeRate[]>> {
+    const response = await apiClient.get('/shipping-rates', { params })
+    return { success: !response.data?.error, data: response.data?.data || [] }
+  },
+
+  /**
+   * Crear tarifa por tipo de servicio
+   */
+  async create(data: {
+    ubigeo_id: number
+    service_type_id: number
+    precio: number
+    tiempo_envio: number
+    tipo_tiempo: number
+  }): Promise<ApiResponse<any>> {
+    const response = await apiClient.post('/shipping-rates', data)
+    return { success: !response.data?.error, data: response.data?.data }
+  },
+
+  /**
+   * Actualizar tarifa
+   */
+  async update(id: number, data: {
+    precio?: number
+    tiempo_envio?: number
+    tipo_tiempo?: number
+    activo?: number
+  }): Promise<ApiResponse<any>> {
+    const response = await apiClient.put(`/shipping-rates/${id}`, data)
+    return { success: !response.data?.error, data: response.data?.data }
+  },
+
+  /**
+   * Eliminar tarifa
+   */
+  async remove(id: number): Promise<ApiResponse<any>> {
+    const response = await apiClient.delete(`/shipping-rates/${id}`)
+    return { success: !response.data?.error, data: response.data?.data }
+  },
+
+  /**
+   * Crear/actualizar tarifas en lote para un ubigeo
+   */
+  async bulk(ubigeo_id: number, rates: Array<{
+    service_type_id: number
+    precio: number
+    tiempo_envio: number
+    tipo_tiempo: number
+  }>): Promise<ApiResponse<any>> {
+    const response = await apiClient.post('/shipping-rates/bulk', { ubigeo_id, rates })
+    return { success: !response.data?.error, data: response.data?.data }
+  },
+}
+
 // Map API response (DB column names) to frontend ShippingConfig
 function mapConfigFromApi(raw: Record<string, unknown>): ShippingConfig {
   return {
@@ -678,6 +758,7 @@ function mapConfigFromApi(raw: Record<string, unknown>): ShippingConfig {
       : null,
     swHabilitarEstadoEnvio: raw.tiendageneral_swhabilitarestadoenvio === 1 || raw.tiendageneral_swhabilitarestadoenvio === '1',
     envioporProducto: Number(raw.tiendageneral_sw_envioporproducto) || 0,
+    swServiciosEnvio: raw.tiendageneral_sw_servicios_envio === 1 || raw.tiendageneral_sw_servicios_envio === '1',
     swMostrarHorarioEnvio: raw.tiendageneral_sw_mostrarhorarioenvio === 1 || raw.tiendageneral_sw_mostrarhorarioenvio === '1',
     horarioEnvio: (raw.tiendageneral_horarioenvio as ShippingConfig['horarioEnvio']) || null,
     tipoMostrarFecha: (Number(raw.tiendageneral_tipomostrarfecha) || 1) as 1 | 2,
@@ -709,6 +790,8 @@ function mapConfigToApi(config: Partial<ShippingConfig>): Record<string, unknown
     map.tiendageneral_swhabilitarestadoenvio = config.swHabilitarEstadoEnvio ? 1 : 0
   if (config.envioporProducto !== undefined)
     map.tiendageneral_sw_envioporproducto = config.envioporProducto
+  if (config.swServiciosEnvio !== undefined)
+    map.tiendageneral_sw_servicios_envio = config.swServiciosEnvio ? 1 : 0
   if (config.swMostrarHorarioEnvio !== undefined)
     map.tiendageneral_sw_mostrarhorarioenvio = config.swMostrarHorarioEnvio ? 1 : 0
   if (config.horarioEnvio !== undefined)
