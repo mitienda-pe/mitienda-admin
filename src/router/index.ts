@@ -680,6 +680,11 @@ const routes: RouteRecordRaw[] = [
         path: 'config',
         name: 'shipping-config',
         component: () => import('@/views/shipping/ShippingConfigView.vue')
+      },
+      {
+        path: 'courier-routing',
+        name: 'courier-routing',
+        component: () => import('@/views/shipping/CourierRoutingView.vue')
       }
     ]
   },
