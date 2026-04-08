@@ -142,6 +142,15 @@ export const customersApi = {
       recent_orders: recentOrders,
       orders: recentOrders,
       addresses: rawData.addresses || [],
+      wishlist: (rawData.wishlist || []).map((item: any) => ({
+        id: item.id || item.tiendaclientedeseo_id || 0,
+        product_id: item.product_id || item.producto_id || 0,
+        product_name: item.product_name || item.tiendaproducto_titulo || '',
+        product_price: parseFloat(item.product_price || item.producto_precio || '0'),
+        product_slug: item.product_slug || item.producto_slug || '',
+        product_image: item.product_image || item.imagen || undefined,
+        added_at: item.added_at || item.created_at || ''
+      })),
       stats: rawData.stats || {
         total_orders: rawData.total_orders || 0,
         total_spent: parseFloat(rawData.total_spent || '0'),

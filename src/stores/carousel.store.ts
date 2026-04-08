@@ -121,8 +121,9 @@ export const useCarouselStore = defineStore('carousel', () => {
     try {
       await carouselApi.reorder(items)
     } catch (e: any) {
-      console.error('Error saving order:', e)
+      error.value = 'Error al reordenar. Se restauró el orden anterior.'
       await fetchSlides()
+      throw e
     }
   }
 

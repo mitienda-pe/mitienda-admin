@@ -162,11 +162,19 @@ async function handleDeleteMobile(slide: CarouselSlide) {
 // ─── Reorder ─────────────────────────────────────
 
 async function handleMoveUp(slide: CarouselSlide) {
-  await store.moveSlideUp(slide.tiendaimagen_id)
+  try {
+    await store.moveSlideUp(slide.tiendaimagen_id)
+  } catch {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo reordenar el slide', life: 5000 })
+  }
 }
 
 async function handleMoveDown(slide: CarouselSlide) {
-  await store.moveSlideDown(slide.tiendaimagen_id)
+  try {
+    await store.moveSlideDown(slide.tiendaimagen_id)
+  } catch {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo reordenar el slide', life: 5000 })
+  }
 }
 </script>
 

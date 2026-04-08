@@ -52,7 +52,7 @@
     <!-- Lista -->
     <div v-else-if="filteredPosts.length > 0" class="space-y-3">
       <div
-        v-for="post in filteredPosts"
+        v-for="post in paginatedPosts"
         :key="post.id"
         class="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow"
       >
@@ -126,8 +126,18 @@
       </div>
     </div>
 
+    <!-- Paginacion -->
+    <Paginator
+      v-if="filteredPosts.length > postsPerPage"
+      :rows="postsPerPage"
+      :totalRecords="filteredPosts.length"
+      :first="currentPage * postsPerPage"
+      @page="onPageChange"
+      class="mt-4"
+    />
+
     <!-- Empty State -->
-    <div v-else class="bg-white rounded-lg shadow p-12 text-center">
+    <div v-else-if="filteredPosts.length === 0" class="bg-white rounded-lg shadow p-12 text-center">
       <i class="pi pi-book text-6xl text-secondary-300 mb-4"></i>
       <h3 class="text-xl font-semibold text-secondary mb-2">No hay entradas de blog</h3>
       <p class="text-secondary-500 mb-4">
@@ -164,13 +174,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useBlogStore } from '@/stores/blog.store'
 import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import InputSwitch from 'primevue/inputswitch'
 import Message from 'primevue/message'
+import Paginator from 'primevue/paginator'
 import ProgressSpinner from 'primevue/progressspinner'
 import SearchBar from '@/components/common/SearchBar.vue'
 import type { BlogPost } from '@/types/blog.types'
@@ -184,6 +195,9 @@ const showDeleteDialog = ref(false)
 const postToDelete = ref<BlogPost | null>(null)
 const isDeleting = ref(false)
 
+const postsPerPage = 20
+const currentPage = ref(0)
+
 const filteredPosts = computed(() => {
   if (!searchQuery.value) return blogStore.posts
   const query = searchQuery.value.toLowerCase()
@@ -193,6 +207,17 @@ const filteredPosts = computed(() => {
     post.author.toLowerCase().includes(query)
   )
 })
+
+const paginatedPosts = computed(() => {
+  const start = currentPage.value * postsPerPage
+  return filteredPosts.value.slice(start, start + postsPerPage)
+})
+
+function onPageChange(event: { page: number }) {
+  currentPage.value = event.page
+}
+
+watch(searchQuery, () => { currentPage.value = 0 })
 
 const editorTypeLabel = (type: PageEditorType) => {
   const labels: Record<PageEditorType, string> = { wysiwyg: 'WYSIWYG', code: 'Código HTML', visual_builder: 'Visual Builder' }
