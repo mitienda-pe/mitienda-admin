@@ -351,7 +351,7 @@ const availableStatuses = [
   { value: 'scheduled' as const, label: 'Programada', icon: 'pi pi-calendar' },
   { value: 'active' as const, label: 'Activa', icon: 'pi pi-check-circle' },
   { value: 'paused' as const, label: 'Pausada', icon: 'pi pi-pause' },
-  { value: 'expired' as const, label: 'Expirada', icon: 'pi pi-times-circle' },
+  // 'expired' is system-managed and should not be manually selectable
 ]
 
 function statusLabel(status: PromotionV2Status) {

@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { storeUsersApi } from '@/api/store-users.api'
+import type { ApiResponse } from '@/types/api.types'
 import type {
   StoreUser,
   StoreUserDetail,
@@ -24,7 +25,7 @@ export const useStoreUsersStore = defineStore('storeUsers', () => {
       const response = await storeUsersApi.getUsers()
       if (response.success && response.data) {
         users.value = response.data
-        isOwner.value = !!(response as any).is_owner
+        isOwner.value = !!(response as ApiResponse<StoreUser[]> & { is_owner?: boolean }).is_owner
       }
     } catch (e: any) {
       error.value = e.message || 'Error al cargar usuarios'

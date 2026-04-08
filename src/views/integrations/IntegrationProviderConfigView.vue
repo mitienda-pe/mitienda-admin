@@ -76,6 +76,19 @@ const hasEvents = computed(() => (provider.value?.supported_events?.length ?? 0)
 async function handleSave() {
   if (!code.value || !provider.value) return
 
+  // Validate all required credential fields are non-empty
+  const requiredFields = provider.value.config_fields.filter((f: any) => f.required !== false)
+  const emptyFields = requiredFields.filter((f: any) => !formCredentials.value[f.key]?.trim())
+  if (emptyFields.length > 0) {
+    toast.add({
+      severity: 'error',
+      summary: 'Credenciales incompletas',
+      detail: `Completa los campos: ${emptyFields.map((f: any) => f.label).join(', ')}`,
+      life: 5000
+    })
+    return
+  }
+
   if (hasEvents.value && formEvents.value.length === 0) {
     toast.add({
       severity: 'warn',

@@ -472,6 +472,28 @@ watch(activeTab, (tab) => {
 
 // Actions
 async function saveConfig() {
+  // Validation
+  if (form.value.type === 'stamps') {
+    if (!form.value.stamps_required || form.value.stamps_required <= 0) {
+      toast.add({ severity: 'error', summary: 'Error', detail: 'La cantidad de sellos requeridos debe ser mayor a 0', life: 5000 })
+      return
+    }
+  }
+  if (form.value.type === 'points') {
+    if (!form.value.points_per_sol || form.value.points_per_sol <= 0) {
+      toast.add({ severity: 'error', summary: 'Error', detail: 'Los puntos por sol deben ser mayor a 0', life: 5000 })
+      return
+    }
+    if (!form.value.point_value_soles || form.value.point_value_soles <= 0) {
+      toast.add({ severity: 'error', summary: 'Error', detail: 'El valor en soles por punto debe ser mayor a 0', life: 5000 })
+      return
+    }
+  }
+  if (!form.value.coupon_expiry_days || form.value.coupon_expiry_days <= 0) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Los días de expiración del cupón deben ser mayor a 0', life: 5000 })
+    return
+  }
+
   const data = {
     type: form.value.type,
     is_active: form.value.is_active ? 1 : 0,

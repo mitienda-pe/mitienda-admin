@@ -244,6 +244,13 @@ export const useAuthStore = defineStore('auth', () => {
     fetchStores()
   }
 
+  function setSession(token: string, userData: any) {
+    accessToken.value = token
+    user.value = userData
+    localStorage.setItem('access_token', token)
+    localStorage.setItem('user', JSON.stringify(userData))
+  }
+
   return {
     // State
     user,
@@ -264,6 +271,7 @@ export const useAuthStore = defineStore('auth', () => {
     selectStore,
     checkSuperAdmin,
     logout,
-    restoreSession
+    restoreSession,
+    setSession
   }
 })

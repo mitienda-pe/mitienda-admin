@@ -407,6 +407,16 @@ function validateForm(): boolean {
     valid = false
   }
 
+  if (formData.fecha_inicio && formData.fecha_fin && formData.fecha_fin <= formData.fecha_inicio) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error de fechas',
+      detail: 'La fecha de fin debe ser posterior a la fecha de inicio',
+      life: 5000
+    })
+    valid = false
+  }
+
   return valid
 }
 

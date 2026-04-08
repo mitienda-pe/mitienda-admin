@@ -26,20 +26,20 @@ export const useProductTagsStore = defineStore('productTags', () => {
     }
   }
 
-  async function createTag(data: ProductTagFormData): Promise<boolean> {
+  async function createTag(data: ProductTagFormData): Promise<ProductTag | null> {
     isLoading.value = true
     error.value = null
     try {
       const response = await productTagsApi.createTag(data)
       if (response.success && response.data) {
         tags.value.push(response.data)
-        return true
+        return response.data
       }
-      return false
+      return null
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Error al crear la etiqueta'
       console.error('Error creating tag:', err)
-      return false
+      return null
     } finally {
       isLoading.value = false
     }

@@ -41,8 +41,13 @@ export const useShippingZonesStore = defineStore('shipping-zones', () => {
   }
 
   async function createZone(payload: CreateShippingZoneRequest): Promise<number> {
-    const result = await shippingZonesApi.create(payload)
-    return result.id
+    try {
+      const result = await shippingZonesApi.create(payload)
+      return result.id
+    } catch (err: any) {
+      error.value = err.response?.data?.messages?.error || 'Error al crear zona'
+      throw err
+    }
   }
 
   async function updateZone(id: number, name: string) {

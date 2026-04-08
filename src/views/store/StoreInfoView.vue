@@ -15,6 +15,19 @@
       <ProgressSpinner />
     </div>
 
+    <!-- Error State -->
+    <div v-else-if="storeInfoStore.error" class="bg-white rounded-lg shadow p-12 text-center">
+      <i class="pi pi-exclamation-triangle text-5xl text-red-400 mb-4"></i>
+      <h3 class="text-xl font-semibold text-secondary mb-2">Error al cargar la información</h3>
+      <p class="text-secondary-500 mb-6">{{ storeInfoStore.error }}</p>
+      <Button
+        label="Reintentar"
+        icon="pi pi-refresh"
+        severity="secondary"
+        @click="loadData"
+      />
+    </div>
+
     <!-- Form -->
     <div v-else>
       <form @submit.prevent="saveInfo" class="space-y-6">
@@ -327,6 +340,16 @@ const loadData = async () => {
 }
 
 const saveInfo = async () => {
+  if (!formData.value.tienda_nombre_comercial?.trim()) {
+    toast.add({
+      severity: 'error',
+      summary: 'Validación',
+      detail: 'El nombre comercial de la tienda es obligatorio',
+      life: 5000
+    })
+    return
+  }
+
   try {
     await storeInfoStore.saveInfo(formData.value)
 

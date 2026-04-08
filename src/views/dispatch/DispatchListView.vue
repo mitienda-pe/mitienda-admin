@@ -370,8 +370,10 @@ onMounted(() => {
               v-model="dateFrom"
               dateFormat="yy-mm-dd"
               showIcon
+              :showClear="true"
               class="w-40"
               @date-select="onFilterChange"
+              @clear-click="onFilterChange"
             />
           </div>
           <div>
@@ -380,8 +382,10 @@ onMounted(() => {
               v-model="dateTo"
               dateFormat="yy-mm-dd"
               showIcon
+              :showClear="true"
               class="w-40"
               @date-select="onFilterChange"
+              @clear-click="onFilterChange"
             />
           </div>
           <div>
@@ -390,8 +394,10 @@ onMounted(() => {
               v-model="deliveryDateRef"
               dateFormat="yy-mm-dd"
               showIcon
+              :showClear="true"
               class="w-40"
               @date-select="onFilterChange"
+              @clear-click="onFilterChange"
             />
           </div>
           <div class="flex-1 min-w-[200px]">

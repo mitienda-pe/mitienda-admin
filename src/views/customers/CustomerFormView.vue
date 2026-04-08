@@ -56,10 +56,10 @@ const validateForm = (): boolean => {
 
   if (!formData.value.document_number.trim()) {
     errors.value.document_number = 'El número de documento es obligatorio'
-  } else if (formData.value.document_type === '1' && formData.value.document_number.length !== 8) {
-    errors.value.document_number = 'El DNI debe tener 8 dígitos'
-  } else if (formData.value.document_type === '2' && formData.value.document_number.length !== 11) {
-    errors.value.document_number = 'El RUC debe tener 11 dígitos'
+  } else if (formData.value.document_type === '1' && !/^\d{8}$/.test(formData.value.document_number)) {
+    errors.value.document_number = 'El DNI debe tener exactamente 8 dígitos numéricos'
+  } else if (formData.value.document_type === '2' && !/^\d{11}$/.test(formData.value.document_number)) {
+    errors.value.document_number = 'El RUC debe tener exactamente 11 dígitos numéricos'
   }
 
   if (formData.value.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.value.email)) {
@@ -392,6 +392,7 @@ onMounted(() => {
                 v-model="formData.birthdate"
                 type="date"
                 class="w-full"
+                :max="new Date().toISOString().split('T')[0]"
               />
             </div>
           </div>

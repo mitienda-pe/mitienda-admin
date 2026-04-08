@@ -117,6 +117,7 @@ export interface OrderItem {
   quantity: number
   price: number
   original_price?: number // Precio original antes de descuento
+  igv_percent?: number
   subtotal: number
   product?: {
     id: number

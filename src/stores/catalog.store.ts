@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { brandApi } from '@/api/brand.api'
 import { categoryApi } from '@/api/category.api'
 import type { Category, Brand, CategoryFormData, BrandFormData } from '@/types/product.types'
@@ -9,7 +9,9 @@ export const useCatalogStore = defineStore('catalog', () => {
   const categories = ref<Category[]>([])
   const flatCategories = ref<Category[]>([])
   const brands = ref<Brand[]>([])
-  const isLoading = ref(false)
+  const isCategoriesLoading = ref(false)
+  const isBrandsLoading = ref(false)
+  const isLoading = computed(() => isCategoriesLoading.value || isBrandsLoading.value)
   const error = ref<string | null>(null)
 
   // Helper to flatten categories
@@ -31,7 +33,7 @@ export const useCatalogStore = defineStore('catalog', () => {
 
   async function fetchCategories() {
     try {
-      isLoading.value = true
+      isCategoriesLoading.value = true
       error.value = null
 
       const response = await categoryApi.getAll()
@@ -44,7 +46,7 @@ export const useCatalogStore = defineStore('catalog', () => {
       error.value = err.response?.data?.message || 'Error al cargar categorías'
       console.error('Error al cargar categorías:', err)
     } finally {
-      isLoading.value = false
+      isCategoriesLoading.value = false
     }
   }
 
@@ -119,7 +121,7 @@ export const useCatalogStore = defineStore('catalog', () => {
 
   async function fetchBrands() {
     try {
-      isLoading.value = true
+      isBrandsLoading.value = true
       error.value = null
 
       const response = await brandApi.getAll()
@@ -131,7 +133,7 @@ export const useCatalogStore = defineStore('catalog', () => {
       error.value = err.response?.data?.message || 'Error al cargar marcas'
       console.error('Error al cargar marcas:', err)
     } finally {
-      isLoading.value = false
+      isBrandsLoading.value = false
     }
   }
 
@@ -213,6 +215,8 @@ export const useCatalogStore = defineStore('catalog', () => {
     categories,
     flatCategories,
     brands,
+    isCategoriesLoading,
+    isBrandsLoading,
     isLoading,
     error,
     // Category Actions

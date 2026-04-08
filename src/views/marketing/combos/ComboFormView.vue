@@ -353,7 +353,7 @@ const calculatedRegularPrice = computed(() => {
 const savingsPercent = computed(() => {
   if (calculatedRegularPrice.value <= 0 || !formData.value.tiendacombo_precio) return 0
   const savings = calculatedRegularPrice.value - formData.value.tiendacombo_precio
-  return Math.round((savings / calculatedRegularPrice.value) * 100)
+  return Math.max(0, Math.round((savings / calculatedRegularPrice.value) * 100))
 })
 
 // Image URL helper

@@ -292,8 +292,13 @@ const handleSaveSettings = async () => {
       meta_description: settingsForm.meta_description || undefined,
     })
 
-    page.value = updated
-    content.value = updated.content
+    if (page.value) {
+      page.value.title = updated.title
+      page.value.slug = updated.slug
+      page.value.published = updated.published
+      page.value.meta_title = updated.meta_title
+      page.value.meta_description = updated.meta_description
+    }
 
     toast.add({
       severity: 'success',

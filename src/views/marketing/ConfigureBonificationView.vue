@@ -118,7 +118,7 @@
                       v-model="product.productopromocion_cantidadproducto"
                       :min="1"
                       :maxFractionDigits="0"
-                      @update:modelValue="updateProductQuantity(product.producto_id, $event)"
+                      @update:modelValue="debouncedUpdateQuantity(product.producto_id, $event)"
                       class="w-20"
                       inputClass="w-full"
                     />
@@ -263,6 +263,7 @@ import LinkProductsDialog from '@/components/promotions/LinkProductsDialog.vue'
 import LinkBonificationsDialog from '@/components/promotions/LinkBonificationsDialog.vue'
 import { useToast } from 'primevue/usetoast'
 import apiClient from '@/api/axios'
+import { debounce } from '@/utils/debounce'
 
 const route = useRoute()
 const toast = useToast()
@@ -321,7 +322,9 @@ async function fetchProducts() {
   }
 }
 
-// Update product quantity
+// Update product quantity (debounced to avoid API calls on every keystroke)
+const debouncedUpdateQuantity = debounce(updateProductQuantity, 500)
+
 async function updateProductQuantity(productId: number, quantity: number | null) {
   if (!quantity || quantity < 1) return
 

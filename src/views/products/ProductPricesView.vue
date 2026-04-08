@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { useUnsavedChanges } from '@/composables/useUnsavedChanges'
 import { useProductManagementStore } from '@/stores/product-management.store'
 import DataTable, { type DataTableSortEvent } from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -203,6 +204,7 @@ const onImported = () => {
 }
 
 const hasDirtyChanges = computed(() => store.dirtyPriceCount > 0)
+useUnsavedChanges(hasDirtyChanges)
 const first = computed(
   () => (store.pricePagination.page - 1) * store.pricePagination.limit,
 )

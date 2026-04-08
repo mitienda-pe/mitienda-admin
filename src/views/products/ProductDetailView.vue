@@ -134,7 +134,7 @@
           </template>
           <template #content>
             <div v-if="product.description_html" class="text-secondary-600 prose prose-sm max-w-none"
-              v-html="product.description_html"></div>
+              v-html="sanitizeHtml(product.description_html || '')"></div>
             <p v-else class="text-secondary-600">{{ product.description }}</p>
           </template>
         </Card>
@@ -879,6 +879,8 @@ import { useCatalogStore } from '@/stores/catalog.store'
 import { useGammaStore } from '@/stores/gamma.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useFormatters } from '@/composables/useFormatters'
+import { useUnsavedChanges } from '@/composables/useUnsavedChanges'
+import { sanitizeHtml } from '@/utils/sanitize'
 import { useToast } from 'primevue/usetoast'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
@@ -967,6 +969,7 @@ const hasErpIntegration = ref(false)
 // ── Form state ──
 const saving = ref(false)
 const isDirty = ref(false)
+useUnsavedChanges(isDirty)
 const skipDirtyWatch = ref(false)
 const validationErrors = ref<Record<string, string>>({})
 

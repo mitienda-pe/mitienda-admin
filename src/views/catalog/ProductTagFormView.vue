@@ -378,10 +378,8 @@ async function uploadFile(file: File) {
     isUploading.value = true
     try {
       // Create tag first
-      const createSuccess = await tagsStore.createTag(formData)
-      if (createSuccess && tagsStore.tags.length > 0) {
-        // Get the newly created tag (last one added)
-        const newTag = tagsStore.tags[tagsStore.tags.length - 1]
+      const newTag = await tagsStore.createTag(formData)
+      if (newTag) {
         editingTag.value = newTag
 
         // Now upload image
@@ -434,7 +432,7 @@ async function saveTag() {
     return
   }
 
-  let success = false
+  let success: boolean | object | null = false
 
   if (editingTag.value) {
     success = await tagsStore.updateTag(editingTag.value.id, formData)

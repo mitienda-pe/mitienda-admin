@@ -270,6 +270,10 @@ async function handleOAuthCallback(code: string, state: string) {
       // Restaurar sesión en el store
       authStore.restoreSession()
 
+      // Cargar tiendas y verificar superadmin para usuarios OAuth
+      await authStore.fetchStores()
+      await authStore.checkSuperAdmin()
+
       // Si es usuario nuevo, mostrar mensaje especial
       if (result.data.isNewUser) {
         toast.add({

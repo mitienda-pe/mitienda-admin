@@ -98,7 +98,7 @@
               severity="success"
               outlined
               v-tooltip.top="'Dirección para etiquetas de envío. Clic para desmarcar'"
-              :loading="isTogglingSender"
+              :loading="togglingIds.has(data.tiendadireccion_id)"
               @click="toggleSender(data)"
             />
             <Button
@@ -108,7 +108,7 @@
               text
               severity="secondary"
               v-tooltip.top="'Marcar como remitente para etiquetas'"
-              :loading="isTogglingSender"
+              :loading="togglingIds.has(data.tiendadireccion_id)"
               @click="toggleSender(data)"
             />
           </template>
@@ -180,7 +180,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useStoreInfoStore } from '@/stores/store-info.store'
 import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
@@ -212,7 +212,7 @@ const toast = useToast()
 const showDeleteDialog = ref(false)
 const addressToDelete = ref<StoreAddress | null>(null)
 const isDeleting = ref(false)
-const isTogglingSender = ref(false)
+const togglingIds = reactive(new Set<number>())
 
 // Map
 const mapContainer = ref<HTMLElement | null>(null)
@@ -271,8 +271,9 @@ const confirmDelete = (address: StoreAddress) => {
 }
 
 const toggleSender = async (address: StoreAddress) => {
+  const addrId = address.tiendadireccion_id
   try {
-    isTogglingSender.value = true
+    togglingIds.add(addrId)
 
     if (address.tiendadireccion_swremitente == 1) {
       await storeInfoStore.unsetSenderAddress(address.tiendadireccion_id)
@@ -299,7 +300,7 @@ const toggleSender = async (address: StoreAddress) => {
       life: 5000
     })
   } finally {
-    isTogglingSender.value = false
+    togglingIds.delete(addrId)
   }
 }
 

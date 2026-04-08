@@ -232,9 +232,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
+import { useAuthStore } from '@/stores/auth.store'
 import apiClient from '@/api/axios'
+
+const router = useRouter()
+const authStore = useAuthStore()
+
+onMounted(() => {
+  if (!authStore.isSuperAdmin) {
+    router.push('/dashboard')
+    return
+  }
+})
 
 interface S3Image {
   id: number

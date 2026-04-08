@@ -54,11 +54,8 @@ onMounted(async () => {
 
     const { access_token, user, store_id } = response.data
 
-    // Persist auth data (mirrors what auth.store.ts does on normal login)
-    auth.accessToken = access_token
-    auth.user = { id: user.id, email: user.email, name: user.name } as any
-    localStorage.setItem('access_token', access_token)
-    localStorage.setItem('user', JSON.stringify({ id: user.id, email: user.email, name: user.name }))
+    // Persist auth data via store action
+    auth.setSession(access_token, { id: user.id, email: user.email, name: user.name })
 
     // The initial token already carries store_id — fetch & auto-select the store
     // so the per-store scoped token gets set before entering the dashboard.

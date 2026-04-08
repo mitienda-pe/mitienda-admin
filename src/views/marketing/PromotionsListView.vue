@@ -302,9 +302,11 @@ import { useRouter } from 'vue-router'
 import { usePromotionsStore } from '@/stores/promotions.store'
 import { storeToRefs } from 'pinia'
 import { useDebounceFn } from '@vueuse/core'
+import { useToast } from 'primevue/usetoast'
 import CreatePromotionDialog from '@/components/promotions/CreatePromotionDialog.vue'
 
 const router = useRouter()
+const toast = useToast()
 
 const promotionsStore = usePromotionsStore()
 const { promotions, promotionTypes, isLoading, error, pagination, hasPromotions } = storeToRefs(promotionsStore)
@@ -353,8 +355,14 @@ function confirmDelete(promotion: any) {
 async function deletePromotion(id: number) {
   try {
     await promotionsStore.removePromotion(id)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting promotion:', error)
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error.message || 'No se pudo eliminar la promoción',
+      life: 5000
+    })
   }
 }
 

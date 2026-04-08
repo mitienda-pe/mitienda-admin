@@ -204,6 +204,7 @@ const toggleDownloadMenu = (event: Event) => {
 }
 
 onMounted(async () => {
+  ordersStore.clearCurrentOrder()
   await ordersStore.fetchOrder(orderId)
 
   // Load sender info, order reviews, and fulfillment provider in parallel
@@ -446,19 +447,28 @@ const subtotalAntesPromociones = computed(() => {
   return productosTotal + (order.value?.shipping_cost || 0)
 })
 
+// Tax rate derived from order items (igv_percent) with 18% fallback
+const taxRatePercent = computed(() => {
+  if (!order.value?.items?.length) return 18
+  const firstWithIgv = order.value.items.find((item: any) => item.igv_percent != null)
+  return firstWithIgv ? Number(firstWithIgv.igv_percent) : 18
+})
+
+const taxRate = computed(() => taxRatePercent.value / 100)
+
 // Subtotal sin IGV - usar el total final de la orden (que ya incluye todos los descuentos)
 const subtotalSinIGV = computed(() => {
   if (!order.value) return 0
 
   // El total de la orden ya tiene todos los descuentos aplicados (items + order-level)
-  // Solo dividimos entre 1.18 para obtener el monto sin IGV
+  // Dividimos entre (1 + taxRate) para obtener el monto sin IGV
   const totalConIGV = roundingAmount.value !== 0 ? totalAfterRounding.value : order.value.total
-  return totalConIGV / 1.18
+  return totalConIGV / (1 + taxRate.value)
 })
 
-// IGV (18%)
+// IGV (dynamic rate)
 const igv = computed(() => {
-  return subtotalSinIGV.value * 0.18
+  return subtotalSinIGV.value * taxRate.value
 })
 
 const roundingAmount = computed(() => {

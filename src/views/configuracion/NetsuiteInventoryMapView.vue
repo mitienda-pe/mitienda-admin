@@ -622,7 +622,26 @@ function addInventoryNumber() {
   })
 }
 
-function removeInventoryNumber(index: number) {
+async function removeInventoryNumber(index: number) {
+  const item = editForm.value.inventory_numbers[index]
+  // If the item was previously saved (has a real inventory_number_id), delete it from the backend
+  if (item.inventory_number_id && currentTiendaId.value) {
+    try {
+      await netsuiteApi.deleteInventoryNumber(
+        currentTiendaId.value,
+        item.item_id,
+        item.inventory_number_id
+      )
+    } catch (err: any) {
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No se pudo eliminar el número de inventario',
+        life: 3000
+      })
+      return
+    }
+  }
   editForm.value.inventory_numbers.splice(index, 1)
 }
 
