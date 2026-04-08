@@ -30,6 +30,11 @@ const customerId = Number(route.params.id)
 const PERU_COD_PAIS = 1
 
 onMounted(() => {
+  if (!customerId || isNaN(customerId)) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'ID de cliente inválido', life: 5000 })
+    router.push({ name: 'Customers' })
+    return
+  }
   customersStore.fetchCustomer(customerId)
 })
 

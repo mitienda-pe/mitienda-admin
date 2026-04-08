@@ -16,6 +16,7 @@ export const useCustomersStore = defineStore('customers', () => {
   const customers = ref<Customer[]>([])
   const currentCustomer = ref<CustomerDetail | null>(null)
   const isLoading = ref(false)
+  const isDetailLoading = ref(false)
   const error = ref<string | null>(null)
   const stats = ref<CustomerStats | null>(null)
 
@@ -102,7 +103,7 @@ export const useCustomersStore = defineStore('customers', () => {
 
   async function fetchCustomer(id: number) {
     try {
-      isLoading.value = true
+      isDetailLoading.value = true
       error.value = null
 
       const response = await customersApi.getCustomer(id)
@@ -116,7 +117,7 @@ export const useCustomersStore = defineStore('customers', () => {
       error.value = err instanceof Error ? err.message : 'Error desconocido'
       console.error('Error fetching customer:', err)
     } finally {
-      isLoading.value = false
+      isDetailLoading.value = false
     }
   }
 
@@ -382,6 +383,7 @@ export const useCustomersStore = defineStore('customers', () => {
     customers,
     currentCustomer,
     isLoading,
+    isDetailLoading,
     error,
     pagination,
     filters,

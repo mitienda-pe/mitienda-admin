@@ -226,7 +226,9 @@ export const profileApi = {
 
   // Obtener URL de OAuth para redirección
   getOAuthUrl(provider: SocialProvider, redirectUri: string): string {
-    const state = Math.random().toString(36).substring(7)
+    const randomBytes = crypto.getRandomValues(new Uint8Array(16))
+    const randomStr = Array.from(randomBytes, b => b.toString(16).padStart(2, '0')).join('')
+    const state = `${provider}:${randomStr}`
     sessionStorage.setItem('oauth_state', state)
 
     if (provider === 'google') {

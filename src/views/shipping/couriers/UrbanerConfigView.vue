@@ -362,6 +362,7 @@ async function handleSave() {
 }
 
 async function handleDelete() {
+  if (!window.confirm('¿Estás seguro de eliminar la configuración de Urbaner? Se perderán las credenciales guardadas.')) return
   try {
     await store.deleteConfig('urbaner')
     toast.add({ severity: 'success', summary: 'Eliminado', detail: 'Configuración eliminada', life: 3000 })

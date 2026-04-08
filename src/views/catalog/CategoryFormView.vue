@@ -254,9 +254,20 @@ const formData = ref<CategoryFormData>({
 const isEditMode = computed(() => !!route.params.id)
 const categoryId = computed(() => route.params.id ? parseInt(route.params.id as string) : null)
 
-// Filter out current category from parent options (can't be parent of itself)
+// Filter out current category and its descendants from parent options (prevent circular references)
 const parentCategoryOptions = computed(() => {
-  return catalogStore.flatCategories.filter(cat => cat.id !== categoryId.value)
+  if (!categoryId.value) return catalogStore.flatCategories
+
+  const descendantIds = new Set<number>()
+  const collectDescendants = (parentId: number) => {
+    descendantIds.add(parentId)
+    catalogStore.flatCategories
+      .filter(cat => cat.parent_id === parentId)
+      .forEach(cat => collectDescendants(cat.id))
+  }
+  collectDescendants(categoryId.value)
+
+  return catalogStore.flatCategories.filter(cat => !descendantIds.has(cat.id))
 })
 
 const validateForm = (): boolean => {

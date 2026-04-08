@@ -217,7 +217,7 @@ export const ordersApi = {
           })
           return {
             id: item.id,
-            product_id: 0,
+            product_id: item.product_id || 0,
             product_name: item.tittle || '', // Nota: API usa 'tittle' (typo)
             product_sku: item.sku || '',
             product_image: item.image || undefined,
@@ -360,7 +360,8 @@ export const ordersApi = {
    * Actualizar estado de un pedido
    */
   async updateOrderStatus(id: number, status: OrderStatus): Promise<ApiResponse<Order>> {
-    const response = await apiClient.put(`/orders/${id}`, { status })
+    const paymentCode = statusToPaymentCode(status)
+    const response = await apiClient.put(`/orders/${id}`, { status: paymentCode })
     return response.data
   },
 

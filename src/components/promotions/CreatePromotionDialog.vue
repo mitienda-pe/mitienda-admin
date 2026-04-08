@@ -163,6 +163,15 @@ function validateStep1(): boolean {
     if (!formData.value.tiendapromocion_valor || formData.value.tiendapromocion_valor <= 0) {
       errors.value.tiendapromocion_valor = 'El valor del descuento debe ser mayor a 0'
       isValid = false
+    } else if (formData.value.tiendapromocion_tipodescuento === 1 && formData.value.tiendapromocion_valor > 100) {
+      errors.value.tiendapromocion_valor = 'El porcentaje de descuento no puede ser mayor a 100%'
+      toast.add({
+        severity: 'error',
+        summary: 'Error de validación',
+        detail: 'El porcentaje de descuento debe estar entre 0 y 100',
+        life: 5000
+      })
+      isValid = false
     }
   }
 

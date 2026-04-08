@@ -359,6 +359,26 @@ const validateForm = (): boolean => {
     formErrors.value.nombre = 'El nombre es requerido (mínimo 2 caracteres)'
   }
 
+  if (triggerProducts.value.length === 0) {
+    formErrors.value.triggers = 'Debes agregar al menos un producto trigger'
+    toast.add({
+      severity: 'error',
+      summary: 'Error de validación',
+      detail: 'Debes agregar al menos un producto trigger',
+      life: 5000
+    })
+  }
+
+  if (suggestedProducts.value.length === 0) {
+    formErrors.value.suggested = 'Debes agregar al menos un producto sugerido'
+    toast.add({
+      severity: 'error',
+      summary: 'Error de validación',
+      detail: 'Debes agregar al menos un producto sugerido',
+      life: 5000
+    })
+  }
+
   return Object.keys(formErrors.value).length === 0
 }
 

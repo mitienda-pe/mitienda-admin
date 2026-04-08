@@ -25,15 +25,16 @@ const error = ref('')
 onMounted(async () => {
   const code = route.query.code as string
   const state = route.query.state as string
-  const provider = (route.query.provider || route.params.provider || detectProvider()) as SocialProvider
-
-  // Verificar state para prevenir CSRF
+  // Verificar state para prevenir CSRF - reject if missing or mismatched
   const savedState = sessionStorage.getItem('oauth_state')
-  if (state && savedState && state !== savedState) {
-    error.value = 'Error de seguridad: estado inválido'
+  if (!state || !savedState || state !== savedState) {
+    error.value = 'Error de seguridad: estado inválido. Intenta nuevamente.'
     setTimeout(() => router.push('/profile'), 3000)
     return
   }
+
+  // Extract provider from state param or fallback to query/route params
+  const provider = (route.query.provider || route.params.provider || extractProviderFromState(state)) as SocialProvider
 
   sessionStorage.removeItem('oauth_state')
 
@@ -79,16 +80,11 @@ onMounted(async () => {
   setTimeout(() => router.push('/profile'), 2000)
 })
 
-function detectProvider(): SocialProvider {
-  // Detectar proveedor basado en la URL de referencia o parámetros
-  const referrer = document.referrer
-  if (referrer.includes('google.com') || referrer.includes('accounts.google')) {
-    return 'google'
+function extractProviderFromState(state: string): SocialProvider {
+  const provider = state.split(':')[0]
+  if (provider === 'google' || provider === 'facebook') {
+    return provider
   }
-  if (referrer.includes('facebook.com')) {
-    return 'facebook'
-  }
-  // Default
   return 'google'
 }
 </script>

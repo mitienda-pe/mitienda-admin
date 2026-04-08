@@ -103,10 +103,15 @@ export const useProductManagementStore = defineStore('productManagement', () => 
     const variant = product.variants.find(v => v.id === variantId)
     if (!variant) return
 
+    const igvMultiplier = 1 + (product.igv_percent || 18) / 100
+    const isExempt = product.tax_affectation === 2 || product.tax_affectation === 3
+
     if (field === 'price') {
       variant.price = value
+      variant.price_without_tax = isExempt ? value : value / igvMultiplier
     } else {
       variant.price_without_tax = value
+      variant.price = isExempt ? value : Math.round(value * igvMultiplier * 100) / 100
     }
 
     const dirty = dirtyPriceItems.value.get(productId) || { id: productId }
@@ -114,8 +119,9 @@ export const useProductManagementStore = defineStore('productManagement', () => 
     const dirtyVariant = dirty.variants.find(v => v.id === variantId)
     if (dirtyVariant) {
       dirtyVariant.price = variant.price
+      dirtyVariant.price_without_tax = variant.price_without_tax
     } else {
-      dirty.variants.push({ id: variantId, price: variant.price })
+      dirty.variants.push({ id: variantId, price: variant.price, price_without_tax: variant.price_without_tax })
     }
     dirtyPriceItems.value.set(productId, dirty)
   }

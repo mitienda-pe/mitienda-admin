@@ -439,6 +439,7 @@ async function handleSave() {
 }
 
 async function handleDelete() {
+  if (!window.confirm('¿Estás seguro de eliminar la configuración de 99 Minutos? Se perderán las credenciales guardadas.')) return
   try {
     await store.deleteConfig('99minutos')
     toast.add({ severity: 'success', summary: 'Eliminado', detail: 'Configuración eliminada', life: 3000 })

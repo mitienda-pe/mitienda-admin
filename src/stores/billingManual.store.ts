@@ -192,6 +192,9 @@ export const useBillingManualStore = defineStore('billingManual', () => {
   }
 
   async function emit(): Promise<{ success: boolean; error?: string; data?: ManualEmitResponse }> {
+    if (isEmitting.value) {
+      return { success: false, error: 'Emisión en progreso' }
+    }
     if (!isValid.value) {
       return { success: false, error: 'Datos incompletos o inválidos' }
     }

@@ -479,6 +479,7 @@ async function handleUpdateOption(optionId: number) {
 
 async function handleDeleteOption(optionId: number) {
   if (!store.currentAttribute) return
+  if (!window.confirm('¿Estás seguro de eliminar esta opción? Los productos que la usen perderán este valor.')) return
 
   const success = await store.removeOption(store.currentAttribute.id, optionId)
 

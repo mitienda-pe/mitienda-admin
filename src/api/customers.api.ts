@@ -126,6 +126,8 @@ export const customersApi = {
     const customer: CustomerDetail = {
       id: parseInt(rawData.id),
       name: rawData.name,
+      first_name: rawData.first_name || '',
+      last_name: rawData.last_name || '',
       email: rawData.email,
       phone: rawData.phone || '',
       address: rawData.address || '',

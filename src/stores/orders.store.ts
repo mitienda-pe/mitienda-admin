@@ -147,19 +147,13 @@ export const useOrdersStore = defineStore('orders', () => {
 
       const response = await ordersApi.updateOrderStatus(id, status)
 
-      if (response.success && response.data) {
-        // Actualizar en la lista
-        const index = orders.value.findIndex((o) => o.id === id)
-        if (index !== -1) {
-          orders.value[index] = response.data
-        }
+      if (response.success) {
+        // Re-fetch the order to get properly transformed data
+        await fetchOrder(id)
+        // Also refresh the list to reflect the status change
+        await fetchOrders()
 
-        // Actualizar pedido actual si es el mismo
-        if (currentOrder.value?.id === id) {
-          currentOrder.value = response.data
-        }
-
-        return response.data
+        return currentOrder.value
       } else {
         throw new Error(response.message || 'Error al actualizar estado')
       }

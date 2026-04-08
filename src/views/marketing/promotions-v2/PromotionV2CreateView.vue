@@ -99,8 +99,10 @@
                 v-model="form.ends_at"
                 type="datetime-local"
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                :class="{ 'border-red-300': errors.ends_at }"
               />
-              <p class="mt-1 text-xs text-gray-400">Opcional. Sin fecha = sin expiración</p>
+              <p v-if="errors.ends_at" class="mt-1 text-xs text-red-600">{{ errors.ends_at }}</p>
+              <p v-else class="mt-1 text-xs text-gray-400">Opcional. Sin fecha = sin expiración</p>
             </div>
           </div>
 
@@ -158,10 +160,12 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePromotionV2Store } from '@/stores/promotion-v2.store'
+import { useToast } from 'primevue/usetoast'
 import type { PromotionV2Status } from '@/types/promotion-v2.types'
 
 const router = useRouter()
 const store = usePromotionV2Store()
+const toast = useToast()
 
 const isSubmitting = ref(false)
 
@@ -179,11 +183,13 @@ const form = reactive({
 const errors = reactive({
   name: '',
   starts_at: '',
+  ends_at: '',
 })
 
 function validate(): boolean {
   errors.name = ''
   errors.starts_at = ''
+  errors.ends_at = ''
 
   if (!form.name.trim()) {
     errors.name = 'El nombre es requerido'
@@ -193,7 +199,17 @@ function validate(): boolean {
     errors.starts_at = 'La fecha de inicio es requerida'
   }
 
-  return !errors.name && !errors.starts_at
+  if (form.ends_at && form.starts_at && new Date(form.ends_at) <= new Date(form.starts_at)) {
+    errors.ends_at = 'La fecha fin debe ser posterior a la fecha de inicio'
+    toast.add({
+      severity: 'error',
+      summary: 'Error de validación',
+      detail: 'La fecha de fin debe ser posterior a la fecha de inicio',
+      life: 5000
+    })
+  }
+
+  return !errors.name && !errors.starts_at && !errors.ends_at
 }
 
 async function handleSubmit() {

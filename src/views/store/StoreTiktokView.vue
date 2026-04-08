@@ -61,6 +61,10 @@ async function save() {
     })
     return
   }
+  // Apply pending token if user typed one but didn't click "Aplicar"
+  if (newToken.value.trim()) {
+    store.updateField('tienda_tiktok_access_token', newToken.value.trim())
+  }
   const ok = await store.saveSettings()
   if (ok) {
     isEditingToken.value = false
@@ -196,7 +200,7 @@ onMounted(() => {
               <code
                 class="flex-1 bg-gray-50 px-3 py-2 rounded-lg text-sm text-gray-500 truncate border border-gray-200"
               >
-                {{ store.savedSettings.tienda_tiktok_access_token }}
+                ••••••••{{ (store.savedSettings.tienda_tiktok_access_token || '').slice(-8) }}
               </code>
               <AppButton variant="outlined" size="small" @click="startEditToken">
                 Cambiar

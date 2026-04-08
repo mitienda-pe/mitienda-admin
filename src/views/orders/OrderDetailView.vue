@@ -77,6 +77,7 @@ async function handleConfirmPayment() {
 
 async function handleRejectPayment() {
   if (!order.value || isUpdatingPayment.value) return
+  if (!window.confirm('¿Estás seguro de rechazar este pago? El pedido será marcado como cancelado.')) return
   isUpdatingPayment.value = true
   try {
     await ordersStore.updateOrderStatus(order.value.id, 'cancelled')

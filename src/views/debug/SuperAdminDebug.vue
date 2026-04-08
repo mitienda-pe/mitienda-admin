@@ -43,7 +43,7 @@
         </div>
         <div>
           <strong>access_token:</strong>
-          <pre class="mt-1 p-2 bg-gray-100 rounded overflow-x-auto">{{ localStorageData.access_token?.substring(0, 100) }}...</pre>
+          <span class="text-gray-500 text-sm">{{ localStorageData.access_token ? '(presente)' : '(ausente)' }}</span>
         </div>
       </div>
     </div>
@@ -77,14 +77,10 @@
         </button>
       </div>
 
-      <!-- Instrucciones SQL -->
+      <!-- Info para no-superadmin -->
       <div v-if="!authStore.isSuperAdmin" class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded">
-        <p class="font-semibold text-yellow-800 mb-2">⚠️ Para convertir este usuario en SuperAdmin:</p>
-        <pre class="text-sm bg-yellow-100 p-3 rounded overflow-x-auto">INSERT INTO superadministradores (usuario_id, parner_id, superadmintipo_id)
-VALUES ({{ authStore.user?.id }}, 1, 1);</pre>
-        <p class="text-sm text-yellow-700 mt-2">
-          Ejecuta este SQL en la base de datos <code class="bg-yellow-200 px-1 rounded">mitienda</code>
-          y luego haz click en "Re-verificar SuperAdmin"
+        <p class="text-sm text-yellow-800">
+          Este usuario no tiene permisos de SuperAdmin. Contacta al administrador del sistema para solicitar acceso.
         </p>
       </div>
     </div>
@@ -119,7 +115,7 @@ onMounted(() => {
 
 function loadLocalStorageData() {
   localStorageData.value.superadmin_info = localStorage.getItem('superadmin_info') || 'null'
-  localStorageData.value.access_token = localStorage.getItem('access_token') || 'null'
+  localStorageData.value.access_token = localStorage.getItem('access_token') ? 'present' : ''
 }
 
 async function recheckSuperAdmin() {

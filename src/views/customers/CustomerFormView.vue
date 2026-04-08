@@ -188,16 +188,9 @@ const loadCustomer = async () => {
     const customer = customersStore.currentCustomer
 
     if (customer) {
-      // Split name into first_name and last_name (best effort)
-      const nameParts = (customer.name || '').trim().split(' ')
-      // For names with more parts, assume first 2 words are first name, rest is last name
-      // This is imperfect but we'll get the correct data from backend fields
-      const firstName = nameParts.slice(0, Math.ceil(nameParts.length / 2)).join(' ')
-      const lastName = nameParts.slice(Math.ceil(nameParts.length / 2)).join(' ')
-
       formData.value = {
-        first_name: firstName,
-        last_name: lastName,
+        first_name: customer.first_name || '',
+        last_name: customer.last_name || '',
         email: customer.email || '',
         phone: customer.phone || '',
         document_type: customer.document_type || '1',
@@ -226,13 +219,16 @@ const loadCustomer = async () => {
   }
 }
 
-// Clear document number when type changes
+// Clear document number when type changes (only if user initiated the change, not on load)
+const isInitialLoad = ref(true)
 watch(
   () => formData.value.document_type,
   () => {
+    if (isInitialLoad.value) {
+      isInitialLoad.value = false
+      return
+    }
     formData.value.document_number = ''
-    formData.value.first_name = ''
-    formData.value.last_name = ''
   }
 )
 

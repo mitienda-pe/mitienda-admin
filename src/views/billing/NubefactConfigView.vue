@@ -320,6 +320,7 @@
         </Card>
       </div>
     </div>
+    <ConfirmDialog />
   </div>
 </template>
 
@@ -327,6 +328,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
+import ConfirmDialog from 'primevue/confirmdialog'
 import { useBillingStore } from '@/stores/billing.store'
 import type { SaveNubefactCredentialsRequest } from '@/types/billing.types'
 

@@ -13,6 +13,8 @@ import type { OrderFiltersData } from '@/components/orders/OrderFilters.vue'
 const router = useRouter()
 const ordersStore = useOrdersStore()
 
+const isLoadingMore = ref(false)
+
 const filters = ref<OrderFiltersData>({
   status: 'all',
   dateFrom: null,
@@ -73,14 +75,21 @@ const handleScroll = () => {
     clearTimeout(debounceTimeout)
   }
 
-  debounceTimeout = setTimeout(() => {
+  debounceTimeout = setTimeout(async () => {
+    if (isLoadingMore.value) return
+
     const scrollHeight = document.documentElement.scrollHeight
     const scrollTop = document.documentElement.scrollTop
     const clientHeight = document.documentElement.clientHeight
 
     // Cargar más cuando está a 200px del final
     if (scrollTop + clientHeight >= scrollHeight - 200) {
-      ordersStore.loadMore()
+      isLoadingMore.value = true
+      try {
+        ordersStore.loadMore()
+      } finally {
+        isLoadingMore.value = false
+      }
     }
   }, 200)
 }

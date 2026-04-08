@@ -185,7 +185,7 @@ const handleLogin = async () => {
   }
 }
 
-function handleLoginSuccess() {
+async function handleLoginSuccess() {
   toast.add({
     severity: 'success',
     summary: 'Bienvenido',
@@ -202,10 +202,8 @@ function handleLoginSuccess() {
 
   // Caso 2: Usuario con 1 sola tienda → Seleccionarla automáticamente
   if (authStore.stores.length === 1 && !authStore.selectedStore) {
-    console.log('Usuario con 1 tienda, seleccionando automáticamente...')
-    authStore.selectStore(authStore.stores[0]).then(() => {
-      router.push('/dashboard')
-    })
+    await authStore.selectStore(authStore.stores[0])
+    router.push('/dashboard')
     return
   }
 
@@ -239,16 +237,15 @@ function handleFacebookLogin() {
 }
 
 async function handleOAuthCallback(code: string, state: string) {
-  // Verificar state para prevenir CSRF
+  // Verificar state para prevenir CSRF - reject if missing or mismatched
   const savedState = sessionStorage.getItem('oauth_state')
-  if (state && savedState && state !== savedState) {
+  if (!state || !savedState || state !== savedState) {
     toast.add({
       severity: 'error',
       summary: 'Error de seguridad',
-      detail: 'Estado de autenticación inválido',
+      detail: 'Estado de autenticación inválido. Intenta nuevamente.',
       life: 5000
     })
-    // Limpiar URL
     router.replace('/login')
     return
   }
@@ -256,8 +253,8 @@ async function handleOAuthCallback(code: string, state: string) {
   sessionStorage.removeItem('oauth_state')
   isSocialLoading.value = true
 
-  // Detectar proveedor (Google usa state con prefijo, o podemos detectar por referrer)
-  const provider = detectProvider()
+  // Extract provider from state param (format: "provider:randomtoken")
+  const provider = extractProviderFromState(state)
   socialProvider.value = provider
 
   try {
@@ -310,16 +307,11 @@ async function handleOAuthCallback(code: string, state: string) {
   }
 }
 
-function detectProvider(): SocialProvider {
-  // Intentar detectar por referrer
-  const referrer = document.referrer
-  if (referrer.includes('google.com') || referrer.includes('accounts.google')) {
-    return 'google'
+function extractProviderFromState(state: string): SocialProvider {
+  const provider = state.split(':')[0]
+  if (provider === 'google' || provider === 'facebook') {
+    return provider
   }
-  if (referrer.includes('facebook.com')) {
-    return 'facebook'
-  }
-  // Default a Google
   return 'google'
 }
 </script>
