@@ -276,7 +276,7 @@ export const netsuiteApi = {
    * Get all branches with their NetSuite location IDs
    * Now returns branches from tiendasdirecciones table
    */
-  async getLocations(tiendaId: number): Promise<ApiResponse<any[]>> {
+  async getLocations(_tiendaId: number): Promise<ApiResponse<any[]>> {
     const response = await apiClient.get('/netsuite-locations')
     return response.data
   },

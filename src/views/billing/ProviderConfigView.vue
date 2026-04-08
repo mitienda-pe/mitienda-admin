@@ -14,9 +14,14 @@
       </div>
     </div>
 
-    <!-- Nubefact Configuration -->
+    <!-- Nubefact Configuration (Peru) -->
     <div v-if="providerId === 2">
       <NubefactConfigView />
+    </div>
+
+    <!-- Dátil Configuration (Ecuador) -->
+    <div v-else-if="providerId === 6">
+      <DatilConfigView />
     </div>
 
     <!-- Other providers (not yet implemented) -->
@@ -45,6 +50,7 @@ import { useRoute, useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import NubefactConfigView from './NubefactConfigView.vue'
+import DatilConfigView from './DatilConfigView.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -54,7 +60,8 @@ const providerId = computed(() => parseInt(route.params.id as string))
 const providerNames: Record<number, string> = {
   1: 'Factura en Una',
   2: 'NubeFact',
-  3: 'Bizlinks'
+  3: 'Bizlinks',
+  6: 'Dátil (Ecuador)',
 }
 
 const providerName = computed(() => providerNames[providerId.value] || 'Proveedor Desconocido')

@@ -16,7 +16,7 @@
         @click="goToProviderConfig(2)"
       >
         <template #header>
-          <div class="flex items-center justify-center p-6 bg-gradient-to-br from-blue-50 to-blue-100">
+          <div class="flex items-center justify-center p-6 bg-gradient-to-br from-primary/5 to-primary/10">
             <img
               src="@/assets/images/NubeFact.png"
               alt="NubeFact"
@@ -111,16 +111,51 @@
           </div>
         </template>
       </Card>
+
+      <!-- Dátil Card (Ecuador) -->
+      <Card
+        class="cursor-pointer hover:shadow-lg transition-shadow border-2 border-transparent hover:border-primary"
+        @click="goToProviderConfig(6)"
+      >
+        <template #header>
+          <div class="flex items-center justify-center p-6 bg-gradient-to-br from-orange-50 to-orange-100">
+            <div class="text-center">
+              <span class="text-4xl font-bold text-orange-600">Dátil</span>
+              <p class="text-xs text-orange-500 mt-1">Ecuador / SRI</p>
+            </div>
+          </div>
+        </template>
+        <template #title>
+          <div class="flex items-center justify-between">
+            <span>Dátil</span>
+            <Tag
+              v-if="providersConfig[6]?.configured"
+              value="Configurado"
+              severity="success"
+              icon="pi pi-check"
+            />
+          </div>
+        </template>
+        <template #content>
+          <p class="text-sm text-gray-600">
+            Facturación electrónica para Ecuador. Autorizado por el SRI.
+          </p>
+          <div class="mt-4 flex items-center gap-2 text-sm">
+            <i class="pi pi-cog text-primary"></i>
+            <span class="text-primary font-medium">Configurar proveedor</span>
+          </div>
+        </template>
+      </Card>
     </div>
 
     <!-- Information Box -->
-    <Card class="bg-blue-50 border border-blue-200">
+    <Card class="bg-primary/5 border border-primary/20">
       <template #content>
         <div class="flex gap-4">
-          <i class="pi pi-info-circle text-blue-600 text-2xl"></i>
+          <i class="pi pi-info-circle text-primary text-2xl"></i>
           <div>
-            <h3 class="font-semibold text-blue-900 mb-2">Información importante</h3>
-            <ul class="text-sm text-blue-800 space-y-1">
+            <h3 class="font-semibold text-secondary-700 mb-2">Información importante</h3>
+            <ul class="text-sm text-primary space-y-1">
               <li>• Solo puedes tener un proveedor activo a la vez</li>
               <li>• Los documentos emitidos quedarán registrados permanentemente</li>
               <li>• Asegúrate de tener las credenciales correctas antes de configurar</li>
@@ -146,13 +181,13 @@ const billingStore = useBillingStore()
 const providersConfig = ref<Record<number, { configured: boolean }>>({
   1: { configured: false }, // Factura en Una
   2: { configured: false }, // NubeFact
-  3: { configured: false }  // Bizlinks
+  3: { configured: false }, // Bizlinks
+  6: { configured: false }  // Dátil (Ecuador)
 })
 
 onMounted(async () => {
-  // Load provider configurations status
-  // For now, only NubeFact is available
   await checkNubefactConfig()
+  await checkDatilConfig()
 })
 
 async function checkNubefactConfig() {
@@ -164,9 +199,18 @@ async function checkNubefactConfig() {
   }
 }
 
+async function checkDatilConfig() {
+  try {
+    await billingStore.fetchDatilConfig()
+    providersConfig.value[6].configured = billingStore.datilConfig?.configured || false
+  } catch (error) {
+    console.error('Error checking Dátil config:', error)
+  }
+}
+
 function goToProviderConfig(providerId: number) {
-  // Only NubeFact is available for now
-  if (providerId === 2) {
+  const availableProviders = [2, 6] // NubeFact, Dátil
+  if (availableProviders.includes(providerId)) {
     router.push(`/billing/providers/${providerId}`)
   }
 }

@@ -304,7 +304,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, watch } from 'vue'
+import { computed, onMounted, reactive } from 'vue'
 import { useBillingStore } from '@/stores/billing.store'
 import { useConfirm } from 'primevue/useconfirm'
 import Button from 'primevue/button'

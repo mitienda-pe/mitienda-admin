@@ -57,6 +57,48 @@ export const billingApi = {
     return response.data
   },
 
+  // ========== Dátil API (Ecuador/SRI) ==========
+
+  /**
+   * Get Dátil configuration for current store
+   */
+  async getDatilConfig(): Promise<ApiResponse<any>> {
+    const response = await apiClient.get('/billing/datil')
+    return response.data
+  },
+
+  /**
+   * Save Dátil credentials
+   */
+  async saveDatilCredentials(data: any): Promise<ApiResponse<any>> {
+    const response = await apiClient.post('/billing/datil', data)
+    return response.data
+  },
+
+  /**
+   * Update Dátil credentials
+   */
+  async updateDatilCredentials(data: any): Promise<ApiResponse<any>> {
+    const response = await apiClient.put('/billing/datil', data)
+    return response.data
+  },
+
+  /**
+   * Delete Dátil credentials
+   */
+  async deleteDatilCredentials(): Promise<ApiResponse<any>> {
+    const response = await apiClient.delete('/billing/datil')
+    return response.data
+  },
+
+  /**
+   * Test Dátil API connection
+   */
+  async testDatilConnection(): Promise<ApiResponse<any>> {
+    const response = await apiClient.post('/billing/datil/test')
+    return response.data
+  },
+
   // ========== Billing Documents API ==========
 
   /**

@@ -428,7 +428,7 @@ async function handleToggleChange(newValue: boolean) {
     isUpdatingStatus.value = true
     const newStatus = newValue ? 1 : 0
 
-    const result = await promotionsStore.modifyPromotion(currentPromotion.value.tiendapromocion_id, {
+    await promotionsStore.modifyPromotion(currentPromotion.value.tiendapromocion_id, {
       tiendapromocion_estado: newStatus
     })
 
