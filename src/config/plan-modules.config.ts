@@ -11,6 +11,8 @@ export const MODULE_ROUTE_MAP: Record<string, string[]> = {
   mod_opiniones: ['/reviews'],
   mod_reclamaciones: ['/complaints'],
 
+  // Web Analytics (Umami) - must be before mod_reportes_ventas (more specific route)
+  mod_analitica_web: ['/reports/web-analytics'],
   // Reports
   mod_reportes_ventas: ['/reports'],
 
