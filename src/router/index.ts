@@ -240,6 +240,11 @@ const routes: RouteRecordRaw[] = [
         path: 'promotions',
         name: 'PromotionsReport',
         component: () => import('@/views/reports/PromotionsReportView.vue')
+      },
+      {
+        path: 'web-analytics',
+        name: 'WebAnalytics',
+        component: () => import('@/views/reports/WebAnalyticsView.vue')
       }
     ]
   },
