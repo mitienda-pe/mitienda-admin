@@ -134,13 +134,13 @@
     </div>
 
     <!-- Information Box -->
-    <Card data-tour="payment-info" class="bg-blue-50 border border-blue-200">
+    <Card data-tour="payment-info" class="bg-primary/5 border border-primary/20">
       <template #content>
         <div class="flex gap-4">
-          <i class="pi pi-info-circle text-blue-600 text-2xl"></i>
+          <i class="pi pi-info-circle text-primary text-2xl"></i>
           <div>
-            <h3 class="font-semibold text-blue-900 mb-2">Información importante</h3>
-            <ul class="text-sm text-blue-800 space-y-1">
+            <h3 class="font-semibold text-secondary-700 mb-2">Información importante</h3>
+            <ul class="text-sm text-primary space-y-1">
               <li>* Solo puedes tener <strong>una pasarela de pago principal</strong> activa a la vez</li>
               <li>* Los métodos alternativos (transferencia, contra entrega, QR, BNPL) pueden estar activos simultáneamente</li>
               <li>* Las credenciales se almacenan de forma segura y encriptada</li>
@@ -238,7 +238,7 @@ function getEnvironmentLabel(env: string): string {
 
 function getEnvironmentBadgeClass(env: string): string {
   if (env === 'produccion') {
-    return 'bg-blue-100 text-blue-800'
+    return 'bg-primary/10 text-primary'
   }
   // Test environments: prueba, integracion, sandbox, development
   return 'bg-orange-100 text-orange-800'

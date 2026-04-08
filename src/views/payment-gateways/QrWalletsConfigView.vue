@@ -159,7 +159,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed, ref, onMounted, watch } from 'vue'
+import { reactive, computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { usePaymentGatewaysStore } from '@/stores/payment-gateways.store'
@@ -214,6 +214,11 @@ watch(() => store.currentConfig, (config) => {
 
 onMounted(() => { store.clearMessages() })
 
+onBeforeUnmount(() => {
+  if (yapeQrPreview.value) URL.revokeObjectURL(yapeQrPreview.value)
+  if (plinQrPreview.value) URL.revokeObjectURL(plinQrPreview.value)
+})
+
 // --- Yape file handlers ---
 function triggerYapeUpload() {
   yapeFileInput.value?.click()
@@ -235,12 +240,14 @@ function setYapeFile(file: File) {
     uploadError.value = 'La imagen no debe superar 2MB'
     return
   }
+  if (yapeQrPreview.value) URL.revokeObjectURL(yapeQrPreview.value)
   yapeQrFile.value = file
   yapeQrPreview.value = URL.createObjectURL(file)
   uploadError.value = ''
 }
 
 function removeYapeQr() {
+  if (yapeQrPreview.value) URL.revokeObjectURL(yapeQrPreview.value)
   yapeQrFile.value = null
   yapeQrPreview.value = ''
   formData.yape_qr_url = ''
@@ -268,12 +275,14 @@ function setPlinFile(file: File) {
     uploadError.value = 'La imagen no debe superar 2MB'
     return
   }
+  if (plinQrPreview.value) URL.revokeObjectURL(plinQrPreview.value)
   plinQrFile.value = file
   plinQrPreview.value = URL.createObjectURL(file)
   uploadError.value = ''
 }
 
 function removePlinQr() {
+  if (plinQrPreview.value) URL.revokeObjectURL(plinQrPreview.value)
   plinQrFile.value = null
   plinQrPreview.value = ''
   formData.plin_qr_url = ''

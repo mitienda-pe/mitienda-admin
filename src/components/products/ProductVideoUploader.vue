@@ -40,15 +40,8 @@ const acceptedFormats = '.mp4,.mov,.avi,.webm'
 const maxFileSize = 100 * 1024 * 1024 // 100MB
 
 const onFileSelect = (event: FileUploadSelectEvent) => {
-  console.log('FileUpload event:', event)
-  console.log('Files:', event.files)
-
   if (event.files && event.files.length > 0) {
     const file = event.files[0]
-    console.log('Selected file:', file)
-    console.log('File type:', file.type)
-    console.log('File size:', file.size)
-    console.log('Is File instance:', file instanceof File)
 
     // Validate file size
     if (file.size > maxFileSize) {
@@ -67,7 +60,6 @@ const onFileSelect = (event: FileUploadSelectEvent) => {
 
     selectedFile.value = file
     errorMessage.value = ''
-    console.log('File selected successfully:', selectedFile.value)
   }
 }
 
@@ -84,9 +76,6 @@ const handleUpload = async () => {
 
   try {
     const { productsApi } = await import('@/api/products.api')
-
-    console.log('Uploading video via backend...')
-    console.log('File:', selectedFile.value.name, selectedFile.value.size, 'bytes')
 
     // Simulate upload progress
     uploadProgress.value = 10
@@ -105,7 +94,6 @@ const handleUpload = async () => {
     uploadStage.value = 'processing'
 
     if (response.success) {
-      console.log('Upload successful:', response)
       emit('upload-success', response.data)
 
       // Wait a bit to show the success message
@@ -210,7 +198,7 @@ const formatFileSize = (bytes: number): string => {
             Subiendo video... {{ uploadProgress }}%
           </div>
           <div v-else-if="uploadStage === 'processing'" class="mt-2">
-            <div class="flex items-center justify-center text-sm text-blue-700 mb-2">
+            <div class="flex items-center justify-center text-sm text-primary mb-2">
               <i class="pi pi-spin pi-spinner mr-2"></i>
               <span class="font-medium">Procesando video</span>
             </div>
@@ -230,7 +218,7 @@ const formatFileSize = (bytes: number): string => {
       </div>
 
       <!-- Info Message -->
-      <div class="bg-blue-50 border border-blue-200 text-blue-800 rounded-lg p-3">
+      <div class="bg-primary/5 border border-primary/20 text-primary rounded-lg p-3">
         <div class="flex items-start">
           <i class="pi pi-info-circle mr-2 mt-0.5"></i>
           <p class="text-sm">

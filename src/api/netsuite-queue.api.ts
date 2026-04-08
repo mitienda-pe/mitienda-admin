@@ -22,9 +22,7 @@ export const netsuiteQueueApi = {
    * Get general status of all queues
    */
   async getQueueStatus(): Promise<ApiResponse<QueueStats>> {
-    console.log('[Queue API] Fetching queue status...')
     const response = await apiClient.get('/queue/status')
-    console.log('[Queue API] Queue status response:', response.data)
     return response.data
   },
 
@@ -41,8 +39,6 @@ export const netsuiteQueueApi = {
     status: JobStatus = 'all',
     limit: number = 50
   ): Promise<ApiResponse<QueueJobsResponse>> {
-    console.log('[Queue API] Fetching queue jobs...', { queue, status, limit })
-
     const params: Record<string, string | number> = {
       status,
       limit
@@ -53,7 +49,6 @@ export const netsuiteQueueApi = {
     }
 
     const response = await apiClient.get('/queue/jobs', { params })
-    console.log('[Queue API] Queue jobs response:', response.data)
     return response.data
   },
 
@@ -64,11 +59,9 @@ export const netsuiteQueueApi = {
    * @param limit - Number of results (default: 50, max: 200)
    */
   async getFailedJobs(limit: number = 50): Promise<ApiResponse<FailedJobsResponse>> {
-    console.log('[Queue API] Fetching failed jobs...', { limit })
     const response = await apiClient.get('/queue/failed', {
       params: { limit }
     })
-    console.log('[Queue API] Failed jobs response:', response.data)
     return response.data
   },
 
@@ -79,9 +72,7 @@ export const netsuiteQueueApi = {
    * @param failedJobId - ID of the failed job
    */
   async retryFailedJob(failedJobId: number): Promise<ApiResponse<RetryJobResponse>> {
-    console.log('[Queue API] Retrying failed job:', failedJobId)
     const response = await apiClient.post(`/queue/retry/${failedJobId}`)
-    console.log('[Queue API] Retry response:', response.data)
     return response.data
   },
 
@@ -91,9 +82,7 @@ export const netsuiteQueueApi = {
    * ⚠️ WARNING: This can generate high load if there are many failed jobs
    */
   async retryAllFailedJobs(): Promise<ApiResponse<RetryAllResponse>> {
-    console.log('[Queue API] Retrying all failed jobs...')
     const response = await apiClient.post('/queue/retry-all-failed')
-    console.log('[Queue API] Retry all response:', response.data)
     return response.data
   },
 
@@ -104,9 +93,7 @@ export const netsuiteQueueApi = {
    * @param jobId - ID of the job to delete
    */
   async deleteQueueJob(jobId: number): Promise<ApiResponse<DeleteJobResponse>> {
-    console.log('[Queue API] Deleting queue job:', jobId)
     const response = await apiClient.delete(`/queue/jobs/${jobId}`)
-    console.log('[Queue API] Delete job response:', response.data)
     return response.data
   },
 
@@ -117,9 +104,7 @@ export const netsuiteQueueApi = {
    * @param failedJobId - ID of the failed job to delete
    */
   async deleteFailedJob(failedJobId: number): Promise<ApiResponse<RetryJobResponse>> {
-    console.log('[Queue API] Deleting failed job:', failedJobId)
     const response = await apiClient.delete(`/queue/failed/${failedJobId}`)
-    console.log('[Queue API] Delete failed job response:', response.data)
     return response.data
   },
 
@@ -129,9 +114,7 @@ export const netsuiteQueueApi = {
    * ⚠️ WARNING: This action cannot be undone
    */
   async clearAllFailedJobs(): Promise<ApiResponse<ClearFailedResponse>> {
-    console.log('[Queue API] Clearing all failed jobs...')
     const response = await apiClient.post('/queue/clear-failed')
-    console.log('[Queue API] Clear all response:', response.data)
     return response.data
   }
 }

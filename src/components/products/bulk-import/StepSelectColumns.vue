@@ -71,7 +71,7 @@ const priceLabel = computed(() =>
 
     <div
       v-if="pricingMode === 1"
-      class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700"
+      class="bg-primary/5 border border-primary/20 rounded-lg p-3 text-sm text-primary"
     >
       <i class="pi pi-info-circle mr-2" />
       Tu tienda usa precios <strong>sin IGV</strong>. La columna "precio" corresponde al precio

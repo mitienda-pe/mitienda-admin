@@ -167,8 +167,8 @@ const validateForm = (): boolean => {
     return false
   }
 
-  if (credentials.value.password.length < 6) {
-    passwordError.value = 'La contraseña debe tener al menos 6 caracteres'
+  if (credentials.value.password.length < 8) {
+    passwordError.value = 'La contraseña debe tener al menos 8 caracteres'
     return false
   }
 
@@ -195,7 +195,6 @@ async function handleLoginSuccess() {
 
   // Caso 1: SuperAdmin sin tiendas propias → /admin/stores
   if (authStore.isSuperAdmin && authStore.stores.length === 0) {
-    console.log('SuperAdmin sin tiendas, redirigiendo a /admin/stores')
     router.push('/admin/stores')
     return
   }
@@ -209,7 +208,6 @@ async function handleLoginSuccess() {
 
   // Caso 3: Usuario con múltiples tiendas sin seleccionar → /store-selection
   if (authStore.hasMultipleStores && !authStore.selectedStore) {
-    console.log('Usuario con múltiples tiendas, redirigiendo a /store-selection')
     router.push('/store-selection')
     return
   }

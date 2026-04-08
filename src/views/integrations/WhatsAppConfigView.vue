@@ -257,22 +257,22 @@ async function handleTest() {
           <h3 class="font-semibold text-gray-700 mb-4">¿Cómo funciona?</h3>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="text-center p-4">
-              <div class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                <span class="text-blue-600 font-bold">1</span>
+              <div class="w-10 h-10 bg-primary/5 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span class="text-primary font-bold">1</span>
               </div>
               <h4 class="font-medium text-gray-700 mb-1">Conecta tu número</h4>
               <p class="text-sm text-gray-500">Vincula tu número de WhatsApp Business en menos de 3 minutos</p>
             </div>
             <div class="text-center p-4">
-              <div class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                <span class="text-blue-600 font-bold">2</span>
+              <div class="w-10 h-10 bg-primary/5 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span class="text-primary font-bold">2</span>
               </div>
               <h4 class="font-medium text-gray-700 mb-1">IA atiende automáticamente</h4>
               <p class="text-sm text-gray-500">El asistente busca productos, muestra precios y recomienda</p>
             </div>
             <div class="text-center p-4">
-              <div class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                <span class="text-blue-600 font-bold">3</span>
+              <div class="w-10 h-10 bg-primary/5 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span class="text-primary font-bold">3</span>
               </div>
               <h4 class="font-medium text-gray-700 mb-1">Más ventas</h4>
               <p class="text-sm text-gray-500">Tus clientes compran directo desde WhatsApp, 24/7</p>

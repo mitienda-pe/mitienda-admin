@@ -238,20 +238,20 @@
 
     <!-- Sidebar Info -->
     <div class="space-y-6">
-      <Card class="bg-blue-50 border border-blue-200">
+      <Card class="bg-primary/5 border border-primary/20">
         <template #content>
           <div class="space-y-4">
             <div class="flex items-center gap-2">
-              <i class="pi pi-info-circle text-blue-600 text-xl"></i>
-              <h3 class="font-semibold text-blue-900">¿Qué es Dátil?</h3>
+              <i class="pi pi-info-circle text-primary text-xl"></i>
+              <h3 class="font-semibold text-secondary-700">¿Qué es Dátil?</h3>
             </div>
-            <p class="text-sm text-blue-800">
+            <p class="text-sm text-primary">
               Dátil es un servicio de facturación electrónica para Ecuador que permite emitir comprobantes
               autorizados por el SRI (Servicio de Rentas Internas) de forma automática.
             </p>
             <div class="space-y-2">
-              <h4 class="font-medium text-blue-900 text-sm">Para obtener credenciales:</h4>
-              <ol class="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+              <h4 class="font-medium text-secondary-700 text-sm">Para obtener credenciales:</h4>
+              <ol class="text-sm text-primary space-y-1 list-decimal list-inside">
                 <li>Crea una cuenta en <strong>datil.com</strong></li>
                 <li>Sube tu certificado de firma electrónica (.p12)</li>
                 <li>Obtén tu API Key desde Configuración → API</li>
@@ -259,8 +259,8 @@
               </ol>
             </div>
             <div class="space-y-2">
-              <h4 class="font-medium text-blue-900 text-sm">Documentos soportados:</h4>
-              <ul class="text-sm text-blue-800 space-y-1">
+              <h4 class="font-medium text-secondary-700 text-sm">Documentos soportados:</h4>
+              <ul class="text-sm text-primary space-y-1">
                 <li>• Facturas</li>
                 <li>• Notas de crédito</li>
                 <li>• Notas de débito</li>
@@ -271,7 +271,7 @@
             <a
               href="https://datil.com"
               target="_blank"
-              class="inline-flex items-center gap-2 text-sm text-blue-700 hover:text-blue-900 font-medium"
+              class="inline-flex items-center gap-2 text-sm text-primary hover:text-secondary-700 font-medium"
             >
               <i class="pi pi-external-link"></i>
               Ir a Dátil

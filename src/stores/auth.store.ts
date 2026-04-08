@@ -88,7 +88,6 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
     } catch (err: any) {
-      console.error('Error al obtener tiendas:', err)
       error.value = err.response?.data?.message || 'Error al cargar tiendas'
     }
   }
@@ -112,8 +111,6 @@ export const useAuthStore = defineStore('auth', () => {
         selectedStore.value = store
         localStorage.setItem('selected_store', JSON.stringify(store))
 
-        console.log('✅ Token de tienda actualizado con permisos completos para store_id:', store.id)
-
         // Fetch plan info for the selected store (fire-and-forget)
         import('@/stores/plan.store').then(({ usePlanStore }) => {
           const planStore = usePlanStore()
@@ -136,25 +133,15 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function checkSuperAdmin() {
     try {
-      console.log('🔍 Verificando si usuario es superadmin...')
       const response = await adminApi.checkSuperAdmin()
-
-      console.log('📊 Respuesta checkSuperAdmin:', response)
 
       if (response.success && response.data) {
         superAdminInfo.value = response.data
         // Guardar en localStorage
         localStorage.setItem('superadmin_info', JSON.stringify(response.data))
-
-        if (response.data.is_superadmin) {
-          console.log('✅ Usuario ES superadmin:', response.data)
-        } else {
-          console.log('❌ Usuario NO es superadmin')
-        }
       }
     } catch (err: any) {
       // Si falla, simplemente no es superadmin
-      console.log('❌ Error verificando superadmin:', err.response?.data || err.message)
       superAdminInfo.value = { is_superadmin: false }
     }
   }
@@ -163,7 +150,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       await authApi.logout()
     } catch (err) {
-      console.error('Error al cerrar sesión:', err)
+      // Silently handle logout errors
     } finally {
       // Limpiar estado
       user.value = null

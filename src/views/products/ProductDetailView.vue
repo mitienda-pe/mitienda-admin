@@ -322,7 +322,7 @@
               <div class="border-t border-gray-200 pt-4">
                 <h4 class="text-xs font-semibold text-secondary-500 uppercase mb-2">Vista previa en buscadores</h4>
                 <div class="bg-white border rounded-lg p-3">
-                  <div class="text-blue-700 text-base font-medium truncate">
+                  <div class="text-primary text-base font-medium truncate">
                     {{ form.meta_title || form.name || 'Sin titulo' }}
                   </div>
                   <div class="text-green-700 text-xs truncate">
@@ -748,7 +748,7 @@
               <!-- Facebook -->
               <div>
                 <div class="flex items-center gap-2 mb-1">
-                  <i class="pi pi-facebook text-blue-600"></i>
+                  <i class="pi pi-facebook text-primary"></i>
                   <span class="text-sm font-semibold text-secondary-700">Facebook</span>
                 </div>
                 <div v-if="facebookCategoryDisplay" class="flex items-center gap-2">

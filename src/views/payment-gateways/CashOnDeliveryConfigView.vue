@@ -78,8 +78,8 @@
               </ul>
             </div>
             <Divider />
-            <div class="bg-blue-50 p-3 rounded-lg">
-              <p class="text-blue-800 text-xs">
+            <div class="bg-primary/5 p-3 rounded-lg">
+              <p class="text-primary text-xs">
                 <i class="pi pi-lightbulb mr-1"></i>
                 Tip: Configura un monto máximo para reducir riesgos.
               </p>

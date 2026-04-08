@@ -97,14 +97,14 @@
           </DataTable>
         </div>
 
-        <div v-if="hasMore" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div v-if="hasMore" class="mt-4 p-4 bg-primary/5 border border-primary/20 rounded-lg">
           <div class="flex items-start gap-3">
-            <i class="pi pi-info-circle text-blue-600 mt-1"></i>
+            <i class="pi pi-info-circle text-primary mt-1"></i>
             <div>
-              <p class="text-sm text-blue-900 font-medium mb-1">
+              <p class="text-sm text-secondary-700 font-medium mb-1">
                 Esta es una vista previa de los primeros {{ previewData.length }} registros
               </p>
-              <p class="text-sm text-blue-700">
+              <p class="text-sm text-primary">
                 El reporte completo contiene {{ totalCount }} registros. Usa el botón "Exportar" para descargar todos los datos.
               </p>
             </div>

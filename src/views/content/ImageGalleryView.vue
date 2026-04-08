@@ -76,7 +76,7 @@
               <span
                 class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium"
                 :class="{
-                  'bg-blue-100 text-blue-700': img.source === 'r2',
+                  'bg-primary/10 text-primary': img.source === 'r2',
                   'bg-green-100 text-green-700': img.source === 'cloudflare',
                   'bg-gray-100 text-gray-600': img.source === 'legacy',
                 }"

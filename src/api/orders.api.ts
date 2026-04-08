@@ -180,15 +180,10 @@ export const ordersApi = {
    * Usa la estructura que devuelve el OrderTransformer del backend
    */
   async getOrder(id: number): Promise<ApiResponse<Order>> {
-    console.log('🌐 [OrdersAPI] Requesting order:', id)
     const response = await apiClient.get(`/orders/${id}`)
 
     // La API devuelve un objeto transformado con campos en inglés
     const rawData = response.data
-
-    console.log('📥 [OrdersAPI] Raw response from backend:', rawData)
-    console.log('📥 [OrdersAPI] Discount data:', rawData?.discount)
-    console.log('📥 [OrdersAPI] Promotions data:', rawData?.promotions)
 
     if (rawData) {
       // La API usa OrderTransformer - ver app/Libraries/OrderTransformer.php
@@ -210,11 +205,6 @@ export const ordersApi = {
           created_at: rawData.date_created || ''
         },
         items: (rawData.order_items || []).map((item: any) => {
-          console.log('🖼️ [OrdersAPI] Order item:', {
-            id: item.id,
-            name: item.tittle,
-            image: item.image
-          })
           return {
             id: item.id,
             product_id: item.product_id || 0,
@@ -306,26 +296,6 @@ export const ordersApi = {
           xml_url: billingInfo['e-billing'].url_xml || undefined,
           netsuite_invoice_id: billingInfo['e-billing'].netsuite_invoice_id || undefined
         } : undefined
-      }
-
-      console.log('🔄 [OrdersAPI] Mapped order object:', {
-        id: order.id,
-        discount: order.discount,
-        promotions: order.promotions,
-        promotions_discount: order.promotions_discount,
-        coupon_discount: order.coupon_discount
-      })
-
-      // Log each promotion detail
-      if (order.promotions && order.promotions.length > 0) {
-        console.log('🏷️ [OrdersAPI] Promotions details:')
-        order.promotions.forEach((promo, index) => {
-          console.log(`  ${index + 1}. ${promo.name}:`, {
-            discount_amount: promo.discount_amount,
-            order_item_id: promo.order_item_id,
-            product_id: promo.product_id
-          })
-        })
       }
 
       return {

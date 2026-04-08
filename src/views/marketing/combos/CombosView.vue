@@ -107,7 +107,7 @@
               <span v-if="data.tiendacombo_mostrar_catalogo" class="text-green-600">
                 <i class="pi pi-check mr-1"></i>Catálogo
               </span>
-              <span v-if="data.tiendacombo_mostrar_carrito" class="text-blue-600">
+              <span v-if="data.tiendacombo_mostrar_carrito" class="text-primary">
                 <i class="pi pi-check mr-1"></i>Carrito
               </span>
             </div>

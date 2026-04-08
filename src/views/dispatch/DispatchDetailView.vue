@@ -156,7 +156,7 @@ function copyToClipboard(text: string) {
 }
 
 function getStateBadgeClass(stateId: number): string {
-  if (stateId === 30) return 'bg-blue-100 text-blue-800'
+  if (stateId === 30) return 'bg-primary/10 text-primary'
   if (stateId === 31) return 'bg-yellow-100 text-yellow-800'
   if (stateId === 32) return 'bg-orange-100 text-orange-800'
   if (stateId === 33 || stateId === 39) return 'bg-purple-100 text-purple-800'
@@ -471,7 +471,7 @@ onMounted(() => {
                     {{ formatDateTime(item.date) }}
                     <span v-if="item.user_name"> · {{ item.user_name }}</span>
                   </p>
-                  <p v-if="item.comentario_cliente" class="text-xs text-gray-600 mt-1 bg-blue-50 p-2 rounded">
+                  <p v-if="item.comentario_cliente" class="text-xs text-gray-600 mt-1 bg-primary/5 p-2 rounded">
                     <i class="pi pi-comment text-xs mr-1"></i> {{ item.comentario_cliente }}
                   </p>
                   <p v-if="item.observacion_reparto" class="text-xs text-gray-500 mt-1 italic">

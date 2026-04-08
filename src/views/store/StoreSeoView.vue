@@ -222,7 +222,7 @@ onMounted(() => {
 
         <!-- Google SERP preview -->
         <div class="max-w-xl bg-white border border-gray-100 rounded-lg p-4">
-          <p class="text-xl text-blue-700 hover:underline cursor-default leading-tight">
+          <p class="text-xl text-primary hover:underline cursor-default leading-tight">
             {{
               store.draftSettings.tienda_metadata_titulo || 'Título de tu tienda - Agrega uno arriba'
             }}
@@ -239,39 +239,39 @@ onMounted(() => {
         </div>
 
         <!-- Auto-generated OG tags info -->
-        <div class="mt-6 bg-blue-50 border border-blue-100 rounded-lg p-4">
-          <h3 class="text-sm font-medium text-blue-800 mb-2 flex items-center gap-1.5">
+        <div class="mt-6 bg-primary/5 border border-primary/10 rounded-lg p-4">
+          <h3 class="text-sm font-medium text-primary mb-2 flex items-center gap-1.5">
             <i class="pi pi-info-circle" />
             Tags Open Graph generados automáticamente
           </h3>
-          <p class="text-xs text-blue-600 mb-3">
+          <p class="text-xs text-primary mb-3">
             Además de los campos que configuras arriba, se generan automáticamente estos tags para
             mejorar cómo se muestra tu tienda al compartirla:
           </p>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div class="text-xs">
-              <span class="font-mono text-blue-700">og:site_name</span>
-              <span class="text-blue-500 ml-1">Nombre de tu tienda</span>
+              <span class="font-mono text-primary">og:site_name</span>
+              <span class="text-primary/80 ml-1">Nombre de tu tienda</span>
             </div>
             <div class="text-xs">
-              <span class="font-mono text-blue-700">og:url</span>
-              <span class="text-blue-500 ml-1">URL canónica</span>
+              <span class="font-mono text-primary">og:url</span>
+              <span class="text-primary/80 ml-1">URL canónica</span>
             </div>
             <div class="text-xs">
-              <span class="font-mono text-blue-700">og:type</span>
-              <span class="text-blue-500 ml-1">"website"</span>
+              <span class="font-mono text-primary">og:type</span>
+              <span class="text-primary/80 ml-1">"website"</span>
             </div>
             <div class="text-xs">
-              <span class="font-mono text-blue-700">og:locale</span>
-              <span class="text-blue-500 ml-1">"es_PE"</span>
+              <span class="font-mono text-primary">og:locale</span>
+              <span class="text-primary/80 ml-1">"es_PE"</span>
             </div>
             <div class="text-xs">
-              <span class="font-mono text-blue-700">twitter:card</span>
-              <span class="text-blue-500 ml-1">"summary_large_image"</span>
+              <span class="font-mono text-primary">twitter:card</span>
+              <span class="text-primary/80 ml-1">"summary_large_image"</span>
             </div>
             <div class="text-xs">
-              <span class="font-mono text-blue-700">og:image:width</span>
-              <span class="text-blue-500 ml-1">1200</span>
+              <span class="font-mono text-primary">og:image:width</span>
+              <span class="text-primary/80 ml-1">1200</span>
             </div>
           </div>
         </div>

@@ -11,7 +11,7 @@
 
     <!-- Loading State -->
     <div v-if="adminStore.isLoading" class="flex justify-center items-center py-12">
-      <i class="pi pi-spin pi-spinner text-4xl text-blue-600"></i>
+      <i class="pi pi-spin pi-spinner text-4xl text-primary"></i>
     </div>
 
     <!-- Error State -->
@@ -72,7 +72,7 @@
             :class="[
               'px-3 py-2 border rounded-md',
               page === adminStore.pagination.page
-                ? 'bg-blue-600 text-white border-blue-600'
+                ? 'bg-primary text-white border-primary'
                 : 'border-gray-300 hover:bg-gray-50'
             ]"
           >

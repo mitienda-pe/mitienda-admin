@@ -905,7 +905,8 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/dashboard'
+    name: 'NotFound',
+    component: () => import('@/views/NotFoundView.vue')
   }
 ]
 
@@ -960,7 +961,6 @@ router.beforeEach(async (to, _from, next) => {
 
   // Si la ruta requiere superadmin
   if (requiresSuperAdmin && !authStore.isSuperAdmin) {
-    console.warn('Acceso denegado: Se requiere ser superadministrador')
     next('/dashboard')
     return
   }

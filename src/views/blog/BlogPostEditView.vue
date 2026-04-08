@@ -210,7 +210,7 @@ const editorTypeIcon = computed(() => {
   return post.value ? icons[post.value.editor_type] : 'pi pi-file'
 })
 const editorTypeBadgeClass = computed(() => {
-  const classes: Record<PageEditorType, string> = { wysiwyg: 'bg-blue-100 text-blue-800', code: 'bg-purple-100 text-purple-800', visual_builder: 'bg-orange-100 text-orange-800' }
+  const classes: Record<PageEditorType, string> = { wysiwyg: 'bg-primary/10 text-primary', code: 'bg-purple-100 text-purple-800', visual_builder: 'bg-orange-100 text-orange-800' }
   return post.value ? classes[post.value.editor_type] : 'bg-gray-100 text-gray-800'
 })
 

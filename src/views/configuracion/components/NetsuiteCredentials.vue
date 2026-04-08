@@ -221,10 +221,10 @@
           </div>
 
           <!-- Info Message -->
-          <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div class="mb-4 p-3 bg-primary/5 border border-primary/20 rounded-lg">
             <div class="flex gap-2">
-              <i class="pi pi-info-circle text-blue-600 mt-0.5"></i>
-              <div class="text-sm text-blue-800">
+              <i class="pi pi-info-circle text-primary mt-0.5"></i>
+              <div class="text-sm text-primary">
                 <p class="font-medium mb-1">El mismo Location ID se usa para:</p>
                 <ul class="list-disc list-inside ml-2 space-y-1">
                   <li>Inventory location (ubicación de inventario)</li>
@@ -574,18 +574,11 @@ const hasTokenSecret = computed(() => {
 watch(() => props.tiendaId, async (tiendaId) => {
   if (!tiendaId) return
 
-  console.log('[NetsuiteCredentials] watch tiendaId:', tiendaId)
   clearError()
   const creds = await getCredentials(tiendaId)
 
-  console.log('[NetsuiteCredentials] received credentials:', creds)
-
   if (creds) {
     isEdit.value = true
-
-    console.log('[NetsuiteCredentials] Loading credentials into form:')
-    console.log('  - estado (raw):', creds.tiendacredencialerp_estado, typeof creds.tiendacredencialerp_estado)
-    console.log('  - autosync (raw):', creds.tiendacredencialerp_autosync_enabled, typeof creds.tiendacredencialerp_autosync_enabled)
 
     Object.assign(formData, {
       tienda_id: tiendaId,
@@ -608,14 +601,7 @@ watch(() => props.tiendaId, async (tiendaId) => {
 
     // Load stock validation status
     stockValidationEnabled.value = !!creds.stock_validation_enabled
-
-    console.log('[NetsuiteCredentials] formData after assign:')
-    console.log('  - estado:', formData.estado, typeof formData.estado)
-    console.log('  - autosync_enabled:', formData.autosync_enabled, typeof formData.autosync_enabled)
-    console.log('  - stock_validation_enabled:', stockValidationEnabled.value)
-    console.log('  - estadoBoolean computed:', estadoBoolean.value)
   } else {
-    console.log('[NetsuiteCredentials] No credentials found, resetting form')
     isEdit.value = false
     // Reset form
     Object.assign(formData, {
@@ -649,12 +635,10 @@ async function loadLocations(tiendaId: number) {
 
   try {
     isLoadingLocations.value = true
-    console.log('[NetsuiteCredentials] Loading branches from API for tienda:', tiendaId)
     const response = await netsuiteApi.getLocations(tiendaId)
 
     if (response.success && response.data) {
       locations.value = response.data
-      console.log('[NetsuiteCredentials] Loaded branches:', locations.value)
     } else {
       locations.value = []
     }
@@ -847,10 +831,6 @@ async function handleSubmit() {
 
   clearError()
 
-  console.log('[NetsuiteCredentials] handleSubmit - formData before payload:')
-  console.log('  - estado:', formData.estado, typeof formData.estado)
-  console.log('  - autosync_enabled:', formData.autosync_enabled, typeof formData.autosync_enabled)
-
   // Get default location_id for backward compatibility
   const defaultLocation = locations.value.find(loc => loc.is_default)
   const legacyLocationId = defaultLocation?.netsuite_location_id || formData.location_id
@@ -876,22 +856,10 @@ async function handleSubmit() {
   // Solo incluir secrets si se proporcionaron
   if (formData.consumer_secret?.trim()) {
     payload.consumer_secret = formData.consumer_secret
-    console.log('[NetsuiteCredentials] Including consumer_secret in payload (length:', formData.consumer_secret.length, ')')
-  } else {
-    console.log('[NetsuiteCredentials] NOT including consumer_secret (empty or whitespace)')
   }
   if (formData.token_secret?.trim()) {
     payload.token_secret = formData.token_secret
-    console.log('[NetsuiteCredentials] Including token_secret in payload (length:', formData.token_secret.length, ')')
-  } else {
-    console.log('[NetsuiteCredentials] NOT including token_secret (empty or whitespace)')
   }
-
-  console.log('[NetsuiteCredentials] handleSubmit - final payload:')
-  console.log('  - estado:', payload.estado, typeof payload.estado)
-  console.log('  - autosync_enabled:', payload.autosync_enabled, typeof payload.autosync_enabled)
-  console.log('  - has consumer_secret:', !!payload.consumer_secret)
-  console.log('  - has token_secret:', !!payload.token_secret)
 
   const result = await saveCredentials(payload)
 

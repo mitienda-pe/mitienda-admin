@@ -231,8 +231,8 @@ onMounted(async () => {
             <InputSwitch v-model="draftConfig.swServiciosEnvio" />
           </div>
           <div v-if="draftConfig.swServiciosEnvio" class="mt-3 ml-4 space-y-3">
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p class="text-sm text-blue-800">
+            <div class="bg-primary/5 border border-primary/20 rounded-lg p-3">
+              <p class="text-sm text-primary">
                 <i class="pi pi-info-circle mr-1" />
                 Configura las tarifas por tipo de servicio en
                 <router-link to="/shipping/rates" class="underline font-medium">Tarifas de envío</router-link>.

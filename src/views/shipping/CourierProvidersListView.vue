@@ -85,13 +85,13 @@
     </div>
 
     <!-- Information Box -->
-    <Card class="bg-blue-50 border border-blue-200">
+    <Card class="bg-primary/5 border border-primary/20">
       <template #content>
         <div class="flex gap-4">
-          <i class="pi pi-info-circle text-blue-600 text-2xl"></i>
+          <i class="pi pi-info-circle text-primary text-2xl"></i>
           <div>
-            <h3 class="font-semibold text-blue-900 mb-2">Sobre los proveedores de courier</h3>
-            <ul class="text-sm text-blue-800 space-y-1">
+            <h3 class="font-semibold text-secondary-700 mb-2">Sobre los proveedores de courier</h3>
+            <ul class="text-sm text-primary space-y-1">
               <li>• Cada proveedor requiere una cuenta activa con sus respectivas credenciales</li>
               <li>• Puedes configurar múltiples couriers simultáneamente</li>
               <li>• Usa el entorno de prueba (sandbox) para verificar la integración antes de activar en producción</li>
@@ -142,7 +142,7 @@ function stripHtml(text: string): string {
 }
 
 const courierGradients: Record<string, string> = {
-  urbaner: 'bg-gradient-to-br from-blue-50 to-blue-100',
+  urbaner: 'bg-gradient-to-br from-primary/5 to-primary/10',
   '99minutos': 'bg-gradient-to-br from-orange-50 to-orange-100',
   chazki: 'bg-gradient-to-br from-teal-50 to-teal-100',
   nirex: 'bg-gradient-to-br from-purple-50 to-purple-100',

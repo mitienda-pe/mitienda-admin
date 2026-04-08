@@ -22,12 +22,12 @@ onMounted(() => {
 const categoryConfig: Record<string, { label: string; icon: string; iconColor: string; bgColor: string }> = {
   payments:           { label: 'Pasarelas de Pago',             icon: 'pi pi-credit-card', iconColor: 'text-green-600',  bgColor: 'bg-green-50' },
   shipping:           { label: 'Servicios de Reparto',          icon: 'pi pi-truck',       iconColor: 'text-amber-600',  bgColor: 'bg-amber-50' },
-  ads:                { label: 'Publicidad y Anuncios',         icon: 'pi pi-megaphone',   iconColor: 'text-blue-600',   bgColor: 'bg-blue-50' },
+  ads:                { label: 'Publicidad y Anuncios',         icon: 'pi pi-megaphone',   iconColor: 'text-primary',   bgColor: 'bg-primary/5' },
   analytics:          { label: 'Análisis y comportamiento',     icon: 'pi pi-chart-bar',   iconColor: 'text-purple-600', bgColor: 'bg-purple-50' },
   email_marketing:    { label: 'Email Marketing',               icon: 'pi pi-envelope',    iconColor: 'text-primary',    bgColor: 'bg-teal-50' },
-  fulfillment:        { label: 'Fulfillment y Logística 3PL',   icon: 'pi pi-box',         iconColor: 'text-indigo-600', bgColor: 'bg-indigo-50' },
+  fulfillment:        { label: 'Fulfillment y Logística 3PL',   icon: 'pi pi-box',         iconColor: 'text-primary', bgColor: 'bg-primary/5' },
   lead_capture:       { label: 'Captura de leads y popups',     icon: 'pi pi-megaphone',   iconColor: 'text-pink-600',   bgColor: 'bg-pink-50' },
-  chat:               { label: 'Chat en vivo',                  icon: 'pi pi-comments',    iconColor: 'text-blue-600',   bgColor: 'bg-blue-50' },
+  chat:               { label: 'Chat en vivo',                  icon: 'pi pi-comments',    iconColor: 'text-primary',   bgColor: 'bg-primary/5' },
   push_notifications: { label: 'Notificaciones push',           icon: 'pi pi-bell',        iconColor: 'text-orange-600', bgColor: 'bg-orange-50' },
 }
 

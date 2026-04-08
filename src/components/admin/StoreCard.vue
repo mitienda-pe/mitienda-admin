@@ -10,7 +10,7 @@
           <a
             :href="store.url"
             target="_blank"
-            class="text-sm text-blue-600 hover:underline flex items-center gap-1"
+            class="text-sm text-primary hover:underline flex items-center gap-1"
           >
             {{ store.url }}
             <i class="pi pi-external-link text-xs"></i>

@@ -155,8 +155,8 @@
     </div>
 
     <!-- Hint en modo creación -->
-    <div v-if="!isEditMode && !isLoading" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
-      <div class="flex items-center gap-2 text-blue-700">
+    <div v-if="!isEditMode && !isLoading" class="bg-primary/5 border border-primary/20 rounded-lg p-4 mt-6">
+      <div class="flex items-center gap-2 text-primary">
         <i class="pi pi-info-circle"></i>
         <span class="text-sm">Guarda primero la marca para poder agregar imágenes.</span>
       </div>

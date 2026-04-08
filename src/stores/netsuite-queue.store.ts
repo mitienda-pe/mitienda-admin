@@ -64,18 +64,14 @@ export const useNetsuiteQueueStore = defineStore('netsuite-queue', () => {
     try {
       isLoadingStats.value = true
       statsError.value = null
-      console.log('[Queue Store] Fetching queue stats...')
-
       const response = await netsuiteQueueApi.getQueueStatus()
 
       if (response.success && response.data) {
         stats.value = response.data
-        console.log('[Queue Store] Stats loaded:', stats.value)
       } else {
         throw new Error(response.message || 'Error al cargar estadísticas de la cola')
       }
     } catch (error: any) {
-      console.error('[Queue Store] Error fetching stats:', error)
       statsError.value = error.message || 'Error al cargar estadísticas'
     } finally {
       isLoadingStats.value = false
@@ -89,8 +85,6 @@ export const useNetsuiteQueueStore = defineStore('netsuite-queue', () => {
     try {
       isLoadingJobs.value = true
       jobsError.value = null
-      console.log('[Queue Store] Fetching queue jobs...', filters.value)
-
       const response = await netsuiteQueueApi.getQueueJobs(
         filters.value.queue,
         filters.value.status,
@@ -100,13 +94,10 @@ export const useNetsuiteQueueStore = defineStore('netsuite-queue', () => {
       if (response.success && response.data) {
         jobs.value = response.data.jobs
         jobsCount.value = response.data.count
-        console.log('[Queue Store] Jobs loaded:', jobsCount.value)
       } else {
         throw new Error(response.message || 'Error al cargar trabajos de la cola')
       }
     } catch (error: any) {
-      console.error('[Queue Store] Error fetching jobs:', error)
-
       // Mensaje de error más específico
       let errorMsg = 'Error al cargar trabajos de la cola'
       if (error.response?.data?.messages?.error) {
@@ -131,19 +122,15 @@ export const useNetsuiteQueueStore = defineStore('netsuite-queue', () => {
     try {
       isLoadingFailedJobs.value = true
       failedJobsError.value = null
-      console.log('[Queue Store] Fetching failed jobs...')
-
       const response = await netsuiteQueueApi.getFailedJobs(filters.value.limit)
 
       if (response.success && response.data) {
         failedJobs.value = response.data.failed_jobs
         failedJobsCount.value = response.data.count
-        console.log('[Queue Store] Failed jobs loaded:', failedJobsCount.value)
       } else {
         throw new Error(response.message || 'Error al cargar trabajos fallidos')
       }
     } catch (error: any) {
-      console.error('[Queue Store] Error fetching failed jobs:', error)
       failedJobsError.value = error.message || 'Error al cargar trabajos fallidos'
     } finally {
       isLoadingFailedJobs.value = false
@@ -153,12 +140,9 @@ export const useNetsuiteQueueStore = defineStore('netsuite-queue', () => {
   // Actions - Retry Failed Job
   async function retryFailedJob(failedJobId: number): Promise<boolean> {
     try {
-      console.log('[Queue Store] Retrying failed job:', failedJobId)
-
       const response = await netsuiteQueueApi.retryFailedJob(failedJobId)
 
       if (response.success) {
-        console.log('[Queue Store] Job retried successfully:', failedJobId)
         // Refresh both lists
         await Promise.all([fetchFailedJobs(), fetchQueueJobs(), fetchQueueStats()])
         return true
@@ -166,7 +150,6 @@ export const useNetsuiteQueueStore = defineStore('netsuite-queue', () => {
         throw new Error(response.message || 'Error al reintentar trabajo')
       }
     } catch (error: any) {
-      console.error('[Queue Store] Error retrying job:', error)
       throw error
     }
   }
@@ -174,13 +157,10 @@ export const useNetsuiteQueueStore = defineStore('netsuite-queue', () => {
   // Actions - Retry All Failed Jobs
   async function retryAllFailedJobs(): Promise<number> {
     try {
-      console.log('[Queue Store] Retrying all failed jobs...')
-
       const response = await netsuiteQueueApi.retryAllFailedJobs()
 
       if (response.success && response.data) {
         const retriedCount = response.data.retried_count
-        console.log('[Queue Store] All jobs retried:', retriedCount)
         // Refresh all lists
         await Promise.all([fetchFailedJobs(), fetchQueueJobs(), fetchQueueStats()])
         return retriedCount
@@ -188,7 +168,6 @@ export const useNetsuiteQueueStore = defineStore('netsuite-queue', () => {
         throw new Error(response.message || 'Error al reintentar todos los trabajos')
       }
     } catch (error: any) {
-      console.error('[Queue Store] Error retrying all jobs:', error)
       throw error
     }
   }
@@ -196,12 +175,9 @@ export const useNetsuiteQueueStore = defineStore('netsuite-queue', () => {
   // Actions - Delete Queue Job
   async function deleteQueueJob(jobId: number): Promise<boolean> {
     try {
-      console.log('[Queue Store] Deleting queue job:', jobId)
-
       const response = await netsuiteQueueApi.deleteQueueJob(jobId)
 
       if (response.success) {
-        console.log('[Queue Store] Job deleted successfully:', jobId)
         // Refresh lists
         await Promise.all([fetchQueueJobs(), fetchQueueStats()])
         return true
@@ -209,7 +185,6 @@ export const useNetsuiteQueueStore = defineStore('netsuite-queue', () => {
         throw new Error(response.message || 'Error al eliminar trabajo')
       }
     } catch (error: any) {
-      console.error('[Queue Store] Error deleting job:', error)
       throw error
     }
   }
@@ -217,12 +192,9 @@ export const useNetsuiteQueueStore = defineStore('netsuite-queue', () => {
   // Actions - Delete Failed Job
   async function deleteFailedJob(failedJobId: number): Promise<boolean> {
     try {
-      console.log('[Queue Store] Deleting failed job:', failedJobId)
-
       const response = await netsuiteQueueApi.deleteFailedJob(failedJobId)
 
       if (response.success) {
-        console.log('[Queue Store] Failed job deleted successfully:', failedJobId)
         // Refresh lists
         await Promise.all([fetchFailedJobs(), fetchQueueStats()])
         return true
@@ -230,7 +202,6 @@ export const useNetsuiteQueueStore = defineStore('netsuite-queue', () => {
         throw new Error(response.message || 'Error al eliminar trabajo fallido')
       }
     } catch (error: any) {
-      console.error('[Queue Store] Error deleting failed job:', error)
       throw error
     }
   }
@@ -238,13 +209,10 @@ export const useNetsuiteQueueStore = defineStore('netsuite-queue', () => {
   // Actions - Clear All Failed Jobs
   async function clearAllFailedJobs(): Promise<number> {
     try {
-      console.log('[Queue Store] Clearing all failed jobs...')
-
       const response = await netsuiteQueueApi.clearAllFailedJobs()
 
       if (response.success && response.data) {
         const deletedCount = response.data.deleted_count
-        console.log('[Queue Store] All failed jobs cleared:', deletedCount)
         // Refresh lists
         await Promise.all([fetchFailedJobs(), fetchQueueStats()])
         return deletedCount
@@ -252,7 +220,6 @@ export const useNetsuiteQueueStore = defineStore('netsuite-queue', () => {
         throw new Error(response.message || 'Error al limpiar trabajos fallidos')
       }
     } catch (error: any) {
-      console.error('[Queue Store] Error clearing failed jobs:', error)
       throw error
     }
   }
@@ -260,12 +227,10 @@ export const useNetsuiteQueueStore = defineStore('netsuite-queue', () => {
   // Actions - Update Filters
   function updateFilters(newFilters: Partial<QueueFilters>) {
     filters.value = { ...filters.value, ...newFilters }
-    console.log('[Queue Store] Filters updated:', filters.value)
   }
 
   // Actions - Refresh All Data
   async function refreshAll() {
-    console.log('[Queue Store] Refreshing all data...')
     await Promise.all([fetchQueueStats(), fetchQueueJobs(), fetchFailedJobs()])
   }
 
@@ -277,11 +242,8 @@ export const useNetsuiteQueueStore = defineStore('netsuite-queue', () => {
 
     isAutoRefreshEnabled.value = true
     autoRefreshInterval.value = window.setInterval(() => {
-      console.log('[Queue Store] Auto-refreshing...')
       refreshAll()
     }, intervalSeconds * 1000)
-
-    console.log(`[Queue Store] Auto-refresh started (${intervalSeconds}s)`)
   }
 
   function stopAutoRefresh() {
@@ -289,7 +251,6 @@ export const useNetsuiteQueueStore = defineStore('netsuite-queue', () => {
       clearInterval(autoRefreshInterval.value)
       autoRefreshInterval.value = null
       isAutoRefreshEnabled.value = false
-      console.log('[Queue Store] Auto-refresh stopped')
     }
   }
 

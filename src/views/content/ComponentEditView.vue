@@ -108,7 +108,7 @@ const editorLabel = (type: ComponentEditorType) => {
 }
 
 const editorBadgeClass = (type: ComponentEditorType) => {
-  if (type === 'wysiwyg') return 'bg-blue-100 text-blue-800'
+  if (type === 'wysiwyg') return 'bg-primary/10 text-primary'
   if (type === 'visual_builder') return 'bg-purple-100 text-purple-800'
   return 'bg-gray-100 text-gray-700'
 }

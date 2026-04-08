@@ -376,17 +376,17 @@ function handleClose() {
       </div>
 
       <!-- Nota informativa -->
-      <div class="rounded-md bg-blue-50 p-4">
+      <div class="rounded-md bg-primary/5 p-4">
         <div class="flex">
           <div class="flex-shrink-0">
-            <i class="pi pi-info-circle text-blue-400"></i>
+            <i class="pi pi-info-circle text-primary/70"></i>
           </div>
           <div class="ml-3">
-            <p v-if="isPrecioRebajadoType" class="text-sm text-blue-700">
+            <p v-if="isPrecioRebajadoType" class="text-sm text-primary">
               Después de crear la promoción básica, serás redirigido a una pantalla completa
               donde podrás vincular los productos que tendrán este descuento.
             </p>
-            <p v-else class="text-sm text-blue-700">
+            <p v-else class="text-sm text-primary">
               Después de crear la promoción básica, serás redirigido a una pantalla completa
               donde podrás configurar los productos base, productos bonificados y las reglas de la promoción.
             </p>

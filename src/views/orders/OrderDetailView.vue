@@ -204,9 +204,7 @@ const toggleDownloadMenu = (event: Event) => {
 }
 
 onMounted(async () => {
-  console.log('🔍 [OrderDetailView] Cargando orden:', orderId)
   await ordersStore.fetchOrder(orderId)
-  console.log('✅ [OrderDetailView] Orden cargada:', ordersStore.currentOrder)
 
   // Load sender info, order reviews, and fulfillment provider in parallel
   await Promise.all([
@@ -313,18 +311,6 @@ const loadSenderInfo = async () => {
 const order = computed<Order | null>(() => {
   const currentOrder = ordersStore.currentOrder
 
-  if (currentOrder) {
-    console.log('📦 [OrderDetailView] Order computed:', {
-      id: currentOrder.id,
-      total: currentOrder.total,
-      discount: currentOrder.discount,
-      promotions: currentOrder.promotions,
-      promotions_discount: currentOrder.promotions_discount,
-      coupon_discount: currentOrder.coupon_discount,
-      shipping_cost: currentOrder.shipping_cost
-    })
-  }
-
   return currentOrder
 })
 
@@ -367,8 +353,8 @@ const statusConfig = computed(() => {
     // Fallbacks (no deberían usarse con el backend actual)
     processing: {
       label: 'Procesando',
-      bgClass: 'bg-blue-100',
-      textClass: 'text-blue-800',
+      bgClass: 'bg-primary/10',
+      textClass: 'text-primary',
       iconClass: 'pi-spin pi-spinner'
     },
     shipped: {
@@ -1501,7 +1487,7 @@ const handleDebugPayments = async () => {
                                   Asiento Contable
                                 </span>
                                 <span v-else>
-                                  <i class="pi pi-credit-card text-blue-600 mr-1"></i>
+                                  <i class="pi pi-credit-card text-primary mr-1"></i>
                                   Pago Cliente
                                 </span>
                               </p>
@@ -1534,7 +1520,7 @@ const handleDebugPayments = async () => {
                       <i class="pi pi-arrow-up text-xs"></i>
                       Ver Payload Enviado a NetSuite
                     </summary>
-                    <pre class="mt-2 text-xs bg-blue-50 border border-blue-200 rounded p-3 overflow-auto max-h-96">{{ JSON.stringify(erpPayloadData, null, 2) }}</pre>
+                    <pre class="mt-2 text-xs bg-primary/5 border border-primary/20 rounded p-3 overflow-auto max-h-96">{{ JSON.stringify(erpPayloadData, null, 2) }}</pre>
                   </details>
 
                   <!-- Response JSON (always visible) -->
@@ -1743,7 +1729,7 @@ const handleDebugPayments = async () => {
                     <span
                       class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
                       :class="order.billing_document.source === 'netsuite'
-                        ? 'bg-blue-100 text-blue-800'
+                        ? 'bg-primary/10 text-primary'
                         : 'bg-green-100 text-green-800'"
                     >
                       {{ order.billing_document.source === 'netsuite' ? 'NetSuite' : 'Nubefact' }}

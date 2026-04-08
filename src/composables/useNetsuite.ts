@@ -23,26 +23,14 @@ export function useNetsuite() {
     isLoading.value = true
     error.value = null
 
-    console.log('[useNetsuite] getCredentials - tiendaId:', tiendaId)
-
     try {
       const response = await netsuiteApi.getCredentials(tiendaId)
 
-      console.log('[useNetsuite] getCredentials - response:', {
-        success: response.success,
-        data: response.data,
-        message: response.message
-      })
-
       if (response.success && response.data) {
         credentials.value = response.data
-        console.log('[useNetsuite] getCredentials - credentials.value:', credentials.value)
-        console.log('[useNetsuite] getCredentials - estado:', credentials.value.tiendacredencialerp_estado)
-        console.log('[useNetsuite] getCredentials - autosync:', credentials.value.tiendacredencialerp_autosync_enabled)
         return response.data
       } else {
         error.value = response.message || ''
-        console.log('[useNetsuite] getCredentials - error:', error.value)
         return null
       }
     } catch (err: any) {
@@ -63,34 +51,17 @@ export function useNetsuite() {
     isSaving.value = true
     error.value = null
 
-    console.log('[useNetsuite] saveCredentials - payload:', {
-      tienda_id: data.tienda_id,
-      account_id: data.account_id,
-      estado: data.estado,
-      autosync_enabled: data.autosync_enabled,
-      has_consumer_secret: !!data.consumer_secret,
-      has_token_secret: !!data.token_secret
-    })
-
     try {
       const response = await netsuiteApi.saveCredentials(data)
-
-      console.log('[useNetsuite] saveCredentials - response:', {
-        success: response.success,
-        id: response.data?.id,
-        message: response.message
-      })
 
       if (response.success) {
         // Reload credentials after save
         if (data.tienda_id) {
-          console.log('[useNetsuite] saveCredentials - reloading credentials...')
           await getCredentials(data.tienda_id)
         }
         return { success: true, id: response.data?.id }
       } else {
         error.value = response.message || ''
-        console.log('[useNetsuite] saveCredentials - error:', error.value)
         return { success: false, error: error.value || undefined }
       }
     } catch (err: any) {
@@ -111,18 +82,13 @@ export function useNetsuite() {
     isTesting.value = true
     error.value = null
 
-    console.log('[useNetsuite] testConnection - tiendaId:', tiendaId)
-
     try {
       const response = await netsuiteApi.testConnection(tiendaId)
-
-      console.log('[useNetsuite] testConnection - response:', response)
 
       if (response.success && response.data) {
         return { success: true, data: response.data }
       } else {
         error.value = response.message || ''
-        console.log('[useNetsuite] testConnection - error from API:', error.value)
         return { success: false, error: error.value || undefined }
       }
     } catch (err: any) {
@@ -199,23 +165,14 @@ export function useNetsuite() {
     isLoading.value = true
     error.value = null
 
-    console.log('[useNetsuite] getSeries - tiendaId:', tiendaId)
-
     try {
       const response = await netsuiteApi.getSeries(tiendaId)
-
-      console.log('[useNetsuite] getSeries - response:', {
-        success: response.success,
-        dataLength: response.data?.length,
-        data: response.data
-      })
 
       if (response.success && response.data) {
         series.value = response.data
         return response.data
       } else {
         error.value = response.message || 'Error al obtener series'
-        console.log('[useNetsuite] getSeries - error:', error.value)
         return []
       }
     } catch (err: any) {
@@ -263,22 +220,13 @@ export function useNetsuite() {
     isLoading.value = true
     error.value = null
 
-    console.log('[useNetsuite] getUnmappedSeries - tiendaId:', tiendaId)
-
     try {
       const response = await netsuiteApi.getUnmappedSeries(tiendaId)
-
-      console.log('[useNetsuite] getUnmappedSeries - response:', {
-        success: response.success,
-        dataLength: response.data?.length,
-        data: response.data
-      })
 
       if (response.success && response.data) {
         return response.data
       } else {
         error.value = response.message || 'Error al obtener series sin mapear'
-        console.log('[useNetsuite] getUnmappedSeries - error:', error.value)
         return []
       }
     } catch (err: any) {

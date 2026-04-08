@@ -222,11 +222,11 @@ async function handleDelete() {
         <!-- Frontend-only info banner -->
         <div
           v-if="isFrontendOnly"
-          class="bg-blue-50 border border-blue-200 rounded-lg p-4"
+          class="bg-primary/5 border border-primary/20 rounded-lg p-4"
         >
           <div class="flex items-start gap-2">
-            <i class="pi pi-info-circle text-blue-500 mt-0.5" />
-            <p class="text-sm text-blue-700">
+            <i class="pi pi-info-circle text-primary/80 mt-0.5" />
+            <p class="text-sm text-primary">
               Este widget se carga automáticamente en tu tienda online cuando está activado.
               Para verificar que funciona, visita tu tienda después de guardar la configuración.
             </p>

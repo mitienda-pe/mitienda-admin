@@ -299,8 +299,8 @@ const getReservedStock = (item: any): number => {
           class="block bg-white border rounded-lg p-5 hover:shadow-md transition-shadow hover:border-primary"
         >
           <div class="flex items-center gap-3 mb-3">
-            <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-indigo-50">
-              <i class="pi pi-box text-xl text-indigo-600" />
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-primary/5">
+              <i class="pi pi-box text-xl text-primary" />
             </div>
             <h3 class="font-semibold text-gray-800">{{ fp.name }}</h3>
           </div>

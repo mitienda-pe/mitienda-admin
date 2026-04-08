@@ -18,7 +18,7 @@
     <!-- Loading State -->
     <div v-if="isLoading" class="flex justify-center items-center h-64">
       <div class="text-center">
-        <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
+        <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
         <p class="mt-2 text-sm text-gray-500">Cargando...</p>
       </div>
     </div>
@@ -35,12 +35,12 @@
 
           <div class="flex flex-col gap-3">
             <div class="flex items-start gap-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                 :class="{ 'border-blue-500 bg-blue-50': bonFormaGrupos === 0 }"
+                 :class="{ 'border-primary bg-primary/5': bonFormaGrupos === 0 }"
                  @click="updateBonFormaGrupos(0)">
               <input
                 type="radio"
                 :checked="bonFormaGrupos === 0"
-                class="mt-1 w-4 h-4 text-blue-600 focus:ring-blue-500"
+                class="mt-1 w-4 h-4 text-primary focus:ring-primary"
                 @change="updateBonFormaGrupos(0)"
               />
               <div class="flex-1">
@@ -50,12 +50,12 @@
             </div>
 
             <div class="flex items-start gap-3 p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                 :class="{ 'border-blue-500 bg-blue-50': bonFormaGrupos === 1 }"
+                 :class="{ 'border-primary bg-primary/5': bonFormaGrupos === 1 }"
                  @click="updateBonFormaGrupos(1)">
               <input
                 type="radio"
                 :checked="bonFormaGrupos === 1"
-                class="mt-1 w-4 h-4 text-blue-600 focus:ring-blue-500"
+                class="mt-1 w-4 h-4 text-primary focus:ring-primary"
                 @change="updateBonFormaGrupos(1)"
               />
               <div class="flex-1">
@@ -220,12 +220,12 @@
       </div>
 
       <!-- Help Section -->
-      <div class="bg-blue-50 rounded-lg p-4 border border-blue-200">
+      <div class="bg-primary/5 rounded-lg p-4 border border-primary/20">
         <div class="flex gap-3">
-          <i class="pi pi-info-circle text-blue-600 text-xl flex-shrink-0"></i>
+          <i class="pi pi-info-circle text-primary text-xl flex-shrink-0"></i>
           <div>
-            <h4 class="text-sm font-semibold text-blue-900 mb-1">¿Cómo funciona?</h4>
-            <ul class="text-sm text-blue-800 space-y-1">
+            <h4 class="text-sm font-semibold text-secondary-700 mb-1">¿Cómo funciona?</h4>
+            <ul class="text-sm text-primary space-y-1">
               <li><strong>Productos Base:</strong> Los productos que el cliente debe comprar para activar la bonificación.</li>
               <li><strong>Productos de Bonificación:</strong> Los productos que se regalan como bonificación.</li>
               <li><strong>Cantidad:</strong> Edita la cantidad directamente en la tabla para cada producto.</li>

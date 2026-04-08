@@ -62,7 +62,7 @@
         <Column field="levelLabel" header="Nivel" sortable />
         <Column field="ubigeoCount" header="Localidades" sortable>
           <template #body="{ data }">
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary">
               {{ data.ubigeoCount }}
             </span>
           </template>

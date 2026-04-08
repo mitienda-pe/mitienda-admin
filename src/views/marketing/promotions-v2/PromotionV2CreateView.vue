@@ -140,10 +140,10 @@
       </div>
 
       <!-- Help Text -->
-      <div class="mt-4 rounded-lg bg-blue-50 p-4">
+      <div class="mt-4 rounded-lg bg-primary/5 p-4">
         <div class="flex">
-          <i class="pi pi-info-circle mr-2 mt-0.5 text-blue-500"></i>
-          <div class="text-sm text-blue-700">
+          <i class="pi pi-info-circle mr-2 mt-0.5 text-primary/80"></i>
+          <div class="text-sm text-primary">
             <p class="font-medium">Después de crear la promoción</p>
             <p class="mt-1">
               Podrás agregar activaciones, condiciones, efectos, restricciones y cupones

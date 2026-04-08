@@ -121,9 +121,9 @@ const goToDetail = (id: number) => {
         <p class="text-sm text-green-600">Atendidos</p>
         <p class="text-2xl font-bold text-green-600">{{ complaintsStore.stats.attended }}</p>
       </div>
-      <div class="bg-white rounded-lg border border-blue-200 p-4">
-        <p class="text-sm text-blue-600">No vistos</p>
-        <p class="text-2xl font-bold text-blue-600">{{ complaintsStore.stats.unseen }}</p>
+      <div class="bg-white rounded-lg border border-primary/20 p-4">
+        <p class="text-sm text-primary">No vistos</p>
+        <p class="text-2xl font-bold text-primary">{{ complaintsStore.stats.unseen }}</p>
       </div>
     </div>
 
@@ -232,7 +232,7 @@ const goToDetail = (id: number) => {
               <span class="font-mono font-semibold text-primary">{{ data.code }}</span>
               <span
                 v-if="!data.seen"
-                class="ml-2 inline-block w-2 h-2 bg-blue-500 rounded-full"
+                class="ml-2 inline-block w-2 h-2 bg-primary rounded-full"
                 v-tooltip.top="'No visto'"
               />
             </div>

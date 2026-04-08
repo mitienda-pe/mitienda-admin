@@ -193,16 +193,11 @@ const unmappedCount = computed(() => {
 watch(() => props.tiendaId, async (tiendaId) => {
   if (!tiendaId) return
 
-  console.log('[NetsuiteSeriesMap] Loading series for tiendaId:', tiendaId)
-
   clearError()
 
   // Get both mapped and unmapped series
   const mappedSeries = await getSeries(tiendaId)
   const unmappedSeries = await getUnmappedSeries(tiendaId)
-
-  console.log('[NetsuiteSeriesMap] Mapped series:', mappedSeries)
-  console.log('[NetsuiteSeriesMap] Unmapped series:', unmappedSeries)
 
   // Combine both lists, avoiding duplicates
   // Use tiendaserieerp_codigo as key since empfacturacionserie_id can be null
@@ -223,9 +218,6 @@ watch(() => props.tiendaId, async (tiendaId) => {
   })
 
   const combinedSeries = Array.from(allSeriesMap.values())
-
-  console.log('[NetsuiteSeriesMap] Combined series count:', combinedSeries.length)
-  console.log('[NetsuiteSeriesMap] Combined series:', combinedSeries)
 
   // Update the series ref directly
   series.value = combinedSeries

@@ -95,7 +95,7 @@ const batchTargetStates = computed(() => {
 
 const statsSummary = computed(() => {
   const groups = [
-    { label: 'Pago pendiente', stateIds: ['30'], color: 'bg-blue-100 text-blue-800', icon: 'pi pi-clock' },
+    { label: 'Pago pendiente', stateIds: ['30'], color: 'bg-primary/10 text-primary', icon: 'pi pi-clock' },
     { label: 'Confirmados', stateIds: ['31'], color: 'bg-yellow-100 text-yellow-800', icon: 'pi pi-check' },
     { label: 'Preparando', stateIds: ['32'], color: 'bg-orange-100 text-orange-800', icon: 'pi pi-box' },
     { label: 'En camino / Listo', stateIds: ['33', '39'], color: 'bg-purple-100 text-purple-800', icon: 'pi pi-truck' },
@@ -203,7 +203,7 @@ function goToDetail(order: DispatchOrder) {
 }
 
 function getStateBadgeClass(stateId: number): string {
-  if (stateId === 30) return 'bg-blue-100 text-blue-800'
+  if (stateId === 30) return 'bg-primary/10 text-primary'
   if (stateId === 31) return 'bg-yellow-100 text-yellow-800'
   if (stateId === 32) return 'bg-orange-100 text-orange-800'
   if (stateId === 33 || stateId === 39) return 'bg-purple-100 text-purple-800'

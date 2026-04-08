@@ -64,10 +64,10 @@
       </div>
 
       <!-- Customer Info Warning (for Factura) -->
-      <div v-if="selectedDocumentType === 1" class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+      <div v-if="selectedDocumentType === 1" class="bg-primary/5 border border-primary/20 rounded-lg p-3">
         <div class="flex gap-2">
-          <i class="pi pi-info-circle text-blue-600 mt-0.5"></i>
-          <div class="text-sm text-blue-800">
+          <i class="pi pi-info-circle text-primary mt-0.5"></i>
+          <div class="text-sm text-primary">
             <p class="font-medium mb-1">Requisitos para Factura</p>
             <p>Asegúrese de que el cliente tenga RUC registrado y los datos fiscales completos.</p>
           </div>

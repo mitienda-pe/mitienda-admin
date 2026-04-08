@@ -27,7 +27,7 @@
         <span
           class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
           :class="{
-            'bg-blue-100 text-blue-800': image.source === 'r2',
+            'bg-primary/10 text-primary': image.source === 'r2',
             'bg-green-100 text-green-800': image.source === 'cloudflare',
             'bg-gray-100 text-gray-800': image.source === 'legacy',
           }"

@@ -150,7 +150,7 @@
             </td>
             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
               <div class="flex gap-2">
-                <span v-if="promo.activations_count" class="text-xs bg-blue-100 text-blue-700 rounded px-1.5 py-0.5">
+                <span v-if="promo.activations_count" class="text-xs bg-primary/10 text-primary rounded px-1.5 py-0.5">
                   {{ promo.activations_count }} act.
                 </span>
                 <span v-if="promo.conditions_count" class="text-xs bg-yellow-100 text-yellow-700 rounded px-1.5 py-0.5">
@@ -283,7 +283,7 @@ function statusLabel(status: PromotionV2Status) {
 function statusClasses(status: PromotionV2Status) {
   const map: Record<PromotionV2Status, string> = {
     draft: 'bg-gray-100 text-gray-700',
-    scheduled: 'bg-blue-100 text-blue-700',
+    scheduled: 'bg-primary/10 text-primary',
     active: 'bg-green-100 text-green-700',
     paused: 'bg-yellow-100 text-yellow-700',
     expired: 'bg-red-100 text-red-700',

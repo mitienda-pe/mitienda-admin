@@ -323,15 +323,15 @@
     >
       <div class="space-y-6">
         <!-- Information -->
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 class="font-semibold text-blue-900 mb-2">Formato del CSV</h4>
-          <p class="text-sm text-blue-800 mb-3">
+        <div class="bg-primary/5 border border-primary/20 rounded-lg p-4">
+          <h4 class="font-semibold text-secondary-700 mb-2">Formato del CSV</h4>
+          <p class="text-sm text-primary mb-3">
             El archivo CSV debe contener las siguientes columnas (header obligatorio):
           </p>
           <div class="bg-white rounded p-3 font-mono text-xs mb-3">
             producto_sku,lot_number,inventory_number_id,quantity_available
           </div>
-          <p class="text-xs text-blue-700">
+          <p class="text-xs text-primary">
             <strong>Nota:</strong> La carga REEMPLAZA completamente los inventory numbers de cada producto.
             Los productos se buscan por SKU. El location_id se toma automáticamente de la configuración de NetSuite.
           </p>
@@ -413,9 +413,9 @@
               <p class="text-xs text-green-700 font-medium">Productos actualizados</p>
               <p class="text-2xl font-bold text-green-900">{{ csvUploadForm.uploadResults.products_updated }}</p>
             </div>
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <p class="text-xs text-blue-700 font-medium">Lotes creados</p>
-              <p class="text-2xl font-bold text-blue-900">{{ csvUploadForm.uploadResults.inventory_numbers_created }}</p>
+            <div class="bg-primary/5 border border-primary/20 rounded-lg p-3">
+              <p class="text-xs text-primary font-medium">Lotes creados</p>
+              <p class="text-2xl font-bold text-secondary-700">{{ csvUploadForm.uploadResults.inventory_numbers_created }}</p>
             </div>
           </div>
 

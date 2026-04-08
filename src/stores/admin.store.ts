@@ -51,7 +51,6 @@ export const useAdminStore = defineStore('admin', () => {
 
       return false
     } catch (err: any) {
-      console.error('Error al verificar superadmin:', err)
       error.value = err.response?.data?.message || 'Error al verificar permisos'
       return false
     } finally {
@@ -79,7 +78,6 @@ export const useAdminStore = defineStore('admin', () => {
 
       return false
     } catch (err: any) {
-      console.error('Error al obtener tiendas:', err)
       error.value = err.response?.data?.message || 'Error al cargar tiendas'
       return false
     } finally {
@@ -127,14 +125,12 @@ export const useAdminStore = defineStore('admin', () => {
           authStore.selectedStore = fakeStore
         }
 
-        console.log('✅ Impersonación iniciada para tienda:', storeId)
         return true
       }
 
       error.value = response.message || 'Error al acceder a la tienda'
       return false
     } catch (err: any) {
-      console.error('Error al impersonar tienda:', err)
       error.value = err.response?.data?.message || 'Error al acceder a la tienda'
       return false
     } finally {
@@ -162,14 +158,12 @@ export const useAdminStore = defineStore('admin', () => {
         impersonationContext.value = null
         localStorage.removeItem('impersonation_context')
 
-        console.log('✅ Impersonación finalizada')
         return true
       }
 
       error.value = response.message || 'Error al salir de impersonación'
       return false
     } catch (err: any) {
-      console.error('Error al salir de impersonación:', err)
       error.value = err.response?.data?.message || 'Error al salir de impersonación'
       return false
     } finally {
@@ -184,7 +178,7 @@ export const useAdminStore = defineStore('admin', () => {
       try {
         superAdminInfo.value = JSON.parse(savedSuperAdminInfo)
       } catch (err) {
-        console.error('Error al parsear superadmin_info:', err)
+        // Corrupted localStorage entry
       }
     }
 
@@ -194,7 +188,7 @@ export const useAdminStore = defineStore('admin', () => {
       try {
         impersonationContext.value = JSON.parse(savedImpersonationContext)
       } catch (err) {
-        console.error('Error al parsear impersonation_context:', err)
+        // Corrupted localStorage entry
       }
     }
   }

@@ -49,8 +49,8 @@ const statusConfig = (status: OrderStatus) => {
     // Fallbacks (no deberían usarse con el backend actual)
     processing: {
       label: 'Procesando',
-      bgClass: 'bg-blue-100',
-      textClass: 'text-blue-800',
+      bgClass: 'bg-primary/10',
+      textClass: 'text-primary',
       iconClass: 'pi-spin pi-spinner'
     },
     shipped: {

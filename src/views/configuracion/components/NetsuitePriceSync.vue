@@ -110,9 +110,9 @@
         <div class="space-y-4">
           <!-- Resumen -->
           <div class="grid grid-cols-4 gap-4 text-center">
-            <div class="p-4 bg-blue-50 rounded-lg">
-              <p class="text-sm text-blue-700 font-medium">Revisados</p>
-              <p class="text-2xl font-bold text-blue-900 mt-1">
+            <div class="p-4 bg-primary/5 rounded-lg">
+              <p class="text-sm text-primary font-medium">Revisados</p>
+              <p class="text-2xl font-bold text-secondary-700 mt-1">
                 {{ lastSyncResult.total_products_checked || 0 }}
               </p>
             </div>
@@ -313,9 +313,9 @@
                 {{ lastPromotionSyncResult.promotions_created || 0 }}
               </p>
             </div>
-            <div class="p-4 bg-blue-50 rounded-lg">
-              <p class="text-sm text-blue-700 font-medium">Actualizadas</p>
-              <p class="text-2xl font-bold text-blue-900 mt-1">
+            <div class="p-4 bg-primary/5 rounded-lg">
+              <p class="text-sm text-primary font-medium">Actualizadas</p>
+              <p class="text-2xl font-bold text-secondary-700 mt-1">
                 {{ lastPromotionSyncResult.promotions_updated || 0 }}
               </p>
             </div>

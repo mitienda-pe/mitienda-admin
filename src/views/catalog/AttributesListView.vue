@@ -139,8 +139,8 @@
         </div>
 
         <!-- Color type: skip options here, add them in detail view -->
-        <div v-if="createForm.type === 2" class="bg-blue-50 rounded-lg p-3">
-          <p class="text-sm text-blue-700">
+        <div v-if="createForm.type === 2" class="bg-primary/5 rounded-lg p-3">
+          <p class="text-sm text-primary">
             <i class="pi pi-info-circle mr-1"></i>
             Los colores se agregan con el color picker en la vista de detalle del atributo.
           </p>

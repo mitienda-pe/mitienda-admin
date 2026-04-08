@@ -286,13 +286,13 @@ onMounted(loadData)
     </template>
 
     <!-- Info box -->
-    <Card class="bg-blue-50 border border-blue-200">
+    <Card class="bg-primary/5 border border-primary/20">
       <template #content>
         <div class="flex gap-4">
-          <i class="pi pi-info-circle text-blue-600 text-2xl"></i>
+          <i class="pi pi-info-circle text-primary text-2xl"></i>
           <div>
-            <h3 class="font-semibold text-blue-900 mb-2">Cómo funciona</h3>
-            <ul class="text-sm text-blue-800 space-y-1">
+            <h3 class="font-semibold text-secondary-700 mb-2">Cómo funciona</h3>
+            <ul class="text-sm text-primary space-y-1">
               <li>* Las reglas determinan qué courier se asigna automáticamente al crear un pedido</li>
               <li>* Puedes definir reglas por tipo de servicio y zona geográfica</li>
               <li>* Si hay varias reglas para el mismo tipo, se usa la de menor prioridad (0 = más alta)</li>

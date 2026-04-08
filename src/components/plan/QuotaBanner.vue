@@ -2,15 +2,15 @@
   <div
     v-if="isVisible"
     class="rounded-lg border p-4 mb-4"
-    :class="isAtLimit ? 'bg-amber-50 border-amber-200' : 'bg-blue-50 border-blue-200'"
+    :class="isAtLimit ? 'bg-amber-50 border-amber-200' : 'bg-primary/5 border-primary/20'"
   >
     <div class="flex items-start gap-3">
       <i
         class="text-lg mt-0.5"
-        :class="isAtLimit ? 'pi pi-exclamation-triangle text-amber-500' : 'pi pi-info-circle text-blue-500'"
+        :class="isAtLimit ? 'pi pi-exclamation-triangle text-amber-500' : 'pi pi-info-circle text-primary/80'"
       ></i>
       <div class="flex-1">
-        <p class="text-sm font-medium" :class="isAtLimit ? 'text-amber-800' : 'text-blue-800'">
+        <p class="text-sm font-medium" :class="isAtLimit ? 'text-amber-800' : 'text-primary'">
           {{ isAtLimit ? `Has alcanzado el limite de ${resourceLabel}` : `${resourceLabel}: ${current} de ${max}` }}
         </p>
 
@@ -24,7 +24,7 @@
         </div>
 
         <div class="mt-2 flex items-center justify-between">
-          <span class="text-xs" :class="isAtLimit ? 'text-amber-600' : 'text-blue-600'">
+          <span class="text-xs" :class="isAtLimit ? 'text-amber-600' : 'text-primary'">
             {{ current }} / {{ max }} usados
           </span>
           <a

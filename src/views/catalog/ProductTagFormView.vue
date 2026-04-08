@@ -483,7 +483,6 @@ onMounted(async () => {
       formData.color_texto = editingTag.value.color_texto
       formData.activo = editingTag.value.activo
       formData.orden = editingTag.value.orden
-      console.log('Loaded tag - formData.posicion:', formData.posicion)
     }
   }
 })

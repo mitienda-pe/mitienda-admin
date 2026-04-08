@@ -8,7 +8,7 @@
       </div>
       <button
         @click="showCreateDialog = true"
-        class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+        class="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       >
         <svg class="-ml-0.5 mr-1.5 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -28,7 +28,7 @@
             v-model="searchQuery"
             type="text"
             placeholder="Nombre o código de promoción..."
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
             @input="debouncedSearch"
           />
         </div>
@@ -39,7 +39,7 @@
           <select
             id="promotion-type"
             v-model="typeFilter"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
             @change="applyFilters"
           >
             <option :value="undefined">Todos los tipos</option>
@@ -55,7 +55,7 @@
           <select
             id="status"
             v-model="statusFilter"
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
             @change="applyFilters"
           >
             <option :value="undefined">Todos</option>
@@ -71,7 +71,7 @@
           <input
             v-model="activeOnlyFilter"
             type="checkbox"
-            class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
             @change="applyFilters"
           />
           <span class="ml-2 text-sm text-gray-700">Mostrar solo promociones vigentes (dentro del período de validez)</span>
@@ -82,7 +82,7 @@
     <!-- Loading State -->
     <div v-if="isLoading && !hasPromotions" class="flex h-64 items-center justify-center">
       <div class="text-center">
-        <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
+        <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
         <p class="mt-2 text-sm text-gray-500">Cargando promociones...</p>
       </div>
     </div>
@@ -120,7 +120,7 @@
         <button
           @click="showCreateDialog = true"
           type="button"
-          class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+          class="inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90"
         >
           <svg class="-ml-0.5 mr-1.5 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -204,7 +204,7 @@
             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
               <router-link
                 :to="`/marketing/promotions/${promotion.tiendapromocion_id}`"
-                class="text-indigo-600 hover:text-indigo-900"
+                class="text-primary hover:text-primary"
               >
                 Ver detalles
               </router-link>

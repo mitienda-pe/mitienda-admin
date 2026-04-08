@@ -49,12 +49,12 @@ const oldestJobClass = computed(() => {
             <div v-if="isLoading" class="h-8 flex items-center">
               <ProgressSpinner style="width: 30px; height: 30px" strokeWidth="4" />
             </div>
-            <div v-else class="text-3xl font-bold text-blue-600">
+            <div v-else class="text-3xl font-bold text-primary">
               {{ totalPending }}
             </div>
           </div>
-          <div class="bg-blue-100 p-3 rounded-lg">
-            <i class="pi pi-clock text-2xl text-blue-600"></i>
+          <div class="bg-primary/10 p-3 rounded-lg">
+            <i class="pi pi-clock text-2xl text-primary"></i>
           </div>
         </div>
       </template>

@@ -203,7 +203,7 @@ const editorTypeIcon = (type: PageEditorType) => {
   return icons[type] || 'pi pi-file'
 }
 const editorTypeBadgeClass = (type: PageEditorType) => {
-  const classes: Record<PageEditorType, string> = { wysiwyg: 'bg-blue-100 text-blue-800', code: 'bg-purple-100 text-purple-800', visual_builder: 'bg-orange-100 text-orange-800' }
+  const classes: Record<PageEditorType, string> = { wysiwyg: 'bg-primary/10 text-primary', code: 'bg-purple-100 text-purple-800', visual_builder: 'bg-orange-100 text-orange-800' }
   return classes[type] || 'bg-gray-100 text-gray-800'
 }
 

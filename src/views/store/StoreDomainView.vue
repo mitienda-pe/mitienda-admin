@@ -246,7 +246,7 @@ onMounted(() => {
                   class="border-t border-gray-100"
                 >
                   <td class="px-4 py-2">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-700">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-primary/10 text-primary">
                       {{ record.type }}
                     </span>
                   </td>
@@ -291,7 +291,7 @@ onMounted(() => {
                     class="border-t border-gray-100"
                   >
                     <td class="px-4 py-2">
-                      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-700">
+                      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-primary/10 text-primary">
                         {{ record.type }}
                       </span>
                     </td>

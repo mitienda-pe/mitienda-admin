@@ -153,11 +153,11 @@ onMounted(() => {
         </h2>
 
         <!-- Intro -->
-        <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-5">
-          <h3 class="text-sm font-medium text-blue-800 mb-1">
+        <div class="bg-primary/5 border border-primary/10 rounded-lg p-4 mb-5">
+          <h3 class="text-sm font-medium text-primary mb-1">
             ¿Que es la Events API de TikTok?
           </h3>
-          <p class="text-xs text-blue-600">
+          <p class="text-xs text-primary">
             La Events API envia eventos del servidor directamente a TikTok, complementando el Pixel
             del navegador. Esto mejora la precision de las conversiones reportadas, especialmente
             cuando los usuarios tienen bloqueadores de anuncios.

@@ -212,7 +212,7 @@ const editorTypeIcon = computed(() => {
 
 const editorTypeBadgeClass = computed(() => {
   const classes: Record<PageEditorType, string> = {
-    wysiwyg: 'bg-blue-100 text-blue-800',
+    wysiwyg: 'bg-primary/10 text-primary',
     code: 'bg-purple-100 text-purple-800',
     visual_builder: 'bg-orange-100 text-orange-800',
   }

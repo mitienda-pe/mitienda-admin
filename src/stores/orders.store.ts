@@ -63,35 +63,23 @@ export const useOrdersStore = defineStore('orders', () => {
 
       const response = await ordersApi.getOrders(apiFilters)
 
-      console.log('🔍 Orders Store - Response success:', response.success)
-      console.log('🔍 Orders Store - Response meta:', response.meta)
-      console.log('🔍 Orders Store - Data count:', response.data?.length)
-
       if (response.success && response.data) {
         if (loadMore) {
           // Agregar a la lista existente (scroll infinito)
           orders.value = [...orders.value, ...response.data]
-          console.log('🔍 Orders Store - Load more, total orders now:', orders.value.length)
         } else {
           // Reemplazar la lista (nueva búsqueda/filtros)
           orders.value = response.data
-          console.log('🔍 Orders Store - Fresh load, orders:', orders.value.length)
         }
 
         // Actualizar paginación
         pagination.value.total = response.meta?.total || 0
         pagination.value.hasMore = response.meta?.hasMore || false
-        console.log('🔍 Orders Store - Pagination updated:', {
-          page: pagination.value.page,
-          total: pagination.value.total,
-          hasMore: pagination.value.hasMore
-        })
       } else {
         throw new Error('Error al cargar pedidos')
       }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Error desconocido'
-      console.error('Error fetching orders:', err)
     } finally {
       isLoading.value = false
     }
@@ -102,27 +90,15 @@ export const useOrdersStore = defineStore('orders', () => {
       isLoading.value = true
       error.value = null
 
-      console.log('🔍 [OrdersStore] Fetching order:', id)
       const response = await ordersApi.getOrder(id)
-      console.log('📡 [OrdersStore] API Response:', response)
 
       if (response.success && response.data) {
-        console.log('✅ [OrdersStore] Order data received:', {
-          id: response.data.id,
-          total: response.data.total,
-          discount: response.data.discount,
-          promotions: response.data.promotions,
-          promotions_discount: response.data.promotions_discount,
-          coupon_discount: response.data.coupon_discount,
-          shipping_cost: response.data.shipping_cost
-        })
         currentOrder.value = response.data
       } else {
         throw new Error(response.message || 'Error al cargar pedido')
       }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Error desconocido'
-      console.error('❌ [OrdersStore] Error fetching order:', err)
     } finally {
       isLoading.value = false
     }
@@ -136,7 +112,7 @@ export const useOrdersStore = defineStore('orders', () => {
         stats.value = response.data
       }
     } catch (err) {
-      console.error('Error fetching order stats:', err)
+      // Silently handle stats fetch errors
     }
   }
 
@@ -159,7 +135,6 @@ export const useOrdersStore = defineStore('orders', () => {
       }
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Error desconocido'
-      console.error('Error updating order status:', err)
       throw err
     } finally {
       isLoading.value = false
@@ -203,17 +178,9 @@ export const useOrdersStore = defineStore('orders', () => {
   }
 
   function loadMore() {
-    console.log('🔍 Orders Store - loadMore called:', {
-      hasMore: pagination.value.hasMore,
-      isLoading: isLoading.value,
-      currentPage: pagination.value.page
-    })
     if (pagination.value.hasMore && !isLoading.value) {
       pagination.value.page++
-      console.log('🔍 Orders Store - Loading page:', pagination.value.page)
       fetchOrders(true)
-    } else {
-      console.log('🔍 Orders Store - NOT loading more (no more pages or already loading)')
     }
   }
 
@@ -231,7 +198,6 @@ export const useOrdersStore = defineStore('orders', () => {
 
       return response.data
     } catch (err) {
-      console.error('Error resending invoice email:', err)
       throw err
     }
   }

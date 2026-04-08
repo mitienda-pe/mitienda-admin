@@ -81,7 +81,6 @@ onMounted(() => {
     streamScript.src = 'https://embed.cloudflarestream.com/embed/sdk.latest/stream.js'
     streamScript.async = true
     document.head.appendChild(streamScript)
-    console.log('✅ Cloudflare Stream SDK loaded')
   }
 })
 
@@ -120,11 +119,11 @@ watch(
   <div class="product-video-player">
     <!-- Processing State -->
     <div v-if="isProcessing" class="processing-state">
-      <div class="flex items-center gap-3 p-4 border rounded-lg bg-blue-50 dark:bg-blue-900/20">
+      <div class="flex items-center gap-3 p-4 border rounded-lg bg-primary/5 dark:bg-primary/20">
         <ProgressSpinner style="width: 30px; height: 30px" strokeWidth="4" />
         <div>
-          <p class="font-medium text-blue-900 dark:text-blue-100">{{ statusLabel }}</p>
-          <p class="text-sm text-blue-700 dark:text-blue-300">
+          <p class="font-medium text-secondary-700 dark:text-primary/80">{{ statusLabel }}</p>
+          <p class="text-sm text-primary dark:text-primary/70">
             El video está siendo procesado. Esto puede tomar unos minutos.
           </p>
         </div>

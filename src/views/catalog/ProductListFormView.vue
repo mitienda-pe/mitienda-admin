@@ -103,12 +103,12 @@
         </div>
 
         <!-- Info para listas manuales -->
-        <div v-if="formData.productolista_tipo === 1 && !isEditMode" class="bg-blue-50 rounded-lg p-4">
+        <div v-if="formData.productolista_tipo === 1 && !isEditMode" class="bg-primary/5 rounded-lg p-4">
           <div class="flex gap-3">
-            <i class="pi pi-info-circle text-blue-500 mt-0.5"></i>
+            <i class="pi pi-info-circle text-primary/80 mt-0.5"></i>
             <div>
-              <p class="text-sm text-blue-700 font-medium">Lista manual</p>
-              <p class="text-xs text-blue-600 mt-1">
+              <p class="text-sm text-primary font-medium">Lista manual</p>
+              <p class="text-xs text-primary mt-1">
                 Después de crear la lista, podrás vincular productos usando el botón de vincular en la lista de listas.
               </p>
             </div>

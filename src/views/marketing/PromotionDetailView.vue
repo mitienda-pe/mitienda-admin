@@ -3,7 +3,7 @@
     <!-- Loading State -->
     <div v-if="isLoading" class="flex h-64 items-center justify-center">
       <div class="text-center">
-        <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
+        <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
         <p class="mt-2 text-sm text-gray-500">Cargando promoción...</p>
       </div>
     </div>
@@ -100,7 +100,7 @@
                 </div>
                 <button
                   @click="showLinkProductsDialog = true"
-                  class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+                  class="inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90"
                 >
                   <svg class="-ml-0.5 mr-1.5 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -145,7 +145,7 @@
                           />
                           <button
                             @click="validateAndUpdateProductQuantity(product)"
-                            class="px-2 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                            class="px-2 py-1 text-xs bg-primary text-white rounded hover:bg-primary/80"
                             title="Guardar cantidad"
                           >
                             ✓
@@ -230,7 +230,7 @@
                           />
                           <button
                             @click="validateAndUpdateBonificationQuantity(product)"
-                            class="px-2 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                            class="px-2 py-1 text-xs bg-primary text-white rounded hover:bg-primary/80"
                             title="Guardar cantidad"
                           >
                             ✓
@@ -327,7 +327,7 @@
               <div class="space-y-3">
                 <button
                   @click="handleEdit"
-                  class="w-full inline-flex justify-center items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+                  class="w-full inline-flex justify-center items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90"
                 >
                   Editar Promoción
                 </button>
@@ -403,23 +403,15 @@ const isPromotionActive = computed(() => {
   // Convert to number because backend returns string
   const estado = Number(currentPromotion.value?.tiendapromocion_estado)
   const result = estado === 1
-  console.log('isPromotionActive computed:', {
-    estadoOriginal: currentPromotion.value?.tiendapromocion_estado,
-    estadoConvertido: estado,
-    result,
-    promotion: currentPromotion.value?.tiendapromocion_nombre
-  })
   return result
 })
 
 async function handleToggleChange(newValue: boolean) {
   if (!currentPromotion.value) {
-    console.log('Ignoring toggle - no promotion loaded')
     return
   }
 
   if (isUpdatingStatus.value) {
-    console.log('Ignoring toggle - already updating')
     return
   }
 
@@ -429,27 +421,19 @@ async function handleToggleChange(newValue: boolean) {
 
   // If the new value is the same as current, ignore
   if (newValue === currentBoolValue) {
-    console.log('Ignoring toggle - same value as current', { newValue, currentStatus, currentBoolValue })
     return
   }
-
-  console.log('Toggle clicked! Changing from', currentBoolValue, 'to', newValue)
 
   try {
     isUpdatingStatus.value = true
     const newStatus = newValue ? 1 : 0
 
-    console.log('Updating status from', currentStatus, 'to', newStatus)
-
     const result = await promotionsStore.modifyPromotion(currentPromotion.value.tiendapromocion_id, {
       tiendapromocion_estado: newStatus
     })
 
-    console.log('API response:', result)
-
     // Refresh to get updated data
     await promotionsStore.fetchPromotion(currentPromotion.value.tiendapromocion_id)
-    console.log('Promotion refreshed successfully')
   } catch (error) {
     console.error('Error toggling status:', error)
     alert('Error al cambiar el estado de la promoción')

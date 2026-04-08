@@ -32,7 +32,6 @@ const showFailedJobs = computed(() => activeTab.value === 1)
 
 // Load initial data
 onMounted(async () => {
-  console.log('[NetsuiteQueueView] Component mounted')
   await loadAllData()
 })
 
@@ -56,7 +55,6 @@ async function loadAllData() {
 }
 
 async function handleRefresh() {
-  console.log('[NetsuiteQueueView] Manual refresh')
   await loadAllData()
   toast.add({
     severity: 'success',
@@ -67,12 +65,10 @@ async function handleRefresh() {
 }
 
 async function handleFiltersUpdate() {
-  console.log('[NetsuiteQueueView] Filters updated')
   await queueStore.fetchQueueJobs()
 }
 
 function handleViewDetails(job: QueueJob | FailedJob) {
-  console.log('[NetsuiteQueueView] View details:', job.id)
   selectedJob.value = job
   showJobDetail.value = true
 }
@@ -90,7 +86,6 @@ function handleRetryJob(jobId: number) {
 
 async function executeRetryJob(jobId: number) {
   try {
-    console.log('[NetsuiteQueueView] Retry job:', jobId)
     await queueStore.retryFailedJob(jobId)
     toast.add({
       severity: 'success',
@@ -124,7 +119,6 @@ function handleDeleteJob(jobId: number) {
 
 async function executeDeleteJob(jobId: number) {
   try {
-    console.log('[NetsuiteQueueView] Delete job:', jobId)
     if (showFailedJobs.value) {
       await queueStore.deleteFailedJob(jobId)
     } else {
