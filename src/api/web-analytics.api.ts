@@ -18,6 +18,12 @@ export interface MetricItem {
   y: number
 }
 
+export interface FunnelStep {
+  step: string
+  count: number
+  rate: number
+}
+
 export const webAnalyticsApi = {
   async getStats(startAt: number, endAt: number) {
     const res = await apiClient.get(`/web-analytics/stats?start_at=${startAt}&end_at=${endAt}`)
@@ -36,6 +42,11 @@ export const webAnalyticsApi = {
 
   async getActive() {
     const res = await apiClient.get('/web-analytics/active')
+    return res.data
+  },
+
+  async getFunnel(startAt: number, endAt: number) {
+    const res = await apiClient.get(`/web-analytics/funnel?start_at=${startAt}&end_at=${endAt}`)
     return res.data
   }
 }

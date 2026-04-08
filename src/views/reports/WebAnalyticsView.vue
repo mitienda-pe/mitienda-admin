@@ -83,6 +83,33 @@
         </div>
       </div>
 
+      <!-- Conversion Funnel -->
+      <div v-if="funnel.length" class="bg-white rounded-xl border border-gray-200 p-6">
+        <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Embudo de Conversión</h3>
+        <div class="space-y-3">
+          <div v-for="(step, idx) in funnel" :key="idx" class="flex items-center gap-4">
+            <div class="w-40 text-sm text-gray-700 shrink-0">{{ step.step }}</div>
+            <div class="flex-1">
+              <div class="flex items-center gap-3">
+                <div class="flex-1 bg-gray-100 rounded-full h-6 relative overflow-hidden">
+                  <div
+                    class="h-6 rounded-full transition-all flex items-center justify-end pr-2"
+                    :class="funnelBarColor(idx)"
+                    :style="{ width: Math.max(step.rate, 2) + '%' }"
+                  >
+                    <span v-if="step.rate > 15" class="text-xs font-medium text-white">{{ step.count.toLocaleString('es-PE') }}</span>
+                  </div>
+                </div>
+                <span class="text-sm font-medium text-gray-600 w-14 text-right">{{ step.rate }}%</span>
+              </div>
+              <div v-if="idx > 0 && funnel[idx - 1].count > 0" class="text-xs text-gray-400 mt-0.5">
+                {{ Math.round(step.count / funnel[idx - 1].count * 100) || 0 }}% del paso anterior
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Metrics Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Top Pages -->
@@ -115,7 +142,7 @@ import { use } from 'echarts/core'
 import { LineChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent, LegendComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
-import { webAnalyticsApi, type AnalyticsStats, type MetricItem } from '@/api/web-analytics.api'
+import { webAnalyticsApi, type AnalyticsStats, type MetricItem, type FunnelStep } from '@/api/web-analytics.api'
 import MetricsCard from '@/components/analytics/MetricsCard.vue'
 
 use([LineChart, GridComponent, TooltipComponent, LegendComponent, CanvasRenderer])
@@ -127,6 +154,7 @@ const browsers = ref<MetricItem[]>([])
 const devices = ref<MetricItem[]>([])
 const countries = ref<MetricItem[]>([])
 const events = ref<MetricItem[]>([])
+const funnel = ref<FunnelStep[]>([])
 const pageviewsChartData = ref<any[]>([])
 const sessionsChartData = ref<any[]>([])
 const chartLabels = ref<string[]>([])
@@ -273,6 +301,11 @@ function formatDevice(device: string): string {
   return map[device] || device
 }
 
+function funnelBarColor(idx: number): string {
+  const colors = ['bg-primary', 'bg-blue-500', 'bg-indigo-500', 'bg-violet-500', 'bg-green-500']
+  return colors[idx] || 'bg-gray-400'
+}
+
 function formatEvent(event: string): string {
   const map: Record<string, string> = {
     add_to_cart: 'Agregar al carrito',
@@ -293,7 +326,7 @@ async function fetchData() {
   const { startAt, endAt, unit } = getDateRange(selectedPeriod.value)
 
   try {
-    const [statsRes, pageviewsRes, pagesRes, refsRes, browsersRes, devicesRes, countriesRes, eventsRes] =
+    const [statsRes, pageviewsRes, pagesRes, refsRes, browsersRes, devicesRes, countriesRes, eventsRes, funnelRes] =
       await Promise.all([
         webAnalyticsApi.getStats(startAt, endAt),
         webAnalyticsApi.getPageviews(startAt, endAt, unit),
@@ -302,7 +335,8 @@ async function fetchData() {
         webAnalyticsApi.getMetrics(startAt, endAt, 'browser'),
         webAnalyticsApi.getMetrics(startAt, endAt, 'device'),
         webAnalyticsApi.getMetrics(startAt, endAt, 'country'),
-        webAnalyticsApi.getMetrics(startAt, endAt, 'event')
+        webAnalyticsApi.getMetrics(startAt, endAt, 'event'),
+        webAnalyticsApi.getFunnel(startAt, endAt)
       ])
 
     if (statsRes.data === null) {
@@ -318,6 +352,7 @@ async function fetchData() {
     devices.value = devicesRes.data || []
     countries.value = countriesRes.data || []
     events.value = eventsRes.data || []
+    funnel.value = funnelRes.data || []
 
     if (pageviewsRes.data?.pageviews) {
       const pv = pageviewsRes.data.pageviews
