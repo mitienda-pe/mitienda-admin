@@ -24,7 +24,7 @@
             aria-label="Abrir menú de navegación"
             @click="sidebarVisible = true"
           />
-          <img src="@/assets/images/logo-mitienda.svg" alt="MiTienda" class="h-8" />
+          <img :src="brand.logo" :alt="brand.name" class="h-8" />
         </div>
 
         <!-- Tienda actual y usuario -->
@@ -533,7 +533,7 @@
       <Sidebar v-model:visible="sidebarVisible" class="w-80">
         <template #header>
           <div class="flex items-center gap-2">
-            <img src="@/assets/images/logo-mitienda.svg" alt="MiTienda" class="h-8" />
+            <img :src="brand.logo" :alt="brand.name" class="h-8" />
           </div>
         </template>
 
@@ -991,6 +991,7 @@ import Sidebar from 'primevue/sidebar'
 import Menu from 'primevue/menu'
 import ImpersonationBanner from '@/components/admin/ImpersonationBanner.vue'
 import { useOneSignal } from '@/composables/useOneSignal'
+import { brand } from '@/config/branding'
 import { usePlanStore } from '@/stores/plan.store'
 import UpgradeModal from '@/components/plan/UpgradeModal.vue'
 import HelpFab from '@/components/help/HelpFab.vue'

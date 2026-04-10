@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
     <div class="w-full max-w-md">
       <div class="text-center mb-8">
-        <img src="@/assets/images/logo-mitienda.svg" alt="MiTienda" class="h-16 mx-auto mb-4" />
+        <img :src="brand.logo" :alt="brand.name" class="h-16 mx-auto mb-4" />
         <p class="text-secondary-500 text-lg">Backoffice</p>
       </div>
 
@@ -11,11 +11,12 @@
       </div>
 
       <div class="text-center mt-6 text-sm text-secondary-400">
-        <p>&copy; {{ new Date().getFullYear() }} MiTienda.pe - Todos los derechos reservados</p>
+        <p>&copy; {{ new Date().getFullYear() }} {{ brand.name }} - Todos los derechos reservados</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { brand } from '@/config/branding'
 </script>

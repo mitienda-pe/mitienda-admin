@@ -8,6 +8,7 @@ import * as Sentry from '@sentry/vue'
 
 import App from './App.vue'
 import router from './router'
+import { brand } from './config/branding'
 
 // PrimeVue styles
 import 'primevue/resources/themes/lara-light-blue/theme.css'
@@ -57,4 +58,5 @@ window.addEventListener('unhandledrejection', (event) => {
   }
 })
 
+document.title = brand.title
 app.mount('#app')
