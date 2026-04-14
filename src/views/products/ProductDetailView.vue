@@ -133,8 +133,8 @@
             </div>
           </template>
           <template #content>
-            <div v-if="product.description_html" class="text-secondary-600 prose prose-sm max-w-none"
-              v-html="sanitizeHtml(product.description_html || '')"></div>
+            <div v-if="product.description_html" class="text-secondary-600 prose prose-sm max-w-none overflow-hidden"
+              v-html="sanitizeHtml((product.description_html || '').replace(/&nbsp;/g, ' '))"></div>
             <p v-else-if="product.description" class="text-secondary-600">{{ product.description }}</p>
             <p v-else class="text-secondary-400 italic">Sin descripcion. Usa los botones de arriba para agregar una.</p>
           </template>
