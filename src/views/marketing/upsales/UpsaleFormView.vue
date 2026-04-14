@@ -436,7 +436,7 @@ onMounted(async () => {
         tiendaupsale_nombre: upsale.tiendaupsale_nombre,
         tiendaupsale_descripcion: upsale.tiendaupsale_descripcion || ''
       }
-      formActive.value = upsale.tiendaupsale_activo === 1
+      formActive.value = Number(upsale.tiendaupsale_activo) === 1
 
       // Load trigger products
       if (upsale.triggers) {

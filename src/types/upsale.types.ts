@@ -9,6 +9,8 @@ export interface Upsale {
   tiendaupsale_fechaactualizacion: string | null
   triggers?: UpsaleTrigger[]
   suggested?: UpsaleSuggested[]
+  triggers_count?: number
+  suggested_count?: number
 }
 
 export interface UpsaleTrigger {

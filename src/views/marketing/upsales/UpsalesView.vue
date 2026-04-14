@@ -66,7 +66,7 @@
         <Column header="Triggers" style="width: 120px">
           <template #body="{ data }">
             <Tag
-              :value="`${data.triggers?.length || 0} productos`"
+              :value="`${data.triggers_count ?? data.triggers?.length ?? 0} productos`"
               severity="info"
             />
           </template>
@@ -75,7 +75,7 @@
         <Column header="Sugeridos" style="width: 120px">
           <template #body="{ data }">
             <Tag
-              :value="`${data.suggested?.length || 0} productos`"
+              :value="`${data.suggested_count ?? data.suggested?.length ?? 0} productos`"
               severity="success"
             />
           </template>
@@ -92,7 +92,7 @@
         <Column field="tiendaupsale_activo" header="Estado" sortable style="width: 100px">
           <template #body="{ data }">
             <InputSwitch
-              :modelValue="data.tiendaupsale_activo === 1"
+              :modelValue="Number(data.tiendaupsale_activo) === 1"
               @update:modelValue="toggleStatus(data)"
             />
           </template>
