@@ -1032,4 +1032,22 @@ router.afterEach(() => {
   document.body.style.removeProperty('overflow')
 })
 
+// Handle chunk loading errors after new deployments
+// When assets are re-hashed, old chunks return 404 (served as HTML by SPA fallback)
+router.onError((error, to) => {
+  const isChunkError =
+    error.message?.includes('Failed to fetch dynamically imported module') ||
+    error.message?.includes('Importing a module script failed') ||
+    error.name === 'ChunkLoadError'
+
+  if (isChunkError) {
+    // Reload once to get new assets; use sessionStorage to prevent infinite loops
+    const reloadKey = 'chunk-reload:' + to.fullPath
+    if (!sessionStorage.getItem(reloadKey)) {
+      sessionStorage.setItem(reloadKey, '1')
+      window.location.assign(to.fullPath)
+    }
+  }
+})
+
 export default router

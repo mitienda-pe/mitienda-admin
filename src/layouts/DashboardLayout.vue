@@ -51,12 +51,12 @@
       <!-- Sidebar Desktop -->
       <aside
         data-tour="sidebar"
-        class="hidden lg:block w-64 bg-white border-r border-gray-200 sticky overflow-y-auto"
+        class="hidden lg:block w-64 bg-white border-r border-gray-200 sticky overflow-y-auto flex flex-col"
         :class="adminStore.isImpersonating ? 'top-[112px] h-[calc(100vh-112px)]' : 'top-[60px] h-[calc(100vh-60px)]'"
         role="navigation"
         aria-label="Navegación principal"
       >
-        <nav class="p-4" @click.capture="handleNavClick">
+        <nav class="p-4 flex-1" @click.capture="handleNavClick">
           <!-- Sidebar para SuperAdmin SIN impersonación -->
           <ul v-if="isSuperAdminWithoutImpersonation" class="space-y-1">
             <li>
@@ -527,6 +527,9 @@
             </li>
           </ul>
         </nav>
+        <div class="px-4 py-2 text-[11px] text-gray-400 border-t border-gray-100">
+          v{{ appVersion }}
+        </div>
       </aside>
 
       <!-- Sidebar Mobile -->
@@ -997,6 +1000,8 @@ import UpgradeModal from '@/components/plan/UpgradeModal.vue'
 import HelpFab from '@/components/help/HelpFab.vue'
 import HelpDrawer from '@/components/help/HelpDrawer.vue'
 import { useOnboardingStore } from '@/stores/onboarding.store'
+
+const appVersion = __APP_VERSION__
 
 const router = useRouter()
 const route = useRoute()

@@ -1,4 +1,5 @@
 <template>
+  <AppUpdateBanner />
   <router-view />
   <Toast />
   <ConfirmDialog />
@@ -7,6 +8,7 @@
 <script setup lang="ts">
 import Toast from 'primevue/toast'
 import ConfirmDialog from 'primevue/confirmdialog'
+import AppUpdateBanner from '@/components/AppUpdateBanner.vue'
 </script>
 
 <style scoped>

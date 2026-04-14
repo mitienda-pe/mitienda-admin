@@ -1,6 +1,14 @@
 import { defineConfig } from 'vitest/config'
 import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
+// Read version from package.json + append build hash for cache-busting
+const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8'))
+const appVersion = pkg.version
+const buildHash = Date.now().toString(36)
+const buildId = `${appVersion}+${buildHash}`
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -8,7 +16,21 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
   },
+  define: {
+    __APP_VERSION__: JSON.stringify(appVersion),
+    __BUILD_ID__: JSON.stringify(buildId),
+  },
   plugins: [
+    // Write version.json to public/ so it's served as a static file
+    {
+      name: 'version-json',
+      buildStart() {
+        writeFileSync(
+          resolve(__dirname, 'public/version.json'),
+          JSON.stringify({ version: buildId, buildTime: new Date().toISOString() })
+        )
+      },
+    },
     vue({
       template: {
         compilerOptions: {
