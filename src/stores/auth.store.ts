@@ -72,9 +72,11 @@ export const useAuthStore = defineStore('auth', () => {
       if (response.success && response.data) {
         stores.value = response.data
 
-        // Si solo hay una tienda, seleccionarla automáticamente
-        if (response.data.length === 1) {
-          await selectStore(response.data[0])
+        // Auto-select: only count active stores for auto-selection
+        const activeStores = response.data.filter(s => s.status === 'active')
+
+        if (activeStores.length === 1 && !selectedStore.value) {
+          await selectStore(activeStores[0])
         } else {
           // Intentar restaurar tienda seleccionada del localStorage
           const savedStore = localStorage.getItem('selected_store')
@@ -89,6 +91,29 @@ export const useAuthStore = defineStore('auth', () => {
       }
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Error al cargar tiendas'
+    }
+  }
+
+  async function createStore(data: { nombre: string; subdominio: string; pais: string }) {
+    try {
+      isLoading.value = true
+      error.value = null
+
+      const response = await authApi.createStore(data)
+
+      if (response.success && response.data) {
+        // Refresh the stores list
+        await fetchStores()
+        return response.data
+      } else {
+        error.value = response.message || 'Error al crear la tienda'
+        return null
+      }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || err.response?.data?.messages?.error || 'Error al crear la tienda'
+      return null
+    } finally {
+      isLoading.value = false
     }
   }
 
@@ -269,6 +294,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     fetchStores,
     selectStore,
+    createStore,
     checkSuperAdmin,
     logout,
     restoreSession,

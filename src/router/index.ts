@@ -73,6 +73,18 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/my-stores',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: false },
+    children: [
+      {
+        path: '',
+        name: 'MyStores',
+        component: () => import('@/views/store/MyStoresView.vue')
+      }
+    ]
+  },
+  {
     path: '/dashboard',
     component: DashboardLayout,
     meta: { requiresAuth: true, requiresStore: true },
@@ -975,8 +987,8 @@ router.beforeEach(async (to, _from, next) => {
     // Permitir acceso si está impersonando (tiene selectedStore por impersonación)
     // O si tiene selectedStore normal
     if (!authStore.selectedStore && !isImpersonating) {
-      if (to.path !== '/store-selection') {
-        next('/store-selection')
+      if (to.path !== '/store-selection' && to.path !== '/my-stores') {
+        next('/my-stores')
         return
       }
     }

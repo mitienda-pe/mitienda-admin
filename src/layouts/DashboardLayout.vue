@@ -1339,12 +1339,11 @@ const userMenuItems = ref([
     }
   },
   {
-    label: 'Cambiar Tienda',
+    label: 'Mis Tiendas',
     icon: 'pi pi-shop',
     command: () => {
-      router.push('/store-selection')
-    },
-    visible: authStore.hasMultipleStores
+      router.push('/my-stores')
+    }
   },
   {
     separator: true

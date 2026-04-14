@@ -92,6 +92,12 @@ export const authApi = {
     return response.data
   },
 
+  // Create a new store for the authenticated user
+  async createStore(data: { nombre: string; subdominio: string; pais: string }): Promise<ApiResponse<{ tienda_id: number; tienda_nombre_comercial: string; tienda_nombreurl: string; tienda_url: string }>> {
+    const response = await apiClient.post('/user/stores', data)
+    return response.data
+  },
+
   // Magic link auto-login (called from the landing page after trial registration)
   async magicLogin(token: string): Promise<ApiResponse<{ access_token: string; token_type: string; expires_in: number; user: { id: number; email: string; name: string }; store_id: number }>> {
     const response = await apiClient.post('/auth/magic-login', { token })
