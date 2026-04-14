@@ -39,7 +39,7 @@ export interface ComboCreateRequest {
   tiendacombo_descripcion?: string
   tiendacombo_precio: number
   tiendacombo_precioregular?: number
-  tiendacombo_imagen?: string
+  tiendacombo_imagen?: string | null
   tiendacombo_mostrar_catalogo?: number
   tiendacombo_mostrar_carrito?: number
   tiendacombo_activo?: number
@@ -51,7 +51,7 @@ export interface ComboUpdateRequest {
   tiendacombo_descripcion?: string
   tiendacombo_precio?: number
   tiendacombo_precioregular?: number
-  tiendacombo_imagen?: string
+  tiendacombo_imagen?: string | null
   tiendacombo_mostrar_catalogo?: number
   tiendacombo_mostrar_carrito?: number
   tiendacombo_activo?: number

@@ -488,11 +488,12 @@ const saveCombo = async () => {
   if (!validateForm()) return
 
   try {
-    const data: Record<string, any> = {
+    const data = {
       tiendacombo_nombre: formData.value.tiendacombo_nombre,
       tiendacombo_descripcion: formData.value.tiendacombo_descripcion || undefined,
       tiendacombo_precio: formData.value.tiendacombo_precio,
       tiendacombo_precioregular: calculatedRegularPrice.value,
+      tiendacombo_imagen: imageRemoved.value && !imageFile.value ? null : undefined,
       tiendacombo_mostrar_catalogo: showInCatalog.value ? 1 : 0,
       tiendacombo_mostrar_carrito: showInCart.value ? 1 : 0,
       tiendacombo_activo: formActive.value ? 1 : 0,
@@ -500,11 +501,6 @@ const saveCombo = async () => {
         producto_id: p.producto_id,
         cantidad: p.cantidad
       }))
-    }
-
-    // Send null image if user removed it
-    if (imageRemoved.value && !imageFile.value) {
-      data.tiendacombo_imagen = null
     }
 
     let savedCombo
