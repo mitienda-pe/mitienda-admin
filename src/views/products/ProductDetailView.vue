@@ -120,7 +120,7 @@
         />
 
         <!-- Descripcion -->
-        <Card v-if="product.description_html || product.description">
+        <Card>
           <template #title>
             <div class="flex items-center justify-between w-full">
               <span class="text-lg">Descripcion</span>
@@ -135,7 +135,8 @@
           <template #content>
             <div v-if="product.description_html" class="text-secondary-600 prose prose-sm max-w-none"
               v-html="sanitizeHtml(product.description_html || '')"></div>
-            <p v-else class="text-secondary-600">{{ product.description }}</p>
+            <p v-else-if="product.description" class="text-secondary-600">{{ product.description }}</p>
+            <p v-else class="text-secondary-400 italic">Sin descripcion. Usa los botones de arriba para agregar una.</p>
           </template>
         </Card>
 
