@@ -396,6 +396,7 @@ const processImageFile = (file: File) => {
   }
 
   imageFile.value = file
+  imageRemoved.value = false
   const reader = new FileReader()
   reader.onload = (e) => {
     imagePreview.value = e.target?.result as string
@@ -403,9 +404,12 @@ const processImageFile = (file: File) => {
   reader.readAsDataURL(file)
 }
 
+const imageRemoved = ref(false)
+
 const removeImage = () => {
   imagePreview.value = null
   imageFile.value = null
+  imageRemoved.value = true
   if (imageInput.value) {
     imageInput.value.value = ''
   }
@@ -484,7 +488,7 @@ const saveCombo = async () => {
   if (!validateForm()) return
 
   try {
-    const data = {
+    const data: Record<string, any> = {
       tiendacombo_nombre: formData.value.tiendacombo_nombre,
       tiendacombo_descripcion: formData.value.tiendacombo_descripcion || undefined,
       tiendacombo_precio: formData.value.tiendacombo_precio,
@@ -496,6 +500,11 @@ const saveCombo = async () => {
         producto_id: p.producto_id,
         cantidad: p.cantidad
       }))
+    }
+
+    // Send null image if user removed it
+    if (imageRemoved.value && !imageFile.value) {
+      data.tiendacombo_imagen = null
     }
 
     let savedCombo
