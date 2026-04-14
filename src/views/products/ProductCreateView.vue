@@ -173,6 +173,10 @@ const validate = (): boolean => {
     errors.value.stock = 'El stock no puede ser negativo'
   }
 
+  if (form.value.description_short && form.value.description_short.length > 360) {
+    errors.value.description_short = 'La descripción no puede exceder 360 caracteres'
+  }
+
   return Object.keys(errors.value).length === 0
 }
 
@@ -365,32 +369,27 @@ const handleSave = async () => {
         </div>
       </div>
 
-      <!-- Descripcion -->
-      <div>
-        <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
-          Descripcion
-        </label>
-        <Textarea
-          id="description"
-          v-model="form.description"
-          rows="4"
-          class="w-full"
-          placeholder="Descripcion breve del producto..."
-        />
-      </div>
-
       <!-- Descripcion corta -->
       <div>
         <label for="desc-short" class="block text-sm font-medium text-gray-700 mb-1">
-          Descripcion corta
+          Descripción
         </label>
         <Textarea
           id="desc-short"
           v-model="form.description_short"
-          rows="2"
+          rows="3"
           class="w-full"
-          placeholder="Resumen para listados..."
+          :maxlength="360"
+          placeholder="Descripción breve del producto..."
+          :class="{ 'p-invalid': errors.description_short }"
         />
+        <div class="flex justify-between mt-1">
+          <small v-if="errors.description_short" class="text-red-500">{{ errors.description_short }}</small>
+          <small v-else class="text-gray-400">Máximo 360 caracteres</small>
+          <small :class="(form.description_short?.length || 0) > 360 ? 'text-red-500' : 'text-gray-400'">
+            {{ form.description_short?.length || 0 }}/360
+          </small>
+        </div>
       </div>
 
       <!-- Marca + Gamma -->

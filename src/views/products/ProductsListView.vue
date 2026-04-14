@@ -3,8 +3,13 @@
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
       <h1 class="text-3xl font-bold text-secondary">Productos</h1>
-      <div class="text-sm text-secondary-500">
-        {{ productsStore.pagination.total }} productos
+      <div class="flex items-center gap-4">
+        <span class="text-sm text-secondary-500">
+          {{ productsStore.pagination.total }} productos
+        </span>
+        <router-link :to="{ name: 'ProductCreate' }">
+          <Button label="Crear producto" icon="pi pi-plus" />
+        </router-link>
       </div>
     </div>
 
