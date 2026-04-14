@@ -123,7 +123,7 @@
         <Card>
           <template #title>
             <div class="flex items-center justify-between w-full">
-              <span class="text-lg">Descripcion</span>
+              <span class="text-lg">Descripción larga</span>
               <div class="flex gap-2">
                 <Button label="Editar Texto" icon="pi pi-file-edit" size="small" severity="secondary" outlined
                   @click="openDescriptionEditor('wysiwyg')" />
