@@ -418,7 +418,7 @@ const searchProducts = async (event: { query: string }) => {
   try {
     const response = await productsApi.getProducts({ search: event.query, limit: 10 })
     productSearchResults.value = response.data
-      .filter((p: Product) => !p.has_variants && !comboProducts.value.some(cp => cp.producto_id === p.id))
+      .filter((p: Product) => !p.has_variation_attributes && !comboProducts.value.some(cp => cp.producto_id === p.id))
       .map((p: Product) => ({
         producto_id: p.id,
         producto_nombre: p.name,
