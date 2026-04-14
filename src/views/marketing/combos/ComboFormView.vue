@@ -541,9 +541,9 @@ onMounted(async () => {
         tiendacombo_descripcion: combo.tiendacombo_descripcion || '',
         tiendacombo_precio: combo.tiendacombo_precio
       }
-      formActive.value = combo.tiendacombo_activo === 1
-      showInCatalog.value = combo.tiendacombo_mostrar_catalogo === 1
-      showInCart.value = combo.tiendacombo_mostrar_carrito === 1
+      formActive.value = Number(combo.tiendacombo_activo) === 1
+      showInCatalog.value = Number(combo.tiendacombo_mostrar_catalogo) === 1
+      showInCart.value = Number(combo.tiendacombo_mostrar_carrito) === 1
 
       if (combo.tiendacombo_imagen) {
         imagePreview.value = getImageUrl(combo.tiendacombo_imagen)

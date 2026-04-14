@@ -117,7 +117,7 @@
         <Column field="tiendacombo_activo" header="Estado" sortable style="width: 100px">
           <template #body="{ data }">
             <InputSwitch
-              :modelValue="data.tiendacombo_activo === 1"
+              :modelValue="Number(data.tiendacombo_activo) === 1"
               @update:modelValue="toggleStatus(data)"
             />
           </template>
@@ -238,8 +238,8 @@ const toggleStatus = async (combo: Combo) => {
     const updated = await comboStore.toggleCombo(combo.tiendacombo_id)
     toast.add({
       severity: 'success',
-      summary: updated.tiendacombo_activo === 1 ? 'Activado' : 'Desactivado',
-      detail: `Combo ${updated.tiendacombo_activo === 1 ? 'activado' : 'desactivado'} correctamente`,
+      summary: Number(updated.tiendacombo_activo) === 1 ? 'Activado' : 'Desactivado',
+      detail: `Combo ${Number(updated.tiendacombo_activo) === 1 ? 'activado' : 'desactivado'} correctamente`,
       life: 3000
     })
   } catch {
