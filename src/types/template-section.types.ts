@@ -19,6 +19,7 @@ export const PREDEFINED_BLOCKS: PredefinedBlock[] = [
   { codigo: 'productos_destacados', label: 'Productos Destacados', icon: 'pi pi-star', descripcion: 'Los productos más populares' },
   { codigo: 'listas', label: 'Listas de Productos', icon: 'pi pi-list', descripcion: 'Colecciones personalizadas de productos' },
   { codigo: 'gamas', label: 'Gamas', icon: 'pi pi-bars', descripcion: 'Líneas o gamas de productos' },
+  { codigo: 'combos', label: 'Combos', icon: 'pi pi-box', descripcion: 'Combos especiales de productos' },
 ]
 
 export interface PageSection {
