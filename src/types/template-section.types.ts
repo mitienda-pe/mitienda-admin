@@ -1,25 +1,37 @@
+export interface BlockConfig {
+  titulo?: string
+  bg_color?: string
+  limite?: number
+  items?: number[]
+}
+
 export interface SectionColumn {
   posicion: number
   colBotstrap: number // 12=1col, 6=2cols, 4=3cols, 3=4cols
   componente_id: number | string // 0 = empty user component
   bloque_codigo?: string // predefined system block (mutually exclusive with componente_id)
+  config?: BlockConfig
 }
+
+export type ItemsType = 'categorias' | 'marcas' | 'productos' | 'listas' | 'combos' | 'gamas'
 
 export interface PredefinedBlock {
   codigo: string
   label: string
   icon: string
   descripcion: string
+  itemsType?: ItemsType
+  itemsLabel?: string
 }
 
 export const PREDEFINED_BLOCKS: PredefinedBlock[] = [
   { codigo: 'carrusel', label: 'Carrusel', icon: 'pi pi-images', descripcion: 'Slider de banners principal' },
-  { codigo: 'categorias', label: 'Categorías', icon: 'pi pi-th-large', descripcion: 'Cuadrícula de categorías' },
-  { codigo: 'marcas', label: 'Marcas', icon: 'pi pi-tag', descripcion: 'Galería de marcas con logo' },
-  { codigo: 'productos_destacados', label: 'Productos Destacados', icon: 'pi pi-star', descripcion: 'Los productos más populares' },
-  { codigo: 'listas', label: 'Listas de Productos', icon: 'pi pi-list', descripcion: 'Colecciones personalizadas de productos' },
-  { codigo: 'gamas', label: 'Gamas', icon: 'pi pi-bars', descripcion: 'Líneas o gamas de productos' },
-  { codigo: 'combos', label: 'Combos', icon: 'pi pi-box', descripcion: 'Combos especiales de productos' },
+  { codigo: 'categorias', label: 'Categorías', icon: 'pi pi-th-large', descripcion: 'Cuadrícula de categorías', itemsType: 'categorias', itemsLabel: 'Categorías' },
+  { codigo: 'marcas', label: 'Marcas', icon: 'pi pi-tag', descripcion: 'Galería de marcas con logo', itemsType: 'marcas', itemsLabel: 'Marcas' },
+  { codigo: 'productos_destacados', label: 'Productos Destacados', icon: 'pi pi-star', descripcion: 'Los productos más populares', itemsType: 'productos', itemsLabel: 'Productos' },
+  { codigo: 'listas', label: 'Listas de Productos', icon: 'pi pi-list', descripcion: 'Colecciones personalizadas de productos', itemsType: 'listas', itemsLabel: 'Listas' },
+  { codigo: 'gamas', label: 'Gamas', icon: 'pi pi-bars', descripcion: 'Líneas o gamas de productos', itemsType: 'gamas', itemsLabel: 'Gamas' },
+  { codigo: 'combos', label: 'Combos', icon: 'pi pi-box', descripcion: 'Combos especiales de productos', itemsType: 'combos', itemsLabel: 'Combos' },
 ]
 
 export interface PageSection {

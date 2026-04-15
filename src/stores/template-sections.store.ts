@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { templateSectionsApi } from '@/api/template-sections.api'
-import type { PageSection, SectionColumn } from '@/types/template-section.types'
+import type { PageSection, SectionColumn, BlockConfig } from '@/types/template-section.types'
 
 function emptyColumn(posicion: number, colBotstrap: number): SectionColumn {
   return { posicion, colBotstrap, componente_id: 0 }
@@ -155,6 +155,16 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
     })
   }
 
+  function updateBlockConfig(
+    page: number,
+    ubicacion: 'header' | 'footer',
+    zoneIdx: number,
+    colIdx: number,
+    config: BlockConfig,
+  ) {
+    _updateColumn(page, ubicacion, zoneIdx, colIdx, { config })
+  }
+
   function clearColumn(
     page: number,
     ubicacion: 'header' | 'footer',
@@ -180,6 +190,7 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
     moveSectionDown,
     assignComponent,
     assignBlock,
+    updateBlockConfig,
     clearColumn,
   }
 })

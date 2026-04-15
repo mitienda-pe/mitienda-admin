@@ -117,7 +117,7 @@
                     @dragenter.prevent="setDragOver(`${zone.ubicacion}-${sIdx}-${cIdx}`)"
                     @dragleave="clearDragOver(`${zone.ubicacion}-${sIdx}-${cIdx}`)"
                     @drop.prevent="handleDrop(zone.ubicacion, sIdx, cIdx)"
-                    @click="openSelector(zone.ubicacion, sIdx, cIdx)"
+                    @click="handleColumnClick(zone.ubicacion, sIdx, cIdx)"
                   >
                     <!-- Predefined block chip -->
                     <div v-if="col.bloque_codigo" class="p-2.5 h-full flex flex-col">
@@ -128,18 +128,29 @@
                           </span>
                           <div class="min-w-0">
                             <p class="text-xs font-semibold text-secondary truncate">
-                              {{ getPredefinedBlock(col.bloque_codigo)?.label ?? col.bloque_codigo }}
+                              {{ col.config?.titulo || getPredefinedBlock(col.bloque_codigo)?.label || col.bloque_codigo }}
                             </p>
-                            <p class="text-xs text-secondary-400 mt-0.5">Bloque predefinido</p>
+                            <p class="text-xs text-secondary-400 mt-0.5">
+                              {{ blockConfigSummary(col) }}
+                            </p>
                           </div>
                         </div>
-                        <button
-                          class="shrink-0 text-gray-300 hover:text-red-400 transition-colors"
-                          title="Quitar"
-                          @click.stop="sectionsStore.clearColumn(activePage, zone.ubicacion, sIdx, cIdx)"
-                        >
-                          <i class="pi pi-times text-xs"></i>
-                        </button>
+                        <div class="flex items-center gap-0.5 shrink-0">
+                          <button
+                            class="text-gray-300 hover:text-primary transition-colors"
+                            title="Configurar"
+                            @click.stop="openBlockConfig(zone.ubicacion, sIdx, cIdx, col)"
+                          >
+                            <i class="pi pi-cog text-xs"></i>
+                          </button>
+                          <button
+                            class="text-gray-300 hover:text-red-400 transition-colors"
+                            title="Quitar"
+                            @click.stop="sectionsStore.clearColumn(activePage, zone.ubicacion, sIdx, cIdx)"
+                          >
+                            <i class="pi pi-times text-xs"></i>
+                          </button>
+                        </div>
                       </div>
                     </div>
 
@@ -332,6 +343,83 @@
       </div>
     </Dialog>
 
+    <!-- ── Block Config Dialog ───────────────────────────────────────── -->
+    <Dialog
+      v-model:visible="blockConfigVisible"
+      :header="`Configurar: ${getPredefinedBlock(blockConfigCode)?.label ?? blockConfigCode}`"
+      :modal="true"
+      :style="{ width: '520px' }"
+      :draggable="false"
+    >
+      <div class="space-y-5">
+        <!-- Title -->
+        <div>
+          <label class="block text-sm font-medium text-secondary mb-1.5">Título personalizado</label>
+          <InputText
+            v-model="blockConfigForm.titulo"
+            class="w-full"
+            :placeholder="getPredefinedBlock(blockConfigCode)?.label ?? 'Título por defecto'"
+          />
+          <p class="text-xs text-secondary-400 mt-1">Dejar vacío para usar el título por defecto</p>
+        </div>
+
+        <!-- Bg Color -->
+        <div>
+          <label class="block text-sm font-medium text-secondary mb-1.5">Color de fondo</label>
+          <div class="flex items-center gap-3">
+            <ColorPicker v-model="blockConfigBgHex" format="hex" />
+            <InputText v-model="blockConfigForm.bg_color" class="w-32" placeholder="#ffffff" />
+            <button
+              v-if="blockConfigForm.bg_color"
+              class="text-xs text-secondary-400 hover:text-red-400"
+              @click="blockConfigForm.bg_color = ''"
+            >
+              Limpiar
+            </button>
+          </div>
+        </div>
+
+        <!-- Limit -->
+        <div>
+          <label class="block text-sm font-medium text-secondary mb-1.5">Cantidad de items a mostrar</label>
+          <InputNumber
+            v-model="blockConfigForm.limite"
+            :min="0"
+            :max="50"
+            placeholder="0"
+            class="w-full"
+            showButtons
+          />
+          <p class="text-xs text-secondary-400 mt-1">0 = mostrar todos</p>
+        </div>
+
+        <!-- Item Selector -->
+        <div v-if="getPredefinedBlock(blockConfigCode)?.itemsType">
+          <label class="block text-sm font-medium text-secondary mb-1.5">
+            Seleccionar {{ getPredefinedBlock(blockConfigCode)?.itemsLabel }} específicos
+          </label>
+          <MultiSelect
+            v-model="blockConfigForm.items"
+            :options="blockConfigItems"
+            optionLabel="name"
+            optionValue="id"
+            :loading="blockConfigItemsLoading"
+            :placeholder="`Todos (sin filtro)`"
+            :maxSelectedLabels="3"
+            class="w-full"
+            filter
+            :filterPlaceholder="`Buscar ${getPredefinedBlock(blockConfigCode)?.itemsLabel?.toLowerCase()}...`"
+          />
+          <p class="text-xs text-secondary-400 mt-1">Dejar vacío para mostrar todos</p>
+        </div>
+      </div>
+
+      <template #footer>
+        <Button label="Cancelar" text severity="secondary" @click="blockConfigVisible = false" />
+        <Button label="Aplicar" icon="pi pi-check" @click="saveBlockConfig" />
+      </template>
+    </Dialog>
+
     <ConfirmDialog />
   </div>
 </template>
@@ -348,10 +436,18 @@ import {
   ZONE_LABELS,
   PREDEFINED_BLOCKS,
 } from '@/types/template-section.types'
-import type { SectionColumn } from '@/types/template-section.types'
+import type { SectionColumn, BlockConfig } from '@/types/template-section.types'
+import { catalogApi } from '@/api/catalog.api'
+import { productsApi } from '@/api/products.api'
+import { productListApi } from '@/api/product-list.api'
+import { comboApi } from '@/api/combo.api'
+import { gammaApi } from '@/api/gamma.api'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
+import InputNumber from 'primevue/inputnumber'
+import MultiSelect from 'primevue/multiselect'
+import ColorPicker from 'primevue/colorpicker'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import ProgressSpinner from 'primevue/progressspinner'
@@ -485,6 +581,16 @@ const filteredComponents = computed(() => {
   return htmlComponents.value.filter(c => !q || c.name.toLowerCase().includes(q))
 })
 
+function handleColumnClick(ubicacion: 'header' | 'footer', sIdx: number, cIdx: number) {
+  const sections = zoneSections(ubicacion)
+  const col = sections[sIdx]?.[cIdx]
+  if (col?.bloque_codigo) {
+    openBlockConfig(ubicacion, sIdx, cIdx, col)
+  } else {
+    openSelector(ubicacion, sIdx, cIdx)
+  }
+}
+
 function openSelector(ubicacion: 'header' | 'footer', sIdx: number, cIdx: number) {
   pendingCol.value = { ubicacion, sIdx, cIdx }
   selectorSearch.value = ''
@@ -501,6 +607,103 @@ function applyComponent(componentId: number) {
   }
   selectorVisible.value = false
   pendingCol.value = null
+}
+
+// ── Block Config Dialog ──────────────────────────────────────────────────────
+
+const blockConfigVisible = ref(false)
+const blockConfigTarget = ref<{ ubicacion: 'header' | 'footer'; sIdx: number; cIdx: number } | null>(null)
+const blockConfigCode = ref('')
+const blockConfigForm = ref<BlockConfig>({ titulo: '', bg_color: '', limite: 0, items: [] })
+const blockConfigItems = ref<{ id: number; name: string }[]>([])
+const blockConfigItemsLoading = ref(false)
+
+// Two-way hex binding for ColorPicker (expects hex without #)
+const blockConfigBgHex = computed({
+  get: () => (blockConfigForm.value.bg_color || '').replace('#', ''),
+  set: (v: string) => { blockConfigForm.value.bg_color = v ? `#${v}` : '' },
+})
+
+function blockConfigSummary(col: SectionColumn): string {
+  const parts: string[] = []
+  if (col.config?.titulo) parts.push(`"${col.config.titulo}"`)
+  if (col.config?.limite) parts.push(`máx ${col.config.limite}`)
+  if (col.config?.items?.length) parts.push(`${col.config.items.length} seleccionados`)
+  if (col.config?.bg_color) parts.push(col.config.bg_color)
+  return parts.length ? parts.join(' · ') : 'Bloque predefinido — click para configurar'
+}
+
+function openBlockConfig(ubicacion: 'header' | 'footer', sIdx: number, cIdx: number, col: SectionColumn) {
+  blockConfigTarget.value = { ubicacion, sIdx, cIdx }
+  blockConfigCode.value = col.bloque_codigo!
+  blockConfigForm.value = {
+    titulo: col.config?.titulo ?? '',
+    bg_color: col.config?.bg_color ?? '',
+    limite: col.config?.limite ?? 0,
+    items: col.config?.items ? [...col.config.items] : [],
+  }
+  blockConfigVisible.value = true
+  loadBlockConfigItems(col.bloque_codigo!)
+}
+
+async function loadBlockConfigItems(bloqueCodigo: string) {
+  const blockDef = getPredefinedBlock(bloqueCodigo)
+  if (!blockDef?.itemsType) {
+    blockConfigItems.value = []
+    return
+  }
+  blockConfigItemsLoading.value = true
+  blockConfigItems.value = []
+  try {
+    switch (blockDef.itemsType) {
+      case 'categorias': {
+        const res = await catalogApi.getCategories()
+        blockConfigItems.value = (res.data ?? []).map((c: any) => ({ id: c.id, name: c.name }))
+        break
+      }
+      case 'marcas': {
+        const res = await catalogApi.getBrands()
+        blockConfigItems.value = (res.data ?? []).map((b: any) => ({ id: b.id, name: b.name }))
+        break
+      }
+      case 'productos': {
+        const res = await productsApi.getProducts({ limit: 200 })
+        blockConfigItems.value = (res.data ?? []).map((p: any) => ({ id: p.id, name: p.name }))
+        break
+      }
+      case 'listas': {
+        const res = await productListApi.getAll()
+        blockConfigItems.value = (res.data ?? []).map((l: any) => ({ id: l.id, name: l.name }))
+        break
+      }
+      case 'combos': {
+        const res = await comboApi.getAll()
+        blockConfigItems.value = (res.data ?? []).map((c: any) => ({ id: c.id ?? c.tiendacombo_id, name: c.name ?? c.tiendacombo_nombre }))
+        break
+      }
+      case 'gamas': {
+        const res = await gammaApi.getAll()
+        blockConfigItems.value = (res.data ?? []).map((g: any) => ({ id: g.id, name: g.name }))
+        break
+      }
+    }
+  } catch (e) {
+    console.error('Error loading block config items:', e)
+  } finally {
+    blockConfigItemsLoading.value = false
+  }
+}
+
+function saveBlockConfig() {
+  if (!blockConfigTarget.value) return
+  const { ubicacion, sIdx, cIdx } = blockConfigTarget.value
+  const config: BlockConfig = {}
+  if (blockConfigForm.value.titulo) config.titulo = blockConfigForm.value.titulo
+  if (blockConfigForm.value.bg_color) config.bg_color = blockConfigForm.value.bg_color
+  if (blockConfigForm.value.limite && blockConfigForm.value.limite > 0) config.limite = blockConfigForm.value.limite
+  if (blockConfigForm.value.items?.length) config.items = blockConfigForm.value.items
+  sectionsStore.updateBlockConfig(activePage.value, ubicacion, sIdx, cIdx, Object.keys(config).length ? config : undefined as any)
+  blockConfigVisible.value = false
 }
 
 // ── Save ──────────────────────────────────────────────────────────────────────
