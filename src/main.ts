@@ -58,5 +58,21 @@ window.addEventListener('unhandledrejection', (event) => {
   }
 })
 
+// Catch stale module script errors that bypass router.onError
+// (e.g., transitive imports from old chunks served as HTML after deploy)
+window.addEventListener('error', (event) => {
+  if (
+    event.message?.includes('MIME type') ||
+    event.message?.includes('Failed to fetch dynamically imported module') ||
+    event.message?.includes('Importing a module script failed')
+  ) {
+    const reloadKey = 'chunk-reload:global'
+    if (!sessionStorage.getItem(reloadKey)) {
+      sessionStorage.setItem(reloadKey, '1')
+      window.location.reload()
+    }
+  }
+})
+
 document.title = brand.title
 app.mount('#app')

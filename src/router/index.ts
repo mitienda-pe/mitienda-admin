@@ -1038,6 +1038,7 @@ router.onError((error, to) => {
   const isChunkError =
     error.message?.includes('Failed to fetch dynamically imported module') ||
     error.message?.includes('Importing a module script failed') ||
+    error.message?.includes('MIME type') ||
     error.name === 'ChunkLoadError'
 
   if (isChunkError) {
