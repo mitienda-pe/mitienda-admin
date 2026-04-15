@@ -28,8 +28,8 @@ export const PREDEFINED_BLOCKS: PredefinedBlock[] = [
   { codigo: 'carrusel', label: 'Carrusel', icon: 'pi pi-images', descripcion: 'Slider de banners principal' },
   { codigo: 'categorias', label: 'Categorías', icon: 'pi pi-th-large', descripcion: 'Cuadrícula de categorías', itemsType: 'categorias', itemsLabel: 'Categorías' },
   { codigo: 'marcas', label: 'Marcas', icon: 'pi pi-tag', descripcion: 'Galería de marcas con logo', itemsType: 'marcas', itemsLabel: 'Marcas' },
-  { codigo: 'productos_destacados', label: 'Productos Destacados', icon: 'pi pi-star', descripcion: 'Los productos más populares', itemsType: 'productos', itemsLabel: 'Productos' },
-  { codigo: 'listas', label: 'Listas de Productos', icon: 'pi pi-list', descripcion: 'Colecciones personalizadas de productos', itemsType: 'listas', itemsLabel: 'Listas' },
+  { codigo: 'productos_destacados', label: 'Productos Destacados', icon: 'pi pi-star', descripcion: 'Los productos más populares (automático)' },
+  { codigo: 'listas', label: 'Lista de Productos', icon: 'pi pi-list', descripcion: 'Selecciona una lista curada — puedes agregar varias', itemsType: 'listas', itemsLabel: 'Listas de Productos' },
   { codigo: 'gamas', label: 'Gamas', icon: 'pi pi-bars', descripcion: 'Líneas o gamas de productos', itemsType: 'gamas', itemsLabel: 'Gamas' },
   { codigo: 'combos', label: 'Combos', icon: 'pi pi-box', descripcion: 'Combos especiales de productos', itemsType: 'combos', itemsLabel: 'Combos' },
 ]
