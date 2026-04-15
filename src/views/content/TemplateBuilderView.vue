@@ -673,17 +673,26 @@ async function loadBlockConfigItems(bloqueCodigo: string) {
       }
       case 'listas': {
         const res = await productListApi.getAll()
-        blockConfigItems.value = (res.data ?? []).map((l: any) => ({ id: l.id, name: l.name }))
+        blockConfigItems.value = (res.data ?? []).map((l: any) => ({
+          id: l.productolista_id ?? l.id,
+          name: l.productolista_nombre ?? l.name,
+        }))
         break
       }
       case 'combos': {
         const res = await comboApi.getAll()
-        blockConfigItems.value = (res.data ?? []).map((c: any) => ({ id: c.id ?? c.tiendacombo_id, name: c.name ?? c.tiendacombo_nombre }))
+        blockConfigItems.value = (res.data ?? []).map((c: any) => ({
+          id: c.tiendacombo_id ?? c.id,
+          name: c.tiendacombo_nombre ?? c.name,
+        }))
         break
       }
       case 'gamas': {
         const res = await gammaApi.getAll()
-        blockConfigItems.value = (res.data ?? []).map((g: any) => ({ id: g.id, name: g.name }))
+        blockConfigItems.value = (res.data ?? []).map((g: any) => ({
+          id: g.tiendagamma_id ?? g.id,
+          name: g.tiendagamma_nombre ?? g.name,
+        }))
         break
       }
     }
