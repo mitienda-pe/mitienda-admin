@@ -257,8 +257,11 @@ function onPageChange(event: { page: number; rows: number }) {
 }
 
 function getStockDiff(data: ProductStock): string {
-  if (data.netsuite_stock === null) return 'N/A'
-  const diff = data.netsuite_stock - data.local_stock
+  if (data.netsuite_stock === null || data.netsuite_stock === undefined) return 'N/A'
+  const ns = Number(data.netsuite_stock)
+  const local = Number(data.local_stock)
+  if (isNaN(ns) || isNaN(local)) return 'N/A'
+  const diff = ns - local
   if (diff > 0) return `+${diff}`
   return diff.toString()
 }
