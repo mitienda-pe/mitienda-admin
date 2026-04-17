@@ -58,7 +58,7 @@
                 v-model="searchQuery"
                 placeholder="Buscar por SKU o nombre..."
                 class="w-full"
-                @keyup.enter="loadStock"
+                @keyup.enter="pagination.page = 1; loadStock()"
               />
             </span>
           </div>
@@ -66,7 +66,7 @@
             label="Buscar"
             icon="pi pi-search"
             :loading="isLoading"
-            @click="loadStock"
+            @click="pagination.page = 1; loadStock()"
           />
         </div>
       </template>
