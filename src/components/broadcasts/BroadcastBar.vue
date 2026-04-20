@@ -8,7 +8,7 @@
       <i :class="severityIcon(b.severity)" class="text-base shrink-0" />
       <div class="flex-1 min-w-0">
         <span class="font-semibold mr-2">{{ b.title }}</span>
-        <span class="opacity-95">{{ b.body }}</span>
+        <span class="opacity-95 broadcast-bar-body" v-html="renderBroadcastMarkdownInline(b.body)" />
       </div>
       <a
         v-if="b.cta_label && b.cta_url"
@@ -37,6 +37,7 @@
 import { computed } from 'vue'
 import { useBroadcastsStore } from '@/stores/broadcasts.store'
 import type { BroadcastSeverity } from '@/types/broadcast.types'
+import { renderBroadcastMarkdownInline } from '@/utils/broadcast-markdown'
 
 const store = useBroadcastsStore()
 
@@ -65,3 +66,15 @@ function severityIcon(s: BroadcastSeverity) {
   }
 }
 </script>
+
+<style scoped>
+.broadcast-bar-body :deep(a) {
+  text-decoration: underline;
+}
+.broadcast-bar-body :deep(code) {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 0.85em;
+}
+</style>

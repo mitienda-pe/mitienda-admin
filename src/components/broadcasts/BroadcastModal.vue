@@ -28,7 +28,7 @@
         class="w-full max-h-64 object-cover rounded-lg"
       />
 
-      <p class="text-sm text-gray-700 whitespace-pre-line">{{ current.body }}</p>
+      <div class="text-sm text-gray-700 broadcast-modal-body" v-html="renderBroadcastMarkdownBlock(current.body)" />
 
       <p v-if="!current.is_dismissible" class="text-xs text-orange-600 flex items-center gap-1">
         <i class="pi pi-lock" /> Este mensaje debe mantenerse visible.
@@ -62,6 +62,7 @@ import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import { useBroadcastsStore } from '@/stores/broadcasts.store'
 import type { BroadcastSeverity } from '@/types/broadcast.types'
+import { renderBroadcastMarkdownBlock } from '@/utils/broadcast-markdown'
 
 const store = useBroadcastsStore()
 
@@ -117,3 +118,27 @@ function severityLabel(s: BroadcastSeverity) {
   return ({ info: 'Anuncio', warning: 'Advertencia', danger: 'Importante' })[s]
 }
 </script>
+
+<style scoped>
+.broadcast-modal-body :deep(p) { margin: 0 0 0.75rem; }
+.broadcast-modal-body :deep(p:last-child) { margin-bottom: 0; }
+.broadcast-modal-body :deep(ul),
+.broadcast-modal-body :deep(ol) { margin: 0 0 0.75rem; padding-left: 1.25rem; }
+.broadcast-modal-body :deep(ul) { list-style: disc; }
+.broadcast-modal-body :deep(ol) { list-style: decimal; }
+.broadcast-modal-body :deep(li) { margin: 0.15rem 0; }
+.broadcast-modal-body :deep(strong) { font-weight: 600; color: #111827; }
+.broadcast-modal-body :deep(a) { color: #00b2a6; text-decoration: underline; }
+.broadcast-modal-body :deep(code) {
+  background: #f3f4f6;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+.broadcast-modal-body :deep(blockquote) {
+  border-left: 3px solid #e5e7eb;
+  padding-left: 0.75rem;
+  color: #6b7280;
+  margin: 0 0 0.75rem;
+}
+</style>
