@@ -6,7 +6,8 @@
     :closable="current.is_dismissible"
     :closeOnEscape="current.is_dismissible"
     :dismissableMask="false"
-    :style="{ width: '520px' }"
+    :style="{ width: '560px', maxWidth: '95vw' }"
+    :contentStyle="{ maxHeight: 'calc(90vh - 140px)', overflowY: 'auto' }"
     :header="current.title"
     @update:visible="onClose"
   >
