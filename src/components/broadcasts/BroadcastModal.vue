@@ -35,17 +35,9 @@
         <i class="pi pi-lock" /> Este mensaje debe mantenerse visible.
       </p>
     </div>
-    <template #footer>
-      <Button
-        v-if="current.is_dismissible"
-        label="Entendido"
-        severity="secondary"
-        text
-        @click="handleDismiss"
-      />
+    <template v-if="hasCta" #footer>
       <a
-        v-if="current.cta_label && current.cta_url"
-        :href="current.cta_url"
+        :href="current.cta_url!"
         target="_blank"
         rel="noopener"
         class="p-button p-component"
@@ -60,7 +52,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import Dialog from 'primevue/dialog'
-import Button from 'primevue/button'
 import { useBroadcastsStore } from '@/stores/broadcasts.store'
 import type { BroadcastSeverity } from '@/types/broadcast.types'
 import { renderBroadcastMarkdownBlock } from '@/utils/broadcast-markdown'
@@ -83,15 +74,15 @@ const current = computed(() => {
   return blockingFirst[0]
 })
 
+const hasCta = computed(
+  () => !!(current.value?.cta_label && current.value?.cta_url)
+)
+
 function onClose(visible: boolean) {
   if (visible) return
   if (current.value?.is_dismissible) {
     store.dismiss(current.value.id)
   }
-}
-
-function handleDismiss() {
-  if (current.value?.is_dismissible) store.dismiss(current.value.id)
 }
 
 function handleCtaClick() {
