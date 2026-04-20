@@ -8,6 +8,9 @@
       @exit="handleExitImpersonation"
     />
 
+    <!-- Broadcasts del superadmin (barras) -->
+    <BroadcastBar />
+
     <!-- Header -->
     <header
       data-tour="header"
@@ -977,6 +980,9 @@
     <!-- Plan Upgrade Modal -->
     <UpgradeModal />
 
+    <!-- Broadcasts del superadmin (modales) -->
+    <BroadcastModal />
+
     <!-- Contextual Help -->
     <HelpFab />
     <HelpDrawer />
@@ -993,6 +999,9 @@ import Button from 'primevue/button'
 import Sidebar from 'primevue/sidebar'
 import Menu from 'primevue/menu'
 import ImpersonationBanner from '@/components/admin/ImpersonationBanner.vue'
+import BroadcastBar from '@/components/broadcasts/BroadcastBar.vue'
+import BroadcastModal from '@/components/broadcasts/BroadcastModal.vue'
+import { useBroadcasts } from '@/composables/useBroadcasts'
 import { useOneSignal } from '@/composables/useOneSignal'
 import { brand } from '@/config/branding'
 import { usePlanStore } from '@/stores/plan.store'
@@ -1011,6 +1020,7 @@ const badgeCountsStore = useBadgeCountsStore()
 const planStore = usePlanStore()
 const onboardingStore = useOnboardingStore()
 const { initOneSignal } = useOneSignal()
+useBroadcasts()
 
 onMounted(() => {
   badgeCountsStore.startPolling()
