@@ -328,10 +328,24 @@ export const ordersApi = {
 
   /**
    * Actualizar estado de un pedido
+   *
+   * - 'paid' y 'cancelled' van al endpoint dedicado /payment-status, que
+   *   además de actualizar el estado emite el evento OrderPaid (factura en
+   *   Nubefact, email al cliente, sync NetSuite, loyalty).
+   * - 'chargeback' y 'refunded' usan el endpoint genérico con la etiqueta
+   *   semántica que espera el backend.
    */
   async updateOrderStatus(id: number, status: OrderStatus): Promise<ApiResponse<Order>> {
-    const paymentCode = statusToPaymentCode(status)
-    const response = await apiClient.put(`/orders/${id}`, { status: paymentCode })
+    if (status === 'paid' || status === 'cancelled') {
+      const paymentStatus = status === 'paid' ? 'approved' : 'rejected'
+      const response = await apiClient.put(`/orders/${id}/payment-status`, {
+        payment_status: paymentStatus,
+        source: 'web'
+      })
+      return response.data
+    }
+
+    const response = await apiClient.put(`/orders/${id}`, { status })
     return response.data
   },
 
