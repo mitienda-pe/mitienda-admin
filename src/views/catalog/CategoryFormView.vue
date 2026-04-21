@@ -136,7 +136,7 @@
     </div>
 
     <!-- Imágenes (solo en modo edición) -->
-    <div v-if="isEditMode && !isLoading && currentCategory" class="bg-white rounded-lg shadow p-6 mt-6">
+    <div v-if="isEditMode && !isLoading && currentCategory" ref="imagesSection" class="bg-white rounded-lg shadow p-6 mt-6">
       <h3 class="text-lg font-semibold text-secondary mb-4">
         <i class="pi pi-images mr-2"></i>Imágenes
       </h3>
@@ -203,7 +203,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCatalogStore } from '@/stores/catalog.store'
 import { useToast } from 'primevue/usetoast'
@@ -229,6 +229,7 @@ const errors = ref<Record<string, string>>({})
 const currentCategory = ref<Category | null>(null)
 const showImageUploader = ref(false)
 const activeImageType = ref<CatalogImageType>('square')
+const imagesSection = ref<HTMLElement | null>(null)
 
 const imageConfigs: {
   type: CatalogImageType
@@ -304,14 +305,20 @@ const saveCategory = async () => {
         life: 3000
       })
     } else {
-      await catalogStore.createCategory(formData.value)
+      const created = await catalogStore.createCategory(formData.value)
 
       toast.add({
         severity: 'success',
-        summary: 'Creado',
-        detail: 'La categoría ha sido creada correctamente',
-        life: 3000
+        summary: 'Categoría creada',
+        detail: 'Ahora puedes agregar imágenes (o dejarlas para después).',
+        life: 4000
       })
+
+      currentCategory.value = created
+      await router.replace({ name: 'category-edit', params: { id: created.id } })
+      await nextTick()
+      imagesSection.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      return
     }
 
     router.push({ name: 'categories-list' })

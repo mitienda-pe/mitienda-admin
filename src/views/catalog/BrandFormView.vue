@@ -105,7 +105,7 @@
     </div>
 
     <!-- Imágenes (solo en modo edición) -->
-    <div v-if="isEditMode && !isLoading && currentBrand" class="bg-white rounded-lg shadow p-6 mt-6">
+    <div v-if="isEditMode && !isLoading && currentBrand" ref="imagesSection" class="bg-white rounded-lg shadow p-6 mt-6">
       <h3 class="text-lg font-semibold text-secondary mb-4">
         <i class="pi pi-images mr-2"></i>Imágenes
       </h3>
@@ -172,7 +172,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCatalogStore } from '@/stores/catalog.store'
 import { useToast } from 'primevue/usetoast'
@@ -196,6 +196,7 @@ const errors = ref<Record<string, string>>({})
 const currentBrand = ref<Brand | null>(null)
 const showImageUploader = ref(false)
 const activeImageType = ref<CatalogImageType>('square')
+const imagesSection = ref<HTMLElement | null>(null)
 
 const imageConfigs: {
   type: CatalogImageType
@@ -253,14 +254,20 @@ const saveBrand = async () => {
         life: 3000
       })
     } else {
-      await catalogStore.createBrand(formData.value)
+      const created = await catalogStore.createBrand(formData.value)
 
       toast.add({
         severity: 'success',
-        summary: 'Creado',
-        detail: 'La marca ha sido creada correctamente',
-        life: 3000
+        summary: 'Marca creada',
+        detail: 'Ahora puedes agregar imágenes (o dejarlas para después).',
+        life: 4000
       })
+
+      currentBrand.value = created
+      await router.replace({ name: 'brand-edit', params: { id: created.id } })
+      await nextTick()
+      imagesSection.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      return
     }
 
     router.push({ name: 'brands-list' })

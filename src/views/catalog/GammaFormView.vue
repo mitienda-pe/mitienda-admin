@@ -119,7 +119,7 @@
     </div>
 
     <!-- Imágenes (solo en modo edición) -->
-    <div v-if="isEditMode && !isLoading && currentGamma" class="bg-white rounded-lg shadow p-6 mt-6">
+    <div v-if="isEditMode && !isLoading && currentGamma" ref="imagesSection" class="bg-white rounded-lg shadow p-6 mt-6">
       <h3 class="text-lg font-semibold text-secondary mb-4">
         <i class="pi pi-images mr-2"></i>Imágenes
       </h3>
@@ -186,7 +186,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGammaStore } from '@/stores/gamma.store'
 import { useCatalogStore } from '@/stores/catalog.store'
@@ -214,6 +214,7 @@ const errors = ref<Record<string, string>>({})
 const currentGamma = ref<Gamma | null>(null)
 const showImageUploader = ref(false)
 const activeImageType = ref<CatalogImageType>('square')
+const imagesSection = ref<HTMLElement | null>(null)
 
 const imageConfigs: {
   type: CatalogImageType
@@ -289,7 +290,7 @@ const saveGamma = async () => {
         life: 3000
       })
     } else {
-      await gammaStore.create({
+      const created = await gammaStore.create({
         tiendamarca_id: formData.value.tiendamarca_id!,
         tiendagamma_nombre: formData.value.tiendagamma_nombre,
         tiendagamma_descripcion: formData.value.tiendagamma_descripcion,
@@ -299,10 +300,18 @@ const saveGamma = async () => {
 
       toast.add({
         severity: 'success',
-        summary: 'Creado',
-        detail: 'La gamma ha sido creada correctamente',
-        life: 3000
+        summary: 'Gamma creada',
+        detail: 'Ahora puedes agregar imágenes (o dejarlas para después).',
+        life: 4000
       })
+
+      if (created) {
+        currentGamma.value = created
+        await router.replace({ name: 'gamma-edit', params: { id: created.tiendagamma_id } })
+        await nextTick()
+        imagesSection.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        return
+      }
     }
 
     router.push({ name: 'gammas-list' })
