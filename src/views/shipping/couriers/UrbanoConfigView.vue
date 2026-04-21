@@ -147,6 +147,7 @@
                 :label="isConfigured ? 'Actualizar' : 'Guardar'"
                 icon="pi pi-save"
                 :loading="store.isSaving"
+                :disabled="!isDirty"
                 @click="handleSave"
               />
             </div>
@@ -235,6 +236,7 @@
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCourierProvidersStore } from '@/stores/courier-providers.store'
+import { useDirtyForm } from '@/composables/useDirtyForm'
 import { useToast } from 'primevue/usetoast'
 import urbanoLogo from '@/assets/images/logo-urbano.png'
 import Button from 'primevue/button'
@@ -267,6 +269,8 @@ const form = ref({
   environment: 'produccion',
 })
 
+const { isDirty, reset: resetDirty } = useDirtyForm(() => form.value)
+
 // Simulator
 const simDestUbigeo = ref('')
 const simPeso = ref('')
@@ -295,6 +299,7 @@ watch(() => store.currentConfig, (config) => {
     form.value.origin_ciudad = (c.origin_ciudad as string) || ''
     form.value.environment = (c.environment as string) || 'produccion'
   }
+  resetDirty()
 }, { immediate: true })
 
 async function handleSave() {
@@ -312,6 +317,7 @@ async function handleSave() {
       await store.saveConfig('urbano', { credentials })
     }
     toast.add({ severity: 'success', summary: 'Guardado', detail: 'Configuración guardada correctamente', life: 3000 })
+    resetDirty()
   } catch (err: any) {
     toast.add({
       severity: 'error',

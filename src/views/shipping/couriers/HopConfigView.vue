@@ -167,6 +167,7 @@
                 :label="isConfigured ? 'Actualizar' : 'Guardar'"
                 icon="pi pi-save"
                 :loading="store.isSaving"
+                :disabled="!isDirty"
                 @click="handleSave"
               />
             </div>
@@ -262,6 +263,7 @@
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCourierProvidersStore } from '@/stores/courier-providers.store'
+import { useDirtyForm } from '@/composables/useDirtyForm'
 import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -299,6 +301,8 @@ const form = ref({
   environment: 'prueba',
 })
 
+const { isDirty, reset: resetDirty } = useDirtyForm(() => form.value)
+
 // Simulator
 const simDestZipcode = ref('')
 const simPackageValue = ref('')
@@ -327,6 +331,7 @@ watch(() => store.currentConfig, (config) => {
     form.value.country = (c.country as string) || 'PE'
     form.value.environment = (c.environment as string) || 'prueba'
   }
+  resetDirty()
 }, { immediate: true })
 
 async function handleSave() {
@@ -352,6 +357,7 @@ async function handleSave() {
       await store.saveConfig('hop', { credentials })
     }
     toast.add({ severity: 'success', summary: 'Guardado', detail: 'Configuración guardada correctamente', life: 3000 })
+    resetDirty()
   } catch (err: any) {
     toast.add({
       severity: 'error',

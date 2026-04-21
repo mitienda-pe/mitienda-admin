@@ -110,7 +110,7 @@
             <Message v-if="uploadError" severity="error" :closable="true" @close="uploadError = ''">{{ uploadError }}</Message>
 
             <div class="flex gap-3 pt-4">
-              <Button type="submit" :label="isConfigured ? 'Actualizar' : 'Guardar'" icon="pi pi-save" :loading="store.isSaving || isUploading" />
+              <Button type="submit" :label="isConfigured ? 'Actualizar' : 'Guardar'" icon="pi pi-save" :loading="store.isSaving || isUploading" :disabled="!hasChanges" />
               <Button v-if="isConfigured" type="button" label="Eliminar" icon="pi pi-trash" severity="danger" outlined @click="handleDelete" />
             </div>
           </form>
@@ -163,6 +163,7 @@ import { reactive, computed, ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { usePaymentGatewaysStore } from '@/stores/payment-gateways.store'
+import { useDirtyForm } from '@/composables/useDirtyForm'
 import { paymentGatewaysApi } from '@/api/payment-gateways.api'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
@@ -187,6 +188,8 @@ const formData = reactive({
   instructions: ''
 })
 
+const { isDirty, reset: resetDirty } = useDirtyForm(() => formData)
+
 // File upload state
 const yapeFileInput = ref<HTMLInputElement | null>(null)
 const plinFileInput = ref<HTMLInputElement | null>(null)
@@ -198,6 +201,7 @@ const isUploading = ref(false)
 const uploadError = ref('')
 
 const isConfigured = computed(() => store.currentConfig?.gateway?.configured || false)
+const hasChanges = computed(() => isDirty.value || !!yapeQrFile.value || !!plinQrFile.value)
 
 watch(() => store.currentConfig, (config) => {
   if (config?.credentials) {
@@ -210,6 +214,7 @@ watch(() => store.currentConfig, (config) => {
     formData.plin_qr_url = c.plin_qr_url ?? ''
     formData.instructions = c.instructions ?? ''
   }
+  resetDirty()
 }, { immediate: true })
 
 onMounted(() => { store.clearMessages() })
@@ -325,6 +330,7 @@ async function handleSubmit() {
       : await store.saveCredentials(GATEWAY_CODE, { credentials: formData, environment: 'produccion', enabled: true })
 
     toast.add({ severity: result.success ? 'success' : 'error', summary: result.success ? 'Configuracion guardada' : 'Error', life: 3000 })
+    if (result.success) resetDirty()
   } catch (err) {
     uploadError.value = 'Error al subir la imagen. Intenta de nuevo.'
     console.error('QR upload error:', err)

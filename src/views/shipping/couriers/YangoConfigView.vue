@@ -139,6 +139,7 @@
                 :label="isConfigured ? 'Actualizar' : 'Guardar'"
                 icon="pi pi-save"
                 :loading="store.isSaving"
+                :disabled="!isDirty"
                 @click="handleSave"
               />
             </div>
@@ -228,6 +229,7 @@
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCourierProvidersStore } from '@/stores/courier-providers.store'
+import { useDirtyForm } from '@/composables/useDirtyForm'
 import { useToast } from 'primevue/usetoast'
 import yangoLogo from '@/assets/images/logo-yango.svg'
 import Button from 'primevue/button'
@@ -259,6 +261,8 @@ const form = ref({
   callback_url: '',
 })
 
+const { isDirty, reset: resetDirty } = useDirtyForm(() => form.value)
+
 // Simulator
 const simDestAddress = ref('')
 const simDestLat = ref('')
@@ -284,6 +288,7 @@ watch(() => store.currentConfig, (config) => {
     form.value.origin_comment = (c.origin_comment as string) || ''
     form.value.callback_url = (c.callback_url as string) || ''
   }
+  resetDirty()
 }, { immediate: true })
 
 async function handleSave() {
@@ -301,6 +306,7 @@ async function handleSave() {
       await store.saveConfig('yango', { credentials })
     }
     toast.add({ severity: 'success', summary: 'Guardado', detail: 'Configuración guardada correctamente', life: 3000 })
+    resetDirty()
   } catch (err: any) {
     toast.add({
       severity: 'error',

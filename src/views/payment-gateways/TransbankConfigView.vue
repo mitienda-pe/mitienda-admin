@@ -123,6 +123,7 @@
                 icon="pi pi-save"
                 :loading="store.isSaving"
                 size="large"
+                :disabled="!isDirty"
               />
               <Button
                 v-if="isConfigured"
@@ -217,6 +218,7 @@ import { reactive, computed, onMounted, watch } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { usePaymentGatewaysStore } from '@/stores/payment-gateways.store'
+import { useDirtyForm } from '@/composables/useDirtyForm'
 import type { GatewayEnvironment } from '@/types/payment-gateway.types'
 
 import Button from 'primevue/button'
@@ -245,6 +247,8 @@ const formData = reactive<TransbankFormData>({
   environment: 'integracion',
 })
 
+const { isDirty, reset: resetDirty } = useDirtyForm(() => formData)
+
 const errors = reactive({
   commerce_code: '',
   api_key_secret: '',
@@ -267,6 +271,7 @@ watch(() => store.currentConfig, (config) => {
     formData.api_key_secret = c.api_key_secret || ''
     formData.environment = c.environment || 'integracion'
   }
+  resetDirty()
 }, { immediate: true })
 
 onMounted(async () => {
@@ -305,6 +310,7 @@ async function handleSubmit() {
     detail: result.success ? (isConfigured.value ? 'Credenciales actualizadas' : 'Credenciales guardadas') : (result.error || 'Error guardando credenciales'),
     life: 3000,
   })
+  if (result.success) resetDirty()
 }
 
 async function handleTest() {

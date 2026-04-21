@@ -124,6 +124,7 @@
                 :label="isConfigured ? 'Actualizar' : 'Guardar'"
                 icon="pi pi-save"
                 :loading="store.isSaving"
+                :disabled="!isDirty"
                 @click="handleSave"
               />
             </div>
@@ -166,6 +167,7 @@
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCourierProvidersStore } from '@/stores/courier-providers.store'
+import { useDirtyForm } from '@/composables/useDirtyForm'
 import { useToast } from 'primevue/usetoast'
 import nirexLogo from '@/assets/images/logo-nirex.png'
 import Button from 'primevue/button'
@@ -194,6 +196,8 @@ const form = ref({
   origin_reference: '',
 })
 
+const { isDirty, reset: resetDirty } = useDirtyForm(() => form.value)
+
 const isConfigured = computed(() => store.currentConfig?.courier?.configured ?? false)
 
 // Populate form when config loads
@@ -209,6 +213,7 @@ watch(() => store.currentConfig, (config) => {
     form.value.origin_district = (c.origin_district as string) || ''
     form.value.origin_reference = (c.origin_reference as string) || ''
   }
+  resetDirty()
 }, { immediate: true })
 
 async function handleSave() {
@@ -226,6 +231,7 @@ async function handleSave() {
       await store.saveConfig('nirex', { credentials })
     }
     toast.add({ severity: 'success', summary: 'Guardado', detail: 'Configuración guardada correctamente', life: 3000 })
+    resetDirty()
   } catch (err: any) {
     toast.add({
       severity: 'error',

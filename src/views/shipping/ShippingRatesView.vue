@@ -255,6 +255,7 @@
           label="Guardar"
           icon="pi pi-check"
           :loading="store.isSaving"
+          :disabled="!canSaveEdit"
           @click="saveRate"
         />
       </template>
@@ -446,6 +447,7 @@
           label="Guardar"
           icon="pi pi-check"
           :loading="serviceRatesSaving"
+          :disabled="!serviceRatesIsDirty"
           @click="saveServiceRates"
         />
       </template>
@@ -462,6 +464,7 @@ import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { useShippingStore } from '@/stores/shipping.store'
 import { useOnboarding } from '@/composables/useOnboarding'
+import { useDirtyForm } from '@/composables/useDirtyForm'
 import {
   formatDeliveryTime,
   formatPrice as formatPriceHelper
@@ -515,6 +518,7 @@ const editForm = ref({
   deliveryTimeUnit: 'days' as DeliveryTimeUnit,
   enabled: true
 })
+const { isDirty: editIsDirty, reset: resetEditDirty } = useDirtyForm(() => editForm.value)
 
 // Add dialog
 const addDialogVisible = ref(false)
@@ -551,6 +555,10 @@ const filteredRates = computed(() => {
 
 const canSaveAdd = computed(() => {
   return addForm.value.level1 && addForm.value.price > 0 && addForm.value.deliveryTime > 0
+})
+
+const canSaveEdit = computed(() => {
+  return editIsDirty.value && editForm.value.price > 0 && editForm.value.deliveryTime > 0
 })
 
 // Methods
@@ -602,6 +610,7 @@ function openEditDialog(node: RateTreeNode) {
     deliveryTimeUnit: node.data.deliveryTimeUnit || 'days',
     enabled: node.data.enabled ?? true
   }
+  resetEditDirty()
   editDialogVisible.value = true
 }
 
@@ -613,6 +622,7 @@ function openAddDialogForLocation(node: RateTreeNode) {
     deliveryTimeUnit: 'days',
     enabled: true
   }
+  resetEditDirty()
   editDialogVisible.value = true
 }
 
@@ -788,6 +798,12 @@ const serviceRatesSaving = ref(false)
 const availableServiceTypes = ref<ShippingServiceType[]>([])
 const serviceRatesData = ref<Map<string, { id?: number; precio: number | null; tiempo_envio: number; tipo_tiempo: number; service_type_id: number }>>(new Map())
 
+function serializeServiceRates(): string {
+  return JSON.stringify(Array.from(serviceRatesData.value.entries()))
+}
+const serviceRatesBaseline = ref('')
+const serviceRatesIsDirty = computed(() => serviceRatesBaseline.value !== serializeServiceRates())
+
 async function openServiceRatesDialog(node: RateTreeNode) {
   serviceRatesNode.value = node
   serviceRatesLoading.value = true
@@ -833,6 +849,7 @@ async function openServiceRatesDialog(node: RateTreeNode) {
     toast.add({ severity: 'error', summary: 'Error cargando tipos de servicio', life: 3000 })
   } finally {
     serviceRatesLoading.value = false
+    serviceRatesBaseline.value = serializeServiceRates()
   }
 }
 

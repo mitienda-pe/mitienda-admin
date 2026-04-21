@@ -223,6 +223,7 @@
                 icon="pi pi-save"
                 :loading="store.isSaving"
                 size="large"
+                :disabled="!isDirty"
               />
               <Button
                 v-if="isConfigured"
@@ -316,6 +317,7 @@ import { reactive, computed, onMounted, watch } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { usePaymentGatewaysStore } from '@/stores/payment-gateways.store'
+import { useDirtyForm } from '@/composables/useDirtyForm'
 import type { IzipayCredentials, GatewayEnvironment } from '@/types/payment-gateway.types'
 
 import Button from 'primevue/button'
@@ -349,6 +351,8 @@ const formData = reactive<IzipayCredentials>({
   }
 })
 
+const { isDirty, reset: resetDirty } = useDirtyForm(() => formData)
+
 const errors = reactive({
   api_key: '',
   merchant_code: '',
@@ -376,6 +380,7 @@ watch(() => store.currentConfig, (config) => {
       Object.assign(formData.payment_methods, c.payment_methods)
     }
   }
+  resetDirty()
 }, { immediate: true })
 
 onMounted(() => {
@@ -429,6 +434,7 @@ async function handleSubmit() {
       detail: isConfigured.value ? 'Credenciales actualizadas' : 'Credenciales guardadas',
       life: 3000
     })
+    resetDirty()
   } else {
     toast.add({
       severity: 'error',

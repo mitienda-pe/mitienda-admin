@@ -113,7 +113,7 @@
 
             <div class="flex gap-3 pt-4">
               <Button type="submit" :label="isConfigured ? 'Actualizar credenciales' : 'Guardar credenciales'"
-                icon="pi pi-save" :loading="store.isSaving" size="large" />
+                icon="pi pi-save" :loading="store.isSaving" size="large" :disabled="!isDirty" />
               <Button v-if="isConfigured" type="button" label="Probar conexión" icon="pi pi-bolt"
                 severity="info" outlined :loading="store.isTesting" @click="handleTest" size="large" />
               <Button v-if="isConfigured" type="button" label="Eliminar" icon="pi pi-trash"
@@ -176,6 +176,7 @@ import { reactive, computed, onMounted, watch } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { usePaymentGatewaysStore } from '@/stores/payment-gateways.store'
+import { useDirtyForm } from '@/composables/useDirtyForm'
 import type { GatewayEnvironment } from '@/types/payment-gateway.types'
 
 import Button from 'primevue/button'
@@ -203,6 +204,8 @@ const formData = reactive<PayUFormData>({
   api_key: '', api_login: '', merchant_id: '', account_id: '', environment: 'prueba',
 })
 
+const { isDirty, reset: resetDirty } = useDirtyForm(() => formData)
+
 const errors = reactive({ api_key: '', api_login: '', merchant_id: '', account_id: '' })
 const isConfigured = computed(() => store.currentConfig?.gateway?.configured || false)
 const webhookUrl = computed(() => (store.currentConfig as any)?.webhook_url || null)
@@ -223,6 +226,7 @@ watch(() => store.currentConfig, (config) => {
     formData.account_id = c.account_id || ''
     formData.environment = c.environment || 'prueba'
   }
+  resetDirty()
 }, { immediate: true })
 
 onMounted(async () => {
@@ -256,6 +260,7 @@ async function handleSubmit() {
     detail: result.success ? (isConfigured.value ? 'Credenciales actualizadas' : 'Credenciales guardadas') : (result.error || 'Error'),
     life: 3000,
   })
+  if (result.success) resetDirty()
 }
 
 async function handleTest() {

@@ -77,7 +77,7 @@
             <Message v-if="store.successMessage" severity="success" :closable="false">{{ store.successMessage }}</Message>
 
             <div class="flex gap-3 pt-4">
-              <Button type="submit" :label="isConfigured ? 'Actualizar' : 'Guardar'" icon="pi pi-save" :loading="store.isSaving" />
+              <Button type="submit" :label="isConfigured ? 'Actualizar' : 'Guardar'" icon="pi pi-save" :loading="store.isSaving" :disabled="!isDirty" />
               <Button v-if="isConfigured" type="button" label="Probar" icon="pi pi-bolt" severity="info" outlined :loading="store.isTesting" @click="handleTest" />
               <Button v-if="isConfigured" type="button" label="Eliminar" icon="pi pi-trash" severity="danger" outlined @click="handleDelete" />
             </div>
@@ -122,6 +122,7 @@ import { reactive, computed, onMounted, watch } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { usePaymentGatewaysStore } from '@/stores/payment-gateways.store'
+import { useDirtyForm } from '@/composables/useDirtyForm'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Password from 'primevue/password'
@@ -140,6 +141,8 @@ const formData = reactive({
   environment: 'integracion' as 'produccion' | 'integracion'
 })
 
+const { isDirty, reset: resetDirty } = useDirtyForm(() => formData)
+
 const isConfigured = computed(() => store.currentConfig?.gateway?.configured || false)
 
 watch(() => store.currentConfig, (config) => {
@@ -149,6 +152,7 @@ watch(() => store.currentConfig, (config) => {
     formData.cybersource_code = c.cybersource_code ?? ''
     formData.environment = c.environment ?? 'integracion'
   }
+  resetDirty()
 }, { immediate: true })
 
 onMounted(() => { store.clearMessages() })
@@ -162,6 +166,7 @@ async function handleSubmit() {
     ? await store.updateCredentials(GATEWAY_CODE, { credentials: formData, environment: formData.environment, enabled: true })
     : await store.saveCredentials(GATEWAY_CODE, { credentials: formData, environment: formData.environment, enabled: true })
   toast.add({ severity: result.success ? 'success' : 'error', summary: result.success ? 'Éxito' : 'Error', detail: result.success ? 'Credenciales guardadas' : result.error, life: 3000 })
+  if (result.success) resetDirty()
 }
 
 async function handleTest() {

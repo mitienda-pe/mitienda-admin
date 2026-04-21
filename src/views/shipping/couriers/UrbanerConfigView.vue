@@ -164,6 +164,7 @@
                 :label="isConfigured ? 'Actualizar' : 'Guardar'"
                 icon="pi pi-save"
                 :loading="store.isSaving"
+                :disabled="!isDirty"
                 @click="handleSave"
               />
             </div>
@@ -239,6 +240,7 @@
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCourierProvidersStore } from '@/stores/courier-providers.store'
+import { useDirtyForm } from '@/composables/useDirtyForm'
 import { useToast } from 'primevue/usetoast'
 import urbanerLogo from '@/assets/images/urbaner-logo.png'
 import Button from 'primevue/button'
@@ -286,6 +288,11 @@ const form = ref({
 
 const selectedServiceIds = ref<number[]>([1, 2, 3])
 
+const { isDirty, reset: resetDirty } = useDirtyForm(() => ({
+  form: form.value,
+  selectedServiceIds: selectedServiceIds.value
+}))
+
 // Simulator
 const simDestLat = ref('')
 const simDestLng = ref('')
@@ -322,6 +329,7 @@ watch(() => store.currentConfig, (config) => {
       selectedServiceIds.value = [1, 2, 3]
     }
   }
+  resetDirty()
 }, { immediate: true })
 
 function buildServicesJson(): string {
@@ -351,6 +359,7 @@ async function handleSave() {
       await store.saveConfig('urbaner', { credentials })
     }
     toast.add({ severity: 'success', summary: 'Guardado', detail: 'Configuración guardada correctamente', life: 3000 })
+    resetDirty()
   } catch (err: any) {
     toast.add({
       severity: 'error',
