@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { useDomainStore } from '@/stores/domain.store'
-import { AppButton, AppBadge } from '@/components/ui'
+import { AppButton, AppBadge, UnsavedChangesBar } from '@/components/ui'
 import ProgressSpinner from 'primevue/progressspinner'
 import { useToast } from 'primevue/usetoast'
 
@@ -194,21 +194,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Save button -->
-        <div class="flex items-center gap-3 mt-5">
-          <AppButton
-            variant="primary"
-            :loading="store.isSaving"
-            :disabled="!store.hasChanges"
-            @click="save"
-          >
-            <i class="pi pi-check mr-2" />
-            Guardar dominio
-          </AppButton>
-          <span v-if="store.hasChanges" class="text-xs text-amber-600">
-            Tienes cambios sin guardar
-          </span>
-        </div>
       </div>
 
       <!-- Card 2: Configuracion DNS (only show when domain is saved) -->
@@ -528,5 +513,12 @@ onMounted(() => {
         </p>
       </div>
     </div>
+
+    <UnsavedChangesBar
+      :dirty="store.hasChanges"
+      :loading="store.isSaving"
+      save-label="Guardar dominio"
+      @save="save"
+    />
   </div>
 </template>

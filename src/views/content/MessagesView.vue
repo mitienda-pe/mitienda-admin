@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useStoreMessagesStore } from '@/stores/store-messages.store'
-import { AppButton, QuillEditor } from '@/components/ui'
+import { QuillEditor, UnsavedChangesBar } from '@/components/ui'
 import ProgressSpinner from 'primevue/progressspinner'
 import { useToast } from 'primevue/usetoast'
 
@@ -90,21 +90,13 @@ onMounted(() => {
         />
       </div>
 
-      <!-- Save button -->
-      <div class="flex items-center gap-3 pb-8">
-        <AppButton
-          variant="primary"
-          :loading="store.isSaving"
-          :disabled="!store.hasChanges"
-          @click="save"
-        >
-          <i class="pi pi-check mr-2" />
-          Guardar mensajes
-        </AppButton>
-        <span v-if="store.hasChanges" class="text-xs text-amber-600">
-          Tienes cambios sin guardar
-        </span>
-      </div>
     </div>
+
+    <UnsavedChangesBar
+      :dirty="store.hasChanges"
+      :loading="store.isSaving"
+      save-label="Guardar mensajes"
+      @save="save"
+    />
   </div>
 </template>

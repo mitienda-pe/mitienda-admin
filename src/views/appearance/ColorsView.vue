@@ -9,7 +9,7 @@ import { useAppearanceConfigStore } from '@/stores/appearance-config.store'
 import ColorPickerField from '@/components/appearance/ColorPickerField.vue'
 import ColorPreview from '@/components/appearance/ColorPreview.vue'
 import PresetCard from '@/components/appearance/PresetCard.vue'
-import { AppButton } from '@/components/ui'
+import { AppButton, UnsavedChangesBar } from '@/components/ui'
 
 const toast = useToast()
 const store = useAppearanceStore()
@@ -111,25 +111,6 @@ onMounted(() => {
 
     <!-- Content -->
     <template v-else>
-      <!-- Unsaved changes banner -->
-      <div
-        v-if="store.hasUnsavedChanges"
-        class="mb-4 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex items-center justify-between"
-      >
-        <div class="flex items-center gap-2">
-          <i class="pi pi-exclamation-circle text-amber-600" />
-          <span class="text-sm text-amber-800">Tienes cambios sin publicar</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <AppButton variant="text" size="small" @click="onDiscard">
-            Descartar
-          </AppButton>
-          <AppButton variant="primary" size="small" :loading="store.isSaving" @click="onSave">
-            Publicar Cambios
-          </AppButton>
-        </div>
-      </div>
-
       <!-- Quick Presets -->
       <div class="mb-6">
         <div class="flex items-center justify-between mb-3">
@@ -193,25 +174,6 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- Save buttons -->
-          <div class="flex items-center gap-3 pt-2">
-            <AppButton
-              variant="primary"
-              :loading="store.isSaving"
-              :disabled="!store.hasUnsavedChanges"
-              @click="onSave"
-            >
-              <i class="pi pi-check mr-2" />
-              Publicar Cambios
-            </AppButton>
-            <AppButton
-              variant="outlined"
-              :disabled="!store.hasUnsavedChanges"
-              @click="onDiscard"
-            >
-              Descartar
-            </AppButton>
-          </div>
         </div>
 
         <!-- Right: Live preview -->
@@ -222,5 +184,14 @@ onMounted(() => {
         </div>
       </div>
     </template>
+
+    <UnsavedChangesBar
+      :dirty="store.hasUnsavedChanges"
+      :loading="store.isSaving"
+      save-label="Publicar Cambios"
+      show-discard
+      @save="onSave"
+      @discard="onDiscard"
+    />
   </div>
 </template>

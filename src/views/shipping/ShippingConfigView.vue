@@ -6,7 +6,7 @@ import InputSwitch from 'primevue/inputswitch'
 import InputNumber from 'primevue/inputnumber'
 import RadioButton from 'primevue/radiobutton'
 import Dropdown from 'primevue/dropdown'
-import { AppButton, AppErrorState } from '@/components/ui'
+import { AppButton, AppErrorState, UnsavedChangesBar } from '@/components/ui'
 import ShippingScheduleEditor from '@/components/shipping/ShippingScheduleEditor.vue'
 import BlockedDatesEditor from '@/components/shipping/BlockedDatesEditor.vue'
 import { useToast } from 'primevue/usetoast'
@@ -470,18 +470,13 @@ onMounted(async () => {
         </div>
       </div>
 
-      <!-- Save button -->
-      <div class="flex justify-end pt-2">
-        <AppButton
-          variant="primary"
-          :disabled="!hasChanges || isSaving"
-          @click="handleSave"
-        >
-          <i v-if="isSaving" class="pi pi-spinner pi-spin mr-2" />
-          <i v-else class="pi pi-save mr-2" />
-          Guardar configuración
-        </AppButton>
-      </div>
     </template>
+
+    <UnsavedChangesBar
+      :dirty="hasChanges"
+      :loading="isSaving"
+      save-label="Guardar configuración"
+      @save="handleSave"
+    />
   </div>
 </template>

@@ -61,14 +61,6 @@
             </div>
           </div>
 
-          <Button
-            label="Guardar Cambios"
-            icon="pi pi-check"
-            class="w-full"
-            :loading="isSaving"
-            :disabled="!hasChanges"
-            @click="handleSave"
-          />
         </div>
       </div>
 
@@ -253,6 +245,13 @@
         </div>
       </div>
     </div>
+
+    <UnsavedChangesBar
+      :dirty="hasChanges"
+      :loading="isSaving"
+      save-label="Guardar Cambios"
+      @save="handleSave"
+    />
   </div>
 </template>
 
@@ -269,6 +268,7 @@ import ProgressSpinner from 'primevue/progressspinner'
 import ColorPicker from 'primevue/colorpicker'
 import RadioButton from 'primevue/radiobutton'
 import { useToast } from 'primevue/usetoast'
+import { UnsavedChangesBar } from '@/components/ui'
 
 const router = useRouter()
 const route = useRoute()

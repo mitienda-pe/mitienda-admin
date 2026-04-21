@@ -2,7 +2,7 @@
 import { onMounted, computed, watch } from 'vue'
 import { useStoreConfigStore } from '@/stores/store-config.store'
 import { IMAGE_VALIDATION_RULES } from '@/config/image-validation.config'
-import { AppButton } from '@/components/ui'
+import { UnsavedChangesBar } from '@/components/ui'
 import BrandingUploader from '@/components/appearance/BrandingUploader.vue'
 import StoreScheduleEditor from '@/components/store/StoreScheduleEditor.vue'
 import InputSwitch from 'primevue/inputswitch'
@@ -415,21 +415,13 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Save button -->
-      <div class="flex items-center gap-3 pb-8">
-        <AppButton
-          variant="primary"
-          :loading="store.isSaving"
-          :disabled="!store.hasChanges"
-          @click="save"
-        >
-          <i class="pi pi-check mr-2" />
-          Guardar configuración
-        </AppButton>
-        <span v-if="store.hasChanges" class="text-xs text-amber-600">
-          Tienes cambios sin guardar
-        </span>
-      </div>
     </div>
+
+    <UnsavedChangesBar
+      :dirty="store.hasChanges"
+      :loading="store.isSaving"
+      save-label="Guardar configuración"
+      @save="save"
+    />
   </div>
 </template>

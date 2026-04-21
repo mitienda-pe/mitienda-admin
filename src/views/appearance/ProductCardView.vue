@@ -2,7 +2,7 @@
 import { onMounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useProductCardStore } from '@/stores/product-card.store'
-import { AppButton } from '@/components/ui'
+import { AppButton, UnsavedChangesBar } from '@/components/ui'
 import CardStyleSelector from '@/components/appearance/CardStyleSelector.vue'
 import BorderRadiusSelector from '@/components/appearance/BorderRadiusSelector.vue'
 import HoverEffectSelector from '@/components/appearance/HoverEffectSelector.vue'
@@ -39,6 +39,10 @@ async function onSave() {
       life: 5000
     })
   }
+}
+
+function onDiscard() {
+  store.resetToSaved()
 }
 
 onMounted(() => {
@@ -179,28 +183,6 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Save -->
-        <div class="flex items-center gap-3 pb-6">
-          <AppButton
-            variant="primary"
-            :loading="store.isSaving"
-            :disabled="!store.hasUnsavedChanges"
-            @click="onSave"
-          >
-            <i class="pi pi-check mr-2" />
-            Guardar configuración
-          </AppButton>
-          <AppButton
-            v-if="store.hasUnsavedChanges"
-            variant="text"
-            @click="store.resetToSaved()"
-          >
-            Descartar cambios
-          </AppButton>
-          <span v-if="store.hasUnsavedChanges" class="text-xs text-amber-600">
-            Tienes cambios sin guardar
-          </span>
-        </div>
       </div>
 
       <!-- Right: Live Preview (sticky) -->
@@ -215,5 +197,14 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <UnsavedChangesBar
+      :dirty="store.hasUnsavedChanges"
+      :loading="store.isSaving"
+      save-label="Guardar configuración"
+      show-discard
+      @save="onSave"
+      @discard="onDiscard"
+    />
   </div>
 </template>

@@ -4,21 +4,6 @@
     <div class="mb-4 flex items-center justify-between">
       <Button label="Volver a productos" icon="pi pi-arrow-left" text @click="router.push('/products')" />
       <div v-if="product" class="flex gap-2">
-        <Button
-          v-if="isDirty"
-          label="Descartar"
-          icon="pi pi-undo"
-          severity="secondary"
-          outlined
-          @click="resetForm"
-        />
-        <Button
-          label="Guardar Cambios"
-          icon="pi pi-save"
-          :loading="saving"
-          :disabled="!isDirty"
-          @click="handleSave"
-        />
         <Button v-if="storeUrl && product.seo?.slug" label="Ver en tienda" icon="pi pi-external-link"
           severity="secondary" outlined @click="openProductInStore" />
       </div>
@@ -869,6 +854,15 @@
         </div>
       </template>
     </Dialog>
+
+    <UnsavedChangesBar
+      :dirty="isDirty"
+      :loading="saving"
+      save-label="Guardar Cambios"
+      show-discard
+      @save="handleSave"
+      @discard="resetForm"
+    />
   </div>
 </template>
 
@@ -903,7 +897,7 @@ import ProductDocumentUploader from '@/components/products/ProductDocumentUpload
 import ProductDocumentList from '@/components/products/ProductDocumentList.vue'
 import ProductDescriptionEditor from '@/components/products/ProductDescriptionEditor.vue'
 import ProductVariantEditor from '@/components/products/ProductVariantEditor.vue'
-import { AiFieldGenerator } from '@/components/ui'
+import { AiFieldGenerator, UnsavedChangesBar } from '@/components/ui'
 import { AI_BUTTON_IDS } from '@/config/ai-buttons.config'
 import ProductTagAssignment from '@/components/ProductTagAssignment.vue'
 import ProductReviewsCard from '@/components/reviews/ProductReviewsCard.vue'
