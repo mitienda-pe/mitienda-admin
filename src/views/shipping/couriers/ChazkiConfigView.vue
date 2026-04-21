@@ -145,13 +145,6 @@
                 severity="secondary"
                 @click="router.push('/shipping/couriers')"
               />
-              <Button
-                :label="isConfigured ? 'Actualizar' : 'Guardar'"
-                icon="pi pi-save"
-                :loading="store.isSaving"
-                :disabled="!isDirty"
-                @click="handleSave"
-              />
             </div>
           </div>
         </div>
@@ -219,6 +212,13 @@
         </div>
       </div>
     </div>
+
+    <UnsavedChangesBar
+      :dirty="isDirty"
+      :loading="store.isSaving"
+      :save-label="isConfigured ? 'Actualizar' : 'Guardar'"
+      @save="handleSave"
+    />
   </div>
 </template>
 
@@ -234,6 +234,7 @@ import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Checkbox from 'primevue/checkbox'
 import Divider from 'primevue/divider'
+import { UnsavedChangesBar } from '@/components/ui'
 
 const router = useRouter()
 const store = useCourierProvidersStore()

@@ -122,11 +122,11 @@
             <Message v-if="store.error" severity="error" :closable="false">{{ store.error }}</Message>
             <Message v-if="store.successMessage" severity="success" :closable="false">{{ store.successMessage }}</Message>
 
-            <div class="flex gap-3 pt-4">
-              <Button type="submit" :label="isConfigured ? 'Actualizar credenciales' : 'Guardar credenciales'" icon="pi pi-save" :loading="store.isSaving" size="large" :disabled="!isDirty" />
-              <Button v-if="isConfigured" type="button" label="Probar conexión" icon="pi pi-bolt" severity="info" outlined :loading="store.isTesting" @click="handleTest" size="large" />
-              <Button v-if="isConfigured" type="button" label="Eliminar" icon="pi pi-trash" severity="danger" outlined @click="handleDelete" size="large" />
+            <div v-if="isConfigured" class="flex gap-3 pt-4">
+              <Button type="button" label="Probar conexión" icon="pi pi-bolt" severity="info" outlined :loading="store.isTesting" @click="handleTest" size="large" />
+              <Button type="button" label="Eliminar" icon="pi pi-trash" severity="danger" outlined @click="handleDelete" size="large" />
             </div>
+            <button type="submit" class="hidden" :disabled="!isDirty" aria-hidden="true"></button>
           </form>
         </template>
       </Card>
@@ -167,6 +167,13 @@
         </template>
       </Card>
     </div>
+
+    <UnsavedChangesBar
+      :dirty="isDirty"
+      :loading="store.isSaving"
+      :save-label="isConfigured ? 'Actualizar' : 'Guardar'"
+      @save="handleSubmit"
+    />
   </div>
 </template>
 
@@ -185,6 +192,7 @@ import Password from 'primevue/password'
 import RadioButton from 'primevue/radiobutton'
 import Divider from 'primevue/divider'
 import Message from 'primevue/message'
+import { UnsavedChangesBar } from '@/components/ui'
 
 const toast = useToast()
 const confirm = useConfirm()

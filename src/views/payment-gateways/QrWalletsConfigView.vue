@@ -109,10 +109,10 @@
             <Message v-if="store.error" severity="error" :closable="false">{{ store.error }}</Message>
             <Message v-if="uploadError" severity="error" :closable="true" @close="uploadError = ''">{{ uploadError }}</Message>
 
-            <div class="flex gap-3 pt-4">
-              <Button type="submit" :label="isConfigured ? 'Actualizar' : 'Guardar'" icon="pi pi-save" :loading="store.isSaving || isUploading" :disabled="!hasChanges" />
-              <Button v-if="isConfigured" type="button" label="Eliminar" icon="pi pi-trash" severity="danger" outlined @click="handleDelete" />
+            <div v-if="isConfigured" class="flex gap-3 pt-4">
+              <Button type="button" label="Eliminar" icon="pi pi-trash" severity="danger" outlined @click="handleDelete" />
             </div>
+            <button type="submit" class="hidden" :disabled="!hasChanges" aria-hidden="true"></button>
           </form>
         </template>
       </Card>
@@ -155,6 +155,13 @@
         </template>
       </Card>
     </div>
+
+    <UnsavedChangesBar
+      :dirty="hasChanges"
+      :loading="store.isSaving || isUploading"
+      :save-label="isConfigured ? 'Actualizar' : 'Guardar'"
+      @save="handleSubmit"
+    />
   </div>
 </template>
 
@@ -172,6 +179,7 @@ import InputSwitch from 'primevue/inputswitch'
 import Textarea from 'primevue/textarea'
 import Divider from 'primevue/divider'
 import Message from 'primevue/message'
+import { UnsavedChangesBar } from '@/components/ui'
 
 const toast = useToast()
 const confirm = useConfirm()

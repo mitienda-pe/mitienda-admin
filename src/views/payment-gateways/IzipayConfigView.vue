@@ -216,17 +216,8 @@
             </Message>
 
             <!-- Botones de acción -->
-            <div class="flex gap-3 pt-4">
+            <div v-if="isConfigured" class="flex gap-3 pt-4">
               <Button
-                type="submit"
-                :label="isConfigured ? 'Actualizar credenciales' : 'Guardar credenciales'"
-                icon="pi pi-save"
-                :loading="store.isSaving"
-                size="large"
-                :disabled="!isDirty"
-              />
-              <Button
-                v-if="isConfigured"
                 type="button"
                 label="Probar conexión"
                 icon="pi pi-bolt"
@@ -237,7 +228,6 @@
                 size="large"
               />
               <Button
-                v-if="isConfigured"
                 type="button"
                 label="Eliminar"
                 icon="pi pi-trash"
@@ -247,6 +237,7 @@
                 size="large"
               />
             </div>
+            <button type="submit" class="hidden" :disabled="!isDirty" aria-hidden="true"></button>
           </form>
         </template>
       </Card>
@@ -309,6 +300,13 @@
         </template>
       </Card>
     </div>
+
+    <UnsavedChangesBar
+      :dirty="isDirty"
+      :loading="store.isSaving"
+      :save-label="isConfigured ? 'Actualizar' : 'Guardar'"
+      @save="handleSubmit"
+    />
   </div>
 </template>
 
@@ -329,6 +327,7 @@ import RadioButton from 'primevue/radiobutton'
 import Divider from 'primevue/divider'
 import Message from 'primevue/message'
 import Tag from 'primevue/tag'
+import { UnsavedChangesBar } from '@/components/ui'
 
 const toast = useToast()
 const confirm = useConfirm()
