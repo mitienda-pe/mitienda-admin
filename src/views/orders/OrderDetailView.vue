@@ -59,7 +59,7 @@ const canRejectPayment = computed(() => {
 })
 
 const canMarkAsChargeback = computed(() => {
-  return order.value?.status === 'paid'
+  return order.value?.status === 'paid' && order.value?.payment_method === 'credit_card'
 })
 
 async function handleConfirmPayment() {
@@ -786,15 +786,6 @@ const handleDebugPayments = async () => {
           :loading="isUpdatingPayment"
           @click="handleRejectPayment"
         />
-        <Button
-          v-if="canMarkAsChargeback"
-          label="Marcar contracargo"
-          icon="pi pi-exclamation-triangle"
-          severity="danger"
-          outlined
-          :loading="isUpdatingPayment"
-          @click="handleMarkAsChargeback"
-        />
         <span
           v-if="statusConfig"
           :class="[
@@ -1007,6 +998,19 @@ const handleDebugPayments = async () => {
                   <p v-if="!order.gateway_error_user && !order.gateway_error_store" class="text-sm text-red-500 italic">
                     Motivo no disponible
                   </p>
+                </div>
+
+                <div v-if="canMarkAsChargeback" class="pt-3 border-t border-gray-200">
+                  <Button
+                    label="Marcar contracargo"
+                    icon="pi pi-exclamation-triangle"
+                    severity="danger"
+                    outlined
+                    size="small"
+                    :loading="isUpdatingPayment"
+                    class="w-full"
+                    @click="handleMarkAsChargeback"
+                  />
                 </div>
               </div>
             </template>
