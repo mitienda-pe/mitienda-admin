@@ -57,6 +57,13 @@ const appearanceApi = {
     return response.data
   },
 
+  async uploadLogoEmail(file: File): Promise<ApiResponse<BrandingConfig>> {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await apiClient.post('/appearance/config/logo-email', formData)
+    return response.data
+  },
+
   async deleteLogo(): Promise<ApiResponse<BrandingConfig>> {
     const response = await apiClient.delete('/appearance/config/logo')
     return response.data
@@ -64,6 +71,11 @@ const appearanceApi = {
 
   async deleteFavicon(): Promise<ApiResponse<BrandingConfig>> {
     const response = await apiClient.delete('/appearance/config/favicon')
+    return response.data
+  },
+
+  async deleteLogoEmail(): Promise<ApiResponse<BrandingConfig>> {
+    const response = await apiClient.delete('/appearance/config/logo-email')
     return response.data
   },
 

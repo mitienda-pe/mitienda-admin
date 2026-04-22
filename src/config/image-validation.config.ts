@@ -64,6 +64,15 @@ export const IMAGE_VALIDATION_RULES: Record<string, ImageValidationRules> = {
     aspectRatio: null
   },
 
+  // Logo for emails — SVG not allowed (poor email client support)
+  logoEmail: {
+    minWidth: 100,
+    minHeight: 100,
+    maxFileSize: 5 * 1024 * 1024, // 5MB
+    allowedFormats: ['image/jpeg', 'image/png', 'image/webp'],
+    aspectRatio: null
+  },
+
   // Store disabled banner (shown when store is deactivated)
   storeDisabledBanner: {
     minWidth: 300,

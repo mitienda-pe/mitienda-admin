@@ -202,6 +202,7 @@ export const TYPOGRAPHY_SECTIONS: { id: keyof Omit<StoreTypographyConfig, 'scale
 
 export interface BrandingConfig {
   logo_url: string | null
+  logo_email_url: string | null
   favicon_url: string | null
 }
 

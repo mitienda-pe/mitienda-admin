@@ -12,6 +12,7 @@ const toast = useToast()
 const store = useAppearanceConfigStore()
 
 const logoRules = IMAGE_VALIDATION_RULES.logo
+const logoEmailRules = IMAGE_VALIDATION_RULES.logoEmail
 const faviconRules = IMAGE_VALIDATION_RULES.favicon
 
 async function onUploadLogo(file: File) {
@@ -29,6 +30,37 @@ async function onUploadLogo(file: File) {
       summary: 'Error',
       detail: store.error || 'No se pudo subir el logotipo',
       life: 5000,
+    })
+  }
+}
+
+async function onUploadLogoEmail(file: File) {
+  const success = await store.uploadLogoEmail(file)
+  if (success) {
+    toast.add({
+      severity: 'success',
+      summary: 'Logo para correos actualizado',
+      detail: 'El logo para correos se subió correctamente',
+      life: 3000,
+    })
+  } else {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: store.error || 'No se pudo subir el logo para correos',
+      life: 5000,
+    })
+  }
+}
+
+async function onDeleteLogoEmail() {
+  const success = await store.deleteLogoEmail()
+  if (success) {
+    toast.add({
+      severity: 'info',
+      summary: 'Logo para correos eliminado',
+      detail: 'Los correos usarán el logo principal cuando sea compatible',
+      life: 3000,
     })
   }
 }
@@ -156,6 +188,20 @@ onMounted(() => {
             hint="Recomendado: SVG o PNG con fondo transparente, mínimo 200px de ancho"
             @upload="onUploadLogo"
             @delete="onDeleteLogo"
+          />
+
+          <!-- Divider -->
+          <hr class="border-gray-100" />
+
+          <!-- Logo para correos (PNG/JPG, no SVG) -->
+          <BrandingUploader
+            label="Logo para correos"
+            :currentUrl="store.logoEmailUrl"
+            :isUploading="store.isUploadingLogoEmail"
+            :rules="logoEmailRules"
+            hint="PNG o JPG sobre fondo blanco (los clientes de correo no soportan SVG). Si no subes uno, los correos usarán el logotipo principal siempre que no sea SVG."
+            @upload="onUploadLogoEmail"
+            @delete="onDeleteLogoEmail"
           />
 
           <!-- Divider -->

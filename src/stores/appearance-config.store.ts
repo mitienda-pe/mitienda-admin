@@ -11,9 +11,11 @@ function deepClone<T>(obj: T): T {
 export const useAppearanceConfigStore = defineStore('appearance-config', () => {
   // ── Branding state ──
   const logoUrl = ref<string | null>(null)
+  const logoEmailUrl = ref<string | null>(null)
   const faviconUrl = ref<string | null>(null)
   const isLoading = ref(false)
   const isUploadingLogo = ref(false)
+  const isUploadingLogoEmail = ref(false)
   const isUploadingFavicon = ref(false)
   const error = ref<string | null>(null)
   const isLoaded = ref(false)
@@ -39,6 +41,7 @@ export const useAppearanceConfigStore = defineStore('appearance-config', () => {
       const response = await appearanceApi.getConfig()
       if (response.success && response.data) {
         logoUrl.value = response.data.logo_url
+        logoEmailUrl.value = response.data.logo_email_url ?? null
         faviconUrl.value = response.data.favicon_url
       }
       isLoaded.value = true
@@ -57,6 +60,7 @@ export const useAppearanceConfigStore = defineStore('appearance-config', () => {
       const response = await appearanceApi.uploadLogo(file)
       if (response.success && response.data) {
         logoUrl.value = response.data.logo_url
+        logoEmailUrl.value = response.data.logo_email_url ?? null
         faviconUrl.value = response.data.favicon_url
       }
       return true
@@ -76,6 +80,7 @@ export const useAppearanceConfigStore = defineStore('appearance-config', () => {
       const response = await appearanceApi.uploadFavicon(file)
       if (response.success && response.data) {
         logoUrl.value = response.data.logo_url
+        logoEmailUrl.value = response.data.logo_email_url ?? null
         faviconUrl.value = response.data.favicon_url
       }
       return true
@@ -94,6 +99,7 @@ export const useAppearanceConfigStore = defineStore('appearance-config', () => {
       const response = await appearanceApi.deleteLogo()
       if (response.success && response.data) {
         logoUrl.value = response.data.logo_url
+        logoEmailUrl.value = response.data.logo_email_url ?? null
         faviconUrl.value = response.data.favicon_url
       }
       return true
@@ -110,11 +116,49 @@ export const useAppearanceConfigStore = defineStore('appearance-config', () => {
       const response = await appearanceApi.deleteFavicon()
       if (response.success && response.data) {
         logoUrl.value = response.data.logo_url
+        logoEmailUrl.value = response.data.logo_email_url ?? null
         faviconUrl.value = response.data.favicon_url
       }
       return true
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : 'Error al eliminar el favicon'
+      error.value = message
+      return false
+    }
+  }
+
+  async function uploadLogoEmail(file: File): Promise<boolean> {
+    isUploadingLogoEmail.value = true
+    error.value = null
+    try {
+      const response = await appearanceApi.uploadLogoEmail(file)
+      if (response.success && response.data) {
+        logoUrl.value = response.data.logo_url
+        logoEmailUrl.value = response.data.logo_email_url ?? null
+        faviconUrl.value = response.data.favicon_url
+      }
+      return true
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error al subir el logo para correos'
+      error.value = message
+      return false
+    } finally {
+      isUploadingLogoEmail.value = false
+    }
+  }
+
+  async function deleteLogoEmail(): Promise<boolean> {
+    error.value = null
+    try {
+      const response = await appearanceApi.deleteLogoEmail()
+      if (response.success && response.data) {
+        logoUrl.value = response.data.logo_url
+        logoEmailUrl.value = response.data.logo_email_url ?? null
+        faviconUrl.value = response.data.favicon_url
+      }
+      return true
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error al eliminar el logo para correos'
       error.value = message
       return false
     }
@@ -179,16 +223,20 @@ export const useAppearanceConfigStore = defineStore('appearance-config', () => {
   return {
     // Branding
     logoUrl,
+    logoEmailUrl,
     faviconUrl,
     isLoading,
     isUploadingLogo,
+    isUploadingLogoEmail,
     isUploadingFavicon,
     error,
     isLoaded,
     fetchConfig,
     uploadLogo,
+    uploadLogoEmail,
     uploadFavicon,
     deleteLogo,
+    deleteLogoEmail,
     deleteFavicon,
     // Catalog
     savedCatalog,
