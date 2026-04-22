@@ -77,6 +77,7 @@ const { html, loading, error, isOpen, fetchDoc } = useHelpDocs()
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  margin-right: 0.75rem;
   padding: 0.25rem 0.75rem 0.25rem 0.25rem;
   border-radius: 9999px;
   background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
