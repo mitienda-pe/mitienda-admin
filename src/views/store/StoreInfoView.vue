@@ -147,6 +147,24 @@
               />
               <small class="text-secondary-400">Formato: código de país + número</small>
             </div>
+            <div class="md:col-span-2">
+              <div class="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg border border-secondary-100">
+                <InputSwitch
+                  v-model="whatsappFabEnabled"
+                  :disabled="!formData.tienda_whatsapp"
+                  inputId="whatsappFab"
+                />
+                <div class="flex-1">
+                  <label for="whatsappFab" class="block text-sm font-medium text-secondary-700 cursor-pointer">
+                    Mostrar botón flotante de WhatsApp en la tienda
+                  </label>
+                  <small class="text-secondary-400">
+                    Muestra un botón verde en la esquina inferior derecha del storefront que abre un chat con el número configurado.
+                    <span v-if="!formData.tienda_whatsapp" class="text-amber-600">Ingresa un número de WhatsApp para activarlo.</span>
+                  </small>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -271,11 +289,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useStoreInfoStore } from '@/stores/store-info.store'
 import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
+import InputSwitch from 'primevue/inputswitch'
 import Textarea from 'primevue/textarea'
 import Dropdown from 'primevue/dropdown'
 import ProgressSpinner from 'primevue/progressspinner'
@@ -295,6 +314,7 @@ const formData = ref<StoreInfoUpdateRequest>({
   tienda_telefonofijo1: '',
   tienda_telefonocelular1: '',
   tienda_whatsapp: '',
+  tienda_sw_whatsapp_fab: 0,
   tienda_url_paginaweb: '',
   tienda_url_facebook: '',
   tienda_url_instagram: '',
@@ -303,6 +323,13 @@ const formData = ref<StoreInfoUpdateRequest>({
   tienda_url_pinterest: '',
   tienda_url_youtube: '',
   tienda_url_linkedin: ''
+})
+
+const whatsappFabEnabled = computed<boolean>({
+  get: () => formData.value.tienda_sw_whatsapp_fab === 1,
+  set: (value) => {
+    formData.value.tienda_sw_whatsapp_fab = value ? 1 : 0
+  }
 })
 
 const loadData = async () => {
@@ -324,6 +351,7 @@ const loadData = async () => {
         tienda_telefonofijo1: storeInfoStore.info.tienda_telefonofijo1 || '',
         tienda_telefonocelular1: storeInfoStore.info.tienda_telefonocelular1 || '',
         tienda_whatsapp: storeInfoStore.info.tienda_whatsapp || '',
+        tienda_sw_whatsapp_fab: Number(storeInfoStore.info.tienda_sw_whatsapp_fab) === 1 ? 1 : 0,
         tienda_url_paginaweb: storeInfoStore.info.tienda_url_paginaweb || '',
         tienda_url_facebook: storeInfoStore.info.tienda_url_facebook || '',
         tienda_url_instagram: storeInfoStore.info.tienda_url_instagram || '',
