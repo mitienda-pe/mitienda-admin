@@ -112,10 +112,11 @@ onMounted(() => {
     quill.setSelection(0, 0, 'silent')
   }
 
-  // Only emit on user-initiated changes (typing, formatting, pasting)
-  // 'silent' and 'api' sources are ignored — no isInternalChange flag needed
+  // Emit on any change EXCEPT 'silent' (which we use when syncing parent → editor).
+  // 'user' covers typing/formatting; 'api' covers external integrations like the
+  // AI Text Enhancer that call clipboard.dangerouslyPasteHTML without passing a source.
   quill.on('text-change', (_delta: any, _oldDelta: any, source: string) => {
-    if (!quill || source !== 'user') return
+    if (!quill || source === 'silent') return
     const html = quill.getSemanticHTML()
     emit('update:modelValue', html === '<p><br></p>' ? '' : html)
   })
