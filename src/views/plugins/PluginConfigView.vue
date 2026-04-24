@@ -3,7 +3,7 @@ import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppErrorState from '@/components/ui/AppErrorState.vue'
 import PluginSlot from '@/components/plugins/PluginSlot.vue'
-import { pluginsApi, type PluginConfigPayload } from '@/api/plugins.api'
+import { pluginsApi } from '@/api/plugins.api'
 import { useToast } from 'primevue/usetoast'
 
 const route = useRoute()

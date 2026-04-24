@@ -124,6 +124,9 @@ export interface OrderItem {
     sku: string
     images?: Array<{ url: string }>
   }
+  plugin_slug?: string | null
+  plugin_summary?: string | null
+  plugin_data?: Record<string, any> | null
 }
 
 export interface Customer {

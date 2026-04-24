@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+
 interface Entry {
   label?: string
   values?: Record<string, any>
@@ -16,8 +18,15 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const entries = computed(() => props.pluginData?.entries ?? [])
+const entries = computed<Entry[]>(() => props.pluginData?.entries ?? [])
 const summary = computed(() => props.pluginSummary || props.pluginData?.summary || '')
+
+function areaFor(entry: Entry): number {
+  if (typeof entry.computed?.area === 'number') return entry.computed.area
+  const w = Number(entry.values?.width ?? 0)
+  const h = Number(entry.values?.height ?? 0)
+  return w * h
+}
 </script>
 
 <template>
@@ -37,7 +46,7 @@ const summary = computed(() => props.pluginSummary || props.pluginData?.summary 
           <td class="py-1">{{ entry.label || `Ventana ${i + 1}` }}</td>
           <td class="py-1">{{ Number(entry.values?.width ?? 0).toFixed(2) }}</td>
           <td class="py-1">{{ Number(entry.values?.height ?? 0).toFixed(2) }}</td>
-          <td class="py-1">{{ Number(entry.computed?.area ?? (entry.values?.width * entry.values?.height) ?? 0).toFixed(2) }}</td>
+          <td class="py-1">{{ areaFor(entry).toFixed(2) }}</td>
         </tr>
       </tbody>
     </table>
