@@ -1155,7 +1155,8 @@ const storeExpanded = computed({
 const simpleMenuItems = [
   { label: 'Dashboard', icon: 'pi pi-home', to: '/dashboard' },
   { label: 'Analítica Web', icon: 'pi pi-chart-line', to: '/reports/web-analytics' },
-  { label: 'Clientes', icon: 'pi pi-users', to: '/customers' }
+  { label: 'Clientes', icon: 'pi pi-users', to: '/customers' },
+  { label: 'Plugins', icon: 'pi pi-puzzle', to: '/plugins' }
 ]
 
 // Items del grupo Tu Tienda

@@ -16,6 +16,7 @@ import EmitDocumentDialog from '@/components/billing/EmitDocumentDialog.vue'
 import DeliveryMap from '@/components/map/DeliveryMap.vue'
 import FraudRiskCard from '@/components/fraud/FraudRiskCard.vue'
 import StarRating from '@/components/reviews/StarRating.vue'
+import PluginSlot from '@/components/plugins/PluginSlot.vue'
 import { reviewsApi } from '@/api/reviews.api'
 import { fulfillmentApi } from '@/api/fulfillment.api'
 import type { OrderItemReview } from '@/types/review.types'
@@ -1142,6 +1143,13 @@ const handleDebugPayments = async () => {
                             <p v-else-if="orderReviews.length > 0" class="text-xs text-gray-400 mt-1">
                               Sin opinión
                             </p>
+                            <PluginSlot
+                              v-if="item.plugin_slug && item.plugin_data"
+                              slot-name="backoffice-order-item"
+                              :plugin-slug="item.plugin_slug"
+                              :plugin-data="item.plugin_data"
+                              :plugin-summary="item.plugin_summary"
+                            />
                           </div>
                         </td>
 

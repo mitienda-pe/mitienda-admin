@@ -876,6 +876,23 @@ const routes: RouteRecordRaw[] = [
     redirect: '/integrations/fulfillment'
   },
   {
+    path: '/plugins',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: '',
+        name: 'PluginList',
+        component: () => import('@/views/plugins/PluginListView.vue')
+      },
+      {
+        path: ':slug',
+        name: 'PluginConfig',
+        component: () => import('@/views/plugins/PluginConfigView.vue')
+      }
+    ]
+  },
+  {
     path: '/configuracion',
     component: DashboardLayout,
     meta: { requiresAuth: true, requiresStore: true },
