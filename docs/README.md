@@ -2,7 +2,7 @@
 
 La documentación de arquitectura, design system, deployment, NetSuite inventory mapping y features del backoffice se migró al sitio interno del equipo:
 
-**[docs.mitienda.host](https://docs.mitienda.host)** (repo: [`mitienda-docs-internal`](https://github.com/mitienda/mitienda-docs-internal))
+**[docs.mitienda.host](https://docs.mitienda.host)** (repo: [`mitienda-docs-internal`](https://github.com/mitienda-pe/mitienda-docs-internal))
 
 Acceso protegido por Cloudflare Access — sólo cuentas `@mitienda.pe`.
 
