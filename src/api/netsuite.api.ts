@@ -323,7 +323,10 @@ export const netsuiteApi = {
       serie_factura_netsuite_id: string | null
     }
   }> {
-    const response = await apiClient.get(`/netsuite-credentials/${tiendaId}/branches-config`)
+    const response = await apiClient.get(`/netsuite-credentials/${tiendaId}/branches-config`, {
+      params: { _: Date.now() },
+      headers: { 'Cache-Control': 'no-cache' }
+    })
     return response.data
   },
 
