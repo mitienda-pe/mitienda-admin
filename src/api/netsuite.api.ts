@@ -324,8 +324,7 @@ export const netsuiteApi = {
     }
   }> {
     const response = await apiClient.get(`/netsuite-credentials/${tiendaId}/branches-config`, {
-      params: { _: Date.now() },
-      headers: { 'Cache-Control': 'no-cache' }
+      params: { _: Date.now() }
     })
     return response.data
   },
