@@ -635,8 +635,9 @@ const branchesDefaults = reactive({
   serie_factura_netsuite_id: null as string | null,
 })
 
-function getBranchConfig(branchId: number): BranchConfig | undefined {
-  return branchesConfig.value.find(b => b.tiendadireccion_id === branchId)
+function getBranchConfig(branchId: number | string): BranchConfig | undefined {
+  const id = Number(branchId)
+  return branchesConfig.value.find(b => Number(b.tiendadireccion_id) === id)
 }
 
 const locationForm = reactive({
