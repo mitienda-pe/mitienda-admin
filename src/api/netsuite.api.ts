@@ -297,5 +297,53 @@ export const netsuiteApi = {
   async clearBranchLocation(branchId: number): Promise<ApiResponse<any>> {
     const response = await apiClient.delete(`/netsuite-locations/${branchId}`)
     return response.data
+  },
+
+  // ========== Branch-level overrides (series + generic customer per sucursal) ==========
+
+  /**
+   * Configuración NetSuite por sucursal (location_id, generic_customer_id, series).
+   * Cada sucursal trae sus overrides + flags is_override; defaults vienen aparte.
+   */
+  async getBranchesConfig(tiendaId: number): Promise<ApiResponse<Array<{
+    tiendadireccion_id: number
+    branch_name: string
+    branch_address: string
+    netsuite_location_id: string | null
+    generic_customer_id: string | null
+    generic_customer_is_override: boolean
+    serie_boleta_netsuite_id: string | null
+    serie_boleta_is_override: boolean
+    serie_factura_netsuite_id: string | null
+    serie_factura_is_override: boolean
+  }>> & {
+    defaults?: {
+      generic_customer_id: string | null
+      serie_boleta_netsuite_id: string | null
+      serie_factura_netsuite_id: string | null
+    }
+  }> {
+    const response = await apiClient.get(`/netsuite-credentials/${tiendaId}/branches-config`)
+    return response.data
+  },
+
+  /**
+   * Actualiza overrides por sucursal. Pasar null/'' borra el override.
+   */
+  async updateBranchConfig(tiendaId: number, branchId: number, data: {
+    generic_customer_id?: string | null
+    serie_boleta_netsuite_id?: string | null
+    serie_factura_netsuite_id?: string | null
+  }): Promise<ApiResponse<{ success: boolean }>> {
+    const response = await apiClient.put(`/netsuite-credentials/${tiendaId}/branches/${branchId}/config`, data)
+    return response.data
+  },
+
+  /**
+   * Elimina override de serie (BOLETA o FACTURA) para una sucursal.
+   */
+  async deleteBranchSerie(tiendaId: number, branchId: number, tipo: 'BOLETA' | 'FACTURA'): Promise<ApiResponse<{ success: boolean }>> {
+    const response = await apiClient.delete(`/netsuite-credentials/${tiendaId}/branches/${branchId}/series/${tipo}`)
+    return response.data
   }
 }

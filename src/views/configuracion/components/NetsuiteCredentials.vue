@@ -225,10 +225,10 @@
             <div class="flex gap-2">
               <i class="pi pi-info-circle text-primary mt-0.5"></i>
               <div class="text-sm text-primary">
-                <p class="font-medium mb-1">El mismo Location ID se usa para:</p>
+                <p class="font-medium mb-1">Configuración por sucursal:</p>
                 <ul class="list-disc list-inside ml-2 space-y-1">
-                  <li>Inventory location (ubicación de inventario)</li>
-                  <li>Invoice series location (ubicación para serie de facturación)</li>
+                  <li><strong>Location ID</strong>: ubicación NetSuite (inventario + facturación)</li>
+                  <li><strong>Series</strong> y <strong>Generic Customer</strong>: opcionales, sobrescriben el default de tienda</li>
                 </ul>
               </div>
             </div>
@@ -246,41 +246,73 @@
               <thead class="bg-secondary-50">
                 <tr>
                   <th class="px-4 py-3 text-left text-sm font-semibold text-secondary-700">Sucursal</th>
-                  <th class="px-4 py-3 text-left text-sm font-semibold text-secondary-700">Dirección</th>
-                  <th class="px-4 py-3 text-left text-sm font-semibold text-secondary-700">NetSuite Location ID</th>
+                  <th class="px-4 py-3 text-left text-sm font-semibold text-secondary-700">Location ID</th>
+                  <th class="px-4 py-3 text-left text-sm font-semibold text-secondary-700">Serie Boleta</th>
+                  <th class="px-4 py-3 text-left text-sm font-semibold text-secondary-700">Serie Factura</th>
+                  <th class="px-4 py-3 text-left text-sm font-semibold text-secondary-700">Generic Customer</th>
                   <th class="px-4 py-3 text-center text-sm font-semibold text-secondary-700 w-20">Acciones</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-secondary-200">
                 <tr v-for="(location, index) in locations" :key="location.tiendadireccion_id" class="hover:bg-secondary-50">
-                  <td class="px-4 py-3 text-sm font-medium text-secondary-800">{{ location.branch_name }}</td>
-                  <td class="px-4 py-3 text-sm text-secondary-600">{{ location.branch_address || '-' }}</td>
+                  <td class="px-4 py-3 text-sm font-medium text-secondary-800">
+                    <div>{{ location.branch_name }}</div>
+                    <div class="text-xs text-secondary-500">{{ location.branch_address || '-' }}</div>
+                  </td>
                   <td class="px-4 py-3 text-sm">
-                    <span v-if="location.netsuite_location_id" class="inline-flex items-center px-2.5 py-1 rounded-md bg-green-100 text-green-800 font-mono text-xs">
+                    <span v-if="location.netsuite_location_id" class="inline-flex items-center px-2 py-1 rounded-md bg-green-100 text-green-800 font-mono text-xs">
                       {{ location.netsuite_location_id }}
                     </span>
                     <span v-else class="text-secondary-400 italic text-xs">Sin asignar</span>
                   </td>
+                  <td class="px-4 py-3 text-sm">
+                    <template v-if="getBranchConfig(location.tiendadireccion_id)?.serie_boleta_is_override">
+                      <span class="inline-flex items-center px-2 py-1 rounded-md bg-blue-100 text-blue-800 font-mono text-xs">
+                        {{ getBranchConfig(location.tiendadireccion_id)?.serie_boleta_netsuite_id }}
+                      </span>
+                      <div class="text-xs text-secondary-500 mt-0.5">override</div>
+                    </template>
+                    <template v-else-if="branchesDefaults.serie_boleta_netsuite_id">
+                      <span class="font-mono text-xs text-secondary-500">{{ branchesDefaults.serie_boleta_netsuite_id }}</span>
+                      <div class="text-xs text-secondary-400">de tienda</div>
+                    </template>
+                    <span v-else class="text-secondary-400 italic text-xs">—</span>
+                  </td>
+                  <td class="px-4 py-3 text-sm">
+                    <template v-if="getBranchConfig(location.tiendadireccion_id)?.serie_factura_is_override">
+                      <span class="inline-flex items-center px-2 py-1 rounded-md bg-blue-100 text-blue-800 font-mono text-xs">
+                        {{ getBranchConfig(location.tiendadireccion_id)?.serie_factura_netsuite_id }}
+                      </span>
+                      <div class="text-xs text-secondary-500 mt-0.5">override</div>
+                    </template>
+                    <template v-else-if="branchesDefaults.serie_factura_netsuite_id">
+                      <span class="font-mono text-xs text-secondary-500">{{ branchesDefaults.serie_factura_netsuite_id }}</span>
+                      <div class="text-xs text-secondary-400">de tienda</div>
+                    </template>
+                    <span v-else class="text-secondary-400 italic text-xs">—</span>
+                  </td>
+                  <td class="px-4 py-3 text-sm">
+                    <template v-if="getBranchConfig(location.tiendadireccion_id)?.generic_customer_is_override">
+                      <span class="inline-flex items-center px-2 py-1 rounded-md bg-blue-100 text-blue-800 font-mono text-xs">
+                        {{ getBranchConfig(location.tiendadireccion_id)?.generic_customer_id }}
+                      </span>
+                      <div class="text-xs text-secondary-500 mt-0.5">override</div>
+                    </template>
+                    <template v-else-if="branchesDefaults.generic_customer_id">
+                      <span class="font-mono text-xs text-secondary-500">{{ branchesDefaults.generic_customer_id }}</span>
+                      <div class="text-xs text-secondary-400">de tienda</div>
+                    </template>
+                    <span v-else class="text-secondary-400 italic text-xs">—</span>
+                  </td>
                   <td class="px-4 py-3 text-center">
-                    <div class="flex items-center justify-center gap-2">
-                      <Button
-                        icon="pi pi-pencil"
-                        size="small"
-                        text
-                        severity="secondary"
-                        @click="openLocationDialog(index)"
-                        v-tooltip.top="'Editar Location ID'"
-                      />
-                      <Button
-                        v-if="location.netsuite_location_id"
-                        icon="pi pi-times"
-                        size="small"
-                        text
-                        severity="danger"
-                        @click="clearLocationId(index)"
-                        v-tooltip.top="'Limpiar Location ID'"
-                      />
-                    </div>
+                    <Button
+                      icon="pi pi-pencil"
+                      size="small"
+                      text
+                      severity="secondary"
+                      @click="openLocationDialog(index)"
+                      v-tooltip.top="'Editar configuración'"
+                    />
                   </td>
                 </tr>
               </tbody>
@@ -407,10 +439,10 @@
     <!-- Location Dialog -->
     <Dialog
       v-model:visible="locationDialogVisible"
-      header="Asignar NetSuite Location ID"
+      header="Configuración NetSuite por sucursal"
       :modal="true"
       :closable="true"
-      :style="{ width: '500px' }"
+      :style="{ width: '600px' }"
     >
       <div class="space-y-4 py-4">
         <!-- Branch Info (Read-only) -->
@@ -422,7 +454,7 @@
           </div>
         </div>
 
-        <!-- NetSuite Location ID Input -->
+        <!-- NetSuite Location ID -->
         <div>
           <label for="dialog_location_id" class="block text-sm font-medium text-secondary-700 mb-2">
             NetSuite Location ID <span class="text-red-500">*</span>
@@ -436,7 +468,60 @@
           />
           <small v-if="locationErrors.netsuite_location_id" class="text-red-500">{{ locationErrors.netsuite_location_id }}</small>
           <small v-else class="text-secondary-600 mt-1 block">
-            Este ID se usará tanto para inventario como para facturación electrónica
+            Inventario + ubicación para serie de facturación
+          </small>
+        </div>
+
+        <Divider />
+        <p class="text-xs text-secondary-600 -mt-2">
+          Los siguientes campos son opcionales. Si los dejas vacíos, esta sucursal usa la configuración general de la tienda.
+        </p>
+
+        <!-- Serie Boleta override -->
+        <div>
+          <label for="dialog_serie_boleta" class="block text-sm font-medium text-secondary-700 mb-2">
+            Serie Boleta (NetSuite ID)
+          </label>
+          <InputText
+            id="dialog_serie_boleta"
+            v-model="locationForm.serie_boleta_netsuite_id"
+            :placeholder="branchesDefaults.serie_boleta_netsuite_id ? `Default: ${branchesDefaults.serie_boleta_netsuite_id}` : 'Sin default de tienda'"
+            class="w-full"
+          />
+          <small class="text-secondary-600 mt-1 block">
+            Override de la serie boleta para esta sucursal. Vacío = usa la de la tienda.
+          </small>
+        </div>
+
+        <!-- Serie Factura override -->
+        <div>
+          <label for="dialog_serie_factura" class="block text-sm font-medium text-secondary-700 mb-2">
+            Serie Factura (NetSuite ID)
+          </label>
+          <InputText
+            id="dialog_serie_factura"
+            v-model="locationForm.serie_factura_netsuite_id"
+            :placeholder="branchesDefaults.serie_factura_netsuite_id ? `Default: ${branchesDefaults.serie_factura_netsuite_id}` : 'Sin default de tienda'"
+            class="w-full"
+          />
+          <small class="text-secondary-600 mt-1 block">
+            Override de la serie factura para esta sucursal. Vacío = usa la de la tienda.
+          </small>
+        </div>
+
+        <!-- Generic Customer override -->
+        <div>
+          <label for="dialog_generic_customer" class="block text-sm font-medium text-secondary-700 mb-2">
+            Generic Customer ID
+          </label>
+          <InputText
+            id="dialog_generic_customer"
+            v-model="locationForm.generic_customer_id"
+            :placeholder="branchesDefaults.generic_customer_id ? `Default: ${branchesDefaults.generic_customer_id}` : 'Sin default de tienda'"
+            class="w-full"
+          />
+          <small class="text-secondary-600 mt-1 block">
+            Cliente genérico para ventas &lt; 700 sin DNI. Vacío = usa el de la tienda.
           </small>
         </div>
       </div>
@@ -530,11 +615,38 @@ const locations = ref<NetsuiteLocation[]>([])
 const locationDialogVisible = ref(false)
 const editingLocationIndex = ref<number | null>(null)
 
+// Branch-level overrides (series + generic customer per sucursal)
+interface BranchConfig {
+  tiendadireccion_id: number
+  branch_name: string
+  branch_address: string
+  netsuite_location_id: string | null
+  generic_customer_id: string | null
+  generic_customer_is_override: boolean
+  serie_boleta_netsuite_id: string | null
+  serie_boleta_is_override: boolean
+  serie_factura_netsuite_id: string | null
+  serie_factura_is_override: boolean
+}
+const branchesConfig = ref<BranchConfig[]>([])
+const branchesDefaults = reactive({
+  generic_customer_id: null as string | null,
+  serie_boleta_netsuite_id: null as string | null,
+  serie_factura_netsuite_id: null as string | null,
+})
+
+function getBranchConfig(branchId: number): BranchConfig | undefined {
+  return branchesConfig.value.find(b => b.tiendadireccion_id === branchId)
+}
+
 const locationForm = reactive({
   tiendadireccion_id: 0,
   branch_name: '',
   branch_address: '',
-  netsuite_location_id: ''
+  netsuite_location_id: '',
+  serie_boleta_netsuite_id: '',
+  serie_factura_netsuite_id: '',
+  generic_customer_id: ''
 })
 
 const locationErrors = reactive({
@@ -626,7 +738,26 @@ watch(() => props.tiendaId, async (tiendaId) => {
 
   // Load locations from new API
   await loadLocations(tiendaId)
+  await loadBranchesConfig(tiendaId)
 }, { immediate: true })
+
+async function loadBranchesConfig(tiendaId: number) {
+  try {
+    const response = await netsuiteApi.getBranchesConfig(tiendaId) as any
+    if (response.success && response.data) {
+      branchesConfig.value = response.data
+      const d = response.defaults || {}
+      branchesDefaults.generic_customer_id = d.generic_customer_id ?? null
+      branchesDefaults.serie_boleta_netsuite_id = d.serie_boleta_netsuite_id ?? null
+      branchesDefaults.serie_factura_netsuite_id = d.serie_factura_netsuite_id ?? null
+    } else {
+      branchesConfig.value = []
+    }
+  } catch (error) {
+    console.error('[NetsuiteCredentials] Error loading branches config:', error)
+    branchesConfig.value = []
+  }
+}
 
 // Load branches with their NetSuite location IDs
 const isLoadingLocations = ref(false)
@@ -660,12 +791,16 @@ async function loadLocations(tiendaId: number) {
 function openLocationDialog(index: number) {
   editingLocationIndex.value = index
   const branch = locations.value[index]
+  const config = getBranchConfig(branch.tiendadireccion_id)
 
   Object.assign(locationForm, {
     tiendadireccion_id: branch.tiendadireccion_id,
     branch_name: branch.branch_name,
     branch_address: branch.branch_address,
-    netsuite_location_id: branch.netsuite_location_id || ''
+    netsuite_location_id: branch.netsuite_location_id || '',
+    serie_boleta_netsuite_id: config?.serie_boleta_is_override ? (config.serie_boleta_netsuite_id || '') : '',
+    serie_factura_netsuite_id: config?.serie_factura_is_override ? (config.serie_factura_netsuite_id || '') : '',
+    generic_customer_id: config?.generic_customer_is_override ? (config.generic_customer_id || '') : ''
   })
 
   // Clear errors
@@ -691,94 +826,61 @@ function validateLocationForm(): boolean {
 
 async function saveLocationId() {
   if (!validateLocationForm()) return
+  if (!props.tiendaId) return
 
   try {
     isSavingLocation.value = true
 
-    const response = await netsuiteApi.updateBranchLocation(
+    // 1. Location ID (siempre actualiza)
+    const locResponse = await netsuiteApi.updateBranchLocation(
+      locationForm.tiendadireccion_id,
+      { netsuite_location_id: locationForm.netsuite_location_id.trim() }
+    )
+
+    if (!locResponse.success) {
+      throw new Error(locResponse.message || 'No se pudo actualizar el Location ID')
+    }
+
+    // 2. Overrides (series + generic customer). Cadena vacía => null borra el override.
+    const cfgResponse = await netsuiteApi.updateBranchConfig(
+      props.tiendaId,
       locationForm.tiendadireccion_id,
       {
-        netsuite_location_id: locationForm.netsuite_location_id.trim()
+        serie_boleta_netsuite_id: locationForm.serie_boleta_netsuite_id.trim() || null,
+        serie_factura_netsuite_id: locationForm.serie_factura_netsuite_id.trim() || null,
+        generic_customer_id: locationForm.generic_customer_id.trim() || null,
       }
     )
 
-    if (response.success) {
-      toast.add({
-        severity: 'success',
-        summary: 'Éxito',
-        detail: 'Location ID actualizado correctamente',
-        life: 3000
-      })
-
-      // Update local state
-      if (editingLocationIndex.value !== null) {
-        locations.value[editingLocationIndex.value].netsuite_location_id = locationForm.netsuite_location_id.trim()
-      }
-
-      closeLocationDialog()
-    } else {
-      toast.add({
-        severity: 'error',
-        summary: 'Error',
-        detail: response.message || 'No se pudo actualizar el Location ID',
-        life: 3000
-      })
+    if (!cfgResponse.success) {
+      throw new Error('No se pudieron guardar los overrides de la sucursal')
     }
+
+    toast.add({
+      severity: 'success',
+      summary: 'Éxito',
+      detail: 'Configuración de sucursal guardada',
+      life: 3000
+    })
+
+    // Update local state
+    if (editingLocationIndex.value !== null) {
+      locations.value[editingLocationIndex.value].netsuite_location_id = locationForm.netsuite_location_id.trim()
+    }
+    await loadBranchesConfig(props.tiendaId)
+
+    closeLocationDialog()
   } catch (error: any) {
-    console.error('[NetsuiteCredentials] Error updating location ID:', error)
+    console.error('[NetsuiteCredentials] Error saving branch config:', error)
     toast.add({
       severity: 'error',
       summary: 'Error',
-      detail: error.response?.data?.message || 'Error al actualizar el Location ID',
+      detail: error.response?.data?.message || error.message || 'Error al guardar la configuración',
       life: 3000
     })
   } finally {
     isSavingLocation.value = false
   }
-}
-
-async function clearLocationId(index: number) {
-  const branch = locations.value[index]
-
-  confirm.require({
-    message: `¿Limpiar el Location ID de la sucursal "${branch.branch_name}"?`,
-    header: 'Confirmar',
-    icon: 'pi pi-exclamation-triangle',
-    acceptLabel: 'Sí, limpiar',
-    rejectLabel: 'Cancelar',
-    accept: async () => {
-      try {
-        const response = await netsuiteApi.clearBranchLocation(branch.tiendadireccion_id)
-
-        if (response.success) {
-          toast.add({
-            severity: 'success',
-            summary: 'Éxito',
-            detail: 'Location ID eliminado correctamente',
-            life: 3000
-          })
-
-          // Update local state
-          locations.value[index].netsuite_location_id = null
-        } else {
-          toast.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'No se pudo limpiar el Location ID',
-            life: 3000
-          })
-        }
-      } catch (error: any) {
-        console.error('[NetsuiteCredentials] Error clearing location ID:', error)
-        toast.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Error al limpiar el Location ID',
-          life: 3000
-        })
-      }
-    }
-  })
 }
 
 function validateForm(): boolean {
