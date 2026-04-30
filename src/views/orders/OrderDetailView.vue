@@ -115,9 +115,11 @@ const storeName = computed(() => authStore.selectedStore?.name || 'Mi Tienda')
 // True when the order is assigned to Olva Courier (courier_id = 9)
 const isOlvaOrder = computed(() => order.value?.shipping_details?.courier_id === 9)
 
-// Download menu items (computed so the Olva entry appears/disappears reactively)
+// Download menu items (computed so reacts a cambios en el order)
+// Cuando la orden es Olva, la "Etiqueta de Envío" generica se reemplaza por
+// la "Etiqueta Olva" que trae barcode Code 128 y los datos especificos.
 const downloadMenuItems = computed(() => {
-  const items: any[] = [
+  return [
     {
       label: 'Descargar PDF',
       icon: 'pi pi-file-pdf',
@@ -139,22 +141,18 @@ const downloadMenuItems = computed(() => {
       icon: 'pi pi-box',
       command: () => handleDownloadPickingList()
     },
-    {
-      label: 'Etiqueta de Envío',
-      icon: 'pi pi-tag',
-      command: () => handleDownloadShippingLabel()
-    },
+    isOlvaOrder.value
+      ? {
+          label: 'Etiqueta Olva',
+          icon: 'pi pi-print',
+          command: () => handleDownloadOlvaLabel(),
+        }
+      : {
+          label: 'Etiqueta de Envío',
+          icon: 'pi pi-tag',
+          command: () => handleDownloadShippingLabel(),
+        },
   ]
-
-  if (isOlvaOrder.value) {
-    items.push({
-      label: 'Etiqueta Olva',
-      icon: 'pi pi-print',
-      command: () => handleDownloadOlvaLabel()
-    })
-  }
-
-  return items
 })
 
 // Download handlers
