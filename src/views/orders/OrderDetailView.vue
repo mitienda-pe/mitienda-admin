@@ -112,37 +112,50 @@ function copyToClipboard(text: string) {
 // Store name for documents
 const storeName = computed(() => authStore.selectedStore?.name || 'Mi Tienda')
 
-// Download menu items
-const downloadMenuItems = ref([
-  {
-    label: 'Descargar PDF',
-    icon: 'pi pi-file-pdf',
-    command: () => handleDownloadPDF()
-  },
-  {
-    label: 'Descargar CSV',
-    icon: 'pi pi-file-excel',
-    command: () => handleDownloadCSV()
-  },
-  {
-    separator: true
-  },
-  {
-    label: 'Ticket (80mm)',
-    icon: 'pi pi-receipt',
-    command: () => handleDownloadTicket()
-  },
-  {
-    label: 'Picking List',
-    icon: 'pi pi-box',
-    command: () => handleDownloadPickingList()
-  },
-  {
-    label: 'Etiqueta de Envío',
-    icon: 'pi pi-tag',
-    command: () => handleDownloadShippingLabel()
+// True when the order is assigned to Olva Courier (courier_id = 9)
+const isOlvaOrder = computed(() => order.value?.shipping_details?.courier_id === 9)
+
+// Download menu items (computed so the Olva entry appears/disappears reactively)
+const downloadMenuItems = computed(() => {
+  const items: any[] = [
+    {
+      label: 'Descargar PDF',
+      icon: 'pi pi-file-pdf',
+      command: () => handleDownloadPDF()
+    },
+    {
+      label: 'Descargar CSV',
+      icon: 'pi pi-file-excel',
+      command: () => handleDownloadCSV()
+    },
+    { separator: true },
+    {
+      label: 'Ticket (80mm)',
+      icon: 'pi pi-receipt',
+      command: () => handleDownloadTicket()
+    },
+    {
+      label: 'Picking List',
+      icon: 'pi pi-box',
+      command: () => handleDownloadPickingList()
+    },
+    {
+      label: 'Etiqueta de Envío',
+      icon: 'pi pi-tag',
+      command: () => handleDownloadShippingLabel()
+    },
+  ]
+
+  if (isOlvaOrder.value) {
+    items.push({
+      label: 'Etiqueta Olva',
+      icon: 'pi pi-print',
+      command: () => handleDownloadOlvaLabel()
+    })
   }
-])
+
+  return items
+})
 
 // Download handlers
 const handleDownloadPDF = () => {
@@ -187,6 +200,36 @@ const handleDownloadPickingList = () => {
     detail: 'El picking list se está descargando',
     life: 2000
   })
+}
+
+const handleDownloadOlvaLabel = async () => {
+  if (!order.value) return
+  try {
+    const response = await apiClient.get(`/orders/${order.value.id}/olva-label`, {
+      responseType: 'text',
+      transformResponse: [(data) => data], // evita que axios intente JSON.parse
+    })
+    const blob = new Blob([response.data], { type: 'text/html;charset=UTF-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank')
+    // liberamos el blob despues de un rato (ya cargo en la pestana nueva)
+    setTimeout(() => URL.revokeObjectURL(url), 60_000)
+    toast.add({
+      severity: 'success',
+      summary: 'Etiqueta abierta',
+      detail: 'La etiqueta de Olva se abrió en una nueva pestaña',
+      life: 2500,
+    })
+  } catch (err: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: err.response?.data?.messages?.error
+        || err.response?.data?.message
+        || 'No se pudo generar la etiqueta de Olva',
+      life: 5000,
+    })
+  }
 }
 
 const handleDownloadShippingLabel = () => {

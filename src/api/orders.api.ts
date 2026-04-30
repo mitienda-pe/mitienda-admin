@@ -254,6 +254,8 @@ export const ordersApi = {
           longitude: receiverAddress.longitud || undefined,
           reference: receiverAddress.reference || undefined,
           courier: shipping.courrier?.name || undefined,
+          courier_id: shipping.courrier?.id || undefined,
+          tracking_code: rawData.tracking_code || undefined,
           tracking_url: shipping.url_traking || undefined,
           recipient_name: shipping.recipient_name || undefined,
           recipient_phone: shipping.recipient_phone || undefined,

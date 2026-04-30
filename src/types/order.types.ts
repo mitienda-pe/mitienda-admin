@@ -102,6 +102,8 @@ export interface ShippingDetails {
   longitude?: string
   reference?: string
   courier?: string
+  courier_id?: number
+  tracking_code?: string
   tracking_url?: string
   recipient_name?: string
   recipient_phone?: string
