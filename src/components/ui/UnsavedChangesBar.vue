@@ -10,17 +10,17 @@
           <span>{{ message }}</span>
         </div>
         <div class="flex items-center gap-2">
-          <Button
+          <AppButton
             v-if="showDiscard"
             label="Descartar"
-            severity="secondary"
-            text
+            variant="text"
             :disabled="loading"
             @click="$emit('discard')"
           />
-          <Button
+          <AppButton
             :label="saveLabel"
             icon="pi pi-save"
+            variant="primary"
             :loading="loading"
             :disabled="saveDisabled"
             @click="$emit('save')"
@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import Button from 'primevue/button'
+import AppButton from './AppButton.vue'
 
 withDefaults(
   defineProps<{

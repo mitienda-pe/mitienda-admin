@@ -31,9 +31,22 @@ defineEmits<{
 const buttonClass = computed(() => {
   const classes: string[] = []
 
-  // Block width
   if (props.block) {
     classes.push('w-full')
+  }
+
+  if (props.variant === 'primary') {
+    classes.push(
+      '!bg-primary',
+      '!text-white',
+      '!border-primary',
+      'hover:!bg-primary-600',
+      'hover:!border-primary-600',
+      'focus:!ring-2',
+      'focus:!ring-primary-200',
+      '!font-semibold',
+      '!shadow-sm'
+    )
   }
 
   return classes.join(' ')
