@@ -103,8 +103,10 @@ export interface ShippingDetails {
   reference?: string
   courier?: string
   courier_id?: number
+  courier_error?: string | null
   tracking_code?: string
   tracking_url?: string
+  delivery_proof_url?: string | null
   recipient_name?: string
   recipient_phone?: string
   date_delivered?: string | null

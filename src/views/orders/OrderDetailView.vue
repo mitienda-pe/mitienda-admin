@@ -51,6 +51,9 @@ const isSendingToFulfillment = ref(false)
 // Payment status actions
 const isUpdatingPayment = ref(false)
 
+// Olva redispatch state
+const isRetryingOlva = ref(false)
+
 const canConfirmPayment = computed(() => {
   return order.value?.status === 'pending'
 })
@@ -198,6 +201,44 @@ const handleDownloadPickingList = () => {
     detail: 'El picking list se está descargando',
     life: 2000
   })
+}
+
+const handleOlvaRedispatch = async () => {
+  if (!order.value || isRetryingOlva.value) return
+  isRetryingOlva.value = true
+  try {
+    const response = await apiClient.post(`/orders/${order.value.id}/olva-redispatch`)
+    const data = response.data?.data
+    if (data?.success) {
+      toast.add({
+        severity: 'success',
+        summary: 'Envío creado',
+        detail: `Olva asignó el tracking ${data.tracking_code}`,
+        life: 4000,
+      })
+      // Reload order data so the UI reflects the new tracking_code
+      await ordersStore.fetchOrder(order.value.id)
+    } else {
+      toast.add({
+        severity: 'error',
+        summary: 'No se pudo crear el envío',
+        detail: data?.error || 'Olva rechazó la solicitud',
+        life: 6000,
+      })
+    }
+  } catch (err: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: err.response?.data?.message
+        || err.response?.data?.messages?.error
+        || err.message
+        || 'No se pudo reintentar el envío',
+      life: 6000,
+    })
+  } finally {
+    isRetryingOlva.value = false
+  }
 }
 
 const handleDownloadOlvaLabel = async () => {
@@ -955,6 +996,68 @@ const handleDebugPayments = async () => {
               <div v-if="order.shipping_details?.courier">
                 <p class="text-sm text-gray-500">Courier</p>
                 <p class="text-gray-900">{{ order.shipping_details.courier }}</p>
+              </div>
+              <div v-if="order.shipping_details?.tracking_code">
+                <p class="text-sm text-gray-500">Código de tracking</p>
+                <p class="font-mono font-semibold text-gray-900">{{ order.shipping_details.tracking_code }}</p>
+              </div>
+
+              <!-- Olva: error de dispatch + boton reintentar -->
+              <div
+                v-if="isOlvaOrder && order.shipping_details?.courier_error"
+                class="bg-red-50 border border-red-200 rounded-lg p-3"
+              >
+                <div class="flex items-start gap-2">
+                  <i class="pi pi-exclamation-triangle text-red-600 mt-0.5"></i>
+                  <div class="flex-1">
+                    <p class="text-sm font-semibold text-red-700">No se pudo crear el envío en Olva</p>
+                    <p class="text-xs text-red-600 mt-1 break-words">{{ order.shipping_details.courier_error }}</p>
+                    <Button
+                      label="Reintentar envío Olva"
+                      icon="pi pi-refresh"
+                      size="small"
+                      severity="danger"
+                      :loading="isRetryingOlva"
+                      class="mt-3"
+                      @click="handleOlvaRedispatch"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Olva: boton crear envio si tiene courier_id pero todavia no hay tracking -->
+              <div
+                v-else-if="isOlvaOrder && !order.shipping_details?.tracking_code"
+                class="bg-yellow-50 border border-yellow-200 rounded-lg p-3"
+              >
+                <div class="flex items-start gap-2">
+                  <i class="pi pi-info-circle text-yellow-600 mt-0.5"></i>
+                  <div class="flex-1">
+                    <p class="text-sm text-yellow-800">El envío todavía no fue creado en Olva.</p>
+                    <Button
+                      label="Crear envío Olva"
+                      icon="pi pi-send"
+                      size="small"
+                      :loading="isRetryingOlva"
+                      class="mt-3"
+                      @click="handleOlvaRedispatch"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Prueba de entrega (foto Olva) -->
+              <div v-if="order.shipping_details?.delivery_proof_url" class="mt-2">
+                <p class="text-sm text-gray-500 mb-2">Prueba de entrega</p>
+                <a :href="order.shipping_details.delivery_proof_url" target="_blank" rel="noopener" class="inline-block">
+                  <img
+                    :src="order.shipping_details.delivery_proof_url"
+                    alt="Prueba de entrega"
+                    class="rounded-lg border border-gray-200 max-w-full hover:opacity-90 transition-opacity"
+                    style="max-height: 240px; object-fit: contain;"
+                  />
+                </a>
+                <p class="text-xs text-gray-500 mt-1">Click para abrir tamaño completo</p>
               </div>
             </div>
           </template>

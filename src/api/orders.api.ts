@@ -255,8 +255,10 @@ export const ordersApi = {
           reference: receiverAddress.reference || undefined,
           courier: shipping.courrier?.name || undefined,
           courier_id: shipping.courrier?.id || undefined,
-          tracking_code: rawData.tracking_code || undefined,
+          courier_error: shipping.courrier?.error ?? null,
+          tracking_code: shipping.tracking_code ?? rawData.tracking_code ?? undefined,
           tracking_url: shipping.url_traking || undefined,
+          delivery_proof_url: shipping.delivery_proof_url ?? null,
           recipient_name: shipping.recipient_name || undefined,
           recipient_phone: shipping.recipient_phone || undefined,
           date_delivered: shipping.date_delivered || undefined
