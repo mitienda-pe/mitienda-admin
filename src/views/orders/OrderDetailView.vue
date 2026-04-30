@@ -476,77 +476,78 @@ const SHIPPING_STATE_VISUAL: Record<number, { icon: string; color: string }> = {
 const timelineEvents = computed(() => {
   if (!order.value) return []
 
-  const events: Array<{
+  // Eventos crudos con sortDate (ISO/datetime string) — formateamos a render
+  const raw: Array<{
     status: string
-    date: string
+    sortDate: string
     icon: string
     color: string
     observacion?: string | null
   }> = []
 
-  // Pedido creado siempre va primero (la creacion no se loguea en tiendasestadosdespacho)
-  events.push({
+  const status = order.value.status
+  const history = order.value.shipping_history ?? []
+  const hasInHistory = (id: number) => history.some(ev => ev.tiendaestado_id === id)
+
+  // 1) Pedido creado — siempre. No se loguea en tiendasestadosdespacho.
+  raw.push({
     status: 'Pedido creado',
-    date: formatDateTime(order.value.created_at),
+    sortDate: order.value.created_at,
     icon: 'pi pi-shopping-cart',
     color: '#9C27B0',
   })
 
-  // Si hay historial real, usarlo (esto cubre el flujo de despacho con courier)
-  const history = order.value.shipping_history ?? []
-  if (history.length > 0) {
-    for (const ev of history) {
-      const visual = SHIPPING_STATE_VISUAL[ev.tiendaestado_id] || {
-        icon: 'pi pi-circle-fill',
-        color: '#607D8B',
-      }
-      events.push({
-        status: ev.status || `Estado ${ev.tiendaestado_id}`,
-        date: formatDateTime(ev.date),
-        icon: visual.icon,
-        color: visual.color,
-        observacion: ev.observacion,
-      })
-    }
-    return events
-  }
-
-  // Fallback al patron viejo derivado del status — para ordenes sin historial registrado
-  const status = order.value.status
-  if (status === 'paid' || status === 'shipped' || status === 'delivered') {
-    events.push({
+  // 2) Pago confirmado — sintetizar si el status lo indica y no esta en historial.
+  //    Cubre el caso de la version actual del sistema que marca tiendaventa_pagado=1
+  //    pero no inserta en tiendasestadosdespacho.
+  const isPaid = status === 'paid' || status === 'shipped' || status === 'delivered'
+  if (isPaid && !hasInHistory(31)) {
+    raw.push({
       status: 'Pago confirmado',
-      date: formatDateTime(order.value.updated_at),
+      sortDate: order.value.updated_at,
       icon: 'pi pi-check-circle',
       color: '#2196F3',
     })
   }
-  if (status === 'shipped' || status === 'delivered') {
-    events.push({
-      status: 'Pedido enviado',
-      date: formatDateTime(order.value.updated_at),
-      icon: 'pi pi-truck',
-      color: '#FF9800',
+
+  // 3) Eventos reales de tiendasestadosdespacho (incluyen Pago pendiente, Pago
+  //    confirmado si esta logueado, y todos los estados de despacho del courier).
+  for (const ev of history) {
+    const visual = SHIPPING_STATE_VISUAL[ev.tiendaestado_id] || {
+      icon: 'pi pi-circle-fill',
+      color: '#607D8B',
+    }
+    raw.push({
+      status: ev.status || `Estado ${ev.tiendaestado_id}`,
+      sortDate: ev.date,
+      icon: visual.icon,
+      color: visual.color,
+      observacion: ev.observacion,
     })
   }
-  if (status === 'delivered') {
-    events.push({
-      status: 'Pedido entregado',
-      date: formatDateTime(order.value.updated_at),
-      icon: 'pi pi-check',
-      color: '#4CAF50',
-    })
-  }
-  if (status === 'cancelled') {
-    events.push({
+
+  // 4) Cancelado — sintetizar si aplica y no esta en historial.
+  if (status === 'cancelled' && !hasInHistory(36) && !hasInHistory(35)) {
+    raw.push({
       status: 'Pedido cancelado',
-      date: formatDateTime(order.value.updated_at),
+      sortDate: order.value.updated_at,
       icon: 'pi pi-times-circle',
       color: '#F44336',
     })
   }
 
-  return events
+  // Ordenar cronologicamente. Las strings tipo "2026-04-30 12:25:00" o ISO
+  // ordenan correctamente por comparacion lexicografica.
+  raw.sort((a, b) => a.sortDate.localeCompare(b.sortDate))
+
+  // Formatear fecha al render
+  return raw.map(ev => ({
+    status: ev.status,
+    date: formatDateTime(ev.sortDate),
+    icon: ev.icon,
+    color: ev.color,
+    observacion: ev.observacion,
+  }))
 })
 
 // Subtotal de productos + envío (antes de promociones a nivel de orden)
