@@ -458,6 +458,21 @@ const statusConfig = computed(() => {
   return configs[order.value.status] || configs.pending
 })
 
+// Mapeo de tiendaestado_id a icono + color para el timeline
+// Se basa en la tabla `tiendasestados` (modulo Despacho)
+const SHIPPING_STATE_VISUAL: Record<number, { icon: string; color: string }> = {
+  30: { icon: 'pi pi-clock', color: '#9E9E9E' },         // Pago pendiente
+  31: { icon: 'pi pi-check-circle', color: '#2196F3' },   // Pago confirmado
+  32: { icon: 'pi pi-box', color: '#FF9800' },            // Preparando producto
+  33: { icon: 'pi pi-truck', color: '#3F51B5' },          // En camino
+  34: { icon: 'pi pi-check', color: '#4CAF50' },          // Entregado
+  35: { icon: 'pi pi-times-circle', color: '#F44336' },   // Rechazado
+  36: { icon: 'pi pi-times-circle', color: '#F44336' },   // Cancelado
+  37: { icon: 'pi pi-undo', color: '#E91E63' },           // Devuelto
+  38: { icon: 'pi pi-refresh', color: '#FF9800' },        // Re-programado
+  39: { icon: 'pi pi-shopping-bag', color: '#00B2A6' },   // Orden lista para retiro
+}
+
 const timelineEvents = computed(() => {
   if (!order.value) return []
 
@@ -466,50 +481,68 @@ const timelineEvents = computed(() => {
     date: string
     icon: string
     color: string
+    observacion?: string | null
   }> = []
 
-  // Siempre hay un evento de creación
+  // Pedido creado siempre va primero (la creacion no se loguea en tiendasestadosdespacho)
   events.push({
     status: 'Pedido creado',
     date: formatDateTime(order.value.created_at),
     icon: 'pi pi-shopping-cart',
-    color: '#9C27B0'
+    color: '#9C27B0',
   })
 
-  // Eventos según el estado actual
-  if (order.value.status === 'paid' || order.value.status === 'shipped' || order.value.status === 'delivered') {
+  // Si hay historial real, usarlo (esto cubre el flujo de despacho con courier)
+  const history = order.value.shipping_history ?? []
+  if (history.length > 0) {
+    for (const ev of history) {
+      const visual = SHIPPING_STATE_VISUAL[ev.tiendaestado_id] || {
+        icon: 'pi pi-circle-fill',
+        color: '#607D8B',
+      }
+      events.push({
+        status: ev.status || `Estado ${ev.tiendaestado_id}`,
+        date: formatDateTime(ev.date),
+        icon: visual.icon,
+        color: visual.color,
+        observacion: ev.observacion,
+      })
+    }
+    return events
+  }
+
+  // Fallback al patron viejo derivado del status — para ordenes sin historial registrado
+  const status = order.value.status
+  if (status === 'paid' || status === 'shipped' || status === 'delivered') {
     events.push({
       status: 'Pago confirmado',
       date: formatDateTime(order.value.updated_at),
       icon: 'pi pi-check-circle',
-      color: '#2196F3'
+      color: '#2196F3',
     })
   }
-
-  if (order.value.status === 'shipped' || order.value.status === 'delivered') {
+  if (status === 'shipped' || status === 'delivered') {
     events.push({
       status: 'Pedido enviado',
       date: formatDateTime(order.value.updated_at),
       icon: 'pi pi-truck',
-      color: '#FF9800'
+      color: '#FF9800',
     })
   }
-
-  if (order.value.status === 'delivered') {
+  if (status === 'delivered') {
     events.push({
       status: 'Pedido entregado',
       date: formatDateTime(order.value.updated_at),
       icon: 'pi pi-check',
-      color: '#4CAF50'
+      color: '#4CAF50',
     })
   }
-
-  if (order.value.status === 'cancelled') {
+  if (status === 'cancelled') {
     events.push({
       status: 'Pedido cancelado',
       date: formatDateTime(order.value.updated_at),
       icon: 'pi pi-times-circle',
-      color: '#F44336'
+      color: '#F44336',
     })
   }
 
@@ -1544,6 +1577,12 @@ const handleDebugPayments = async () => {
                     <div>
                       <p class="font-semibold text-gray-900">{{ slotProps.item.status }}</p>
                       <p class="text-sm text-gray-500">{{ slotProps.item.date }}</p>
+                      <p
+                        v-if="slotProps.item.observacion"
+                        class="text-xs text-gray-600 mt-1"
+                      >
+                        {{ slotProps.item.observacion }}
+                      </p>
                     </div>
                   </template>
                 </Timeline>

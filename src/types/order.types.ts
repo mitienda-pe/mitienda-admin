@@ -45,6 +45,7 @@ export interface Order {
   coupon_value?: number // Coupon value (percentage or fixed amount)
   coupon_type?: 'percentage' | 'fixed' // Coupon discount type
   referrer_code?: string | null // Referrer/affiliate code
+  shipping_history?: ShippingHistoryEvent[] // Eventos de despacho (tiendasestadosdespacho)
   created_at: string
   updated_at: string
 }
@@ -110,6 +111,14 @@ export interface ShippingDetails {
   recipient_name?: string
   recipient_phone?: string
   date_delivered?: string | null
+}
+
+export interface ShippingHistoryEvent {
+  tiendaestado_id: number
+  status: string
+  modulo: string
+  observacion: string | null
+  date: string
 }
 
 export interface OrderItem {

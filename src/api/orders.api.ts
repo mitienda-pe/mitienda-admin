@@ -261,8 +261,17 @@ export const ordersApi = {
           delivery_proof_url: shipping.delivery_proof_url ?? null,
           recipient_name: shipping.recipient_name || undefined,
           recipient_phone: shipping.recipient_phone || undefined,
-          date_delivered: shipping.date_delivered || undefined
+          date_delivered: shipping.date_delivered || undefined,
         },
+        shipping_history: Array.isArray(rawData.shipping_history)
+          ? rawData.shipping_history.map((ev: any) => ({
+              tiendaestado_id: Number(ev.tiendaestado_id) || 0,
+              status: String(ev.status || ''),
+              modulo: String(ev.modulo || ''),
+              observacion: ev.observacion ?? null,
+              date: String(ev.date || ''),
+            }))
+          : undefined,
         created_at: rawData.date_created || '',
         updated_at: rawData.date_created || '',
         notes: rawData.notes || undefined,
