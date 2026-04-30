@@ -120,6 +120,7 @@ import nirexLogo from '@/assets/images/logo-nirex.png'
 import urbanoLogo from '@/assets/images/logo-urbano.png'
 import yangoLogo from '@/assets/images/logo-yango.svg'
 import hopLogo from '@/assets/images/logo-hop.svg'
+import olvaLogo from '@/assets/images/logo-olva.svg'
 
 const router = useRouter()
 const store = useCourierProvidersStore()
@@ -132,9 +133,10 @@ const courierLogos: Record<string, string> = {
   urbano: urbanoLogo,
   yango: yangoLogo,
   hop: hopLogo,
+  olva: olvaLogo,
 }
 
-const betaCouriers = ['chazki', 'nirex', 'urbano', 'yango', 'hop']
+const betaCouriers = ['chazki', 'nirex', 'urbano', 'yango', 'hop', 'olva']
 
 function stripHtml(text: string): string {
   if (!text) return ''
@@ -149,6 +151,7 @@ const courierGradients: Record<string, string> = {
   urbano: 'bg-gradient-to-br from-indigo-50 to-indigo-100',
   yango: 'bg-[#ff0000]',
   hop: 'bg-[#ee4424]',
+  olva: 'bg-[#FFC107]',
 }
 
 function getDefaultDescription(code: string): string {
@@ -160,6 +163,7 @@ function getDefaultDescription(code: string): string {
     urbano: 'Servicio de courier y logística a nivel nacional con distribución terrestre, aérea y puntos de recojo.',
     yango: 'Plataforma de delivery express con courier, express y cargo para entregas rápidas en la ciudad.',
     hop: 'Plataforma logística con red de puntos de entrega y retiro en Argentina, Uruguay y Perú.',
+    olva: 'Operador logístico nacional con cobertura en todo el Perú. Servicios de recojo y logística inversa.',
   }
   return descriptions[code] || ''
 }
