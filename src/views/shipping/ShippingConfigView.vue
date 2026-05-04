@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useShippingConfigStore } from '@/stores/shipping-config.store'
+import { useStoreInfoStore } from '@/stores/store-info.store'
 import { storeToRefs } from 'pinia'
 import InputSwitch from 'primevue/inputswitch'
 import InputNumber from 'primevue/inputnumber'
@@ -14,7 +15,19 @@ import apiClient from '@/api/axios'
 
 const store = useShippingConfigStore()
 const { draftConfig, isLoading, isSaving, error, hasChanges } = storeToRefs(store)
+const storeInfoStore = useStoreInfoStore()
+const { addresses } = storeToRefs(storeInfoStore)
 const toast = useToast()
+
+// "Recojo en tienda" sólo se puede habilitar si hay al menos una dirección
+// publicada marcada como punto de recojo. El backend valida lo mismo, pero
+// bloqueamos en UI para evitar el viaje al servidor y guiar al usuario.
+const hasPickupPoint = computed(() =>
+  addresses.value.some(a => a.tiendadireccion_swpublicado === 1 && a.tiendadireccion_swalmacen === 1)
+)
+const canEnableStorePickup = computed(() =>
+  hasPickupPoint.value || draftConfig.value.swRecojoEnTienda
+)
 
 // Service type cutoff configs
 interface ServiceTypeConfig {
@@ -105,6 +118,17 @@ onMounted(async () => {
   if (draftConfig.value.swServiciosEnvio) {
     loadServiceTypeConfigs()
   }
+  // Cargar direcciones para saber si hay puntos de recojo configurados
+  await storeInfoStore.fetchAddresses()
+})
+
+// Si dejan de existir puntos de recojo mientras la pantalla está abierta
+// (poco probable, pero posible) y el toggle estaba encendido, lo apagamos
+// para dejar el draft coherente con lo que el backend permitiría guardar.
+watch(hasPickupPoint, (has) => {
+  if (!has && draftConfig.value.swRecojoEnTienda) {
+    store.updateField('swRecojoEnTienda', false)
+  }
 })
 </script>
 
@@ -148,16 +172,35 @@ onMounted(async () => {
           </div>
 
           <!-- Recojo en tienda -->
-          <div class="flex items-center justify-between py-2 border-t border-gray-100">
-            <div>
-              <p class="font-medium text-gray-900">Recojo en tienda</p>
-              <p class="text-sm text-gray-500">
-                Permite a tus clientes recoger pedidos en tu local
+          <div class="py-2 border-t border-gray-100">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="font-medium text-gray-900">Recojo en tienda</p>
+                <p class="text-sm text-gray-500">
+                  Permite a tus clientes recoger pedidos en tu local
+                </p>
+              </div>
+              <InputSwitch
+                v-model="draftConfig.swRecojoEnTienda"
+                :disabled="!canEnableStorePickup"
+              />
+            </div>
+            <div
+              v-if="!hasPickupPoint"
+              class="mt-2 flex items-start gap-2 rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800"
+            >
+              <i class="pi pi-info-circle mt-0.5" />
+              <p>
+                Para habilitar esta opción primero debes marcar al menos una dirección como
+                <strong>punto de recojo</strong>.
+                <router-link
+                  :to="{ name: 'store-addresses' }"
+                  class="text-primary hover:underline font-medium"
+                >
+                  Ir a Direcciones de la tienda
+                </router-link>
               </p>
             </div>
-            <InputSwitch
-              v-model="draftConfig.swRecojoEnTienda"
-            />
           </div>
 
           <!-- Pago en destino (placeholder) -->
