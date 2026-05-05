@@ -2,6 +2,9 @@ import apiClient from './axios'
 import type { Order, OrderStatus } from '@/types/order.types'
 import type { ApiResponse, PaginatedResponse } from '@/types/api.types'
 
+export type OrderSortField = 'date' | 'total' | 'status' | 'customer' | 'code' | 'billed'
+export type OrderSortDir = 'asc' | 'desc'
+
 export interface OrdersFilters {
   page?: number
   limit?: number
@@ -9,6 +12,9 @@ export interface OrdersFilters {
   status?: OrderStatus | 'all'
   date_from?: string
   date_to?: string
+  billed?: '1' | '0' | 'all'
+  sort_by?: OrderSortField
+  sort_dir?: OrderSortDir
 }
 
 export interface OrderStats {
@@ -72,6 +78,9 @@ export const ordersApi = {
     }
     if (filters.date_from) params.append('date_from', filters.date_from)
     if (filters.date_to) params.append('date_to', filters.date_to)
+    if (filters.billed && filters.billed !== 'all') params.append('billed', filters.billed)
+    if (filters.sort_by) params.append('sort_by', filters.sort_by)
+    if (filters.sort_dir) params.append('sort_dir', filters.sort_dir.toUpperCase())
 
     // Use new paginated endpoint that returns: { error: 0, data: [...], pagination: {...} }
     const response = await apiClient.get(`/orders/paginated?${params.toString()}`)
@@ -92,6 +101,7 @@ export const ordersApi = {
             const billingInfo = order.billing_info || {}
             const shipping = order.shipping || {}
             const discount = order.discount || {}
+            const eBilling = billingInfo['e-billing']
 
             return {
               id: order.id,
@@ -103,6 +113,7 @@ export const ordersApi = {
                 phone: billingInfo.phone_number || '',
                 document_type: billingInfo.doc_type || '',
                 document_number: billingInfo.doc_number || '',
+                business_name: billingInfo.bussiness_name || '',
                 created_at: order.date_created || ''
               },
               items: order.order_items || [],
@@ -117,7 +128,18 @@ export const ordersApi = {
               shipping_address: shipping.receiver_address?.address_line || '',
               created_at: order.date_created || '',
               updated_at: order.date_created || '',
-              notes: shipping.receiver_address?.comment || undefined
+              notes: shipping.receiver_address?.comment || undefined,
+              billing_document: eBilling ? {
+                id: eBilling.id || 0,
+                status: eBilling.status || 0,
+                source: eBilling.source || null,
+                billing_date: eBilling.billing_date || null,
+                serie: eBilling.serie || '',
+                correlative: eBilling.correlative || '',
+                pdf_url: eBilling.url_pdf || undefined,
+                xml_url: eBilling.url_xml || undefined,
+                netsuite_invoice_id: eBilling.netsuite_invoice_id || undefined
+              } : undefined
             }
           } else {
             // Formato directo de BD (campos en español)

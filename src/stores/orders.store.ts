@@ -1,13 +1,27 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { ordersApi, type OrdersFilters, type OrderStats } from '@/api/orders.api'
+import {
+  ordersApi,
+  type OrdersFilters,
+  type OrderStats,
+  type OrderSortField,
+  type OrderSortDir,
+} from '@/api/orders.api'
 import type { Order, OrderStatus } from '@/types/order.types'
+
+export type BilledFilter = 'all' | '1' | '0'
 
 export interface OrderFilters {
   search: string
   status: OrderStatus | 'all'
   dateFrom: string | null
   dateTo: string | null
+  billed: BilledFilter
+}
+
+export interface OrderSort {
+  by: OrderSortField
+  dir: OrderSortDir
 }
 
 export const useOrdersStore = defineStore('orders', () => {
@@ -29,7 +43,13 @@ export const useOrdersStore = defineStore('orders', () => {
     search: '',
     status: 'all',
     dateFrom: null,
-    dateTo: null
+    dateTo: null,
+    billed: 'all'
+  })
+
+  const sort = ref<OrderSort>({
+    by: 'date',
+    dir: 'desc'
   })
 
   // Getters
@@ -58,7 +78,10 @@ export const useOrdersStore = defineStore('orders', () => {
         search: filters.value.search || undefined,
         status: filters.value.status !== 'all' ? filters.value.status : undefined,
         date_from: filters.value.dateFrom || undefined,
-        date_to: filters.value.dateTo || undefined
+        date_to: filters.value.dateTo || undefined,
+        billed: filters.value.billed !== 'all' ? filters.value.billed : undefined,
+        sort_by: sort.value.by,
+        sort_dir: sort.value.dir
       }
 
       const response = await ordersApi.getOrders(apiFilters)
@@ -171,8 +194,26 @@ export const useOrdersStore = defineStore('orders', () => {
       search: '',
       status: 'all',
       dateFrom: null,
-      dateTo: null
+      dateTo: null,
+      billed: 'all'
     }
+    pagination.value.page = 1
+    fetchOrders()
+  }
+
+  function setSort(by: OrderSortField, dir: OrderSortDir) {
+    sort.value = { by, dir }
+    pagination.value.page = 1
+    fetchOrders()
+  }
+
+  function setPage(page: number) {
+    pagination.value.page = page
+    fetchOrders()
+  }
+
+  function setLimit(limit: number) {
+    pagination.value.limit = limit
     pagination.value.page = 1
     fetchOrders()
   }
@@ -210,6 +251,7 @@ export const useOrdersStore = defineStore('orders', () => {
     error,
     pagination,
     filters,
+    sort,
     stats,
 
     // Getters
@@ -226,6 +268,9 @@ export const useOrdersStore = defineStore('orders', () => {
     setSearch,
     setStatus,
     setDateRange,
+    setSort,
+    setPage,
+    setLimit,
     resetFilters,
     loadMore,
     clearCurrentOrder,

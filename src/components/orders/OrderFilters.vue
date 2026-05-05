@@ -5,10 +5,13 @@ import Calendar from 'primevue/calendar'
 import Button from 'primevue/button'
 import type { OrderStatus } from '@/types/order.types'
 
+export type BilledFilter = 'all' | '1' | '0'
+
 export interface OrderFiltersData {
   status: OrderStatus | 'all'
   dateFrom: Date | null
   dateTo: Date | null
+  billed: BilledFilter
 }
 
 const props = defineProps<{
@@ -31,6 +34,12 @@ const statusOptions = [
   { label: 'Rechazado', value: 'cancelled' }
 ]
 
+const billedOptions = [
+  { label: 'Todos', value: 'all' },
+  { label: 'Facturado', value: '1' },
+  { label: 'No facturado', value: '0' }
+]
+
 const handleFilterChange = () => {
   emit('update:modelValue', { ...localFilters.value })
 }
@@ -39,7 +48,8 @@ const handleClear = () => {
   localFilters.value = {
     status: 'all',
     dateFrom: null,
-    dateTo: null
+    dateTo: null,
+    billed: 'all'
   }
   emit('clear')
 }
@@ -48,7 +58,8 @@ const hasActiveFilters = () => {
   return (
     localFilters.value.status !== 'all' ||
     localFilters.value.dateFrom !== null ||
-    localFilters.value.dateTo !== null
+    localFilters.value.dateTo !== null ||
+    localFilters.value.billed !== 'all'
   )
 }
 </script>
@@ -66,6 +77,20 @@ const hasActiveFilters = () => {
           option-label="label"
           option-value="value"
           placeholder="Seleccionar estado"
+          class="w-full"
+          @change="handleFilterChange"
+        />
+      </div>
+
+      <!-- Facturación -->
+      <div class="flex-1">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Facturación</label>
+        <Dropdown
+          v-model="localFilters.billed"
+          :options="billedOptions"
+          option-label="label"
+          option-value="value"
+          placeholder="Seleccionar"
           class="w-full"
           @change="handleFilterChange"
         />
