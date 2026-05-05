@@ -92,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed, onMounted, watch } from 'vue'
+import { reactive, computed, onMounted, ref, watch } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { usePaymentGatewaysStore } from '@/stores/payment-gateways.store'
