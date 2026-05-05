@@ -22,8 +22,9 @@ const toast = useToast()
 // "Recojo en tienda" sólo se puede habilitar si hay al menos una dirección
 // publicada marcada como punto de recojo. El backend valida lo mismo, pero
 // bloqueamos en UI para evitar el viaje al servidor y guiar al usuario.
+// Usamos coerción numérica porque MySQLi devuelve TINYINT como string ('1').
 const hasPickupPoint = computed(() =>
-  addresses.value.some(a => a.tiendadireccion_swpublicado === 1 && a.tiendadireccion_swalmacen === 1)
+  addresses.value.some(a => Number(a.tiendadireccion_swpublicado) === 1 && Number(a.tiendadireccion_swalmacen) === 1)
 )
 const canEnableStorePickup = computed(() =>
   hasPickupPoint.value || draftConfig.value.swRecojoEnTienda
