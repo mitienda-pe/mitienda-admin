@@ -90,8 +90,11 @@ export const usePaymentGatewaysStore = defineStore('payment-gateways', () => {
 
       if (response.success) {
         successMessage.value = response.message || 'Credenciales guardadas exitosamente'
-        // Refrescar lista
-        await fetchGateways()
+        // Refrescar lista y la config actual del form (sino isConfigured queda en false)
+        await Promise.all([
+          fetchGateways(),
+          fetchGatewayConfig(code),
+        ])
         return { success: true }
       } else {
         error.value = response.message || 'Error al guardar credenciales'
