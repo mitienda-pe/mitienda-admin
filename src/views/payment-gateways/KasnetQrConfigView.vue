@@ -20,8 +20,11 @@
               <div class="space-y-4">
                 <div>
                   <label class="block text-sm font-medium text-secondary-700 mb-2">API Key <span class="text-red-500">*</span></label>
-                  <Password v-model="formData.api_key" placeholder="API Key proporcionada por Kasnet" class="w-full" :feedback="false" toggleMask />
-                  <small class="text-secondary-500">Credencial entregada por Kasnet (Globokas) para el QR Interoperable v3.</small>
+                  <Password v-model="formData.api_key" placeholder="API Key proporcionada por Kasnet" class="w-full" :feedback="false" toggleMask @focus="clearMaskedApiKey" />
+                  <small v-if="!isApiKeyDirty && isConfigured" class="text-secondary-500">
+                    Hay una API key guardada (oculta). Pega una nueva para reemplazarla, o deja el campo vacío para mantener la actual.
+                  </small>
+                  <small v-else class="text-secondary-500">Credencial entregada por Kasnet (Globokas) para el QR Interoperable v3.</small>
                 </div>
               </div>
             </div>
@@ -115,6 +118,11 @@ const formData = reactive({
   environment: 'prueba' as 'produccion' | 'prueba',
 })
 
+// El backend devuelve la api_key enmascarada (••••••••XXXX). No la pre-llenamos
+// para evitar que el usuario edite encima de los bullets y termine guardando un
+// valor mezclado que el backend rechaza como "masked" (preservando el viejo).
+const isApiKeyDirty = ref(false)
+
 const { isDirty, reset: resetDirty } = useDirtyForm(() => formData)
 
 const isConfigured = computed(() => store.currentConfig?.gateway?.configured || false)
@@ -122,24 +130,50 @@ const isConfigured = computed(() => store.currentConfig?.gateway?.configured || 
 watch(() => store.currentConfig, (config) => {
   if (config?.credentials) {
     const c = config.credentials as Record<string, any>
-    formData.api_key = c.api_key ?? ''
+    formData.api_key = ''  // siempre vacío al cargar, el usuario decide si reemplaza
     formData.environment = c.environment ?? 'prueba'
   }
+  isApiKeyDirty.value = false
   resetDirty()
 }, { immediate: true })
+
+watch(() => formData.api_key, (val) => {
+  if (val && val.length > 0) isApiKeyDirty.value = true
+})
+
+function clearMaskedApiKey() {
+  // Por si acaso quedó algo enmascarado (no debería con el watch arriba), limpiamos.
+  if (formData.api_key.includes('•')) {
+    formData.api_key = ''
+  }
+}
 
 onMounted(() => { store.clearMessages() })
 
 async function handleSubmit() {
-  if (!formData.api_key) {
+  // Para una tienda recién configurada exigimos api_key.
+  // Si ya estaba configurada, permitimos guardar sin tocar la key (el backend
+  // mantiene la existente cuando enviamos string vacío después del cambio de env).
+  if (!isConfigured.value && !formData.api_key) {
     toast.add({ severity: 'warn', summary: 'API Key requerida', life: 3000 })
     return
   }
+
+  // Si la key viene vacía y ya hay una guardada, no la enviamos para no pisarla
+  const credentialsPayload: Record<string, any> = { environment: formData.environment }
+  if (formData.api_key) {
+    credentialsPayload.api_key = formData.api_key
+  }
+
   const result = isConfigured.value
-    ? await store.updateCredentials(GATEWAY_CODE, { credentials: formData, environment: formData.environment, enabled: true })
-    : await store.saveCredentials(GATEWAY_CODE, { credentials: formData, environment: formData.environment, enabled: true })
+    ? await store.updateCredentials(GATEWAY_CODE, { credentials: credentialsPayload, environment: formData.environment, enabled: true })
+    : await store.saveCredentials(GATEWAY_CODE, { credentials: credentialsPayload, environment: formData.environment, enabled: true })
   toast.add({ severity: result.success ? 'success' : 'error', summary: result.success ? 'Éxito' : 'Error', life: 3000 })
-  if (result.success) resetDirty()
+  if (result.success) {
+    formData.api_key = ''
+    isApiKeyDirty.value = false
+    resetDirty()
+  }
 }
 
 function handleDelete() {
