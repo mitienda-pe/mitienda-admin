@@ -76,7 +76,8 @@ const gatewayNames: Record<string, string> = {
   'wompi': 'Wompi',
   'conekta': 'Conekta',
   'flow': 'Flow',
-  'dlocal': 'dLocal'
+  'dlocal': 'dLocal',
+  'kasnet-qr': 'Kasnet QR'
 }
 
 const gatewayName = computed(() => gatewayNames[gatewayCode.value] || 'Pasarela Desconocida')
@@ -99,7 +100,8 @@ const configComponents: Record<string, Component> = {
   'wompi': defineAsyncComponent(() => import('./WompiConfigView.vue')),
   'conekta': defineAsyncComponent(() => import('./ConektaConfigView.vue')),
   'flow': defineAsyncComponent(() => import('./FlowConfigView.vue')),
-  'dlocal': defineAsyncComponent(() => import('./DLocalConfigView.vue'))
+  'dlocal': defineAsyncComponent(() => import('./DLocalConfigView.vue')),
+  'kasnet-qr': defineAsyncComponent(() => import('./KasnetQrConfigView.vue'))
 }
 
 const configComponent = computed(() => {
