@@ -249,6 +249,11 @@ export const netsuiteApi = {
       local_stock: number
       netsuite_stock: number | null
       stock_match: boolean
+      local_price: number
+      local_price_without_igv: number
+      netsuite_price: number | null
+      netsuite_price_without_igv: number | null
+      price_match: boolean
     }>
     pagination: {
       page: number
@@ -267,6 +272,38 @@ export const netsuiteApi = {
     if (params?.limit) queryParams.append('limit', params.limit.toString())
 
     const response = await apiClient.get(`/netsuite-stock?${queryParams.toString()}`)
+    return response.data
+  },
+
+  // ========== Tienda-wide NetSuite sync (equivalent to spark sync:stock / sync:prices) ==========
+
+  /**
+   * Triggers a full-tienda stock sync from NetSuite. Long-running (~30-90s).
+   */
+  async syncTiendaStock(dryRun = false): Promise<{
+    success: boolean
+    dry_run: boolean
+    data: any
+    finished_at: string
+    message?: string
+  }> {
+    const qs = dryRun ? '?dry_run=1' : ''
+    const response = await apiClient.post(`/tienda/sync-stock${qs}`, {}, { timeout: 600000 })
+    return response.data
+  },
+
+  /**
+   * Triggers a full-tienda price sync from NetSuite. Long-running (~60-120s).
+   */
+  async syncTiendaPrices(dryRun = false): Promise<{
+    success: boolean
+    dry_run: boolean
+    data: any
+    finished_at: string
+    message?: string
+  }> {
+    const qs = dryRun ? '?dry_run=1' : ''
+    const response = await apiClient.post(`/tienda/sync-prices${qs}`, {}, { timeout: 900000 })
     return response.data
   },
 

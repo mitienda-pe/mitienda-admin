@@ -1,18 +1,43 @@
 <template>
   <div class="space-y-4">
     <!-- Header -->
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between flex-wrap gap-3">
       <div>
-        <h1 class="text-2xl font-bold text-secondary-800">Stock en NetSuite</h1>
-        <p class="text-secondary-600 mt-1">Consulta el stock de productos en el location configurado de NetSuite</p>
+        <h1 class="text-2xl font-bold text-secondary-800">Stock y precios en NetSuite</h1>
+        <p class="text-secondary-600 mt-1">Comparación de stock y precios entre MiTienda y NetSuite, con sincronización manual.</p>
       </div>
-      <Button
-        label="Actualizar"
-        icon="pi pi-refresh"
-        :loading="isLoading"
-        @click="loadStock"
-      />
+      <div class="flex items-center gap-2">
+        <Button
+          label="Sincronizar stock"
+          icon="pi pi-cloud-download"
+          severity="secondary"
+          outlined
+          :loading="syncingStock"
+          :disabled="syncingPrices"
+          @click="onSyncTiendaStock"
+        />
+        <Button
+          label="Sincronizar precios"
+          icon="pi pi-dollar"
+          severity="secondary"
+          outlined
+          :loading="syncingPrices"
+          :disabled="syncingStock"
+          @click="onSyncTiendaPrices"
+        />
+        <Button
+          label="Actualizar"
+          icon="pi pi-refresh"
+          :loading="isLoading"
+          @click="loadStock"
+        />
+      </div>
     </div>
+
+    <!-- Sync result -->
+    <Message v-if="lastSyncMessage" :severity="lastSyncSeverity" @close="lastSyncMessage = ''">
+      {{ lastSyncMessage }}
+    </Message>
 
     <!-- Error state -->
     <Message v-if="error" severity="error" :closable="false">
@@ -27,7 +52,7 @@
     <!-- Info Card -->
     <Card v-if="locationId">
       <template #content>
-        <div class="flex items-center gap-4 text-sm">
+        <div class="flex items-center gap-4 text-sm flex-wrap">
           <div class="flex items-center gap-2">
             <i class="pi pi-map-marker text-primary"></i>
             <span class="text-secondary-600">Location ID:</span>
@@ -94,31 +119,25 @@
             </div>
           </template>
 
-          <Column field="sku" header="SKU" :sortable="true" style="min-width: 120px">
+          <Column field="sku" header="SKU" :sortable="true" style="min-width: 110px">
             <template #body="{ data }">
               <span class="font-mono text-sm">{{ data.sku }}</span>
             </template>
           </Column>
 
-          <Column field="product_name" header="Producto" :sortable="true" style="min-width: 250px">
+          <Column field="product_name" header="Producto" :sortable="true" style="min-width: 240px">
             <template #body="{ data }">
               <span class="text-sm">{{ data.product_name }}</span>
             </template>
           </Column>
 
-          <Column field="netsuite_item_id" header="NS Item ID" style="min-width: 100px">
-            <template #body="{ data }">
-              <span class="font-mono text-sm text-secondary-500">{{ data.netsuite_item_id }}</span>
-            </template>
-          </Column>
-
-          <Column field="local_stock" header="Stock Local" :sortable="true" style="min-width: 100px" class="text-right">
+          <Column field="local_stock" header="Stock MiTienda" :sortable="true" style="min-width: 110px" class="text-right">
             <template #body="{ data }">
               <span class="font-semibold">{{ data.local_stock }}</span>
             </template>
           </Column>
 
-          <Column field="netsuite_stock" header="Stock NetSuite" :sortable="true" style="min-width: 120px" class="text-right">
+          <Column field="netsuite_stock" header="Stock NetSuite" :sortable="true" style="min-width: 110px" class="text-right">
             <template #body="{ data }">
               <span v-if="data.netsuite_stock !== null" class="font-semibold">
                 {{ data.netsuite_stock }}
@@ -127,7 +146,7 @@
             </template>
           </Column>
 
-          <Column header="Estado" style="min-width: 120px" class="text-center">
+          <Column header="Δ Stock" style="min-width: 100px" class="text-center">
             <template #body="{ data }">
               <Button
                 v-if="data.netsuite_stock === null"
@@ -138,16 +157,31 @@
                 :loading="loadingProductId === data.product_id"
                 @click="queryIndividualStock(data)"
               />
-              <Tag
-                v-else-if="data.stock_match"
-                severity="success"
-                value="Igual"
-              />
-              <Tag
-                v-else
-                severity="warning"
-                :value="getStockDiff(data)"
-              />
+              <Tag v-else-if="data.stock_match" severity="success" value="Igual" />
+              <Tag v-else severity="warning" :value="getStockDiff(data)" />
+            </template>
+          </Column>
+
+          <Column field="local_price" header="Precio MiTienda" :sortable="true" style="min-width: 120px" class="text-right">
+            <template #body="{ data }">
+              <span class="font-semibold">{{ formatMoney(data.local_price) }}</span>
+            </template>
+          </Column>
+
+          <Column field="netsuite_price" header="Precio NetSuite" :sortable="true" style="min-width: 120px" class="text-right">
+            <template #body="{ data }">
+              <span v-if="data.netsuite_price !== null" class="font-semibold">
+                {{ formatMoney(data.netsuite_price) }}
+              </span>
+              <span v-else class="text-secondary-400 italic">N/A</span>
+            </template>
+          </Column>
+
+          <Column header="Δ Precio" style="min-width: 100px" class="text-center">
+            <template #body="{ data }">
+              <Tag v-if="data.netsuite_price === null" severity="secondary" value="N/A" />
+              <Tag v-else-if="data.price_match" severity="success" value="Igual" />
+              <Tag v-else severity="warning" :value="formatMoney(data.netsuite_price - data.local_price)" />
             </template>
           </Column>
         </DataTable>
@@ -196,6 +230,11 @@ interface ProductStock {
   local_stock: number
   netsuite_stock: number | null
   stock_match: boolean
+  local_price: number
+  local_price_without_igv: number
+  netsuite_price: number | null
+  netsuite_price_without_igv: number | null
+  price_match: boolean
 }
 
 const products = ref<ProductStock[]>([])
@@ -214,6 +253,10 @@ const pagination = ref({
 })
 
 const loadingProductId = ref<number | null>(null)
+const syncingStock = ref(false)
+const syncingPrices = ref(false)
+const lastSyncMessage = ref('')
+const lastSyncSeverity = ref<'success' | 'warn' | 'error'>('success')
 
 async function loadStock() {
   isLoading.value = true
@@ -266,6 +309,11 @@ function getStockDiff(data: ProductStock): string {
   return diff.toString()
 }
 
+function formatMoney(value: number | null | undefined): string {
+  if (value === null || value === undefined) return 'N/A'
+  return `S/ ${Number(value).toFixed(2)}`
+}
+
 async function queryIndividualStock(product: ProductStock) {
   loadingProductId.value = product.product_id
 
@@ -273,7 +321,6 @@ async function queryIndividualStock(product: ProductStock) {
     const response = await netsuiteApi.getProductNetsuiteStock(product.product_id)
 
     if (response.success && response.data) {
-      // Actualizar el producto en la lista
       const index = products.value.findIndex(p => p.product_id === product.product_id)
       if (index !== -1) {
         const netsuiteStock = response.data.netsuite_stock
@@ -301,6 +348,57 @@ async function queryIndividualStock(product: ProductStock) {
     })
   } finally {
     loadingProductId.value = null
+  }
+}
+
+async function onSyncTiendaStock() {
+  syncingStock.value = true
+  lastSyncMessage.value = ''
+  try {
+    const res = await netsuiteApi.syncTiendaStock(false)
+    const stats = res?.data?.stats || res?.data || {}
+    const updated = stats.updated_count ?? stats.updated ?? 0
+    const errors = stats.errors_count ?? (Array.isArray(stats.errors) ? stats.errors.length : 0)
+    lastSyncSeverity.value = errors > 0 ? 'warn' : 'success'
+    lastSyncMessage.value = `Sincronización de stock completada: ${updated} actualizado(s)${errors > 0 ? `, ${errors} error(es)` : ''}.`
+    toast.add({ severity: lastSyncSeverity.value, summary: 'Stock', detail: lastSyncMessage.value, life: 4000 })
+    await loadStock()
+  } catch (err: any) {
+    console.error('Error sync tienda stock:', err)
+    lastSyncSeverity.value = 'error'
+    lastSyncMessage.value = err?.response?.data?.messages?.error
+      || err?.response?.data?.error
+      || err?.message
+      || 'Error sincronizando stock de la tienda'
+    toast.add({ severity: 'error', summary: 'Error', detail: lastSyncMessage.value, life: 6000 })
+  } finally {
+    syncingStock.value = false
+  }
+}
+
+async function onSyncTiendaPrices() {
+  syncingPrices.value = true
+  lastSyncMessage.value = ''
+  try {
+    const res = await netsuiteApi.syncTiendaPrices(false)
+    const stats = res?.data || {}
+    const updated = stats.updated_count ?? 0
+    const created = stats.created_count ?? 0
+    const errors = Array.isArray(stats.errors) ? stats.errors.length : 0
+    lastSyncSeverity.value = errors > 0 ? 'warn' : 'success'
+    lastSyncMessage.value = `Sincronización de precios completada: ${updated} actualizado(s)${created > 0 ? `, ${created} producto(s) nuevo(s)` : ''}${errors > 0 ? `, ${errors} error(es)` : ''}.`
+    toast.add({ severity: lastSyncSeverity.value, summary: 'Precios', detail: lastSyncMessage.value, life: 4000 })
+    await loadStock()
+  } catch (err: any) {
+    console.error('Error sync tienda prices:', err)
+    lastSyncSeverity.value = 'error'
+    lastSyncMessage.value = err?.response?.data?.messages?.error
+      || err?.response?.data?.error
+      || err?.message
+      || 'Error sincronizando precios de la tienda'
+    toast.add({ severity: 'error', summary: 'Error', detail: lastSyncMessage.value, life: 6000 })
+  } finally {
+    syncingPrices.value = false
   }
 }
 
