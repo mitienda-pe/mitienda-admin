@@ -179,6 +179,7 @@ import logoWompi from '@/assets/images/logo-wompi.svg'
 import logoDlocal from '@/assets/images/logo-dlocal.svg'
 import logoFlow from '@/assets/images/logo-flow.svg'
 import logoConekta from '@/assets/images/logo-conekta.svg'
+import logoKasnet from '@/assets/images/logo-kasnet.png'
 
 const router = useRouter()
 const store = usePaymentGatewaysStore()
@@ -202,6 +203,7 @@ const gatewayLogos: Record<string, string> = {
   'dlocal': logoDlocal,
   'flow': logoFlow,
   'conekta': logoConekta,
+  'kasnet-qr': logoKasnet,
 }
 
 const exclusiveGateways = computed(() =>

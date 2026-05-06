@@ -61,6 +61,9 @@
         <template #title><div class="flex items-center gap-2"><i class="pi pi-info-circle"></i><span>Información</span></div></template>
         <template #content>
           <div class="space-y-4 text-sm">
+            <div class="flex justify-center">
+              <img :src="logoKasnet" alt="Kasnet" class="h-12 object-contain" />
+            </div>
             <p class="text-secondary-600">Kasnet QR Interoperable permite cobrar con QR a clientes que pagan desde cualquier billetera o app bancaria en Perú (Yape, Plin, banca móvil, etc.).</p>
             <Divider />
             <Button label="Ir a Kasnet" icon="pi pi-external-link" link class="w-full" @click="openKasnet" />
@@ -105,6 +108,7 @@ import RadioButton from 'primevue/radiobutton'
 import Divider from 'primevue/divider'
 import Message from 'primevue/message'
 import { UnsavedChangesBar } from '@/components/ui'
+import logoKasnet from '@/assets/images/logo-kasnet.png'
 
 const toast = useToast()
 const confirm = useConfirm()
