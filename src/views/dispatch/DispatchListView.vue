@@ -8,19 +8,18 @@ import type {
   DispatchOrder,
   DispatchOrdersFilters,
   DispatchState,
-  DispatchStats,
   DispatchStateId
 } from '@/types/dispatch.types'
-import DataTable from 'primevue/datatable'
+import SearchBar from '@/components/common/SearchBar.vue'
+import DataTable, { type DataTablePageEvent, type DataTableRowClickEvent } from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
 import Dropdown from 'primevue/dropdown'
-import InputText from 'primevue/inputtext'
 import Calendar from 'primevue/calendar'
 import Dialog from 'primevue/dialog'
 import Textarea from 'primevue/textarea'
 import Checkbox from 'primevue/checkbox'
-import ProgressSpinner from 'primevue/progressspinner'
+import Tag from 'primevue/tag'
 
 const router = useRouter()
 const toast = useToast()
@@ -31,7 +30,6 @@ const orders = ref<DispatchOrder[]>([])
 const totalOrders = ref(0)
 const totalPages = ref(0)
 const isLoading = ref(false)
-const stats = ref<DispatchStats>({})
 const states = ref<DispatchState[]>([])
 const selectedOrders = ref<DispatchOrder[]>([])
 const isDispatchEnabled = ref(true)
@@ -89,25 +87,21 @@ const stateOptions = computed(() => {
 })
 
 const batchTargetStates = computed(() => {
-  // For batch, show common forward states
   return states.value.filter(s => [32, 33, 34, 39].includes(s.id))
 })
 
-const statsSummary = computed(() => {
-  const groups = [
-    { label: 'Pago pendiente', stateIds: ['30'], color: 'bg-primary/10 text-primary', icon: 'pi pi-clock' },
-    { label: 'Confirmados', stateIds: ['31'], color: 'bg-yellow-100 text-yellow-800', icon: 'pi pi-check' },
-    { label: 'Preparando', stateIds: ['32'], color: 'bg-orange-100 text-orange-800', icon: 'pi pi-box' },
-    { label: 'En camino / Listo', stateIds: ['33', '39'], color: 'bg-purple-100 text-purple-800', icon: 'pi pi-truck' },
-    { label: 'Entregados', stateIds: ['34'], color: 'bg-green-100 text-green-800', icon: 'pi pi-check-circle' },
-    { label: 'Problemas', stateIds: ['35', '36', '37', '38'], color: 'bg-red-100 text-red-800', icon: 'pi pi-exclamation-triangle' },
-  ]
-  return groups.map(g => ({
-    ...g,
-    count: g.stateIds.reduce((sum, id) => sum + ((stats.value[id] as any)?.count || 0), 0),
-    filterValue: g.stateIds.join(',')
-  }))
+const hasActiveFilters = computed(() => {
+  return Boolean(
+    filters.value.search ||
+    filters.value.dispatch_state ||
+    filters.value.delivery_type ||
+    filters.value.date_from ||
+    filters.value.date_to ||
+    filters.value.delivery_date
+  )
 })
+
+const firstRow = computed(() => ((filters.value.page ?? 1) - 1) * (filters.value.per_page ?? 20))
 
 // ─── Methods ──────────────────────────────────────────────────
 
@@ -116,7 +110,6 @@ async function loadOrders() {
   try {
     const response = await dispatchApi.getOrders(filters.value)
     if (!response.success) {
-      // Only treat as "not enabled" if the message specifically says so
       if (response.message?.includes('no habilitado')) {
         isDispatchEnabled.value = false
         dispatchDisabledMessage.value = response.message
@@ -129,22 +122,10 @@ async function loadOrders() {
     totalOrders.value = response.pagination.total
     totalPages.value = response.pagination.pages
     isDispatchEnabled.value = true
-  } catch (err: any) {
-    // API errors (500, etc.) should show toast, NOT disable the panel
+  } catch {
     toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar los pedidos', life: 3000 })
   } finally {
     isLoading.value = false
-  }
-}
-
-async function loadStats() {
-  try {
-    const response = await dispatchApi.getStats()
-    if (response.success) {
-      stats.value = response.data
-    }
-  } catch {
-    // Stats are non-critical
   }
 }
 
@@ -155,7 +136,6 @@ async function loadStates() {
       states.value = response.data
     }
   } catch {
-    // Use fallback states
     states.value = [
       { id: 30, name: 'Pago pendiente' },
       { id: 31, name: 'Pago confirmado' },
@@ -171,49 +151,57 @@ async function loadStates() {
   }
 }
 
+function handleSearch(query: string) {
+  filters.value.search = query || undefined
+  filters.value.page = 1
+  selectedOrders.value = []
+  loadOrders()
+}
+
 function onFilterChange() {
   filters.value.page = 1
   selectedOrders.value = []
   loadOrders()
 }
 
-function onStatClick(filterValue: string) {
-  if (filters.value.dispatch_state === filterValue) {
-    filters.value.dispatch_state = undefined
-  } else {
-    filters.value.dispatch_state = filterValue
-  }
-  onFilterChange()
-}
-
 function clearFilters() {
-  filters.value = { page: 1, per_page: 20 }
+  filters.value = { page: 1, per_page: filters.value.per_page ?? 20 }
   selectedOrders.value = []
   loadOrders()
 }
 
-function onPage(event: any) {
-  filters.value.page = event.page + 1
+function onPage(event: DataTablePageEvent) {
+  filters.value.page = (event.page ?? 0) + 1
   filters.value.per_page = event.rows
   loadOrders()
 }
 
-function goToDetail(order: DispatchOrder) {
+function handleRowClick(event: DataTableRowClickEvent) {
+  const order = event.data as DispatchOrder
   router.push({ name: 'DispatchDetail', params: { id: order.order_id } })
 }
 
-function getStateBadgeClass(stateId: number): string {
-  if (stateId === 30) return 'bg-primary/10 text-primary'
-  if (stateId === 31) return 'bg-yellow-100 text-yellow-800'
-  if (stateId === 32) return 'bg-orange-100 text-orange-800'
-  if (stateId === 33 || stateId === 39) return 'bg-purple-100 text-purple-800'
-  if (stateId === 34) return 'bg-green-100 text-green-800'
-  return 'bg-red-100 text-red-800' // 35, 36, 37, 38
+// Estado de despacho → severity + icono (estilo Tag de PrimeVue, igual que OrdersListView)
+const dispatchStateConfig = (stateId: number) => {
+  const map: Record<number, { severity: string; icon: string }> = {
+    30: { severity: 'warn',      icon: 'pi-clock' },
+    31: { severity: 'info',      icon: 'pi-check' },
+    32: { severity: 'warn',      icon: 'pi-box' },
+    33: { severity: 'info',      icon: 'pi-truck' },
+    34: { severity: 'success',   icon: 'pi-check-circle' },
+    35: { severity: 'danger',    icon: 'pi-times-circle' },
+    36: { severity: 'danger',    icon: 'pi-times-circle' },
+    37: { severity: 'danger',    icon: 'pi-replay' },
+    38: { severity: 'warn',      icon: 'pi-history' },
+    39: { severity: 'info',      icon: 'pi-building' },
+  }
+  return map[stateId] ?? { severity: 'secondary', icon: 'pi-circle' }
 }
 
-function getDeliveryIcon(type: string): string {
-  return type === 'retiro' ? 'pi pi-building' : 'pi pi-truck'
-}
+const deliveryTypeLabel = (type: string) =>
+  type === 'retiro' ? 'Retiro en tienda' : 'Envío a domicilio'
+const deliveryTypeIcon = (type: string) =>
+  type === 'retiro' ? 'pi-building' : 'pi-truck'
 
 // ─── Batch Status Change ──────────────────────────────────────
 
@@ -252,7 +240,6 @@ async function submitBatchStatus() {
     showStatusDialog.value = false
     selectedOrders.value = []
     loadOrders()
-    loadStats()
   } catch (err: any) {
     toast.add({
       severity: 'error',
@@ -268,26 +255,22 @@ async function submitBatchStatus() {
 // ─── Lifecycle ────────────────────────────────────────────────
 
 async function checkEnabledAndLoad() {
-  // Quick check: load stats first (lightweight) to detect if dispatch is enabled
+  // Quick check con stats (lightweight) para detectar si dispatch está habilitado
   try {
     const response = await dispatchApi.getStats()
     if (response.success) {
-      stats.value = response.data
       isDispatchEnabled.value = true
-      // Now load the full data
       loadStates()
       loadOrders()
     } else if (response.message?.includes('no habilitado')) {
       isDispatchEnabled.value = false
       dispatchDisabledMessage.value = response.message
     } else {
-      // Other error — still try to load
       isDispatchEnabled.value = true
       loadStates()
       loadOrders()
     }
   } catch {
-    // Network error — still try to load the full panel
     isDispatchEnabled.value = true
     loadStates()
     loadOrders()
@@ -300,11 +283,15 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="p-6 max-w-[1400px] mx-auto">
+  <div class="space-y-6">
     <!-- Header -->
-    <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-900">Despacho</h1>
-      <p class="text-sm text-gray-500 mt-1">Gestiona el estado de envío de tus pedidos</p>
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Despacho</h1>
+        <p v-if="!isLoading" class="text-gray-600 mt-1">
+          {{ totalOrders }} {{ totalOrders === 1 ? 'pedido' : 'pedidos' }}
+        </p>
+      </div>
     </div>
 
     <!-- Dispatch not enabled message -->
@@ -315,115 +302,109 @@ onMounted(() => {
     </div>
 
     <template v-else>
-      <!-- Stats bar -->
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-        <button
-          v-for="stat in statsSummary"
-          :key="stat.label"
-          @click="onStatClick(stat.filterValue)"
-          class="rounded-lg p-3 text-left transition-all border-2"
-          :class="[
-            stat.color,
-            filters.dispatch_state === stat.filterValue
-              ? 'border-gray-800 shadow-md'
-              : 'border-transparent hover:border-gray-300'
-          ]"
-        >
-          <div class="flex items-center gap-2 mb-1">
-            <i :class="stat.icon" class="text-sm"></i>
-            <span class="text-xs font-medium">{{ stat.label }}</span>
-          </div>
-          <span class="text-2xl font-bold">{{ stat.count }}</span>
-        </button>
-      </div>
+      <!-- Búsqueda -->
+      <SearchBar
+        :model-value="filters.search ?? ''"
+        placeholder="Buscar por código de pedido o nombre del cliente..."
+        @search="handleSearch"
+      />
 
-      <!-- Filters -->
-      <div class="bg-white rounded-lg shadow-sm border p-4 mb-4">
-        <div class="flex flex-wrap items-end gap-3">
-          <div>
-            <label class="text-xs text-gray-500 block mb-1">Estado</label>
+      <!-- Filtros -->
+      <div class="bg-white border border-gray-200 rounded-lg p-4">
+        <div class="flex flex-col md:flex-row md:items-end gap-4 flex-wrap">
+          <!-- Estado de despacho -->
+          <div class="flex-1 min-w-[180px]">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Estado de Despacho</label>
             <Dropdown
               v-model="filters.dispatch_state"
               :options="stateOptions"
-              optionLabel="label"
-              optionValue="value"
+              option-label="label"
+              option-value="value"
               placeholder="Todos"
-              class="w-48"
+              class="w-full"
               @change="onFilterChange"
             />
           </div>
-          <div>
-            <label class="text-xs text-gray-500 block mb-1">Tipo entrega</label>
+
+          <!-- Tipo de entrega -->
+          <div class="flex-1 min-w-[180px]">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de entrega</label>
             <Dropdown
               v-model="filters.delivery_type"
               :options="deliveryTypeOptions"
-              optionLabel="label"
-              optionValue="value"
+              option-label="label"
+              option-value="value"
               placeholder="Todos"
-              class="w-44"
+              class="w-full"
               @change="onFilterChange"
             />
           </div>
-          <div>
-            <label class="text-xs text-gray-500 block mb-1">Fecha pedido desde</label>
+
+          <!-- Fecha desde -->
+          <div class="flex-1 min-w-[160px]">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha desde</label>
             <Calendar
               v-model="dateFrom"
-              dateFormat="yy-mm-dd"
-              showIcon
-              :showClear="true"
-              class="w-40"
+              placeholder="Seleccionar fecha"
+              date-format="dd/mm/yy"
+              show-icon
+              :show-clear="true"
+              :max-date="dateTo || new Date()"
+              class="w-full"
               @date-select="onFilterChange"
               @clear-click="onFilterChange"
             />
           </div>
-          <div>
-            <label class="text-xs text-gray-500 block mb-1">Fecha pedido hasta</label>
+
+          <!-- Fecha hasta -->
+          <div class="flex-1 min-w-[160px]">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha hasta</label>
             <Calendar
               v-model="dateTo"
-              dateFormat="yy-mm-dd"
-              showIcon
-              :showClear="true"
-              class="w-40"
+              placeholder="Seleccionar fecha"
+              date-format="dd/mm/yy"
+              show-icon
+              :show-clear="true"
+              :min-date="dateFrom || undefined"
+              :max-date="new Date()"
+              class="w-full"
               @date-select="onFilterChange"
               @clear-click="onFilterChange"
             />
           </div>
-          <div>
-            <label class="text-xs text-gray-500 block mb-1">Fecha entrega</label>
+
+          <!-- Fecha de entrega -->
+          <div class="flex-1 min-w-[160px]">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de entrega</label>
             <Calendar
               v-model="deliveryDateRef"
-              dateFormat="yy-mm-dd"
-              showIcon
-              :showClear="true"
-              class="w-40"
+              placeholder="Seleccionar fecha"
+              date-format="dd/mm/yy"
+              show-icon
+              :show-clear="true"
+              class="w-full"
               @date-select="onFilterChange"
               @clear-click="onFilterChange"
             />
           </div>
-          <div class="flex-1 min-w-[200px]">
-            <label class="text-xs text-gray-500 block mb-1">Buscar</label>
-            <InputText
-              v-model="filters.search"
-              placeholder="Código, nombre cliente..."
-              class="w-full"
-              @keyup.enter="onFilterChange"
+
+          <!-- Botón limpiar -->
+          <div>
+            <Button
+              v-if="hasActiveFilters"
+              label="Limpiar"
+              icon="pi pi-filter-slash"
+              outlined
+              @click="clearFilters"
             />
           </div>
-          <Button
-            icon="pi pi-filter-slash"
-            severity="secondary"
-            text
-            size="small"
-            v-tooltip.top="'Limpiar filtros'"
-            @click="clearFilters"
-          />
         </div>
       </div>
 
-      <!-- Batch action bar -->
+      <!-- Barra de acción para selección múltiple -->
       <div
         v-if="selectedOrders.length > 0"
-        class="bg-primary-50 border border-primary-200 rounded-lg p-3 mb-4 flex items-center justify-between"
+        class="bg-primary-50 border border-primary-200 rounded-lg p-3 flex items-center justify-between"
       >
         <span class="text-sm font-medium text-primary-800">
           {{ selectedOrders.length }} pedido{{ selectedOrders.length > 1 ? 's' : '' }} seleccionado{{ selectedOrders.length > 1 ? 's' : '' }}
@@ -436,90 +417,108 @@ onMounted(() => {
         />
       </div>
 
-      <!-- DataTable -->
-      <div class="bg-white rounded-lg shadow-sm border">
+      <!-- Tabla -->
+      <div class="bg-white rounded-lg shadow">
         <DataTable
           :value="orders"
           :loading="isLoading"
           v-model:selection="selectedOrders"
-          dataKey="order_id"
+          striped-rows
+          responsive-layout="scroll"
+          data-key="order_id"
           :paginator="true"
-          :rows="filters.per_page"
-          :totalRecords="totalOrders"
-          :lazy="true"
+          :rows="filters.per_page ?? 20"
+          :total-records="totalOrders"
+          :first="firstRow"
+          lazy
           @page="onPage"
-          :rowsPerPageOptions="[10, 20, 50]"
-          responsiveLayout="scroll"
-          stripedRows
-          class="dispatch-table"
-          :rowClass="() => 'cursor-pointer'"
-          @row-click="(e: any) => goToDetail(e.data)"
+          @row-click="handleRowClick"
+          paginator-template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+          :rows-per-page-options="[10, 20, 50, 100]"
+          current-page-report-template="Mostrando {first} a {last} de {totalRecords} pedidos"
+          row-hover
+          class="cursor-pointer"
         >
-          <Column selectionMode="multiple" headerStyle="width: 3rem" @click.stop />
+          <template #empty>
+            <div class="text-center py-12">
+              <i class="pi pi-truck text-6xl text-gray-300 mb-4"></i>
+              <h3 class="text-xl font-semibold text-gray-900 mb-2">No hay pedidos</h3>
+              <p class="text-gray-600 mb-4">
+                No se encontraron pedidos con los filtros seleccionados
+              </p>
+              <Button
+                v-if="hasActiveFilters"
+                label="Limpiar filtros"
+                icon="pi pi-filter-slash"
+                @click="clearFilters"
+              />
+            </div>
+          </template>
 
-          <Column field="order_code" header="Pedido" :sortable="false" style="min-width: 120px">
+          <Column selection-mode="multiple" header-style="width: 3rem" @click.stop />
+
+          <Column field="order_code" header="Pedido">
             <template #body="{ data }">
-              <span class="font-mono font-semibold text-primary">{{ data.order_code }}</span>
+              <span class="font-medium text-secondary">#{{ data.order_code }}</span>
             </template>
           </Column>
 
-          <Column field="order_date" header="Fecha" :sortable="false" style="min-width: 100px">
+          <Column field="order_date" header="Fecha">
             <template #body="{ data }">
-              <span class="text-sm text-gray-600">{{ formatDate(data.order_date) }}</span>
+              <span class="text-sm text-gray-700">{{ formatDate(data.order_date) }}</span>
             </template>
           </Column>
 
-          <Column field="customer_name" header="Cliente" :sortable="false" style="min-width: 180px">
+          <Column field="customer_name" header="Cliente">
             <template #body="{ data }">
-              <div>
+              <div class="flex flex-col">
                 <span class="font-medium text-gray-900">{{ data.customer_name }}</span>
-                <div v-if="data.delivery_address" class="text-xs text-gray-500 truncate max-w-[250px]">
+                <span v-if="data.delivery_address" class="text-xs text-gray-500 truncate max-w-[280px]">
                   {{ data.delivery_address }}
-                </div>
+                </span>
               </div>
             </template>
           </Column>
 
-          <Column field="ubigeo" header="Ubicación" :sortable="false" style="min-width: 140px">
+          <Column field="ubigeo" header="Ubicación">
             <template #body="{ data }">
-              <span class="text-sm text-gray-600">{{ data.ubigeo || '-' }}</span>
+              <span class="text-sm text-gray-700">{{ data.ubigeo || '-' }}</span>
             </template>
           </Column>
 
-          <Column field="delivery_date" header="F. Entrega" :sortable="false" style="min-width: 100px">
+          <Column field="delivery_date" header="F. entrega">
             <template #body="{ data }">
-              <span class="text-sm text-gray-600">{{ data.delivery_date ? formatDate(data.delivery_date) : '-' }}</span>
+              <span class="text-sm text-gray-700">{{ data.delivery_date ? formatDate(data.delivery_date) : '-' }}</span>
             </template>
           </Column>
 
-          <Column field="delivery_type" header="Tipo" :sortable="false" headerStyle="width: 5rem; text-align: center" bodyStyle="text-align: center">
+          <Column field="delivery_type" header="Tipo" header-style="width: 6rem; text-align: center" body-style="text-align: center">
             <template #body="{ data }">
               <i
-                :class="getDeliveryIcon(data.delivery_type)"
-                class="text-lg"
-                v-tooltip.top="data.delivery_type === 'retiro' ? 'Retiro en tienda' : 'Envío a domicilio'"
+                :class="`pi ${deliveryTypeIcon(data.delivery_type)}`"
+                class="text-lg text-gray-700"
+                v-tooltip.top="deliveryTypeLabel(data.delivery_type)"
               ></i>
             </template>
           </Column>
 
-          <Column field="items_count" header="Items" :sortable="false" headerStyle="width: 5rem; text-align: center" bodyStyle="text-align: center">
+          <Column field="items_count" header="Items" header-style="width: 5rem; text-align: center" body-style="text-align: center">
             <template #body="{ data }">
               <span class="text-sm font-medium">{{ data.items_count }}</span>
             </template>
           </Column>
 
-          <Column field="dispatch_state" header="Estado" :sortable="false" style="min-width: 160px">
+          <Column field="dispatch_state" header="Estado">
             <template #body="{ data }">
-              <span
-                class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium"
-                :class="getStateBadgeClass(data.dispatch_state.id)"
-              >
-                {{ data.dispatch_state.name }}
-              </span>
+              <Tag
+                :value="data.dispatch_state.name"
+                :severity="dispatchStateConfig(data.dispatch_state.id).severity"
+                :icon="`pi ${dispatchStateConfig(data.dispatch_state.id).icon}`"
+              />
             </template>
           </Column>
 
-          <Column header="" headerStyle="width: 4rem" bodyStyle="text-align: center" @click.stop>
+          <Column header-style="width: 4rem" body-style="text-align: center" @click.stop>
             <template #body="{ data }">
               <Button
                 icon="pi pi-eye"
@@ -527,26 +526,10 @@ onMounted(() => {
                 rounded
                 size="small"
                 v-tooltip.top="'Ver detalle'"
-                @click.stop="goToDetail(data)"
+                @click.stop="router.push({ name: 'DispatchDetail', params: { id: data.order_id } })"
               />
             </template>
           </Column>
-
-          <!-- Empty state -->
-          <template #empty>
-            <div class="py-12 text-center">
-              <i class="pi pi-truck text-4xl text-gray-300 mb-4"></i>
-              <p class="text-gray-500">No se encontraron pedidos con los filtros seleccionados</p>
-              <Button label="Limpiar filtros" text size="small" class="mt-2" @click="clearFilters" />
-            </div>
-          </template>
-
-          <template #loading>
-            <div class="py-12 text-center">
-              <ProgressSpinner style="width: 40px; height: 40px" />
-              <p class="text-gray-500 mt-2">Cargando pedidos...</p>
-            </div>
-          </template>
         </DataTable>
       </div>
     </template>
@@ -569,8 +552,8 @@ onMounted(() => {
           <Dropdown
             v-model="statusForm.state_id"
             :options="batchTargetStates"
-            optionLabel="name"
-            optionValue="id"
+            option-label="name"
+            option-value="id"
             placeholder="Seleccionar estado"
             class="w-full"
           />
@@ -590,7 +573,7 @@ onMounted(() => {
           <Checkbox
             v-model="statusForm.notify_customer"
             :binary="true"
-            inputId="notify_batch"
+            input-id="notify_batch"
           />
           <label for="notify_batch" class="text-sm text-gray-700">Enviar email de notificación al cliente</label>
         </div>
@@ -616,12 +599,3 @@ onMounted(() => {
     </Dialog>
   </div>
 </template>
-
-<style scoped>
-:deep(.dispatch-table .p-datatable-tbody > tr) {
-  transition: background-color 0.15s;
-}
-:deep(.dispatch-table .p-datatable-tbody > tr:hover) {
-  background-color: rgb(243 244 246) !important;
-}
-</style>
