@@ -297,6 +297,27 @@ onMounted(() => {
               </div>
             </div>
 
+            <!-- Prueba de entrega -->
+            <div v-if="order.delivery_proof_url" class="mt-4 pt-4 border-t">
+              <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Prueba de entrega</h3>
+              <div class="flex items-start gap-3">
+                <a :href="order.delivery_proof_url" target="_blank" class="block shrink-0">
+                  <img
+                    :src="order.delivery_proof_url"
+                    alt="Foto de entrega"
+                    class="w-24 h-24 object-cover rounded border hover:opacity-80 transition-opacity"
+                  />
+                </a>
+                <a
+                  :href="order.delivery_proof_url"
+                  target="_blank"
+                  class="text-primary text-sm hover:underline"
+                >
+                  <i class="pi pi-external-link text-xs mr-1"></i> Ver foto en tamaño completo
+                </a>
+              </div>
+            </div>
+
             <!-- Observation -->
             <div v-if="order.observation" class="mt-4 pt-4 border-t">
               <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Observación del cliente</h3>

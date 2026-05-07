@@ -19,6 +19,7 @@ export interface DispatchOrder {
   dispatch_state: DispatchState
   tracking_code: string | null
   tracking_url: string | null
+  delivery_proof_url: string | null
   items_count: number
   payment_status: number
   pasarela_id: number
@@ -49,6 +50,7 @@ export interface DispatchOrderDetail {
     code: string | null
     url: string | null
   }
+  delivery_proof_url: string | null
   dispatch_state: DispatchState
   available_transitions: number[]
   order_date: string
