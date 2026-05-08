@@ -23,6 +23,7 @@ export interface DispatchOrder {
   items_count: number
   payment_status: number
   pasarela_id: number
+  courier_id: number
   fulfillment_provider: string | null
 }
 
@@ -56,6 +57,7 @@ export interface DispatchOrderDetail {
   order_date: string
   payment_status: number
   pasarela_id: number
+  courier_id: number
   observation: string
   items: DispatchOrderItem[]
   timeline: DispatchTimelineEntry[]

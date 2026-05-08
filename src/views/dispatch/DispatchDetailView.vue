@@ -34,6 +34,13 @@ const statusForm = ref({
 })
 const isChangingStatus = ref(false)
 
+// Olva manual dispatch
+const isRedispatchingOlva = ref(false)
+const OLVA_COURIER_ID = 9
+
+const isOlvaOrder = computed(() => order.value?.courier_id === OLVA_COURIER_ID)
+const olvaHasTracking = computed(() => !!order.value?.tracking.code)
+
 // ─── Computed ─────────────────────────────────────────────────
 
 const availableStates = computed(() => {
@@ -155,6 +162,42 @@ function copyToClipboard(text: string) {
   toast.add({ severity: 'info', summary: 'Copiado', life: 1500 })
 }
 
+async function redispatchOlva() {
+  if (!confirm('¿Crear/reintentar el envío en Olva para esta orden?')) return
+
+  isRedispatchingOlva.value = true
+  try {
+    const response = await dispatchApi.redispatchOlva(orderId)
+    if (response.success && response.data?.tracking_code) {
+      toast.add({
+        severity: 'success',
+        summary: 'Envío creado en Olva',
+        detail: `Tracking: ${response.data.tracking_code}`,
+        life: 4000
+      })
+      await loadOrder()
+    } else {
+      toast.add({
+        severity: 'warn',
+        summary: 'Olva respondió sin tracking',
+        detail: response.message || 'Revisá el log',
+        life: 4000
+      })
+    }
+  } catch (err: unknown) {
+    const data = (err as { response?: { data?: { message?: string; data?: { error?: string } } } })
+      ?.response?.data
+    const detail = data?.data?.error || data?.message || 'No se pudo crear el envío en Olva'
+    toast.add({ severity: 'error', summary: 'Error', detail, life: 5000 })
+  } finally {
+    isRedispatchingOlva.value = false
+  }
+}
+
+function openOlvaLabel() {
+  window.open(dispatchApi.olvaLabelUrl(orderId), '_blank')
+}
+
 function getStateBadgeClass(stateId: number): string {
   if (stateId === 30) return 'bg-primary/10 text-primary'
   if (stateId === 31) return 'bg-yellow-100 text-yellow-800'
@@ -222,14 +265,47 @@ onMounted(() => {
             {{ order.dispatch_state.name }}
           </span>
         </div>
-        <Button
-          label="Ver en Pedidos"
-          icon="pi pi-external-link"
-          severity="secondary"
-          text
-          size="small"
-          @click="goToOrder"
-        />
+        <div class="flex items-center gap-2">
+          <!-- Olva: crear/reintentar envío -->
+          <Button
+            v-if="isOlvaOrder && !olvaHasTracking"
+            label="Crear envío en Olva"
+            icon="pi pi-send"
+            severity="primary"
+            size="small"
+            :loading="isRedispatchingOlva"
+            @click="redispatchOlva"
+          />
+          <Button
+            v-else-if="isOlvaOrder"
+            label="Reintentar envío"
+            icon="pi pi-refresh"
+            severity="secondary"
+            outlined
+            size="small"
+            :loading="isRedispatchingOlva"
+            @click="redispatchOlva"
+          />
+
+          <!-- Olva: imprimir etiqueta (solo cuando ya hay tracking) -->
+          <Button
+            v-if="isOlvaOrder && olvaHasTracking"
+            label="Imprimir etiqueta"
+            icon="pi pi-print"
+            severity="secondary"
+            size="small"
+            @click="openOlvaLabel"
+          />
+
+          <Button
+            label="Ver en Pedidos"
+            icon="pi pi-external-link"
+            severity="secondary"
+            text
+            size="small"
+            @click="goToOrder"
+          />
+        </div>
       </div>
 
       <!-- Two column layout -->

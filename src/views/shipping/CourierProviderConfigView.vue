@@ -22,11 +22,11 @@
       />
     </div>
 
-    <!-- Dynamic Config Component -->
-    <component
-      v-else
-      :is="configComponent"
-    />
+    <!-- Dynamic Config Component + dispatch mode toggle -->
+    <template v-else>
+      <component :is="configComponent" />
+      <CourierDispatchModeSection />
+    </template>
   </div>
 </template>
 
@@ -37,6 +37,7 @@ import { useCourierProvidersStore } from '@/stores/courier-providers.store'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
+import CourierDispatchModeSection from './couriers/CourierDispatchModeSection.vue'
 
 const route = useRoute()
 const router = useRouter()

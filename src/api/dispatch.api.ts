@@ -63,5 +63,26 @@ export const dispatchApi = {
   async getStats(): Promise<ApiResponse<DispatchStats>> {
     const response = await apiClient.get('/dispatch/stats')
     return response.data
+  },
+
+  /**
+   * Crear o reintentar el envío en Olva para una orden con courier_id=9.
+   * Persiste tracking + agrega evento al timeline. Idempotente desde el lado
+   * del backoffice — si ya hay tracking, igual reintenta y Olva responde lo
+   * que sea pertinente.
+   */
+  async redispatchOlva(orderId: number): Promise<ApiResponse<{
+    success: boolean
+    emision: string | null
+    remito: string | null
+    tracking_code: string | null
+  }>> {
+    const response = await apiClient.post(`/orders/${orderId}/olva-redispatch`)
+    return response.data
+  },
+
+  /** URL al HTML imprimible (A6) con barcode para pegar al paquete */
+  olvaLabelUrl(orderId: number): string {
+    return `${apiClient.defaults.baseURL}/orders/${orderId}/olva-label`
   }
 }

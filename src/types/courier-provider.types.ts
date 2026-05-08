@@ -1,5 +1,7 @@
 export type CourierEnvironment = 'produccion' | 'prueba'
 
+export type CourierDispatchMode = 'manual' | 'auto'
+
 export interface CourierProvider {
   id: number
   code: string
@@ -9,6 +11,7 @@ export interface CourierProvider {
   configured: boolean
   enabled: boolean
   environment?: CourierEnvironment | null
+  dispatch_mode?: CourierDispatchMode
 }
 
 export interface CourierProviderConfig {
@@ -18,6 +21,7 @@ export interface CourierProviderConfig {
 
 export interface SaveCourierConfigRequest {
   credentials: Record<string, unknown>
+  dispatch_mode?: CourierDispatchMode
 }
 
 export interface CalculatePriceRequest {
