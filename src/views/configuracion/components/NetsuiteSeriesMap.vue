@@ -97,15 +97,26 @@
           </template>
         </Column>
 
-        <Column header="Acciones" style="width: 120px">
+        <Column header="Acciones" style="width: 200px">
           <template #body="{ data }">
-            <Button
-              label="Guardar"
-              icon="pi pi-save"
-              size="small"
-              :loading="data._saving"
-              @click="handleSave(data)"
-            />
+            <div class="flex gap-2">
+              <Button
+                label="Guardar"
+                icon="pi pi-save"
+                size="small"
+                :loading="data._saving"
+                @click="handleSave(data)"
+              />
+              <Button
+                icon="pi pi-trash"
+                size="small"
+                severity="danger"
+                outlined
+                :loading="data._deleting"
+                v-tooltip.top="'Eliminar serie'"
+                @click="handleDelete(data)"
+              />
+            </div>
           </template>
         </Column>
       </DataTable>
@@ -144,8 +155,10 @@
 <script setup lang="ts">
 import { watch, computed } from 'vue'
 import { useToast } from 'primevue/usetoast'
+import { useConfirm } from 'primevue/useconfirm'
 import { useRouter } from 'vue-router'
 import { useNetsuite } from '@/composables/useNetsuite'
+import { netsuiteApi } from '@/api/netsuite.api'
 import type { NetsuiteSerie } from '@/types/netsuite.types'
 
 import DataTable from 'primevue/datatable'
@@ -163,6 +176,7 @@ const props = defineProps<{
 }>()
 
 const toast = useToast()
+const confirm = useConfirm()
 const router = useRouter()
 
 const {
@@ -280,6 +294,50 @@ async function handleSave(row: NetsuiteSerie & { _saving?: boolean }) {
   } finally {
     row._saving = false
   }
+}
+
+async function handleDelete(row: NetsuiteSerie & { _deleting?: boolean }) {
+  if (!props.tiendaId) return
+
+  confirm.require({
+    message: `¿Eliminar la serie ${row.tiendaserieerp_codigo}? Esta acción no se puede deshacer.`,
+    header: 'Confirmar eliminación',
+    icon: 'pi pi-exclamation-triangle',
+    acceptLabel: 'Sí, eliminar',
+    rejectLabel: 'Cancelar',
+    acceptClass: 'p-button-danger',
+    accept: async () => {
+      row._deleting = true
+      try {
+        const response = await netsuiteApi.deleteSerie(props.tiendaId!, Number(row.tiendaserieerp_id))
+        if (response.success) {
+          toast.add({
+            severity: 'success',
+            summary: 'Serie eliminada',
+            detail: `${row.tiendaserieerp_codigo} fue eliminada`,
+            life: 3000
+          })
+          series.value = series.value.filter(s => s.tiendaserieerp_id !== row.tiendaserieerp_id)
+        } else {
+          toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'No se pudo eliminar la serie',
+            life: 4000
+          })
+        }
+      } catch (e: any) {
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: e.response?.data?.message || 'Error al eliminar la serie',
+          life: 4000
+        })
+      } finally {
+        row._deleting = false
+      }
+    }
+  })
 }
 </script>
 

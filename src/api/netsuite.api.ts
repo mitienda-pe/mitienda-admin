@@ -97,6 +97,14 @@ export const netsuiteApi = {
   },
 
   /**
+   * Delete a serie mapping (default de tienda u override por sucursal)
+   */
+  async deleteSerie(tiendaId: number, serieId: number): Promise<ApiResponse<{ success: boolean }>> {
+    const response = await apiClient.delete(`/netsuite-credentials/${tiendaId}/series/${serieId}`)
+    return response.data
+  },
+
+  /**
    * Get unmapped series for a store
    */
   async getUnmappedSeries(tiendaId: number): Promise<ApiResponse<NetsuiteSerie[]>> {
