@@ -413,6 +413,15 @@ export const productsApi = {
     return response.data
   },
 
+  // Reordenar imágenes de producto (acepta mezcla de sources r2/cloudflare/legacy)
+  async reorderImages(
+    productId: number,
+    images: Array<{ id: number; source: 'r2' | 'cloudflare' | 'legacy' }>
+  ): Promise<ApiResponse<any>> {
+    const response = await apiClient.put(`/products/${productId}/images/reorder`, { images })
+    return response.data
+  },
+
   // Subir imagen OpenGraph
   async uploadOgImage(id: number, imageFile: File): Promise<ApiResponse<{ meta_image: string }>> {
     const formData = new FormData()

@@ -133,6 +133,7 @@
           :product-name="product.name"
           @add-image="showImageUploader = true"
           @delete-image="handleImageDelete"
+          @reorder="handleImageReorder"
         />
 
         <!-- Video del producto -->
@@ -1497,6 +1498,26 @@ const handleImageDelete = async (imageId: number) => {
     }
   } catch (error: any) {
     toast.add({ severity: 'error', summary: 'Error', detail: error.message, life: 5000 })
+  }
+}
+
+const handleImageReorder = async (
+  images: Array<{ id: number; source: 'r2' | 'cloudflare' | 'legacy' }>
+) => {
+  if (!product.value) return
+  const productId = product.value.id
+  try {
+    const { productsApi } = await import('@/api/products.api')
+    const response = await productsApi.reorderImages(productId, images)
+    if (response.success) {
+      toast.add({ severity: 'success', summary: 'Orden actualizado', life: 2000 })
+      await productsStore.fetchProduct(productId)
+    } else {
+      throw new Error(response.message || 'Error al reordenar imágenes')
+    }
+  } catch (error: any) {
+    toast.add({ severity: 'error', summary: 'Error', detail: error.message, life: 5000 })
+    await productsStore.fetchProduct(productId)
   }
 }
 

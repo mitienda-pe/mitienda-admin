@@ -18,39 +18,28 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   'add-image': []
   'delete-image': [imageId: number]
+  'reorder': [images: Array<{ id: number; source: 'r2' | 'cloudflare' | 'legacy' }>]
 }>()
 
 const confirm = useConfirm()
 
-const hoveredImageId = ref<number | null>(null)
-
 const hasImages = computed(() => props.images && props.images.length > 0)
 
-/**
- * Get the display URL for an image
- * Prioritizes Cloudflare URL over legacy URL
- */
+const dragIndex = ref<number | null>(null)
+const dragOverIndex = ref<number | null>(null)
+
 const getImageUrl = (image: ProductImage): string => {
   return image.cloudflare_url || image.url || placeholderImage
 }
 
-/**
- * Check if image is from Cloudflare
- */
 const isCloudflareImage = (image: ProductImage): boolean => {
   return !!image.cloudflare_url
 }
 
-/**
- * Handle add image click
- */
 const handleAddImage = () => {
   emit('add-image')
 }
 
-/**
- * Handle delete image with confirmation
- */
 const handleDeleteImage = (image: ProductImage) => {
   confirm.require({
     message: '¿Estás seguro de eliminar esta imagen?',
@@ -63,6 +52,48 @@ const handleDeleteImage = (image: ProductImage) => {
       emit('delete-image', image.id)
     }
   })
+}
+
+const onDragStart = (index: number, event: DragEvent) => {
+  dragIndex.value = index
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move'
+    // Firefox requires data to start the drag
+    event.dataTransfer.setData('text/plain', String(index))
+  }
+}
+
+const onDragOver = (index: number, event: DragEvent) => {
+  event.preventDefault()
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+  if (dragOverIndex.value !== index) dragOverIndex.value = index
+}
+
+const onDragLeave = (index: number) => {
+  if (dragOverIndex.value === index) dragOverIndex.value = null
+}
+
+const onDrop = (targetIndex: number, event: DragEvent) => {
+  event.preventDefault()
+  const sourceIndex = dragIndex.value
+  dragIndex.value = null
+  dragOverIndex.value = null
+
+  if (sourceIndex === null || sourceIndex === targetIndex) return
+
+  const reordered = [...props.images]
+  const [moved] = reordered.splice(sourceIndex, 1)
+  reordered.splice(targetIndex, 0, moved)
+
+  emit('reorder', reordered.map(img => ({
+    id: img.id,
+    source: (img.source ?? 'legacy') as 'r2' | 'cloudflare' | 'legacy'
+  })))
+}
+
+const onDragEnd = () => {
+  dragIndex.value = null
+  dragOverIndex.value = null
 }
 </script>
 
@@ -87,54 +118,65 @@ const handleDeleteImage = (image: ProductImage) => {
     </template>
 
     <template #content>
-      <!-- Grid de imágenes -->
+      <p v-if="hasImages && images.length > 1" class="reorder-hint">
+        <i class="pi pi-arrows-alt"></i>
+        Arrastra las imágenes para reordenarlas. La primera será la principal.
+      </p>
+
       <div v-if="hasImages" class="image-grid">
         <div
           v-for="(image, index) in images"
-          :key="image.id"
+          :key="`${image.source ?? 'legacy'}-${image.id}`"
           class="image-item"
-          @mouseenter="hoveredImageId = image.id"
-          @mouseleave="hoveredImageId = null"
+          :class="{
+            'is-dragging': dragIndex === index,
+            'is-drag-over': dragOverIndex === index && dragIndex !== index
+          }"
+          draggable="true"
+          @dragstart="onDragStart(index, $event)"
+          @dragover="onDragOver(index, $event)"
+          @dragleave="onDragLeave(index)"
+          @drop="onDrop(index, $event)"
+          @dragend="onDragEnd"
         >
-          <!-- Image container -->
           <div class="image-container">
             <img
               :src="getImageUrl(image)"
               :alt="`${productName} - imagen ${index + 1}`"
               class="image"
+              draggable="false"
             />
 
-            <!-- Overlay with actions -->
-            <div v-if="hoveredImageId === image.id" class="image-overlay">
-              <Button
-                icon="pi pi-trash"
-                severity="danger"
-                rounded
-                @click="handleDeleteImage(image)"
-              />
+            <button
+              type="button"
+              class="delete-btn"
+              :aria-label="`Eliminar imagen ${index + 1}`"
+              @click.stop="handleDeleteImage(image)"
+            >
+              <i class="pi pi-trash"></i>
+            </button>
+
+            <div class="drag-handle" aria-hidden="true">
+              <i class="pi pi-arrows-alt"></i>
             </div>
 
-            <!-- Badge for main image -->
-            <div v-if="image.is_main" class="badge badge-main">
+            <div v-if="index === 0" class="badge badge-main">
               <i class="pi pi-star-fill"></i>
               <span>Principal</span>
             </div>
 
-            <!-- Badge for Cloudflare images -->
             <div v-if="isCloudflareImage(image)" class="badge badge-cloudflare">
               <i class="pi pi-cloud"></i>
               <span>CF</span>
             </div>
           </div>
 
-          <!-- Image position -->
           <div class="image-position">
-            #{{ image.position }}
+            #{{ index + 1 }}
           </div>
         </div>
       </div>
 
-      <!-- Empty state -->
       <div v-else class="empty-state">
         <img :src="placeholderImage" alt="Sin imágenes" class="empty-image" />
         <p class="empty-text">No hay imágenes</p>
@@ -151,6 +193,15 @@ const handleDeleteImage = (image: ProductImage) => {
 </template>
 
 <style scoped>
+.reorder-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 1rem 0;
+}
+
 .image-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -161,6 +212,22 @@ const handleDeleteImage = (image: ProductImage) => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  cursor: grab;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.image-item:active {
+  cursor: grabbing;
+}
+
+.image-item.is-dragging {
+  opacity: 0.4;
+}
+
+.image-item.is-drag-over .image-container {
+  border-color: var(--primary-color, #00b2a6);
+  border-style: dashed;
+  transform: scale(1.02);
 }
 
 .image-container {
@@ -174,8 +241,7 @@ const handleDeleteImage = (image: ProductImage) => {
 }
 
 .image-container:hover {
-  border-color: var(--primary-color);
-  transform: translateY(-2px);
+  border-color: var(--primary-color, #00b2a6);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
@@ -183,28 +249,63 @@ const handleDeleteImage = (image: ProductImage) => {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  pointer-events: none;
+  user-select: none;
 }
 
-.image-overlay {
+.delete-btn {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(220, 38, 38, 0.92);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: fadeIn 0.2s;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease, background 0.15s ease;
+  z-index: 2;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+.delete-btn:hover {
+  background: rgb(185, 28, 28);
+  transform: scale(1.08);
+}
+
+.delete-btn:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+
+.delete-btn .pi {
+  font-size: 0.95rem;
+}
+
+.drag-handle {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.image-container:hover .drag-handle {
+  opacity: 1;
 }
 
 .badge {
@@ -219,6 +320,7 @@ const handleDeleteImage = (image: ProductImage) => {
   font-weight: 600;
   color: white;
   text-transform: uppercase;
+  pointer-events: none;
 }
 
 .badge-main {
@@ -227,7 +329,8 @@ const handleDeleteImage = (image: ProductImage) => {
 }
 
 .badge-cloudflare {
-  right: 0.5rem;
+  /* shifted left to leave room for the always-visible delete button */
+  right: 3rem;
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
 }
 
