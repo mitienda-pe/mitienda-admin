@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { useFormatters } from '@/composables/useFormatters'
 import { dispatchApi } from '@/api/dispatch.api'
+import apiClient from '@/api/axios'
 import type { DispatchOrderDetail, DispatchState, DispatchStateId } from '@/types/dispatch.types'
 import Button from 'primevue/button'
 import Dropdown from 'primevue/dropdown'
@@ -194,8 +195,26 @@ async function redispatchOlva() {
   }
 }
 
-function openOlvaLabel() {
-  window.open(dispatchApi.olvaLabelUrl(orderId), '_blank')
+async function openOlvaLabel() {
+  try {
+    const response = await apiClient.get(`/orders/${orderId}/olva-label`, {
+      responseType: 'text',
+      transformResponse: [(data) => data], // evita JSON.parse del HTML
+    })
+    const blob = new Blob([response.data], { type: 'text/html;charset=UTF-8' })
+    const url = URL.createObjectURL(blob)
+    window.open(url, '_blank')
+    setTimeout(() => URL.revokeObjectURL(url), 60_000)
+  } catch (err: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: err.response?.data?.messages?.error
+        || err.response?.data?.message
+        || 'No se pudo abrir la etiqueta de Olva',
+      life: 5000,
+    })
+  }
 }
 
 function getStateBadgeClass(stateId: number): string {
