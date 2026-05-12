@@ -9,6 +9,7 @@ interface ImportMetaEnv {
   readonly VITE_SENTRY_DSN: string
   readonly VITE_TEST_EMAIL: string
   readonly VITE_TEST_PASSWORD: string
+  readonly VITE_POS_URL: string
 }
 
 

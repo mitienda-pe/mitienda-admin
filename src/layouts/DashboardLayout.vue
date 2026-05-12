@@ -485,6 +485,49 @@
               </ul>
             </li>
 
+            <!-- Grupo: POS -->
+            <li>
+              <button
+                @click="posExpanded = !posExpanded"
+                :aria-expanded="posExpanded"
+                class="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isPosActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-desktop"></i>
+                  <span>POS</span>
+                </div>
+                <i :class="posExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="posExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in posMenuItems" :key="item.label">
+                  <button
+                    v-if="item.action === 'open-pos'"
+                    type="button"
+                    class="w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm text-secondary-600 hover:bg-primary-50 hover:text-primary"
+                    @click="openPosApp"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                    <i class="pi pi-external-link text-xs ml-auto"></i>
+                  </button>
+                  <router-link
+                    v-else-if="item.to"
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isPosItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isPosItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                    <i v-if="isPosItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getPosItemLockedColor(item)"></i>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+
             <!-- Grupo: NetSuite -->
             <li>
               <button
@@ -935,6 +978,50 @@
               </ul>
             </li>
 
+            <!-- Grupo POS (móvil) -->
+            <li>
+              <button
+                @click="posExpanded = !posExpanded"
+                :aria-expanded="posExpanded"
+                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                :class="{ 'bg-primary-50 text-primary font-medium': isPosActive }"
+              >
+                <div class="flex items-center gap-3">
+                  <i class="pi pi-desktop"></i>
+                  <span>POS</span>
+                </div>
+                <i :class="posExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
+              </button>
+
+              <!-- Submenú -->
+              <ul v-show="posExpanded" class="ml-4 mt-1 space-y-1">
+                <li v-for="item in posMenuItems" :key="item.label">
+                  <button
+                    v-if="item.action === 'open-pos'"
+                    type="button"
+                    class="w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm text-secondary-600 hover:bg-primary-50 hover:text-primary"
+                    @click="openPosApp(); sidebarVisible = false"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                    <i class="pi pi-external-link text-xs ml-auto"></i>
+                  </button>
+                  <router-link
+                    v-else-if="item.to"
+                    :to="item.to"
+                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
+                    :class="isPosItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
+                    :active-class="isPosItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
+                    @click="sidebarVisible = false"
+                  >
+                    <i :class="item.icon"></i>
+                    <span>{{ item.label }}</span>
+                    <i v-if="isPosItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getPosItemLockedColor(item)"></i>
+                  </router-link>
+                </li>
+              </ul>
+            </li>
+
             <!-- Grupo NetSuite -->
             <li>
               <button
@@ -1088,6 +1175,7 @@ const contentExpandedRef = ref(false)
 const appearanceExpandedRef = ref(false)
 const shippingExpandedRef = ref(false)
 const storeExpandedRef = ref(false)
+const posExpandedRef = ref(false)
 
 // Computar dinámicamente qué menú debe estar expandido según la ruta
 const salesExpanded = computed({
@@ -1149,6 +1237,11 @@ const shippingExpanded = computed({
 const storeExpanded = computed({
   get: () => storeExpandedRef.value || route.path.startsWith('/store') || route.path.startsWith('/notifications') || route.path.startsWith('/payment-gateways'),
   set: (val) => { storeExpandedRef.value = val }
+})
+
+const posExpanded = computed({
+  get: () => posExpandedRef.value || route.path.startsWith('/pos'),
+  set: (val) => { posExpandedRef.value = val }
 })
 
 // Items simples del menú
@@ -1281,6 +1374,38 @@ const configMenuItems = [
   { label: 'Stock', icon: 'pi pi-box', to: '/configuracion/netsuite/stock' }
 ]
 
+// Items del grupo POS
+interface PosMenuItem {
+  label: string
+  icon: string
+  to?: string
+  action?: 'open-pos'
+}
+const posMenuItems: PosMenuItem[] = [
+  { label: 'Cajeros', icon: 'pi pi-id-card', to: '/pos/cajeros' },
+  { label: 'Sucursales', icon: 'pi pi-map-marker', to: '/pos/sucursales' },
+  { label: 'Abrir POS', icon: 'pi pi-external-link', action: 'open-pos' }
+]
+
+function isPosItemLocked(item: PosMenuItem): boolean {
+  if (!item.to) return false
+  return isItemLocked({ to: item.to })
+}
+
+function getPosItemLockedColor(item: PosMenuItem): string {
+  if (!item.to) return 'text-secondary-300'
+  return getLockedIconColor({ to: item.to })
+}
+
+function openPosApp() {
+  const url = import.meta.env.VITE_POS_URL
+  if (!url) {
+    console.warn('VITE_POS_URL no está configurada')
+    return
+  }
+  window.open(url, '_blank', 'noopener')
+}
+
 // Detectar si estamos en alguna ruta de Tu Tienda
 const isStoreActive = computed(() => {
   return route.path.startsWith('/store') || route.path.startsWith('/notifications') || route.path.startsWith('/payment-gateways')
@@ -1341,38 +1466,58 @@ const isConfigActive = computed(() => {
   return route.path.startsWith('/configuracion')
 })
 
+// Detectar si estamos en alguna ruta del POS
+const isPosActive = computed(() => {
+  return route.path.startsWith('/pos')
+})
+
 // Detectar si es superadmin SIN estar impersonando (para mostrar sidebar especial)
 const isSuperAdminWithoutImpersonation = computed(() => {
   return authStore.isSuperAdmin && !adminStore.isImpersonating
 })
 
-const userMenuItems = ref([
-  {
-    label: 'Mi Perfil',
-    icon: 'pi pi-user',
-    command: () => {
-      router.push('/profile')
+const userMenuItems = computed(() => {
+  const items: any[] = [
+    {
+      label: 'Mi Perfil',
+      icon: 'pi pi-user',
+      command: () => {
+        router.push('/profile')
+      }
+    },
+    {
+      label: 'Mis Tiendas',
+      icon: 'pi pi-shop',
+      command: () => {
+        router.push('/my-stores')
+      }
     }
-  },
-  {
-    label: 'Mis Tiendas',
-    icon: 'pi pi-shop',
-    command: () => {
-      router.push('/my-stores')
-    }
-  },
-  {
-    separator: true
-  },
-  {
-    label: 'Cerrar Sesión',
-    icon: 'pi pi-sign-out',
-    command: async () => {
-      await authStore.logout()
-      router.push('/login')
-    }
+  ]
+
+  if (authStore.isSuperAdmin) {
+    items.push({
+      label: 'Gestión de Tiendas',
+      icon: 'pi pi-shield',
+      command: () => {
+        router.push('/admin/stores')
+      }
+    })
   }
-])
+
+  items.push(
+    { separator: true },
+    {
+      label: 'Cerrar Sesión',
+      icon: 'pi pi-sign-out',
+      command: async () => {
+        await authStore.logout()
+        router.push('/login')
+      }
+    }
+  )
+
+  return items
+})
 
 const toggleUserMenu = (event: Event) => {
   userMenu.value.toggle(event)

@@ -893,6 +893,37 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/pos',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: '',
+        redirect: '/pos/cajeros'
+      },
+      {
+        path: 'cajeros',
+        name: 'PosCajeros',
+        component: () => import('@/views/pos/PosCajerosView.vue')
+      },
+      {
+        path: 'cajeros/nuevo',
+        name: 'PosCajeroCreate',
+        component: () => import('@/views/pos/PosCajeroFormView.vue')
+      },
+      {
+        path: 'cajeros/:id',
+        name: 'PosCajeroEdit',
+        component: () => import('@/views/pos/PosCajeroFormView.vue')
+      },
+      {
+        path: 'sucursales',
+        name: 'PosSucursales',
+        component: () => import('@/views/pos/PosSucursalesView.vue')
+      }
+    ]
+  },
+  {
     path: '/configuracion',
     component: DashboardLayout,
     meta: { requiresAuth: true, requiresStore: true },
@@ -1004,8 +1035,10 @@ router.beforeEach(async (to, _from, next) => {
     // Permitir acceso si está impersonando (tiene selectedStore por impersonación)
     // O si tiene selectedStore normal
     if (!authStore.selectedStore && !isImpersonating) {
-      if (to.path !== '/store-selection' && to.path !== '/my-stores') {
-        next('/my-stores')
+      // Superadmin sin tienda seleccionada → listado completo (para impersonar)
+      const fallback = authStore.isSuperAdmin ? '/admin/stores' : '/my-stores'
+      if (to.path !== '/store-selection' && to.path !== fallback) {
+        next(fallback)
         return
       }
     }
