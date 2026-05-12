@@ -198,22 +198,36 @@ async function redispatchOlva() {
 async function openOlvaLabel() {
   try {
     const response = await apiClient.get(`/orders/${orderId}/olva-label`, {
-      responseType: 'text',
-      transformResponse: [(data) => data], // evita JSON.parse del HTML
+      responseType: 'blob',
     })
-    const blob = new Blob([response.data], { type: 'text/html;charset=UTF-8' })
+    const blob = new Blob([response.data], { type: 'application/pdf' })
     const url = URL.createObjectURL(blob)
-    window.open(url, '_blank')
+    const header = (response.headers as any)?.['content-disposition'] as string | undefined
+    const match = header?.match(/filename="?([^"]+)"?/i)
+    const filename = match?.[1] || `etiqueta-olva-${orderId}.pdf`
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
     setTimeout(() => URL.revokeObjectURL(url), 60_000)
   } catch (err: any) {
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: err.response?.data?.messages?.error
+    let detail = 'No se pudo abrir la etiqueta de Olva'
+    if (err.response?.data instanceof Blob) {
+      try {
+        const text = await err.response.data.text()
+        const parsed = JSON.parse(text)
+        detail = parsed.messages?.error || parsed.message || detail
+      } catch {
+        // not JSON, keep default
+      }
+    } else {
+      detail = err.response?.data?.messages?.error
         || err.response?.data?.message
-        || 'No se pudo abrir la etiqueta de Olva',
-      life: 5000,
-    })
+        || detail
+    }
+    toast.add({ severity: 'error', summary: 'Error', detail, life: 5000 })
   }
 }
 

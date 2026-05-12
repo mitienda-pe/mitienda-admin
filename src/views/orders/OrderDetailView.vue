@@ -245,30 +245,50 @@ const handleDownloadOlvaLabel = async () => {
   if (!order.value) return
   try {
     const response = await apiClient.get(`/orders/${order.value.id}/olva-label`, {
-      responseType: 'text',
-      transformResponse: [(data) => data], // evita que axios intente JSON.parse
+      responseType: 'blob',
     })
-    const blob = new Blob([response.data], { type: 'text/html;charset=UTF-8' })
+    const blob = new Blob([response.data], { type: 'application/pdf' })
     const url = URL.createObjectURL(blob)
-    window.open(url, '_blank')
-    // liberamos el blob despues de un rato (ya cargo en la pestana nueva)
+    // Disparar descarga directa con el filename del header (o uno por defecto)
+    const filename = extractFilename(response.headers?.['content-disposition'])
+      || `etiqueta-olva-${order.value.order_number || order.value.id}.pdf`
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
     setTimeout(() => URL.revokeObjectURL(url), 60_000)
     toast.add({
       severity: 'success',
-      summary: 'Etiqueta abierta',
-      detail: 'La etiqueta de Olva se abrió en una nueva pestaña',
+      summary: 'Etiqueta descargada',
+      detail: `Se descargó ${filename}`,
       life: 2500,
     })
   } catch (err: any) {
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: err.response?.data?.messages?.error
+    // Si el backend devuelve un error JSON, viene como blob — hay que decodificarlo
+    let detail = 'No se pudo generar la etiqueta de Olva'
+    if (err.response?.data instanceof Blob) {
+      try {
+        const text = await err.response.data.text()
+        const parsed = JSON.parse(text)
+        detail = parsed.messages?.error || parsed.message || detail
+      } catch {
+        // not JSON, dejar default
+      }
+    } else {
+      detail = err.response?.data?.messages?.error
         || err.response?.data?.message
-        || 'No se pudo generar la etiqueta de Olva',
-      life: 5000,
-    })
+        || detail
+    }
+    toast.add({ severity: 'error', summary: 'Error', detail, life: 5000 })
   }
+}
+
+function extractFilename(header?: string): string | null {
+  if (!header) return null
+  const match = header.match(/filename="?([^"]+)"?/i)
+  return match ? match[1] : null
 }
 
 const handleDownloadShippingLabel = () => {
