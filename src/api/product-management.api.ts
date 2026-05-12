@@ -186,4 +186,14 @@ export const productManagementApi = {
     const response = await apiClient.post('/products', data)
     return response.data
   },
+
+  async checkSkuAvailability(
+    sku: string,
+    excludeId?: number
+  ): Promise<ApiResponse<{ available: boolean; sku: string }>> {
+    const params: Record<string, string | number> = { sku }
+    if (excludeId) params.exclude_id = excludeId
+    const response = await apiClient.get('/products/check-sku', { params })
+    return response.data
+  },
 }

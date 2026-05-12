@@ -26,6 +26,12 @@ const toast = useToast()
 
 const saving = ref(false)
 
+// SKU availability check
+type SkuStatus = 'idle' | 'checking' | 'available' | 'taken' | 'error'
+const skuStatus = ref<SkuStatus>('idle')
+let skuCheckTimer: ReturnType<typeof setTimeout> | null = null
+let skuCheckSeq = 0
+
 const form = ref<ProductCreatePayload>({
   name: '',
   sku: '',
@@ -158,6 +164,33 @@ onMounted(async () => {
   resumeTourIfPending()
 })
 
+// Debounced SKU availability check
+watch(() => form.value.sku, (newSku) => {
+  if (skuCheckTimer) clearTimeout(skuCheckTimer)
+  errors.value.sku = ''
+  const sku = (newSku || '').trim()
+  if (!sku) {
+    skuStatus.value = 'idle'
+    return
+  }
+  skuStatus.value = 'checking'
+  const seq = ++skuCheckSeq
+  skuCheckTimer = setTimeout(async () => {
+    try {
+      const res = await productManagementApi.checkSkuAvailability(sku)
+      if (seq !== skuCheckSeq) return
+      if (res.success && res.data) {
+        skuStatus.value = res.data.available ? 'available' : 'taken'
+      } else {
+        skuStatus.value = 'error'
+      }
+    } catch {
+      if (seq !== skuCheckSeq) return
+      skuStatus.value = 'error'
+    }
+  }, 400)
+})
+
 const validate = (): boolean => {
   errors.value = {}
 
@@ -175,6 +208,10 @@ const validate = (): boolean => {
 
   if (form.value.description_short && form.value.description_short.length > 360) {
     errors.value.description_short = 'La descripción no puede exceder 360 caracteres'
+  }
+
+  if (skuStatus.value === 'taken') {
+    errors.value.sku = 'Este SKU ya está en uso en tu tienda'
   }
 
   return Object.keys(errors.value).length === 0
@@ -203,9 +240,23 @@ const handleSave = async () => {
       })
     }
   } catch (err: any) {
-    const message = err.response?.data?.message || 'Error al crear el producto'
-    toast.add({ severity: 'error', summary: 'Error', detail: message, life: 5000 })
-    if (err.response?.status === 403 && err.response?.data?.quota) {
+    const data = err.response?.data
+    // API may return { messages: { field: msg, ... } } for validation errors
+    const fieldMessages = data?.messages
+    if (fieldMessages && typeof fieldMessages === 'object') {
+      for (const [field, msg] of Object.entries(fieldMessages)) {
+        errors.value[field] = String(msg)
+      }
+      if (fieldMessages.sku) {
+        skuStatus.value = 'taken'
+      }
+      const detail = Object.values(fieldMessages).join(' · ')
+      toast.add({ severity: 'error', summary: 'Error', detail, life: 5000 })
+    } else {
+      const detail = data?.message || 'Error al crear el producto'
+      toast.add({ severity: 'error', summary: 'Error', detail, life: 5000 })
+    }
+    if (err.response?.status === 403 && data?.quota) {
       planStore.refreshPlan()
     }
   } finally {
@@ -258,13 +309,48 @@ const handleSave = async () => {
           <label for="sku" class="block text-sm font-medium text-gray-700 mb-1">
             SKU
           </label>
-          <InputText
-            id="sku"
-            v-model="form.sku"
-            placeholder="Se genera automaticamente"
-            class="w-full"
-          />
-          <small class="text-gray-400">Codigo unico del producto</small>
+          <div class="relative">
+            <InputText
+              id="sku"
+              v-model="form.sku"
+              placeholder="Se genera automaticamente"
+              class="w-full"
+              :class="{
+                'p-invalid': errors.sku || skuStatus === 'taken',
+              }"
+            />
+            <span
+              v-if="skuStatus !== 'idle' && form.sku"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-sm"
+              :class="{
+                'text-gray-400': skuStatus === 'checking',
+                'text-green-600': skuStatus === 'available',
+                'text-red-500': skuStatus === 'taken' || skuStatus === 'error',
+              }"
+            >
+              <i v-if="skuStatus === 'checking'" class="pi pi-spin pi-spinner" />
+              <i v-else-if="skuStatus === 'available'" class="pi pi-check-circle" />
+              <i v-else-if="skuStatus === 'taken'" class="pi pi-times-circle" />
+              <i v-else-if="skuStatus === 'error'" class="pi pi-exclamation-triangle" />
+            </span>
+          </div>
+          <small
+            v-if="skuStatus === 'taken'"
+            class="text-red-500"
+          >Este SKU ya está en uso en tu tienda</small>
+          <small
+            v-else-if="skuStatus === 'available'"
+            class="text-green-600"
+          >SKU disponible</small>
+          <small
+            v-else-if="skuStatus === 'error'"
+            class="text-red-500"
+          >No se pudo verificar el SKU</small>
+          <small
+            v-else-if="errors.sku"
+            class="text-red-500"
+          >{{ errors.sku }}</small>
+          <small v-else class="text-gray-400">Codigo unico del producto</small>
         </div>
         <div>
           <label for="barcode" class="block text-sm font-medium text-gray-700 mb-1">
@@ -477,7 +563,7 @@ const handleSave = async () => {
           label="Crear Producto"
           icon="pi pi-check"
           :loading="saving"
-          :disabled="!planStore.canAddProduct()"
+          :disabled="!planStore.canAddProduct() || skuStatus === 'taken' || skuStatus === 'checking'"
           @click="handleSave"
         />
         <Button
