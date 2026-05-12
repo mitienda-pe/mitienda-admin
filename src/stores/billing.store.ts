@@ -4,12 +4,15 @@ import { billingApi } from '@/api/billing.api'
 import type {
   NubefactConfigResponse,
   SaveNubefactCredentialsRequest,
-  TestConnectionResponse
+  TestConnectionResponse,
+  BizlinksConfigResponse,
+  SaveBizlinksCredentialsRequest
 } from '@/types/billing.types'
 
 export const useBillingStore = defineStore('billing', () => {
   // State
   const nubefactConfig = ref<NubefactConfigResponse | null>(null)
+  const bizlinksConfig = ref<BizlinksConfigResponse | null>(null)
   const datilConfig = ref<any>(null)
   const isLoading = ref(false)
   const isSaving = ref(false)
@@ -138,6 +141,110 @@ export const useBillingStore = defineStore('billing', () => {
     }
   }
 
+  // Actions for Bizlinks (Peru)
+  async function fetchBizlinksConfig() {
+    try {
+      isLoading.value = true
+      error.value = null
+      const response = await billingApi.getBizlinksConfig()
+      if (response.success && response.data) {
+        bizlinksConfig.value = response.data
+      } else {
+        error.value = 'Error al cargar configuración de Bizlinks'
+      }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Error de conexión'
+      console.error('Error al cargar configuración de Bizlinks:', err)
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function saveBizlinksCredentials(data: SaveBizlinksCredentialsRequest) {
+    try {
+      isSaving.value = true
+      error.value = null
+      successMessage.value = null
+      const response = await billingApi.saveBizlinksCredentials(data)
+      if (response.success) {
+        successMessage.value = 'Credenciales de Bizlinks guardadas exitosamente'
+        await fetchBizlinksConfig()
+        return { success: true }
+      } else {
+        error.value = response.message || 'Error al guardar credenciales'
+        return { success: false, error: error.value }
+      }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Error al guardar credenciales'
+      return { success: false, error: error.value }
+    } finally {
+      isSaving.value = false
+    }
+  }
+
+  async function updateBizlinksCredentials(data: SaveBizlinksCredentialsRequest) {
+    try {
+      isSaving.value = true
+      error.value = null
+      successMessage.value = null
+      const response = await billingApi.updateBizlinksCredentials(data)
+      if (response.success) {
+        successMessage.value = 'Credenciales de Bizlinks actualizadas exitosamente'
+        await fetchBizlinksConfig()
+        return { success: true }
+      } else {
+        error.value = response.message || 'Error al actualizar credenciales'
+        return { success: false, error: error.value }
+      }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Error al actualizar credenciales'
+      return { success: false, error: error.value }
+    } finally {
+      isSaving.value = false
+    }
+  }
+
+  async function deleteBizlinksCredentials() {
+    try {
+      isSaving.value = true
+      error.value = null
+      successMessage.value = null
+      const response = await billingApi.deleteBizlinksCredentials()
+      if (response.success) {
+        successMessage.value = 'Credenciales de Bizlinks eliminadas exitosamente'
+        bizlinksConfig.value = null
+        return { success: true }
+      } else {
+        error.value = response.message || 'Error al eliminar credenciales'
+        return { success: false, error: error.value }
+      }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Error al eliminar credenciales'
+      return { success: false, error: error.value }
+    } finally {
+      isSaving.value = false
+    }
+  }
+
+  async function testBizlinksConnection(): Promise<{ success: boolean; data?: TestConnectionResponse; error?: string }> {
+    try {
+      isTesting.value = true
+      error.value = null
+      const response = await billingApi.testBizlinksConnection()
+      if (response.success && response.data) {
+        return { success: true, data: response.data }
+      } else {
+        error.value = response.message || 'Error al probar conexión'
+        return { success: false, error: error.value }
+      }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Error al probar conexión'
+      return { success: false, error: error.value ?? undefined }
+    } finally {
+      isTesting.value = false
+    }
+  }
+
   // Actions for Dátil (Ecuador)
   async function fetchDatilConfig() {
     try {
@@ -249,6 +356,7 @@ export const useBillingStore = defineStore('billing', () => {
   return {
     // State
     nubefactConfig,
+    bizlinksConfig,
     datilConfig,
     isLoading,
     isSaving,
@@ -261,6 +369,12 @@ export const useBillingStore = defineStore('billing', () => {
     updateNubefactCredentials,
     deleteNubefactCredentials,
     testNubefactConnection,
+    // Actions - Bizlinks
+    fetchBizlinksConfig,
+    saveBizlinksCredentials,
+    updateBizlinksCredentials,
+    deleteBizlinksCredentials,
+    testBizlinksConnection,
     // Actions - Dátil
     fetchDatilConfig,
     saveDatilCredentials,

@@ -55,6 +55,50 @@ export interface TestConnectionResponse {
   message?: string
 }
 
+// Bizlinks Types (Peru - direct REST mode)
+
+export interface BizlinksCredentials {
+  api_url: string
+  ruc_emisor: string
+  razon_social: string
+  serie_factura?: string
+  numero_factura?: string | number
+  serie_boleta?: string
+  numero_boleta?: string | number
+  direccion?: string
+  ubigeo?: string
+  environment: BillingEnvironment
+  email?: string
+  nombre_comercial?: string
+  pdf_format?: PdfFormat
+  puerto?: string
+}
+
+export interface BizlinksConfigResponse {
+  provider: BillingProvider
+  configured: boolean
+  blocked?: boolean
+  credentials: BizlinksCredentials | null
+}
+
+export interface SaveBizlinksCredentialsRequest {
+  api_url: string
+  ruc_emisor: string
+  razon_social: string
+  serie_factura?: string
+  numero_factura?: string | number
+  serie_boleta?: string
+  numero_boleta?: string | number
+  direccion?: string
+  ubigeo?: string
+  environment?: BillingEnvironment
+  email?: string
+  nombre_comercial?: string
+  pdf_format?: PdfFormat
+  puerto?: string
+  blocked?: boolean
+}
+
 // Document Types
 
 export type DocumentType = 1 | 2 // 1=Factura, 2=Boleta

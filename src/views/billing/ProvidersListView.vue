@@ -48,7 +48,8 @@
 
       <!-- Bizlinks Card -->
       <Card
-        class="cursor-pointer hover:shadow-lg transition-shadow border-2 border-transparent hover:border-primary opacity-60"
+        class="cursor-pointer hover:shadow-lg transition-shadow border-2 border-transparent hover:border-primary"
+        @click="goToProviderConfig(3)"
       >
         <template #header>
           <div class="flex items-center justify-center p-6 bg-gradient-to-br from-purple-50 to-purple-100">
@@ -63,18 +64,20 @@
           <div class="flex items-center justify-between">
             <span>Bizlinks</span>
             <Tag
-              value="Próximamente"
-              severity="secondary"
+              v-if="providersConfig[3]?.configured"
+              value="Configurado"
+              severity="success"
+              icon="pi pi-check"
             />
           </div>
         </template>
         <template #content>
           <p class="text-sm text-gray-600">
-            Solución empresarial de facturación electrónica con integración SOAP.
+            Solución empresarial de facturación electrónica certificada como OSE ante SUNAT.
           </p>
-          <div class="mt-4 flex items-center gap-2 text-sm text-gray-400">
-            <i class="pi pi-lock"></i>
-            <span>Disponible próximamente</span>
+          <div class="mt-4 flex items-center gap-2 text-sm">
+            <i class="pi pi-cog text-primary"></i>
+            <span class="text-primary font-medium">Configurar proveedor</span>
           </div>
         </template>
       </Card>
@@ -187,6 +190,7 @@ const providersConfig = ref<Record<number, { configured: boolean }>>({
 
 onMounted(async () => {
   await checkNubefactConfig()
+  await checkBizlinksConfig()
   await checkDatilConfig()
 })
 
@@ -196,6 +200,15 @@ async function checkNubefactConfig() {
     providersConfig.value[2].configured = billingStore.nubefactConfig?.configured || false
   } catch (error) {
     console.error('Error checking Nubefact config:', error)
+  }
+}
+
+async function checkBizlinksConfig() {
+  try {
+    await billingStore.fetchBizlinksConfig()
+    providersConfig.value[3].configured = billingStore.bizlinksConfig?.configured || false
+  } catch (error) {
+    console.error('Error checking Bizlinks config:', error)
   }
 }
 
@@ -209,7 +222,7 @@ async function checkDatilConfig() {
 }
 
 function goToProviderConfig(providerId: number) {
-  const availableProviders = [2, 6] // NubeFact, Dátil
+  const availableProviders = [2, 3, 6] // NubeFact, Bizlinks, Dátil
   if (availableProviders.includes(providerId)) {
     router.push(`/billing/providers/${providerId}`)
   }

@@ -19,6 +19,11 @@
       <NubefactConfigView />
     </div>
 
+    <!-- Bizlinks Configuration (Peru) -->
+    <div v-else-if="providerId === 3">
+      <BizlinksConfigView />
+    </div>
+
     <!-- Dátil Configuration (Ecuador) -->
     <div v-else-if="providerId === 6">
       <DatilConfigView />
@@ -50,6 +55,7 @@ import { useRoute, useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import NubefactConfigView from './NubefactConfigView.vue'
+import BizlinksConfigView from './BizlinksConfigView.vue'
 import DatilConfigView from './DatilConfigView.vue'
 
 const route = useRoute()

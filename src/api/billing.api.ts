@@ -4,6 +4,8 @@ import type {
   NubefactConfigResponse,
   SaveNubefactCredentialsRequest,
   TestConnectionResponse,
+  BizlinksConfigResponse,
+  SaveBizlinksCredentialsRequest,
   BillingDocument,
   BillingDocumentDetail,
   EmitDocumentRequest,
@@ -54,6 +56,48 @@ export const billingApi = {
    */
   async testNubefactConnection(): Promise<ApiResponse<TestConnectionResponse>> {
     const response = await apiClient.post('/billing/nubefact/test')
+    return response.data
+  },
+
+  // ========== Bizlinks API (Peru) ==========
+
+  /**
+   * Get Bizlinks configuration for current store
+   */
+  async getBizlinksConfig(): Promise<ApiResponse<BizlinksConfigResponse>> {
+    const response = await apiClient.get('/billing/bizlinks')
+    return response.data
+  },
+
+  /**
+   * Save Bizlinks credentials
+   */
+  async saveBizlinksCredentials(data: SaveBizlinksCredentialsRequest): Promise<ApiResponse<any>> {
+    const response = await apiClient.post('/billing/bizlinks', data)
+    return response.data
+  },
+
+  /**
+   * Update Bizlinks credentials
+   */
+  async updateBizlinksCredentials(data: SaveBizlinksCredentialsRequest): Promise<ApiResponse<any>> {
+    const response = await apiClient.put('/billing/bizlinks', data)
+    return response.data
+  },
+
+  /**
+   * Delete Bizlinks credentials
+   */
+  async deleteBizlinksCredentials(): Promise<ApiResponse<any>> {
+    const response = await apiClient.delete('/billing/bizlinks')
+    return response.data
+  },
+
+  /**
+   * Test Bizlinks API connection
+   */
+  async testBizlinksConnection(): Promise<ApiResponse<TestConnectionResponse>> {
+    const response = await apiClient.post('/billing/bizlinks/test')
     return response.data
   },
 
