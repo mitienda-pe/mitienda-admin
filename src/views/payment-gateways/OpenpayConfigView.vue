@@ -23,8 +23,16 @@
                   <InputText v-model="formData.merchant_id" placeholder="Tu Merchant ID" class="w-full" />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-secondary-700 mb-2">API Key <span class="text-red-500">*</span></label>
-                  <Password v-model="formData.api_key" placeholder="Tu API Key" class="w-full" :feedback="false" toggleMask />
+                  <label class="block text-sm font-medium text-secondary-700 mb-2">Private API Key <span class="text-red-500">*</span></label>
+                  <Password v-model="formData.api_key" placeholder="sk_..." class="w-full" :feedback="false" toggleMask />
+                  <small class="text-secondary-600">Llave privada (server-side, prefijo <code>sk_</code>).</small>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-secondary-700 mb-2">Public Key</label>
+                  <InputText v-model="formData.public_key" placeholder="pk_..." class="w-full" />
+                  <small class="text-secondary-600">
+                    Llave pública (prefijo <code>pk_</code>). La usa el storefront para tokenizar tarjetas con el SDK de OpenPay JS.
+                  </small>
                 </div>
                 <div class="flex items-center gap-2 mt-4">
                   <Checkbox v-model="formData.enable_installments" inputId="installments" :binary="true" />
@@ -129,6 +137,7 @@ const GATEWAY_CODE = 'openpay'
 const formData = reactive({
   merchant_id: '',
   api_key: '',
+  public_key: '',
   enable_installments: false,
   environment: 'integracion' as 'produccion' | 'integracion'
 })
@@ -150,6 +159,7 @@ watch(() => store.currentConfig, (config) => {
     const c = config.credentials as Record<string, any>
     formData.merchant_id = c.merchant_id ?? ''
     formData.api_key = c.api_key ?? ''
+    formData.public_key = c.public_key ?? ''
     formData.enable_installments = c.enable_installments ?? false
     formData.environment = c.environment ?? 'integracion'
   }

@@ -72,17 +72,27 @@ export interface CulqiPaymentMethods {
 // Mercado Pago
 export interface MercadoPagoCredentials {
   access_token: string
+  public_key: string // Required for client-side SDK init in the storefront
   enable_financing: boolean
   environment: GatewayEnvironment
 }
 
 // Openpay
 export interface OpenpayCredentials {
-  api_key: string
+  api_key: string // Private key
+  public_key: string // Required for client-side tokenization (OpenPay JS)
   merchant_id: string
   enable_installments: boolean
   environment: GatewayEnvironment
   webhook_url?: string
+}
+
+// Pay-Me (Alignet Flex V2)
+export interface PaymeCredentials {
+  client_id: string
+  client_secret: string
+  merchant_code: string
+  environment: GatewayEnvironment
 }
 
 // Powerpay

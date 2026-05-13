@@ -20,8 +20,16 @@
               <div class="space-y-4">
                 <div>
                   <label class="block text-sm font-medium text-secondary-700 mb-2">Access Token <span class="text-red-500">*</span></label>
-                  <Password v-model="formData.access_token" placeholder="APP_USR-..." class="w-full" :feedback="false" toggleMask />
-                  <small class="text-secondary-600">Token de acceso de tu aplicación de Mercado Pago</small>
+                  <Password v-model="formData.access_token" placeholder="APP_USR-... o TEST-..." class="w-full" :feedback="false" toggleMask />
+                  <small class="text-secondary-600">Token de acceso server-side de tu aplicación de Mercado Pago</small>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-secondary-700 mb-2">Public Key</label>
+                  <InputText v-model="formData.public_key" placeholder="APP_USR-... o TEST-..." class="w-full" />
+                  <small class="text-secondary-600">
+                    Llave pública del SDK MP (la usa el storefront para inicializar el SDK client-side y tokenizar tarjetas).
+                  </small>
                 </div>
 
                 <div class="flex items-center gap-2 mt-4">
@@ -111,6 +119,7 @@ import { usePaymentGatewaysStore } from '@/stores/payment-gateways.store'
 import { useDirtyForm } from '@/composables/useDirtyForm'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
+import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Checkbox from 'primevue/checkbox'
 import RadioButton from 'primevue/radiobutton'
@@ -125,6 +134,7 @@ const GATEWAY_CODE = 'mercadopago'
 
 const formData = reactive({
   access_token: '',
+  public_key: '',
   enable_financing: false,
   environment: 'integracion' as 'produccion' | 'integracion'
 })
@@ -145,6 +155,7 @@ watch(() => store.currentConfig, (config) => {
   if (config?.credentials) {
     const c = config.credentials as Record<string, any>
     formData.access_token = c.access_token ?? ''
+    formData.public_key = c.public_key ?? ''
     formData.enable_financing = c.enable_financing ?? false
     formData.environment = c.environment ?? 'integracion'
   }
