@@ -92,6 +92,31 @@
               </div>
             </div>
 
+            <!-- Credenciales sandbox públicas Niubiz -->
+            <div v-if="formData.environment === 'integracion'" class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div class="flex items-start gap-3">
+                <i class="pi pi-info-circle text-blue-600 text-lg mt-0.5"></i>
+                <div class="flex-1">
+                  <h4 class="font-semibold text-blue-900 mb-2">Credenciales sandbox públicas de Niubiz</h4>
+                  <p class="text-xs text-blue-800 mb-3">
+                    Para pruebas, Niubiz publica estas credenciales. <strong>El Merchant ID es numérico</strong> (es la confusión más común — no es el password).
+                  </p>
+                  <div class="bg-white p-3 rounded font-mono text-xs space-y-1 mb-3">
+                    <div><strong>Access Key:</strong> integraciones@niubiz.com.pe</div>
+                    <div><strong>Password:</strong> _7z3@8fF</div>
+                    <div><strong>Merchant ID:</strong> 456879852</div>
+                  </div>
+                  <Button
+                    label="Usar credenciales sandbox"
+                    icon="pi pi-bolt"
+                    size="small"
+                    outlined
+                    @click="loadSandboxCredentials"
+                  />
+                </div>
+              </div>
+            </div>
+
             <Message v-if="store.error" severity="error" :closable="false">{{ store.error }}</Message>
             <Message v-if="store.successMessage" severity="success" :closable="false">{{ store.successMessage }}</Message>
 
@@ -223,5 +248,18 @@ function handleDelete() {
 
 function openNiubiz() {
   window.open('https://niubiz.com.pe/', '_blank')
+}
+
+function loadSandboxCredentials() {
+  formData.merchant_id = '456879852'
+  formData.cybersource_code = 'integraciones@niubiz.com.pe'
+  formData.password = '_7z3@8fF'
+  formData.environment = 'integracion'
+  toast.add({
+    severity: 'info',
+    summary: 'Credenciales sandbox cargadas',
+    detail: 'Recuerda guardar los cambios para activar la integración',
+    life: 3000
+  })
 }
 </script>
