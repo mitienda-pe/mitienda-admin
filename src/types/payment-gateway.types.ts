@@ -47,7 +47,8 @@ export interface IzipayPaymentMethods {
 // Niubiz
 export interface NiubizCredentials {
   merchant_id: string
-  cybersource_code: string
+  cybersource_code: string // Niubiz access key / username (stored in tiendapasarela_valor1)
+  password: string // Niubiz secret access key (stored in tiendapasarela_valor3)
   environment: GatewayEnvironment
 }
 

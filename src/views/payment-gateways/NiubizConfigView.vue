@@ -44,15 +44,34 @@
 
                 <div>
                   <label class="block text-sm font-medium text-secondary-700 mb-2">
-                    Cybersource Code <span class="text-red-500">*</span>
+                    Access Key (Usuario) <span class="text-red-500">*</span>
                   </label>
                   <Password
                     v-model="formData.cybersource_code"
-                    placeholder="Tu código Cybersource"
+                    placeholder="Tu Access Key / Usuario de Niubiz"
                     class="w-full"
                     :feedback="false"
                     toggleMask
                   />
+                  <small class="text-gray-500">
+                    Usuario de la API V3 de Niubiz (en sandbox suele ser un email <code>integraciones@niubiz.com.pe</code> o similar).
+                  </small>
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-secondary-700 mb-2">
+                    Password <span class="text-red-500">*</span>
+                  </label>
+                  <Password
+                    v-model="formData.password"
+                    placeholder="Tu password de Niubiz"
+                    class="w-full"
+                    :feedback="false"
+                    toggleMask
+                  />
+                  <small class="text-gray-500">
+                    Password REST de Niubiz, va junto al Access Key para autenticar contra <code>api.security/v1/security</code>.
+                  </small>
                 </div>
               </div>
             </div>
@@ -146,6 +165,7 @@ const GATEWAY_CODE = 'niubiz'
 const formData = reactive({
   merchant_id: '',
   cybersource_code: '',
+  password: '',
   environment: 'integracion' as 'produccion' | 'integracion'
 })
 
@@ -158,6 +178,7 @@ watch(() => store.currentConfig, (config) => {
     const c = config.credentials as Record<string, any>
     formData.merchant_id = c.merchant_id ?? ''
     formData.cybersource_code = c.cybersource_code ?? ''
+    formData.password = c.password ?? ''
     formData.environment = c.environment ?? 'integracion'
   }
   resetDirty()
@@ -166,8 +187,8 @@ watch(() => store.currentConfig, (config) => {
 onMounted(() => { store.clearMessages() })
 
 async function handleSubmit() {
-  if (!formData.merchant_id || !formData.cybersource_code) {
-    toast.add({ severity: 'warn', summary: 'Campos requeridos', detail: 'Completa todos los campos', life: 3000 })
+  if (!formData.merchant_id || !formData.cybersource_code || !formData.password) {
+    toast.add({ severity: 'warn', summary: 'Campos requeridos', detail: 'Completa todos los campos (Merchant ID, Access Key y Password)', life: 3000 })
     return
   }
   const result = isConfigured.value
@@ -192,6 +213,7 @@ function handleDelete() {
       if (result.success) {
         formData.merchant_id = ''
         formData.cybersource_code = ''
+        formData.password = ''
         formData.environment = 'integracion'
       }
       toast.add({ severity: result.success ? 'success' : 'error', summary: result.success ? 'Eliminadas' : 'Error', detail: result.success ? 'Credenciales eliminadas' : result.error, life: 3000 })
