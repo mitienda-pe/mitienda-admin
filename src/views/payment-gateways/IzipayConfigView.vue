@@ -91,6 +91,49 @@
                   />
                   <small v-if="errors.secret" class="text-red-500">{{ errors.secret }}</small>
                 </div>
+
+                <div>
+                  <label for="password" class="block text-sm font-medium text-secondary-700 mb-2">
+                    Password REST <span class="text-red-500">*</span>
+                  </label>
+                  <Password
+                    id="password"
+                    v-model="formData.password"
+                    placeholder="testpassword_xxxxxx o prodpassword_xxxxxx"
+                    class="w-full"
+                    :class="{ 'p-invalid': errors.password }"
+                    :feedback="false"
+                    toggleMask
+                  />
+                  <small v-if="errors.password" class="text-red-500">{{ errors.password }}</small>
+                  <small v-else class="text-gray-500">
+                    Contraseña REST que Izipay (Lyra) provee en el back-office. Se usa para generar el formToken V4 desde el storefront.
+                  </small>
+                </div>
+
+                <div>
+                  <label for="environment" class="block text-sm font-medium text-secondary-700 mb-2">
+                    Entorno <span class="text-red-500">*</span>
+                  </label>
+                  <div class="flex gap-4">
+                    <div class="flex items-center gap-2">
+                      <RadioButton
+                        v-model="formData.environment"
+                        inputId="env_integracion"
+                        value="integracion"
+                      />
+                      <label for="env_integracion" class="cursor-pointer">Integración (sandbox)</label>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <RadioButton
+                        v-model="formData.environment"
+                        inputId="env_produccion"
+                        value="produccion"
+                      />
+                      <label for="env_produccion" class="cursor-pointer">Producción</label>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -267,10 +310,10 @@
             <div>
               <h4 class="font-semibold text-secondary-800 mb-2">¿Cómo obtener mis credenciales?</h4>
               <ol class="list-decimal list-inside space-y-2 text-secondary-600">
-                <li>Ingresa a tu panel de Izipay</li>
-                <li>Ve a Configuración → API Keys</li>
-                <li>Copia tu Merchant Code, API Key y Secret</li>
-                <li>Pega las credenciales aquí</li>
+                <li>Ingresa al back-office de Lyra/Izipay</li>
+                <li>Configuración → Claves de API REST → toma <strong>Tienda</strong> (Merchant Code), <strong>Clave pública</strong> (API Key), <strong>Clave HMAC</strong> (Secret) y <strong>Contraseña REST</strong> (Password REST)</li>
+                <li>Elige <strong>Integración</strong> para sandbox o <strong>Producción</strong> para cobros reales</li>
+                <li>Pega las credenciales aquí y guarda</li>
               </ol>
             </div>
 
@@ -339,6 +382,7 @@ const formData = reactive<IzipayCredentials>({
   api_key: '',
   merchant_code: '',
   secret: '',
+  password: '',
   environment: 'integracion',
   payment_methods: {
     card: true,
@@ -355,7 +399,8 @@ const { isDirty, reset: resetDirty } = useDirtyForm(() => formData)
 const errors = reactive({
   api_key: '',
   merchant_code: '',
-  secret: ''
+  secret: '',
+  password: ''
 })
 
 const isConfigured = computed(() => store.currentConfig?.gateway?.configured || false)
@@ -374,6 +419,7 @@ watch(() => store.currentConfig, (config) => {
     formData.api_key = c.api_key ?? ''
     formData.merchant_code = c.merchant_code ?? ''
     formData.secret = c.secret ?? ''
+    formData.password = c.password ?? ''
     formData.environment = c.environment ?? 'integracion'
     if (c.payment_methods && typeof c.payment_methods === 'object') {
       Object.assign(formData.payment_methods, c.payment_methods)
@@ -390,6 +436,7 @@ function validateForm(): boolean {
   errors.api_key = ''
   errors.merchant_code = ''
   errors.secret = ''
+  errors.password = ''
 
   let valid = true
 
@@ -405,6 +452,11 @@ function validateForm(): boolean {
 
   if (!formData.secret?.trim()) {
     errors.secret = 'El Secret es requerido'
+    valid = false
+  }
+
+  if (!formData.password?.trim()) {
+    errors.password = 'El Password REST es requerido para crear pagos (formToken V4)'
     valid = false
   }
 
@@ -488,6 +540,7 @@ function handleDelete() {
           api_key: '',
           merchant_code: '',
           secret: '',
+          password: '',
           environment: 'integracion',
           payment_methods: {
             card: true,

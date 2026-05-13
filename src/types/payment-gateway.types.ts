@@ -30,6 +30,7 @@ export interface IzipayCredentials {
   api_key: string
   merchant_code: string
   secret: string
+  password: string // REST password (Lyra back-office)
   environment: GatewayEnvironment
   payment_methods: IzipayPaymentMethods
 }
