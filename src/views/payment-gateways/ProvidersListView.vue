@@ -39,11 +39,20 @@
                     {{ gateway.name.charAt(0) }}
                   </div>
                 </div>
-                <!-- Active badge for exclusive gateway -->
-                <span v-if="gateway.configured && gateway.enabled"
-                  class="absolute top-2 right-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-500 text-white">
-                  <i class="pi pi-check mr-1"></i> Pasarela activa
-                </span>
+                <!-- Toggle de activación (reemplaza el badge "Pasarela activa") -->
+                <div class="absolute top-2 right-2 flex items-center gap-2" @click.stop>
+                  <i
+                    v-if="!gateway.configured"
+                    v-tooltip.left="'Configura primero las credenciales para poder activar'"
+                    class="pi pi-info-circle text-gray-400"
+                  />
+                  <InputSwitch
+                    :model-value="!!gateway.enabled"
+                    :disabled="!gateway.configured || isToggling[gateway.code]"
+                    aria-label="Activar pasarela"
+                    @update:model-value="handleToggle(gateway, $event)"
+                  />
+                </div>
               </div>
             </template>
             <template #title>
@@ -95,13 +104,27 @@
                   : 'border-transparent hover:border-primary'
             ]" @click="goToGatewayConfig(gateway.code)">
             <template #header>
-              <div class="flex items-center justify-center p-6 bg-gradient-to-br from-gray-50 to-gray-100">
+              <div class="flex items-center justify-center p-6 bg-gradient-to-br from-gray-50 to-gray-100 relative">
                 <div class="h-16 w-32 flex items-center justify-center">
                   <img v-if="gatewayLogos[gateway.code]" :src="gatewayLogos[gateway.code]" :alt="gateway.name"
                     class="max-h-16 max-w-full object-contain" />
                   <div v-else class="text-4xl font-bold text-gray-300">
                     {{ gateway.name.charAt(0) }}
                   </div>
+                </div>
+                <!-- Toggle de activación -->
+                <div class="absolute top-2 right-2 flex items-center gap-2" @click.stop>
+                  <i
+                    v-if="!gateway.configured"
+                    v-tooltip.left="'Configura primero las credenciales para poder activar'"
+                    class="pi pi-info-circle text-gray-400"
+                  />
+                  <InputSwitch
+                    :model-value="!!gateway.enabled"
+                    :disabled="!gateway.configured || isToggling[gateway.code]"
+                    aria-label="Activar método de pago"
+                    @update:model-value="handleToggle(gateway, $event)"
+                  />
                 </div>
               </div>
             </template>
@@ -154,12 +177,14 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { onMounted, computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import { useToast } from 'primevue/usetoast'
 import { usePaymentGatewaysStore } from '@/stores/payment-gateways.store'
 import { useOnboarding } from '@/composables/useOnboarding'
 import Card from 'primevue/card'
 import ProgressSpinner from 'primevue/progressspinner'
+import InputSwitch from 'primevue/inputswitch'
 
 // Logos de las pasarelas (SVG preferred, kebab-case naming)
 import logoIzipay from '@/assets/images/logo-izipay.svg'
@@ -183,7 +208,11 @@ import logoKasnet from '@/assets/images/logo-kasnet.png'
 
 const router = useRouter()
 const store = usePaymentGatewaysStore()
+const toast = useToast()
 const { resumeTourIfPending } = useOnboarding()
+
+// Per-gateway loading state so el toggle queda disabled mientras espera respuesta
+const isToggling = reactive<Record<string, boolean>>({})
 
 const gatewayLogos: Record<string, string> = {
   'izipay': logoIzipay,
@@ -221,6 +250,30 @@ onMounted(async () => {
 
 function goToGatewayConfig(code: string) {
   router.push(`/payment-gateways/${code}`)
+}
+
+async function handleToggle(gateway: any, newValue: boolean) {
+  if (!gateway.configured) return
+
+  isToggling[gateway.code] = true
+  const result = await store.toggleGateway(gateway.code, newValue)
+  isToggling[gateway.code] = false
+
+  if (result.success) {
+    toast.add({
+      severity: 'success',
+      summary: newValue ? 'Pasarela activada' : 'Pasarela desactivada',
+      detail: `${gateway.name} ${newValue ? 'está activa' : 'fue desactivada'}`,
+      life: 2500
+    })
+  } else {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: result.error || 'No se pudo cambiar el estado',
+      life: 4000
+    })
+  }
 }
 
 function isProductionEnvironment(env: string): boolean {
