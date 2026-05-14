@@ -10,26 +10,67 @@
                 <h3 class="font-semibold" :class="isConfigured ? 'text-green-800' : 'text-yellow-800'">
                   {{ isConfigured ? 'Kasnet QR configurado' : 'Kasnet QR no configurado' }}
                 </h3>
+                <p v-if="isConfigured" class="text-sm mt-1" :class="isConfigured ? 'text-green-700' : 'text-yellow-700'">
+                  {{ initialMode === 'aggregator'
+                    ? 'Usando cuenta MiTienda. Los cobros se liquidan por transferencia.'
+                    : 'Usando cuenta Kasnet propia. Los cobros van a tu RUC.' }}
+                </p>
               </div>
             </div>
           </div>
 
           <form @submit.prevent="handleSubmit" class="space-y-6">
             <div>
+              <h3 class="text-lg font-semibold text-secondary-800 mb-4">Modo de cobro</h3>
+              <div class="space-y-3">
+                <label class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors"
+                  :class="formData.mode === 'aggregator' ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-gray-300'">
+                  <RadioButton v-model="formData.mode" inputId="mode_aggregator" value="aggregator" class="mt-0.5" />
+                  <div class="flex-1">
+                    <label for="mode_aggregator" class="font-medium text-secondary-800 cursor-pointer">
+                      Usar cuenta MiTienda <span class="text-xs text-primary font-semibold ml-1">RECOMENDADO</span>
+                    </label>
+                    <p class="text-sm text-secondary-600 mt-1">
+                      Los cobros se acreditan en la cuenta Kasnet de MiTienda.
+                      Liquidamos a tu comercio por transferencia bancaria (ver
+                      <em>Liquidaciones</em>). No necesitas firmar contrato directo con Kasnet.
+                    </p>
+                  </div>
+                </label>
+
+                <label class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors"
+                  :class="formData.mode === 'propio' ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-gray-300'">
+                  <RadioButton v-model="formData.mode" inputId="mode_propio" value="propio" class="mt-0.5" />
+                  <div class="flex-1">
+                    <label for="mode_propio" class="font-medium text-secondary-800 cursor-pointer">
+                      Cuenta Kasnet propia
+                    </label>
+                    <p class="text-sm text-secondary-600 mt-1">
+                      Tienes tu propio comercio Kasnet con su API Key.
+                      Los cobros van directo a tu RUC y Kasnet te liquida.
+                    </p>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <Divider />
+
+            <div v-if="formData.mode === 'propio'">
               <h3 class="text-lg font-semibold text-secondary-800 mb-4">Credenciales de Kasnet</h3>
               <div class="space-y-4">
                 <div>
                   <label class="block text-sm font-medium text-secondary-700 mb-2">API Key <span class="text-red-500">*</span></label>
                   <Password v-model="formData.api_key" placeholder="API Key proporcionada por Kasnet" class="w-full" :feedback="false" toggleMask @focus="clearMaskedApiKey" />
-                  <small v-if="!isApiKeyDirty && isConfigured" class="text-secondary-500">
+                  <small v-if="!isApiKeyDirty && hasStoredApiKey" class="text-secondary-500">
                     Hay una API key guardada (oculta). Pega una nueva para reemplazarla, o deja el campo vacío para mantener la actual.
                   </small>
                   <small v-else class="text-secondary-500">Credencial entregada por Kasnet (Globokas) para el QR Interoperable v3.</small>
                 </div>
               </div>
-            </div>
 
-            <Divider />
+              <Divider />
+            </div>
 
             <div>
               <h3 class="text-lg font-semibold text-secondary-800 mb-4">Ambiente</h3>
@@ -43,6 +84,9 @@
                   <label for="env_test">Prueba</label>
                 </div>
               </div>
+              <small v-if="formData.mode === 'aggregator'" class="block text-secondary-500 mt-2">
+                Determina contra qué entorno de Kasnet va el cobro (sandbox o producción).
+              </small>
             </div>
 
             <Message v-if="store.error" severity="error" :closable="false">{{ store.error }}</Message>
@@ -71,7 +115,7 @@
         </template>
       </Card>
 
-      <Card v-if="webhookUrl" class="mt-4">
+      <Card v-if="webhookUrl && formData.mode === 'propio'" class="mt-4">
         <template #title><div class="flex items-center gap-2"><i class="pi pi-link"></i><span>Webhook</span></div></template>
         <template #content>
           <div class="space-y-3 text-sm">
@@ -110,6 +154,8 @@ import Message from 'primevue/message'
 import { UnsavedChangesBar } from '@/components/ui'
 import logoKasnet from '@/assets/images/logo-kasnet.png'
 
+type KasnetMode = 'aggregator' | 'propio'
+
 const toast = useToast()
 const confirm = useConfirm()
 const store = usePaymentGatewaysStore()
@@ -118,13 +164,15 @@ const GATEWAY_CODE = 'kasnet-qr'
 const webhookUrl = computed(() => (store.currentConfig as any)?.webhook_url || null)
 
 const formData = reactive({
+  mode: 'aggregator' as KasnetMode,
   api_key: '',
   environment: 'prueba' as 'produccion' | 'prueba',
 })
 
-// El backend devuelve la api_key enmascarada (••••••••XXXX). No la pre-llenamos
-// para evitar que el usuario edite encima de los bullets y termine guardando un
-// valor mezclado que el backend rechaza como "masked" (preservando el viejo).
+// Modo detectado al cargar la pantalla (lo conservamos para mostrar copy
+// y para decidir si en modo "propio" preservamos la key existente).
+const initialMode = ref<KasnetMode>('aggregator')
+const hasStoredApiKey = ref(false)
 const isApiKeyDirty = ref(false)
 
 const { isDirty, reset: resetDirty } = useDirtyForm(() => formData)
@@ -132,11 +180,29 @@ const { isDirty, reset: resetDirty } = useDirtyForm(() => formData)
 const isConfigured = computed(() => store.currentConfig?.gateway?.configured || false)
 
 watch(() => store.currentConfig, (config) => {
-  if (config?.credentials) {
-    const c = config.credentials as Record<string, any>
-    formData.api_key = ''  // siempre vacío al cargar, el usuario decide si reemplaza
-    formData.environment = c.environment ?? 'prueba'
+  if (!config?.gateway) {
+    // Sin configurar todavía → arranca en aggregator por default
+    formData.mode = 'aggregator'
+    formData.api_key = ''
+    formData.environment = 'prueba'
+    initialMode.value = 'aggregator'
+    hasStoredApiKey.value = false
+    isApiKeyDirty.value = false
+    resetDirty()
+    return
   }
+
+  const c = (config.credentials || {}) as Record<string, any>
+  const stored = c.api_key
+  // Si el backend trae api_key con valor (incluso enmascarado) → la tienda
+  // tiene su propia api_key cargada → modo propio.
+  // Si viene null/'' → no hay key local, opera en modo aggregator.
+  const detected: KasnetMode = stored && stored !== '' ? 'propio' : 'aggregator'
+  initialMode.value = detected
+  formData.mode = detected
+  formData.api_key = '' // siempre vacío al cargar; el usuario decide si reemplaza
+  formData.environment = (c.environment as 'produccion' | 'prueba') ?? 'prueba'
+  hasStoredApiKey.value = !!stored
   isApiKeyDirty.value = false
   resetDirty()
 }, { immediate: true })
@@ -145,8 +211,16 @@ watch(() => formData.api_key, (val) => {
   if (val && val.length > 0) isApiKeyDirty.value = true
 })
 
+// Si el usuario cambia el modo, reseteamos el campo api_key para evitar
+// estados inconsistentes (p.ej. modo aggregator con texto residual en el input).
+watch(() => formData.mode, (newMode, oldMode) => {
+  if (newMode !== oldMode) {
+    formData.api_key = ''
+    isApiKeyDirty.value = false
+  }
+})
+
 function clearMaskedApiKey() {
-  // Por si acaso quedó algo enmascarado (no debería con el watch arriba), limpiamos.
   if (formData.api_key.includes('•')) {
     formData.api_key = ''
   }
@@ -155,27 +229,42 @@ function clearMaskedApiKey() {
 onMounted(() => { store.clearMessages() })
 
 async function handleSubmit() {
-  // Para una tienda recién configurada exigimos api_key.
-  // Si ya estaba configurada, permitimos guardar sin tocar la key (el backend
-  // mantiene la existente cuando enviamos string vacío después del cambio de env).
-  if (!isConfigured.value && !formData.api_key) {
-    toast.add({ severity: 'warn', summary: 'API Key requerida', life: 3000 })
-    return
+  // Validación: solo en modo "propio" la api_key importa.
+  if (formData.mode === 'propio') {
+    const switchingFromAggregator = initialMode.value === 'aggregator'
+    // Si veniamos de aggregator (no hay key guardada) o nunca configurada,
+    // exigimos que el usuario pegue una key.
+    if ((switchingFromAggregator || !hasStoredApiKey.value) && !formData.api_key) {
+      toast.add({ severity: 'warn', summary: 'API Key requerida', detail: 'En modo "Cuenta Kasnet propia" debes pegar la API Key.', life: 4000 })
+      return
+    }
   }
 
-  // Si la key viene vacía y ya hay una guardada, no la enviamos para no pisarla
   const credentialsPayload: Record<string, any> = { environment: formData.environment }
-  if (formData.api_key) {
-    credentialsPayload.api_key = formData.api_key
+
+  if (formData.mode === 'aggregator') {
+    // Limpia la api_key (si había una) para que el service caiga al env aggregator.
+    credentialsPayload.api_key = ''
+  } else {
+    // modo propio: solo enviamos api_key si el usuario pegó una nueva.
+    // Si la dejó vacía y ya había una, mapCredentialsToColumns la preserva
+    // automáticamente al no recibir la key.
+    if (formData.api_key) {
+      credentialsPayload.api_key = formData.api_key
+    }
   }
 
   const result = isConfigured.value
     ? await store.updateCredentials(GATEWAY_CODE, { credentials: credentialsPayload, environment: formData.environment, enabled: true })
     : await store.saveCredentials(GATEWAY_CODE, { credentials: credentialsPayload, environment: formData.environment, enabled: true })
+
   toast.add({ severity: result.success ? 'success' : 'error', summary: result.success ? 'Éxito' : 'Error', life: 3000 })
+
   if (result.success) {
     formData.api_key = ''
     isApiKeyDirty.value = false
+    initialMode.value = formData.mode
+    hasStoredApiKey.value = formData.mode === 'propio'
     resetDirty()
   }
 }
