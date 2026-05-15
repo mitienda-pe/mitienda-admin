@@ -86,9 +86,12 @@ export interface SaveNetsuiteCredentialsRequest {
 /**
  * Response payload of /api/v1/netsuite-config/validate.
  */
+export type NetsuiteConfigSeverity = 'critical' | 'warning'
+
 export interface NetsuiteConfigIssue {
   category: 'credentials' | 'branches' | 'series' | 'cashier_accounts' | 'employees'
   code: string
+  severity: NetsuiteConfigSeverity
   message: string
   field?: string
   tiendadireccion_id?: number
@@ -99,8 +102,15 @@ export interface NetsuiteConfigIssue {
 
 export interface NetsuiteConfigValidationResponse {
   tienda_id: number
+  /** No issues at all (alias kept for backwards compat). */
   is_complete: boolean
+  /** True when there are no critical issues. */
+  is_operative: boolean
+  has_critical: boolean
+  has_warning: boolean
   issue_count: number
+  critical_count: number
+  warning_count: number
   by_category: Partial<Record<NetsuiteConfigIssue['category'], NetsuiteConfigIssue[]>>
   issues: NetsuiteConfigIssue[]
 }

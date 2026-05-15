@@ -1,29 +1,52 @@
 <template>
   <div>
-    <!-- Validation banner (issues from /api/v1/netsuite-config/validate) -->
+    <!-- Validation banners (rojo solo críticos, amarillo aspiracionales, verde sin issues) -->
     <div
-      v-if="validationIssues.length"
+      v-if="criticalIssues.length"
       class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4"
     >
       <div class="flex items-start gap-3">
         <i class="pi pi-exclamation-triangle text-red-600 text-xl"></i>
         <div class="flex-1">
           <h3 class="font-semibold text-red-800">
-            {{ validationIssues.length }} problema(s) de configuración detectados
+            {{ criticalIssues.length }} problema(s) crítico(s)
           </h3>
           <p class="text-sm text-red-700 mt-1">
-            La sincronización con NetSuite va a fallar mientras existan estos errores.
-            No hay defaults hardcoded — cada ID debe estar registrado.
+            Hay datos en uso que están fallando — el sync NetSuite está bloqueado.
           </p>
           <ul class="mt-3 space-y-1 text-sm text-red-700 list-disc list-inside">
-            <li v-for="(issue, idx) in validationIssues" :key="idx">{{ issue.message }}</li>
+            <li v-for="(issue, idx) in criticalIssues" :key="idx">{{ issue.message }}</li>
           </ul>
         </div>
       </div>
     </div>
 
     <div
-      v-else-if="credentials && !isValidating"
+      v-if="warningIssues.length"
+      class="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 p-4"
+    >
+      <div class="flex items-start gap-3">
+        <i class="pi pi-info-circle text-yellow-600 text-xl"></i>
+        <div class="flex-1">
+          <h3 class="font-semibold text-yellow-800">
+            {{ warningIssues.length }} aviso(s) — config aspiracional
+          </h3>
+          <p class="text-sm text-yellow-700 mt-1">
+            Estos IDs faltan pero no afectan ventas activas. Configurar solo si vas a
+            empezar a usarlos.
+          </p>
+          <details class="mt-2 text-sm text-yellow-700">
+            <summary class="cursor-pointer underline">Ver detalle</summary>
+            <ul class="mt-2 space-y-1 list-disc list-inside">
+              <li v-for="(issue, idx) in warningIssues" :key="idx">{{ issue.message }}</li>
+            </ul>
+          </details>
+        </div>
+      </div>
+    </div>
+
+    <div
+      v-if="credentials && !isValidating && !criticalIssues.length && !warningIssues.length"
       class="mb-4 rounded-lg border border-green-200 bg-green-50 p-4 flex items-start gap-3"
     >
       <i class="pi pi-check-circle text-green-600 text-xl"></i>
@@ -31,7 +54,21 @@
         <h3 class="font-semibold text-green-800">Configuración NetSuite completa</h3>
         <p class="text-sm text-green-700 mt-1">
           Todos los IDs requeridos están registrados. La tienda puede sincronizar sin
-          fallbacks.
+          observaciones.
+        </p>
+      </div>
+    </div>
+
+    <div
+      v-else-if="credentials && !isValidating && !criticalIssues.length && warningIssues.length"
+      class="mb-4 rounded-lg border border-green-200 bg-green-50 p-4 flex items-start gap-3"
+    >
+      <i class="pi pi-check-circle text-green-600 text-xl"></i>
+      <div>
+        <h3 class="font-semibold text-green-800">Tienda operativa</h3>
+        <p class="text-sm text-green-700 mt-1">
+          Sin críticos. Revisa los avisos amarillos si quieres habilitar más sucursales,
+          métodos de pago o cajeros.
         </p>
       </div>
     </div>
@@ -770,15 +807,25 @@ const credentialsIssues = computed(() =>
   validationIssues.value.filter(i => i.category === 'credentials')
 )
 
+// Solo los críticos pintan los inputs en rojo. Warnings (aspiracionales)
+// no marcan campos individuales.
 const missingCredentialFields = computed(() => {
   const set = new Set<string>()
   for (const issue of credentialsIssues.value) {
+    if (issue.severity === 'warning') continue
     if (issue.field) set.add(issue.field)
   }
   return set
 })
 
 const isFieldMissing = (column: string) => missingCredentialFields.value.has(column)
+
+const criticalIssues = computed(() =>
+  validationIssues.value.filter(i => (i.severity || 'critical') === 'critical')
+)
+const warningIssues = computed(() =>
+  validationIssues.value.filter(i => i.severity === 'warning')
+)
 
 // Locations management
 const locations = ref<NetsuiteLocation[]>([])
