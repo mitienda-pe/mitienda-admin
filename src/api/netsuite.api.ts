@@ -12,7 +12,8 @@ import type {
   SaveProductInventoryRequest,
   NetsuiteInventoryNumber,
   SaveInventoryNumberRequest,
-  CsvUploadResponse
+  CsvUploadResponse,
+  NetsuiteConfigValidationResponse
 } from '@/types/netsuite.types'
 
 export const netsuiteApi = {
@@ -391,6 +392,20 @@ export const netsuiteApi = {
    */
   async deleteBranchSerie(tiendaId: number, branchId: number, tipo: 'BOLETA' | 'FACTURA'): Promise<ApiResponse<{ success: boolean }>> {
     const response = await apiClient.delete(`/netsuite-credentials/${tiendaId}/branches/${branchId}/series/${tipo}`)
+    return response.data
+  },
+
+  // ========== Configuration validation ==========
+
+  /**
+   * Run the backend NetSuite configuration validator.
+   * Returns the same report shape used by `php spark netsuite:validate-config`.
+   */
+  async validateConfig(tiendaId?: number): Promise<ApiResponse<NetsuiteConfigValidationResponse>> {
+    const url = tiendaId
+      ? `/netsuite-config/validate/${tiendaId}`
+      : '/netsuite-config/validate'
+    const response = await apiClient.get(url)
     return response.data
   }
 }

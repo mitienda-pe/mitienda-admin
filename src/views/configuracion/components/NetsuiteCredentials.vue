@@ -1,5 +1,41 @@
 <template>
   <div>
+    <!-- Validation banner (issues from /api/v1/netsuite-config/validate) -->
+    <div
+      v-if="validationIssues.length"
+      class="mb-4 rounded-lg border border-red-200 bg-red-50 p-4"
+    >
+      <div class="flex items-start gap-3">
+        <i class="pi pi-exclamation-triangle text-red-600 text-xl"></i>
+        <div class="flex-1">
+          <h3 class="font-semibold text-red-800">
+            {{ validationIssues.length }} problema(s) de configuración detectados
+          </h3>
+          <p class="text-sm text-red-700 mt-1">
+            La sincronización con NetSuite va a fallar mientras existan estos errores.
+            No hay defaults hardcoded — cada ID debe estar registrado.
+          </p>
+          <ul class="mt-3 space-y-1 text-sm text-red-700 list-disc list-inside">
+            <li v-for="(issue, idx) in validationIssues" :key="idx">{{ issue.message }}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div
+      v-else-if="credentials && !isValidating"
+      class="mb-4 rounded-lg border border-green-200 bg-green-50 p-4 flex items-start gap-3"
+    >
+      <i class="pi pi-check-circle text-green-600 text-xl"></i>
+      <div>
+        <h3 class="font-semibold text-green-800">Configuración NetSuite completa</h3>
+        <p class="text-sm text-green-700 mt-1">
+          Todos los IDs requeridos están registrados. La tienda puede sincronizar sin
+          fallbacks.
+        </p>
+      </div>
+    </div>
+
     <!-- Estado actual -->
     <div v-if="credentials" class="mb-6 p-4 rounded-lg" :class="Number(credentials.tiendacredencialerp_estado) === 1 ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'">
       <div class="flex items-start gap-3">
@@ -133,66 +169,66 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <div>
             <label for="subsidiary_id" class="block text-sm font-medium text-secondary-700 mb-2">
-              Subsidiary ID
+              Subsidiary ID <span class="text-red-500">*</span>
             </label>
             <InputText
               id="subsidiary_id"
               v-model="formData.subsidiary_id"
-              placeholder="3"
               class="w-full"
+              :class="{ 'p-invalid': isFieldMissing('tiendacredencialerp_subsidiary_id') }"
             />
             <small class="text-secondary-600 mt-1 block">ID de la subsidiaria en NetSuite</small>
           </div>
 
           <div>
             <label for="ubicacion_serie_id" class="block text-sm font-medium text-secondary-700 mb-2">
-              Ubicación Serie ID
+              Ubicación Serie ID <span class="text-red-500">*</span>
             </label>
             <InputText
               id="ubicacion_serie_id"
               v-model="formData.ubicacion_serie_id"
-              placeholder="323"
               class="w-full"
+              :class="{ 'p-invalid': isFieldMissing('tiendacredencialerp_ubicacion_serie_id') }"
             />
             <small class="text-secondary-600 mt-1 block">Para custbody_pe_ubicacion_para_serie</small>
           </div>
 
           <div>
             <label for="generic_customer_id" class="block text-sm font-medium text-secondary-700 mb-2">
-              Generic Customer ID
+              Generic Customer ID <span class="text-red-500">*</span>
             </label>
             <InputText
               id="generic_customer_id"
               v-model="formData.generic_customer_id"
-              placeholder="32797"
               class="w-full"
+              :class="{ 'p-invalid': isFieldMissing('tiendacredencialerp_generic_customer_id') }"
             />
             <small class="text-secondary-600 mt-1 block">Cliente genérico para ventas &lt;700 soles sin DNI</small>
           </div>
 
           <div>
             <label for="bonification_item_id" class="block text-sm font-medium text-secondary-700 mb-2">
-              Bonification Item ID
+              Bonification Item ID <span class="text-red-500">*</span>
             </label>
             <InputText
               id="bonification_item_id"
               v-model="formData.bonification_item_id"
-              placeholder="536"
               class="w-full"
+              :class="{ 'p-invalid': isFieldMissing('tiendacredencialerp_bonification_item_id') }"
             />
             <small class="text-secondary-600 mt-1 block">Item para productos bonificados (gratis)</small>
           </div>
 
           <div>
             <label for="price_level_id" class="block text-sm font-medium text-secondary-700 mb-2">
-              Price Level ID
+              Price Level ID <span class="text-red-500">*</span>
             </label>
             <InputNumber
               id="price_level_id"
               v-model="formData.price_level_id"
-              placeholder="4"
               class="w-full"
               :min="1"
+              :class="{ 'p-invalid': isFieldMissing('tiendacredencialerp_price_level_id') }"
             />
             <small class="text-secondary-600 mt-1 block">Nivel de precio en NetSuite (ej: 4 = Tiendas / Ecommerce)</small>
           </div>
@@ -200,14 +236,112 @@
           <div>
             <label for="customer_category_id" class="block text-sm font-medium text-secondary-700 mb-2">
               Customer Category ID
+              <span v-if="isFieldMissing('tiendacredencialerp_customer_category_id')" class="text-red-500 text-xs">(obligatorio sin valor)</span>
             </label>
             <InputText
               id="customer_category_id"
               v-model="formData.customer_category_id"
-              placeholder="4"
+              placeholder="ID de NetSuite"
               class="w-full"
+              :class="{ 'p-invalid': isFieldMissing('tiendacredencialerp_customer_category_id') }"
             />
             <small class="text-secondary-600 mt-1 block">Categoría de cliente en NetSuite para filtrar promociones (ej: 4 = TIENDAS)</small>
+          </div>
+        </div>
+
+        <Divider />
+
+        <h4 class="text-base font-semibold text-secondary-800 mb-3">
+          Identidad y entorno del invoice
+        </h4>
+        <p class="text-sm text-secondary-600 -mt-2 mb-4">
+          IDs estructurales de NetSuite que solían estar hardcoded en el backend.
+          Cada uno es <strong>obligatorio</strong>.
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div>
+            <label for="department_id" class="block text-sm font-medium text-secondary-700 mb-2">
+              Department ID <span class="text-red-500">*</span>
+            </label>
+            <InputText id="department_id" v-model="formData.department_id" class="w-full" :class="{ 'p-invalid': isFieldMissing('tiendacredencialerp_department_id') }" />
+          </div>
+          <div>
+            <label for="class_id" class="block text-sm font-medium text-secondary-700 mb-2">
+              Class ID <span class="text-red-500">*</span>
+            </label>
+            <InputText id="class_id" v-model="formData.class_id" class="w-full" :class="{ 'p-invalid': isFieldMissing('tiendacredencialerp_class_id') }" />
+          </div>
+          <div>
+            <label for="currency_id" class="block text-sm font-medium text-secondary-700 mb-2">
+              Currency ID <span class="text-red-500">*</span>
+            </label>
+            <InputText id="currency_id" v-model="formData.currency_id" placeholder="1 = PEN, 2 = USD" class="w-full" :class="{ 'p-invalid': isFieldMissing('tiendacredencialerp_currency_id') }" />
+          </div>
+          <div>
+            <label for="country_id" class="block text-sm font-medium text-secondary-700 mb-2">
+              Country ID <span class="text-red-500">*</span>
+            </label>
+            <InputText id="country_id" v-model="formData.country_id" placeholder="269 = Perú" class="w-full" :class="{ 'p-invalid': isFieldMissing('tiendacredencialerp_country_id') }" />
+          </div>
+          <div>
+            <label for="terms_id" class="block text-sm font-medium text-secondary-700 mb-2">
+              Payment Terms ID <span class="text-red-500">*</span>
+            </label>
+            <InputText id="terms_id" v-model="formData.terms_id" placeholder="ej: 7 = CONTADO" class="w-full" :class="{ 'p-invalid': isFieldMissing('tiendacredencialerp_terms_id') }" />
+          </div>
+          <div>
+            <label for="tax_item_id" class="block text-sm font-medium text-secondary-700 mb-2">
+              Tax Code ID <span class="text-red-500">*</span>
+            </label>
+            <InputText id="tax_item_id" v-model="formData.tax_item_id" placeholder="ej: 6 = S-PE Standard IGV" class="w-full" :class="{ 'p-invalid': isFieldMissing('tiendacredencialerp_tax_item_id') }" />
+          </div>
+          <div>
+            <label for="edoc_standard_id" class="block text-sm font-medium text-secondary-700 mb-2">
+              PE eDoc Standard ID <span class="text-red-500">*</span>
+            </label>
+            <InputText id="edoc_standard_id" v-model="formData.edoc_standard_id" placeholder="2 = PE E-invoicing" class="w-full" :class="{ 'p-invalid': isFieldMissing('tiendacredencialerp_edoc_standard_id') }" />
+          </div>
+          <div>
+            <label for="receivables_account_id" class="block text-sm font-medium text-secondary-700 mb-2">
+              Receivables Account ID <span class="text-red-500">*</span>
+            </label>
+            <InputText id="receivables_account_id" v-model="formData.receivables_account_id" class="w-full" :class="{ 'p-invalid': isFieldMissing('tiendacredencialerp_receivables_account_id') }" />
+          </div>
+          <div>
+            <label for="entity_status_id" class="block text-sm font-medium text-secondary-700 mb-2">
+              Customer Entity Status ID <span class="text-red-500">*</span>
+            </label>
+            <InputText id="entity_status_id" v-model="formData.entity_status_id" class="w-full" :class="{ 'p-invalid': isFieldMissing('tiendacredencialerp_entity_status_id') }" />
+          </div>
+          <div>
+            <label for="payment_method_id" class="block text-sm font-medium text-secondary-700 mb-2">
+              Default Payment Method ID <span class="text-red-500">*</span>
+            </label>
+            <InputText id="payment_method_id" v-model="formData.payment_method_id" class="w-full" :class="{ 'p-invalid': isFieldMissing('tiendacredencialerp_payment_method_id') }" />
+          </div>
+          <div>
+            <label for="default_zip_id" class="block text-sm font-medium text-secondary-700 mb-2">
+              Default Ubigeo / Zip ID <span class="text-red-500">*</span>
+            </label>
+            <InputText id="default_zip_id" v-model="formData.default_zip_id" class="w-full" :class="{ 'p-invalid': isFieldMissing('tiendacredencialerp_default_zip_id') }" />
+            <small class="text-secondary-600 mt-1 block">Se usa al crear customers nuevos sin dirección.</small>
+          </div>
+          <div>
+            <label for="discount_item_id" class="block text-sm font-medium text-secondary-700 mb-2">
+              Discount Item ID <span class="text-red-500">*</span>
+            </label>
+            <InputText id="discount_item_id" v-model="formData.discount_item_id" class="w-full" :class="{ 'p-invalid': isFieldMissing('tiendacredencialerp_discount_item_id') }" />
+            <small class="text-secondary-600 mt-1 block">Item para líneas de descuento (ej: 537).</small>
+          </div>
+          <div class="md:col-span-2">
+            <label for="default_salesrep_id" class="block text-sm font-medium text-secondary-700 mb-2">
+              Default Sales Rep ID <span class="text-secondary-400 text-xs">(opcional)</span>
+            </label>
+            <InputText id="default_salesrep_id" v-model="formData.default_salesrep_id" class="w-full" />
+            <small class="text-secondary-600 mt-1 block">
+              Empleado NetSuite que se usa cuando un cajero no tiene
+              <code>empleado_netsuite_id</code> mapeado. Vacío = se omite el salesrep.
+            </small>
           </div>
         </div>
 
@@ -551,7 +685,11 @@ import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { useNetsuite } from '@/composables/useNetsuite'
 import { netsuiteApi } from '@/api/netsuite.api'
-import type { SaveNetsuiteCredentialsRequest, NetsuiteLocation } from '@/types/netsuite.types'
+import type {
+  SaveNetsuiteCredentialsRequest,
+  NetsuiteLocation,
+  NetsuiteConfigIssue,
+} from '@/types/netsuite.types'
 
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -599,16 +737,48 @@ const formData = reactive<Partial<SaveNetsuiteCredentialsRequest>>({
   token_id: '',
   token_secret: '',
   subsidiary_id: '',
-  location_id: '', // Deprecated - kept for backward compatibility
+  location_id: '',
   ubicacion_serie_id: '',
   generic_customer_id: '',
   bonification_item_id: '',
   price_level_id: undefined,
   customer_category_id: '',
+  // Required NetSuite IDs (no longer hardcoded in PHP)
+  department_id: '',
+  class_id: '',
+  currency_id: '',
+  country_id: '',
+  terms_id: '',
+  tax_item_id: '',
+  edoc_standard_id: '',
+  receivables_account_id: '',
+  entity_status_id: '',
+  payment_method_id: '',
+  default_zip_id: '',
+  discount_item_id: '',
+  default_salesrep_id: '',
   autosync_enabled: false,
   delegate_billing: false,
   estado: 1
 })
+
+// Configuration validation report from /netsuite-config/validate.
+const validationIssues = ref<NetsuiteConfigIssue[]>([])
+const isValidating = ref(false)
+
+const credentialsIssues = computed(() =>
+  validationIssues.value.filter(i => i.category === 'credentials')
+)
+
+const missingCredentialFields = computed(() => {
+  const set = new Set<string>()
+  for (const issue of credentialsIssues.value) {
+    if (issue.field) set.add(issue.field)
+  }
+  return set
+})
+
+const isFieldMissing = (column: string) => missingCredentialFields.value.has(column)
 
 // Locations management
 const locations = ref<NetsuiteLocation[]>([])
@@ -707,6 +877,19 @@ watch(() => props.tiendaId, async (tiendaId) => {
       bonification_item_id: creds.tiendacredencialerp_bonification_item_id || '',
       price_level_id: creds.tiendacredencialerp_price_level_id ?? undefined,
       customer_category_id: creds.tiendacredencialerp_customer_category_id || '',
+      department_id: creds.tiendacredencialerp_department_id || '',
+      class_id: creds.tiendacredencialerp_class_id || '',
+      currency_id: creds.tiendacredencialerp_currency_id || '',
+      country_id: creds.tiendacredencialerp_country_id || '',
+      terms_id: creds.tiendacredencialerp_terms_id || '',
+      tax_item_id: creds.tiendacredencialerp_tax_item_id || '',
+      edoc_standard_id: creds.tiendacredencialerp_edoc_standard_id || '',
+      receivables_account_id: creds.tiendacredencialerp_receivables_account_id || '',
+      entity_status_id: creds.tiendacredencialerp_entity_status_id || '',
+      payment_method_id: creds.tiendacredencialerp_payment_method_id || '',
+      default_zip_id: creds.tiendacredencialerp_default_zip_id || '',
+      discount_item_id: creds.tiendacredencialerp_discount_item_id || '',
+      default_salesrep_id: creds.tiendacredencialerp_default_salesrep_id || '',
       autosync_enabled: Number(creds.tiendacredencialerp_autosync_enabled) === 1,
       delegate_billing: Number(creds.tiendacredencialerp_delegate_billing) === 1,
       estado: Number(creds.tiendacredencialerp_estado)
@@ -731,16 +914,43 @@ watch(() => props.tiendaId, async (tiendaId) => {
       bonification_item_id: '',
       price_level_id: undefined,
       customer_category_id: '',
+      department_id: '',
+      class_id: '',
+      currency_id: '',
+      country_id: '',
+      terms_id: '',
+      tax_item_id: '',
+      edoc_standard_id: '',
+      receivables_account_id: '',
+      entity_status_id: '',
+      payment_method_id: '',
+      default_zip_id: '',
+      discount_item_id: '',
+      default_salesrep_id: '',
       autosync_enabled: false,
       delegate_billing: false,
       estado: 1
     })
   }
 
-  // Load locations from new API
+  // Load locations and validation report
   await loadLocations(tiendaId)
   await loadBranchesConfig(tiendaId)
+  await loadValidation(tiendaId)
 }, { immediate: true })
+
+async function loadValidation(tiendaId: number) {
+  if (!tiendaId) return
+  try {
+    isValidating.value = true
+    const response = await netsuiteApi.validateConfig(tiendaId)
+    validationIssues.value = response.data?.issues || []
+  } catch (e) {
+    validationIssues.value = []
+  } finally {
+    isValidating.value = false
+  }
+}
 
 async function loadBranchesConfig(tiendaId: number) {
   try {
@@ -938,19 +1148,38 @@ async function handleSubmit() {
   const defaultLocation = locations.value.find(loc => loc.is_default)
   const legacyLocationId = defaultLocation?.netsuite_location_id || formData.location_id
 
-  // Preparar payload
+  // Preparar payload — incluir todos los IDs (vacío = null para borrarlos).
+  const stringOrNull = (value: unknown): string | undefined => {
+    if (value === undefined) return undefined
+    const trimmed = String(value ?? '').trim()
+    return trimmed === '' ? undefined : trimmed
+  }
+
   const payload: SaveNetsuiteCredentialsRequest = {
     tienda_id: props.tiendaId,
     account_id: formData.account_id!,
     consumer_key: formData.consumer_key!,
     token_id: formData.token_id!,
-    subsidiary_id: formData.subsidiary_id,
-    location_id: legacyLocationId, // Deprecated - for backward compatibility
-    ubicacion_serie_id: formData.ubicacion_serie_id,
-    generic_customer_id: formData.generic_customer_id,
-    bonification_item_id: formData.bonification_item_id,
-    price_level_id: formData.price_level_id ?? 4,
-    customer_category_id: formData.customer_category_id || undefined,
+    subsidiary_id: stringOrNull(formData.subsidiary_id),
+    location_id: legacyLocationId,
+    ubicacion_serie_id: stringOrNull(formData.ubicacion_serie_id),
+    generic_customer_id: stringOrNull(formData.generic_customer_id),
+    bonification_item_id: stringOrNull(formData.bonification_item_id),
+    price_level_id: formData.price_level_id ?? undefined,
+    customer_category_id: stringOrNull(formData.customer_category_id),
+    department_id: stringOrNull(formData.department_id),
+    class_id: stringOrNull(formData.class_id),
+    currency_id: stringOrNull(formData.currency_id),
+    country_id: stringOrNull(formData.country_id),
+    terms_id: stringOrNull(formData.terms_id),
+    tax_item_id: stringOrNull(formData.tax_item_id),
+    edoc_standard_id: stringOrNull(formData.edoc_standard_id),
+    receivables_account_id: stringOrNull(formData.receivables_account_id),
+    entity_status_id: stringOrNull(formData.entity_status_id),
+    payment_method_id: stringOrNull(formData.payment_method_id),
+    default_zip_id: stringOrNull(formData.default_zip_id),
+    discount_item_id: stringOrNull(formData.discount_item_id),
+    default_salesrep_id: stringOrNull(formData.default_salesrep_id),
     autosync_enabled: formData.autosync_enabled || false,
     estado: formData.estado || 1,
     locations: locations.value.length > 0 ? locations.value : undefined
@@ -974,6 +1203,8 @@ async function handleSubmit() {
       life: 3000
     })
     emit('credentials-saved')
+    // Re-run the validator so the banner reflects the new state immediately.
+    await loadValidation(props.tiendaId)
   } else {
     toast.add({
       severity: 'error',

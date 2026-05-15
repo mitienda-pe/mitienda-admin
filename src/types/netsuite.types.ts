@@ -20,19 +20,34 @@ export interface NetsuiteCredential {
   tiendacredencialerp_token_id: string
   tiendacredencialerp_token_secret_masked: string
   tiendacredencialerp_subsidiary_id?: string
-  tiendacredencialerp_location_id?: string // Deprecated - for backward compatibility
+  tiendacredencialerp_location_id?: string
   tiendacredencialerp_ubicacion_serie_id?: string
   tiendacredencialerp_generic_customer_id?: string
   tiendacredencialerp_bonification_item_id?: string
   tiendacredencialerp_price_level_id?: number
   tiendacredencialerp_customer_category_id?: string
+  // Required NetSuite IDs that used to be hardcoded in PHP code.
+  tiendacredencialerp_department_id?: string
+  tiendacredencialerp_class_id?: string
+  tiendacredencialerp_currency_id?: string
+  tiendacredencialerp_country_id?: string
+  tiendacredencialerp_terms_id?: string
+  tiendacredencialerp_tax_item_id?: string
+  tiendacredencialerp_edoc_standard_id?: string
+  tiendacredencialerp_receivables_account_id?: string
+  tiendacredencialerp_entity_status_id?: string
+  tiendacredencialerp_payment_method_id?: string
+  tiendacredencialerp_default_zip_id?: string
+  tiendacredencialerp_discount_item_id?: string
+  // Optional default sales rep when the cajero has no NetSuite ID mapped.
+  tiendacredencialerp_default_salesrep_id?: string
   tiendacredencialerp_estado: number
   tiendacredencialerp_autosync_enabled: number
   tiendacredencialerp_delegate_billing?: number
   tiendacredencialerp_fecha_creacion?: string
   tiendacredencialerp_fecha_actualizacion?: string
-  locations?: NetsuiteLocation[] // New field for multiple locations
-  stock_validation_enabled?: boolean // From tiendas table
+  locations?: NetsuiteLocation[]
+  stock_validation_enabled?: boolean
 }
 
 export interface SaveNetsuiteCredentialsRequest {
@@ -43,16 +58,51 @@ export interface SaveNetsuiteCredentialsRequest {
   token_id: string
   token_secret?: string
   subsidiary_id?: string
-  location_id?: string // Deprecated - for backward compatibility
+  location_id?: string
   ubicacion_serie_id?: string
   generic_customer_id?: string
   bonification_item_id?: string
   price_level_id?: number
   customer_category_id?: string
+  department_id?: string
+  class_id?: string
+  currency_id?: string
+  country_id?: string
+  terms_id?: string
+  tax_item_id?: string
+  edoc_standard_id?: string
+  receivables_account_id?: string
+  entity_status_id?: string
+  payment_method_id?: string
+  default_zip_id?: string
+  discount_item_id?: string
+  default_salesrep_id?: string
   autosync_enabled: boolean
   delegate_billing?: boolean
   estado: number
-  locations?: NetsuiteLocation[] // New field for multiple locations
+  locations?: NetsuiteLocation[]
+}
+
+/**
+ * Response payload of /api/v1/netsuite-config/validate.
+ */
+export interface NetsuiteConfigIssue {
+  category: 'credentials' | 'branches' | 'series' | 'cashier_accounts' | 'employees'
+  code: string
+  message: string
+  field?: string
+  tiendadireccion_id?: number
+  payment_method?: string
+  empleado_id?: number
+  tipo?: string
+}
+
+export interface NetsuiteConfigValidationResponse {
+  tienda_id: number
+  is_complete: boolean
+  issue_count: number
+  by_category: Partial<Record<NetsuiteConfigIssue['category'], NetsuiteConfigIssue[]>>
+  issues: NetsuiteConfigIssue[]
 }
 
 export interface TestNetsuiteConnectionResponse {
