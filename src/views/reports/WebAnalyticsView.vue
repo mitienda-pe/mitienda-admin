@@ -85,7 +85,12 @@
 
       <!-- Conversion Funnel -->
       <div v-if="funnel.length" class="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Embudo de Conversión</h3>
+        <div class="flex items-start justify-between gap-4 mb-4">
+          <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wider">Embudo de Conversión</h3>
+          <p class="text-xs text-gray-400 max-w-md text-right">
+            Los conteos son eventos totales reportados por el storefront; un mismo visitante puede repetir un paso varias veces.
+          </p>
+        </div>
         <div class="space-y-3">
           <div v-for="(step, idx) in funnel" :key="idx" class="flex items-center gap-4">
             <div class="w-40 text-sm text-gray-700 shrink-0">{{ step.step }}</div>
@@ -95,15 +100,18 @@
                   <div
                     class="h-6 rounded-full transition-all flex items-center justify-end pr-2"
                     :class="funnelBarColor(idx)"
-                    :style="{ width: Math.max(step.rate, 2) + '%' }"
+                    :style="{ width: Math.max(Math.min(step.rate, 100), step.count > 0 ? 2 : 0) + '%' }"
                   >
                     <span v-if="step.rate > 15" class="text-xs font-medium text-white">{{ step.count.toLocaleString('es-PE') }}</span>
                   </div>
                 </div>
-                <span class="text-sm font-medium text-gray-600 w-14 text-right">{{ step.rate }}%</span>
+                <span class="text-sm font-medium text-gray-600 w-20 text-right">
+                  <template v-if="step.rate > 0 || step.count === 0">{{ step.rate }}%</template>
+                  <template v-else>{{ step.count.toLocaleString('es-PE') }}</template>
+                </span>
               </div>
               <div v-if="idx > 0 && funnel[idx - 1].count > 0" class="text-xs text-gray-400 mt-0.5">
-                {{ Math.round(step.count / funnel[idx - 1].count * 100) || 0 }}% del paso anterior
+                {{ stepConversion(step, funnel[idx - 1]) }}% del paso anterior
               </div>
             </div>
           </div>
@@ -304,6 +312,13 @@ function formatDevice(device: string): string {
 function funnelBarColor(idx: number): string {
   const colors = ['bg-primary', 'bg-blue-500', 'bg-indigo-500', 'bg-violet-500', 'bg-green-500']
   return colors[idx] || 'bg-gray-400'
+}
+
+// Step-over-step conversion. Capped at 100% so repeated events (e.g. a single
+// shopper triggering begin_checkout multiple times) don't render as ">100%".
+function stepConversion(step: FunnelStep, prev: FunnelStep): number {
+  if (!prev.count) return 0
+  return Math.min(100, Math.round(step.count / prev.count * 100)) || 0
 }
 
 function formatEvent(event: string): string {
