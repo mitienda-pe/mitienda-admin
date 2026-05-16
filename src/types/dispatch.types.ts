@@ -67,7 +67,9 @@ export interface DispatchOrderDetail {
 
 export interface DispatchOrderItem {
   sku: string
+  variant_sku: string | null
   name: string
+  variant: string | null
   quantity: number
   image: string | null
   price?: number

@@ -478,10 +478,13 @@ onMounted(() => {
                       </div>
                     </td>
                     <td class="px-4 py-3">
-                      <span class="font-mono text-sm text-gray-600">{{ item.sku }}</span>
+                      <span class="font-mono text-sm text-gray-600">{{ item.variant_sku || item.sku }}</span>
                     </td>
                     <td class="px-4 py-3">
-                      <span class="text-sm font-medium text-gray-900">{{ item.name }}</span>
+                      <div class="flex flex-col">
+                        <span class="text-sm font-medium text-gray-900">{{ item.name }}</span>
+                        <span v-if="item.variant" class="text-xs text-gray-600 mt-0.5">{{ item.variant }}</span>
+                      </div>
                     </td>
                     <td class="px-4 py-3 text-center">
                       <span class="inline-flex items-center justify-center bg-gray-100 text-gray-800 font-bold rounded-full w-8 h-8 text-sm">
