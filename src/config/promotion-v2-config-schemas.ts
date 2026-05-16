@@ -439,6 +439,23 @@ export function isKnownType(category: RuleCategory, type: string): boolean {
 
 // --- HUMAN-READABLE FORMATTERS ---
 
+/**
+ * Símbolo de moneda usado en los labels human-readable. Se resuelve lazy desde
+ * el store-config store (que ya cargó countryConfig al boot de DashboardLayout).
+ * Si el store aún no está disponible (e.g. tests, SSR), cae a vacío para no
+ * crashear; en ese caso el usuario verá un label sin símbolo en vez de "S/"
+ * incorrecto para una tienda no-PE.
+ */
+function symbol(): string {
+  try {
+    // Import dinámico para evitar ciclo con stores que dependen de este config.
+    const mod = require('@/stores/store-config.store') as typeof import('@/stores/store-config.store')
+    return mod.useStoreConfigStore().currentCurrencySymbol || ''
+  } catch {
+    return ''
+  }
+}
+
 export function formatConfigHuman(
   category: RuleCategory,
   type: string,
@@ -448,12 +465,14 @@ export function formatConfigHuman(
     return getEmptyConfigLabel(category, type)
   }
 
+  const sym = symbol()
+
   switch (type) {
     // Conditions
     case 'none':
       return 'Sin condiciones — apto para todos'
     case 'cart_minimum_amount':
-      return `Monto mínimo: S/ ${formatCentavos(config.amount)}`
+      return `Monto mínimo: ${sym} ${formatCentavos(config.amount)}`
     case 'cart_minimum_quantity':
       return `Cantidad mínima: ${config.quantity} producto(s)`
     case 'cart_contains_product':
@@ -480,23 +499,23 @@ export function formatConfigHuman(
     // Effects
     case 'percentage_discount_product': {
       const pCount = (config.product_ids || []).length
-      return `${config.percentage}% desc. ${pCount} producto(s)${config.max_discount ? ` (máx S/ ${formatCentavos(config.max_discount)})` : ''}`
+      return `${config.percentage}% desc. ${pCount} producto(s)${config.max_discount ? ` (máx ${sym} ${formatCentavos(config.max_discount)})` : ''}`
     }
     case 'percentage_discount_cart':
-      return `${config.percentage}% desc. al carrito${config.max_discount ? ` (máx S/ ${formatCentavos(config.max_discount)})` : ''}`
+      return `${config.percentage}% desc. al carrito${config.max_discount ? ` (máx ${sym} ${formatCentavos(config.max_discount)})` : ''}`
     case 'percentage_discount_shipping':
       return `${config.percentage}% desc. al envío`
     case 'percentage_discount_category':
-      return `${config.percentage}% desc. categoría${config.max_discount ? ` (máx S/ ${formatCentavos(config.max_discount)})` : ''}`
+      return `${config.percentage}% desc. categoría${config.max_discount ? ` (máx ${sym} ${formatCentavos(config.max_discount)})` : ''}`
     case 'percentage_discount_brand':
-      return `${config.percentage}% desc. marca${config.max_discount ? ` (máx S/ ${formatCentavos(config.max_discount)})` : ''}`
+      return `${config.percentage}% desc. marca${config.max_discount ? ` (máx ${sym} ${formatCentavos(config.max_discount)})` : ''}`
     case 'percentage_discount_gamma':
-      return `${config.percentage}% desc. gamma${config.max_discount ? ` (máx S/ ${formatCentavos(config.max_discount)})` : ''}`
+      return `${config.percentage}% desc. gamma${config.max_discount ? ` (máx ${sym} ${formatCentavos(config.max_discount)})` : ''}`
     case 'fixed_discount_cart':
-      return `S/ ${formatCentavos(config.amount)} desc. al carrito`
+      return `${sym} ${formatCentavos(config.amount)} desc. al carrito`
     case 'free_shipping':
       return config.max_shipping_discount
-        ? `Envío gratis (máx S/ ${formatCentavos(config.max_shipping_discount)})`
+        ? `Envío gratis (máx ${sym} ${formatCentavos(config.max_shipping_discount)})`
         : 'Envío gratis'
     case 'gift_product': {
       const gpCount = (config.product_ids || []).length
@@ -504,7 +523,7 @@ export function formatConfigHuman(
     }
     case 'override_price': {
       const opCount = (config.product_ids || []).length
-      return `Precio especial: S/ ${formatCentavos(config.new_price)} (${opCount} producto(s))`
+      return `Precio especial: ${sym} ${formatCentavos(config.new_price)} (${opCount} producto(s))`
     }
 
     // Constraints

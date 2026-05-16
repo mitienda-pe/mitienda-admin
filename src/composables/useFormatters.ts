@@ -1,17 +1,48 @@
+import { useStoreConfigStore } from '@/stores/store-config.store'
+
+// Mapeo ISO2 → locale BCP47 para Intl. PE/CR/EC usan es-* respectivamente;
+// fallback a 'es' para no romper si la tienda aún no cargó country config.
+const LOCALE_BY_ISO2: Record<string, string> = {
+  PE: 'es-PE',
+  CR: 'es-CR',
+  EC: 'es-EC',
+  CO: 'es-CO',
+  CL: 'es-CL',
+  MX: 'es-MX',
+}
+
 export function useFormatters() {
-  // Formatear moneda (Soles peruanos)
+  // Lazy resolve para no crashear si se llama antes de que Pinia esté inicializado
+  // (algunos consumers usan formatters en migración de SSR-like flows).
+  const getCountry = () => {
+    try {
+      return useStoreConfigStore().countryConfig
+    } catch {
+      return null
+    }
+  }
+
+  const getLocale = (): string => {
+    const iso2 = getCountry()?.iso2
+    return iso2 ? (LOCALE_BY_ISO2[iso2] ?? 'es') : 'es-PE'
+  }
+
+  // Formatear moneda según país de la tienda. Cae a PEN/S/ si el countryConfig
+  // aún no se cargó (caso boot inicial).
   const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('es-PE', {
+    const country = getCountry()
+    const currency = country?.moneda_iso ?? 'PEN'
+    const decimals = country?.decimales ?? 2
+    return new Intl.NumberFormat(getLocale(), {
       style: 'currency',
-      currency: 'PEN',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 3
+      currency,
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals + 1
     }).format(amount)
   }
 
-  // Formatear número con separadores de miles
   const formatNumber = (num: number): string => {
-    return new Intl.NumberFormat('es-PE').format(num)
+    return new Intl.NumberFormat(getLocale()).format(num)
   }
 
   // Formatear porcentaje
@@ -46,7 +77,7 @@ export function useFormatters() {
       const [year, month, day] = date.split('-').map(Number)
       const parsedDate = new Date(year, month - 1, day)
 
-      return new Intl.DateTimeFormat('es-PE', {
+      return new Intl.DateTimeFormat(getLocale(), {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric'
@@ -57,7 +88,7 @@ export function useFormatters() {
     const parsedDate = new Date(date)
     if (isNaN(parsedDate.getTime())) return 'N/A'
 
-    return new Intl.DateTimeFormat('es-PE', {
+    return new Intl.DateTimeFormat(getLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
@@ -70,7 +101,7 @@ export function useFormatters() {
     const parsedDate = new Date(date)
     if (isNaN(parsedDate.getTime())) return 'N/A'
 
-    return new Intl.DateTimeFormat('es-PE', {
+    return new Intl.DateTimeFormat(getLocale(), {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -86,7 +117,7 @@ export function useFormatters() {
     const parsedDate = new Date(date)
     if (isNaN(parsedDate.getTime())) return 'N/A'
 
-    return new Intl.DateTimeFormat('es-PE', {
+    return new Intl.DateTimeFormat(getLocale(), {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true

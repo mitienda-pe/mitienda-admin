@@ -1,19 +1,21 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { storeApi } from '@/api/store.api'
-import type { StoreConfig, StoreConfigUpdate, Currency, Country } from '@/types/store.types'
+import type { StoreConfig, StoreConfigUpdate, Currency, Country, CountryConfig } from '@/types/store.types'
 
 function deepClone<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj))
 }
 
+// Defaults usados sólo mientras el store carga (skeleton de UI). El valor real
+// viene del backend vía fetchConfig() / fetchCountryConfig().
 const DEFAULT_CONFIG: StoreConfig = {
   tiendageneral_idioma: 'spanish',
   moneda_id: 1,
-  moneda_nombre: 'Sol peruano',
-  moneda_simbolo: 'S/',
-  moneda_iso: 'PEN',
-  tiendageneral_paisorigen: 2055,
+  moneda_nombre: '',
+  moneda_simbolo: '',
+  moneda_iso: '',
+  tiendageneral_paisorigen: 0,
   tiendageneral_montominimo: null,
   tiendageneral_montomaximo: 100000,
   sw_tienda_visible: 1,
@@ -32,6 +34,7 @@ export const useStoreConfigStore = defineStore('store-config', () => {
   const draftConfig = ref<StoreConfig>(deepClone(DEFAULT_CONFIG))
   const currencies = ref<Currency[]>([])
   const countries = ref<Country[]>([])
+  const countryConfig = ref<CountryConfig | null>(null)
 
   const isLoading = ref(false)
   const isSaving = ref(false)
@@ -45,7 +48,20 @@ export const useStoreConfigStore = defineStore('store-config', () => {
 
   const currentCurrencySymbol = computed(() => {
     const c = currencies.value.find(c => c.moneda_id === draftConfig.value.moneda_id)
-    return c?.moneda_simbolo || 'S/'
+    return c?.moneda_simbolo || countryConfig.value?.moneda_simbolo || ''
+  })
+
+  const currentCurrencyIso = computed(() => {
+    const c = currencies.value.find(c => c.moneda_id === draftConfig.value.moneda_id)
+    return c?.moneda_iso || countryConfig.value?.moneda_iso || ''
+  })
+
+  const currentDecimales = computed(() => countryConfig.value?.decimales ?? 2)
+
+  const territoryLabels = computed(() => countryConfig.value?.labels ?? {
+    dpto: 'Departamento',
+    prov: 'Provincia',
+    dist: 'Distrito'
   })
 
   async function fetchConfig() {
@@ -123,6 +139,17 @@ export const useStoreConfigStore = defineStore('store-config', () => {
     }
   }
 
+  async function fetchCountryConfig() {
+    try {
+      const response = await storeApi.getCountryConfig()
+      if (response.success && response.data) {
+        countryConfig.value = response.data
+      }
+    } catch {
+      // Non-critical, formatters fall back to '' / defaults
+    }
+  }
+
   async function uploadBanner(file: File): Promise<boolean> {
     isUploadingBanner.value = true
     error.value = null
@@ -171,6 +198,7 @@ export const useStoreConfigStore = defineStore('store-config', () => {
     draftConfig,
     currencies,
     countries,
+    countryConfig,
     isLoading,
     isSaving,
     isUploadingBanner,
@@ -178,10 +206,14 @@ export const useStoreConfigStore = defineStore('store-config', () => {
     isLoaded,
     hasChanges,
     currentCurrencySymbol,
+    currentCurrencyIso,
+    currentDecimales,
+    territoryLabels,
     fetchConfig,
     saveConfig,
     fetchCurrencies,
     fetchCountries,
+    fetchCountryConfig,
     uploadBanner,
     deleteBanner,
     updateField,

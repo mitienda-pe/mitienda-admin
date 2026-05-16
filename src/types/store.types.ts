@@ -136,6 +136,28 @@ export interface Country {
   codPais: number
 }
 
+/**
+ * Config del país de la tienda actual, devuelta por GET /store-config/country.
+ * Fuente de verdad para labels territoriales, moneda, IVA y decimales.
+ */
+export interface CountryConfig {
+  id: number
+  iso2: string
+  iso3: string
+  nombre: string
+  moneda_id: number
+  moneda_iso: string | null
+  moneda_simbolo: string | null
+  iva_rate: number
+  ubigeo_root_id: number | null
+  decimales: number
+  labels: {
+    dpto: string
+    prov: string
+    dist: string
+  }
+}
+
 export interface StoreScheduleDay {
   day: string
   active: boolean

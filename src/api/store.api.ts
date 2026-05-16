@@ -11,6 +11,7 @@ import type {
   StoreConfigUpdate,
   Currency,
   Country,
+  CountryConfig,
   StoreMessages
 } from '@/types/store.types'
 
@@ -116,6 +117,11 @@ export const storeApi = {
       return { success: true, data: rawData }
     }
     return { success: false, data: [] }
+  },
+
+  async getCountryConfig(): Promise<ApiResponse<CountryConfig>> {
+    const response = await apiClient.get('/store-config/country')
+    return { success: true, data: response.data.data || response.data }
   },
 
   async uploadConfigBanner(file: File): Promise<ApiResponse<{ banner_url: string }>> {

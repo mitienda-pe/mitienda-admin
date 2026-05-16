@@ -117,7 +117,12 @@ async function handleBannerDelete() {
 }
 
 onMounted(() => {
-  Promise.all([store.fetchConfig(), store.fetchCurrencies(), store.fetchCountries()])
+  Promise.all([
+    store.fetchConfig(),
+    store.fetchCurrencies(),
+    store.fetchCountries(),
+    store.fetchCountryConfig()
+  ])
 })
 </script>
 

@@ -1096,6 +1096,7 @@ import UpgradeModal from '@/components/plan/UpgradeModal.vue'
 import HelpFab from '@/components/help/HelpFab.vue'
 import HelpDrawer from '@/components/help/HelpDrawer.vue'
 import { useOnboardingStore } from '@/stores/onboarding.store'
+import { useStoreConfigStore } from '@/stores/store-config.store'
 
 const appVersion = __APP_VERSION__
 
@@ -1106,6 +1107,7 @@ const adminStore = useAdminStore()
 const badgeCountsStore = useBadgeCountsStore()
 const planStore = usePlanStore()
 const onboardingStore = useOnboardingStore()
+const storeConfigStore = useStoreConfigStore()
 const { initOneSignal } = useOneSignal()
 useBroadcasts()
 
@@ -1113,6 +1115,10 @@ onMounted(() => {
   badgeCountsStore.startPolling()
   initOneSignal({ autoPrompt: true })
   onboardingStore.restore()
+  // Carga config de país (moneda, IVA, labels territoriales) para que los
+  // formatters globales (useFormatters) rendericen el símbolo correcto en
+  // todas las vistas, no sólo en /store/config.
+  storeConfigStore.fetchCountryConfig()
 })
 
 onUnmounted(() => {
