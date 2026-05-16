@@ -1332,8 +1332,11 @@ const handleDebugPayments = async () => {
                                 {{ getItemPromotion(item.id)?.discount_value }}% OFF
                               </span>
                             </p>
-                            <p v-if="item.product_sku" class="text-xs text-gray-500 mt-0.5">
-                              SKU: {{ item.product_sku }}
+                            <p v-if="item.product_variant" class="text-xs text-gray-600 mt-0.5">
+                              {{ item.product_variant }}
+                            </p>
+                            <p v-if="item.variant_sku || item.product_sku" class="text-xs text-gray-500 mt-0.5">
+                              SKU: {{ item.variant_sku || item.product_sku }}
                             </p>
                             <div v-if="getProductReview(item.product_id)?.has_review" class="mt-1">
                               <StarRating :rating="getProductReview(item.product_id)!.review!.rating" size="sm" />

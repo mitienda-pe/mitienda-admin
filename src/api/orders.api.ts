@@ -232,6 +232,8 @@ export const ordersApi = {
             product_id: item.product_id || 0,
             product_name: item.tittle || '', // Nota: API usa 'tittle' (typo)
             product_sku: item.sku || '',
+            product_variant: item.variant || null,
+            variant_sku: item.variant_sku || null,
             product_image: item.image || undefined,
             quantity: item.quantity || 0,
             price: parseFloat(item.price || '0'),

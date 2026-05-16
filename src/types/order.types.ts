@@ -126,6 +126,8 @@ export interface OrderItem {
   product_id: number
   product_name: string
   product_sku: string
+  product_variant?: string | null
+  variant_sku?: string | null
   product_image?: string
   quantity: number
   price: number
