@@ -46,8 +46,24 @@ export interface Order {
   coupon_type?: 'percentage' | 'fixed' // Coupon discount type
   referrer_code?: string | null // Referrer/affiliate code
   shipping_history?: ShippingHistoryEvent[] // Eventos de despacho (tiendasestadosdespacho)
+  payment_comments_count?: number // Comentarios del seller sobre el pago (anotaciones manuales)
   created_at: string
   updated_at: string
+}
+
+export interface OrderPaymentComment {
+  id: number
+  order_id: number
+  text: string
+  author: {
+    id: number
+    name: string | null
+    email: string | null
+  }
+  created_at: string
+  updated_at: string | null
+  can_edit: boolean
+  can_delete: boolean
 }
 
 export interface OrderPromotion {

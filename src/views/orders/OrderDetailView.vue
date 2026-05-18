@@ -17,6 +17,7 @@ import DeliveryMap from '@/components/map/DeliveryMap.vue'
 import FraudRiskCard from '@/components/fraud/FraudRiskCard.vue'
 import StarRating from '@/components/reviews/StarRating.vue'
 import PluginSlot from '@/components/plugins/PluginSlot.vue'
+import OrderPaymentComments from './components/OrderPaymentComments.vue'
 import { reviewsApi } from '@/api/reviews.api'
 import { fulfillmentApi } from '@/api/fulfillment.api'
 import type { OrderItemReview } from '@/types/review.types'
@@ -1215,6 +1216,12 @@ const handleDebugPayments = async () => {
             </template>
           </Card>
       </div>
+
+      <!-- Comentarios del pago (historial con autor + fecha) -->
+      <OrderPaymentComments
+        v-if="order.id"
+        :order-id="order.id"
+      />
 
       <!-- Observaciones y Referidor (ancho completo) -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" v-if="order.notes || order.store_notes || order.referrer_code">

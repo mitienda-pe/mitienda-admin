@@ -1,5 +1,5 @@
 import apiClient from './axios'
-import type { Order, OrderStatus } from '@/types/order.types'
+import type { Order, OrderPaymentComment, OrderStatus } from '@/types/order.types'
 import type { ApiResponse, PaginatedResponse } from '@/types/api.types'
 
 export type OrderSortField = 'date' | 'total' | 'status' | 'customer' | 'code' | 'billed'
@@ -296,6 +296,9 @@ export const ordersApi = {
               date: String(ev.date || ''),
             }))
           : undefined,
+        payment_comments_count: typeof rawData.payment_comments_count === 'number'
+          ? rawData.payment_comments_count
+          : Number(rawData.payment_comments_count) || 0,
         created_at: rawData.date_created || '',
         updated_at: rawData.date_created || '',
         notes: rawData.notes || undefined,
@@ -404,5 +407,45 @@ export const ordersApi = {
   }>> {
     const response = await apiClient.post(`/orders/${orderId}/resend-invoice-email`)
     return response.data
+  },
+
+  /**
+   * Listar comentarios del seller sobre el pago de la orden. Solo retorna los
+   * comentarios vigentes (no soft-deleted).
+   */
+  async listPaymentComments(orderId: number): Promise<ApiResponse<OrderPaymentComment[]>> {
+    const response = await apiClient.get(`/orders/${orderId}/payment-comments`)
+    return {
+      success: response.data?.error === 0,
+      data: Array.isArray(response.data?.data) ? response.data.data : []
+    }
+  },
+
+  async createPaymentComment(orderId: number, text: string): Promise<ApiResponse<OrderPaymentComment>> {
+    const response = await apiClient.post(`/orders/${orderId}/payment-comments`, { text })
+    return {
+      success: response.data?.error === 0,
+      data: response.data?.data
+    }
+  },
+
+  async updatePaymentComment(
+    orderId: number,
+    commentId: number,
+    text: string
+  ): Promise<ApiResponse<OrderPaymentComment>> {
+    const response = await apiClient.put(`/orders/${orderId}/payment-comments/${commentId}`, { text })
+    return {
+      success: response.data?.error === 0,
+      data: response.data?.data
+    }
+  },
+
+  async deletePaymentComment(orderId: number, commentId: number): Promise<ApiResponse<{ id: number }>> {
+    const response = await apiClient.delete(`/orders/${orderId}/payment-comments/${commentId}`)
+    return {
+      success: response.data?.error === 0,
+      data: response.data?.data
+    }
   }
 }
