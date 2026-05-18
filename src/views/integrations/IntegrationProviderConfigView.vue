@@ -72,6 +72,7 @@ const isEnabled = computed(() => store.currentConfig?.enabled ?? false)
 
 const isFrontendOnly = computed(() => provider.value?.frontend_only === true)
 const hasEvents = computed(() => (provider.value?.supported_events?.length ?? 0) > 0)
+const hasCredentialFields = computed(() => (provider.value?.config_fields?.length ?? 0) > 0)
 
 async function handleSave() {
   if (!code.value || !provider.value) return
@@ -247,7 +248,7 @@ async function handleDelete() {
         </div>
 
         <!-- Credentials Form -->
-        <div class="bg-white rounded-lg shadow p-6">
+        <div v-if="hasCredentialFields" class="bg-white rounded-lg shadow p-6">
           <h3 class="font-semibold text-gray-700 mb-4">Credenciales</h3>
           <div class="space-y-4">
             <div v-for="field in provider.config_fields" :key="field.key">
@@ -311,6 +312,7 @@ async function handleDelete() {
         <div class="flex items-center justify-between">
           <div class="flex gap-2">
             <AppButton
+              v-if="hasCredentialFields"
               variant="primary"
               @click="handleSave"
               :loading="store.isSaving"
@@ -329,7 +331,7 @@ async function handleDelete() {
             </AppButton>
           </div>
           <AppButton
-            v-if="isConfigured"
+            v-if="isConfigured && hasCredentialFields"
             variant="danger"
             @click="handleDelete"
             :loading="store.isSaving"

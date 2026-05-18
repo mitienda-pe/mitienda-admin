@@ -112,6 +112,7 @@ const providerIcons: Record<string, string> = {
   emailoctopus: 'pi pi-envelope',
   sendfox: 'pi pi-envelope',
   // Chat
+  shopping_chat: 'pi pi-sparkles',
   tawkto: 'pi pi-comments',
   livechat: 'pi pi-comments',
   chatway: 'pi pi-comments',
