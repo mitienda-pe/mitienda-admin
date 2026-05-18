@@ -411,12 +411,13 @@ export const ordersApi = {
 
   /**
    * Listar comentarios del seller sobre el pago de la orden. Solo retorna los
-   * comentarios vigentes (no soft-deleted).
+   * comentarios vigentes (no soft-deleted). El interceptor de axios ya
+   * normaliza la respuesta a `{ success, data }`, así que solo la devolvemos.
    */
   async listPaymentComments(orderId: number): Promise<ApiResponse<OrderPaymentComment[]>> {
     const response = await apiClient.get(`/orders/${orderId}/payment-comments`)
     return {
-      success: response.data?.error === 0,
+      success: response.data?.success === true,
       data: Array.isArray(response.data?.data) ? response.data.data : []
     }
   },
@@ -424,7 +425,7 @@ export const ordersApi = {
   async createPaymentComment(orderId: number, text: string): Promise<ApiResponse<OrderPaymentComment>> {
     const response = await apiClient.post(`/orders/${orderId}/payment-comments`, { text })
     return {
-      success: response.data?.error === 0,
+      success: response.data?.success === true,
       data: response.data?.data
     }
   },
@@ -436,7 +437,7 @@ export const ordersApi = {
   ): Promise<ApiResponse<OrderPaymentComment>> {
     const response = await apiClient.put(`/orders/${orderId}/payment-comments/${commentId}`, { text })
     return {
-      success: response.data?.error === 0,
+      success: response.data?.success === true,
       data: response.data?.data
     }
   },
@@ -444,7 +445,7 @@ export const ordersApi = {
   async deletePaymentComment(orderId: number, commentId: number): Promise<ApiResponse<{ id: number }>> {
     const response = await apiClient.delete(`/orders/${orderId}/payment-comments/${commentId}`)
     return {
-      success: response.data?.error === 0,
+      success: response.data?.success === true,
       data: response.data?.data
     }
   }
