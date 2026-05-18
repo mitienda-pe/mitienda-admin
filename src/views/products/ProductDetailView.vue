@@ -524,6 +524,22 @@
                 </div>
               </div>
 
+              <!-- Destacado -->
+              <div class="flex items-start gap-3">
+                <InputSwitch
+                  id="edit-featured"
+                  v-model="form.featured"
+                />
+                <div>
+                  <label for="edit-featured" class="text-sm font-medium text-secondary-700 cursor-pointer block">
+                    Destacado
+                  </label>
+                  <p class="text-xs text-secondary-500 mt-0.5">
+                    Aparece primero en la seccion "Productos destacados" del home.
+                  </p>
+                </div>
+              </div>
+
               <!-- Precios -->
               <div class="border-t border-gray-200 pt-4">
                 <h4 class="text-sm font-semibold text-secondary-700 mb-3">Precios e Impuestos</h4>
@@ -985,6 +1001,7 @@ const form = ref<FormState>({
   stock: undefined,
   unlimited_stock: false,
   published: true,
+  featured: false,
   order: undefined,
   brand_id: null,
   gamma_id: null,
@@ -1114,6 +1131,7 @@ const populateForm = async () => {
     stock: p.stock ?? undefined,
     unlimited_stock: p.unlimited_stock || false,
     published: p.published,
+    featured: p.featured || false,
     order: p.order ?? undefined,
     brand_id: p.brand?.id || null,
     gamma_id: p.gamma?.id || null,

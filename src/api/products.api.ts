@@ -274,6 +274,7 @@ export const productsApi = {
 
     // Boolean fields: convert to 0/1
     if (data.published !== undefined) payload.published = data.published ? 1 : 0
+    if (data.featured !== undefined) payload.featured = data.featured ? 1 : 0
     if (data.unlimited_stock !== undefined) payload.unlimited_stock = data.unlimited_stock ? 1 : 0
     if (data.shipping_per_unit !== undefined) payload.shipping_per_unit = data.shipping_per_unit ? 1 : 0
 

@@ -276,6 +276,7 @@ export interface ProductCreatePayload {
   gamma_id?: number | null
   categories?: number[]
   published?: boolean
+  featured?: boolean
   order?: number
   igv_percent?: number
   tax_affectation?: number
