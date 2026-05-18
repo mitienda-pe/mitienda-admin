@@ -104,6 +104,7 @@ const providerIcons: Record<string, string> = {
   // Email Marketing
   doppler: 'pi pi-envelope',
   icomm: 'pi pi-envelope',
+  icomm_omnichannel: 'pi pi-envelope',
   mailchimp: 'pi pi-envelope',
   klaviyo: 'pi pi-chart-bar',
   brevo: 'pi pi-envelope',
