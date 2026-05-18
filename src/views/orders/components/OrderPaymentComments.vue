@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import Card from 'primevue/card'
+import Dialog from 'primevue/dialog'
 import Textarea from 'primevue/textarea'
 import ProgressSpinner from 'primevue/progressspinner'
 import { useToast } from 'primevue/usetoast'
-import { AppButton, AppEmptyState } from '@/components/ui'
+import { AppButton } from '@/components/ui'
 import { useFormatters } from '@/composables/useFormatters'
 import { ordersApi } from '@/api/orders.api'
 import type { OrderPaymentComment } from '@/types/order.types'
@@ -17,6 +17,7 @@ const toast = useToast()
 const { formatDateTime } = useFormatters()
 
 const MAX_LENGTH = 1000
+const PREVIEW_CHARS = 120
 
 const comments = ref<OrderPaymentComment[]>([])
 const isLoading = ref(false)
@@ -26,9 +27,18 @@ const newText = ref('')
 const editingId = ref<number | null>(null)
 const editingText = ref('')
 const deletingId = ref<number | null>(null)
+const dialogOpen = ref(false)
 
-const newTextLength = computed(() => newText.value.length)
-const editingTextLength = computed(() => editingText.value.length)
+const lastComment = computed<OrderPaymentComment | null>(() => {
+  if (comments.value.length === 0) return null
+  return comments.value[comments.value.length - 1] ?? null
+})
+
+const lastCommentPreview = computed(() => {
+  const text = lastComment.value?.text ?? ''
+  if (text.length <= PREVIEW_CHARS) return text
+  return text.slice(0, PREVIEW_CHARS).trimEnd() + '…'
+})
 
 const canSubmitNew = computed(() => {
   const trimmed = newText.value.trim()
@@ -57,6 +67,12 @@ async function loadComments() {
   } finally {
     isLoading.value = false
   }
+}
+
+function openDialog() {
+  cancelEdit()
+  newText.value = ''
+  dialogOpen.value = true
 }
 
 async function submitNew() {
@@ -100,9 +116,7 @@ async function submitEdit(commentId: number) {
     const response = await ordersApi.updatePaymentComment(props.orderId, commentId, editingText.value.trim())
     if (response.success && response.data) {
       const index = comments.value.findIndex((c) => c.id === commentId)
-      if (index !== -1) {
-        comments.value[index] = response.data
-      }
+      if (index !== -1) comments.value[index] = response.data
       cancelEdit()
       toast.add({ severity: 'success', summary: 'Comentario actualizado', life: 2500 })
     } else {
@@ -163,57 +177,72 @@ onMounted(() => {
 </script>
 
 <template>
-  <Card>
-    <template #title>
-      <div class="flex items-center gap-2">
-        <i class="pi pi-comments text-primary" />
-        <span>Comentarios del pago</span>
-        <span
-          v-if="comments.length > 0"
-          class="ml-1 inline-flex items-center justify-center min-w-[1.5rem] h-6 px-2 rounded-full bg-primary/10 text-primary text-xs font-semibold"
+  <div>
+    <!-- Inline summary within the Pago card. Si la carga falla (p.ej. la
+         migración aún no está aplicada) tratamos el inline como "vacío":
+         dejamos el CTA visible y el error verdadero se mostrará dentro
+         del dialog y/o como toast si el create falla. -->
+    <div v-if="isLoading" class="flex items-center gap-2 text-xs text-gray-500">
+      <ProgressSpinner
+        style="width: 14px; height: 14px"
+        stroke-width="4"
+      />
+      <span>Cargando notas…</span>
+    </div>
+
+    <button
+      v-else-if="!lastComment"
+      type="button"
+      class="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary-600 font-medium transition-colors"
+      @click="openDialog"
+    >
+      <i class="pi pi-plus-circle text-xs" />
+      Agregar nota al pago
+    </button>
+
+    <div v-else class="space-y-1.5">
+      <div class="flex items-center justify-between gap-2">
+        <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">
+          {{ comments.length === 1 ? 'Nota del pago' : 'Última nota del pago' }}
+        </p>
+        <button
+          type="button"
+          class="text-xs text-primary hover:text-primary-600 font-medium"
+          @click="openDialog"
         >
-          {{ comments.length }}
-        </span>
+          {{ comments.length > 1 ? `Ver todas (${comments.length})` : 'Editar' }}
+        </button>
       </div>
-    </template>
-    <template #content>
+      <p class="text-sm text-gray-800 whitespace-pre-wrap break-words">{{ lastCommentPreview }}</p>
+      <p class="text-xs text-gray-500">
+        {{ lastComment.author?.name || 'Usuario' }} · {{ formatDateTime(lastComment.created_at) }}
+        <span v-if="lastComment.updated_at" class="italic">· editado</span>
+      </p>
+    </div>
+
+    <!-- Dialog with full history + CRUD -->
+    <Dialog
+      v-model:visible="dialogOpen"
+      modal
+      :header="comments.length === 0 ? 'Agregar nota al pago' : 'Notas del pago'"
+      :style="{ width: '32rem' }"
+      :breakpoints="{ '640px': '95vw' }"
+    >
       <p class="text-sm text-gray-500 mb-4">
         Anota referencias del pago (por ejemplo, el número de operación bancaria cuando el cliente paga por
-        transferencia o depósito). Cada comentario queda registrado con autor y fecha; el autor puede
-        editar o eliminar dentro de los 30 minutos posteriores.
+        transferencia o depósito). El autor puede editar o eliminar dentro de los 30 minutos posteriores.
       </p>
 
       <div
-        v-if="isLoading"
-        class="flex justify-center py-6"
-      >
-        <ProgressSpinner
-          style="width: 40px; height: 40px"
-          stroke-width="4"
-        />
-      </div>
-
-      <div
-        v-else-if="error"
-        class="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3"
+        v-if="error"
+        class="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3 mb-4"
       >
         {{ error }}
       </div>
 
-      <div
-        v-else-if="comments.length === 0"
-        class="py-2"
-      >
-        <AppEmptyState
-          icon="pi-comment"
-          title="Sin comentarios todavía"
-          description="Anota aquí cualquier referencia útil del pago, como el número de operación bancaria."
-        />
-      </div>
-
       <ul
-        v-else
-        class="space-y-3 mb-6"
+        v-if="comments.length > 0"
+        class="space-y-3 mb-4 max-h-72 overflow-y-auto pr-1"
       >
         <li
           v-for="comment in comments"
@@ -232,7 +261,7 @@ onMounted(() => {
               class="w-full text-sm"
             />
             <div class="flex items-center justify-between">
-              <span class="text-xs text-gray-500">{{ editingTextLength }}/{{ MAX_LENGTH }}</span>
+              <span class="text-xs text-gray-500">{{ editingText.length }}/{{ MAX_LENGTH }}</span>
               <div class="flex gap-2">
                 <AppButton
                   label="Cancelar"
@@ -256,7 +285,7 @@ onMounted(() => {
             <div class="flex items-start justify-between gap-3">
               <div class="flex items-start gap-3 min-w-0">
                 <div
-                  class="flex-shrink-0 w-9 h-9 rounded-full bg-primary/15 text-primary flex items-center justify-center text-sm font-semibold"
+                  class="flex-shrink-0 w-8 h-8 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-semibold"
                 >
                   {{ authorInitials(comment) }}
                 </div>
@@ -266,10 +295,7 @@ onMounted(() => {
                   </p>
                   <p class="text-xs text-gray-500">
                     {{ formatDateTime(comment.created_at) }}
-                    <span
-                      v-if="comment.updated_at"
-                      class="italic"
-                    >· editado</span>
+                    <span v-if="comment.updated_at" class="italic">· editado</span>
                   </p>
                 </div>
               </div>
@@ -296,9 +322,7 @@ onMounted(() => {
                 />
               </div>
             </div>
-            <p class="mt-2 text-sm text-gray-900 whitespace-pre-wrap break-words">
-              {{ comment.text }}
-            </p>
+            <p class="mt-2 text-sm text-gray-900 whitespace-pre-wrap break-words">{{ comment.text }}</p>
           </div>
         </li>
       </ul>
@@ -308,7 +332,7 @@ onMounted(() => {
           for="new-payment-comment"
           class="block text-sm font-medium text-gray-700 mb-2"
         >
-          Agregar comentario
+          {{ comments.length === 0 ? 'Nota' : 'Agregar otra nota' }}
         </label>
         <Textarea
           id="new-payment-comment"
@@ -320,9 +344,9 @@ onMounted(() => {
           class="w-full text-sm"
         />
         <div class="flex items-center justify-between mt-2">
-          <span class="text-xs text-gray-500">{{ newTextLength }}/{{ MAX_LENGTH }}</span>
+          <span class="text-xs text-gray-500">{{ newText.length }}/{{ MAX_LENGTH }}</span>
           <AppButton
-            label="Agregar comentario"
+            label="Agregar"
             icon="pi pi-plus"
             :loading="isSaving"
             :disabled="!canSubmitNew"
@@ -330,6 +354,6 @@ onMounted(() => {
           />
         </div>
       </div>
-    </template>
-  </Card>
+    </Dialog>
+  </div>
 </template>

@@ -1212,16 +1212,16 @@ const handleDebugPayments = async () => {
                     @click="handleMarkAsChargeback"
                   />
                 </div>
+
+                <OrderPaymentComments
+                  v-if="order.id"
+                  :order-id="order.id"
+                  class="pt-3 border-t border-gray-200"
+                />
               </div>
             </template>
           </Card>
       </div>
-
-      <!-- Comentarios del pago (historial con autor + fecha) -->
-      <OrderPaymentComments
-        v-if="order.id"
-        :order-id="order.id"
-      />
 
       <!-- Observaciones y Referidor (ancho completo) -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" v-if="order.notes || order.store_notes || order.referrer_code">
