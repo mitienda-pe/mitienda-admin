@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted, computed, watch } from 'vue'
+import { onMounted, computed, watch, ref } from 'vue'
 import { useStoreConfigStore } from '@/stores/store-config.store'
+import { useStoreInfoStore } from '@/stores/store-info.store'
 import { IMAGE_VALIDATION_RULES } from '@/config/image-validation.config'
 import { UnsavedChangesBar } from '@/components/ui'
 import BrandingUploader from '@/components/appearance/BrandingUploader.vue'
@@ -13,7 +14,18 @@ import { useToast } from 'primevue/usetoast'
 import type { StoreScheduleDay } from '@/types/store.types'
 
 const store = useStoreConfigStore()
+const storeInfoStore = useStoreInfoStore()
 const toast = useToast()
+
+const whatsappConsultaDraft = ref<number>(0)
+const whatsappConsultaEnabled = computed<boolean>({
+  get: () => whatsappConsultaDraft.value === 1,
+  set: (val) => { whatsappConsultaDraft.value = val ? 1 : 0 }
+})
+const whatsappConsultaChanged = computed(() => {
+  const saved = Number(storeInfoStore.info?.tienda_sw_consulta_whatsapp ?? 0) === 1 ? 1 : 0
+  return saved !== whatsappConsultaDraft.value
+})
 
 const bannerRules = IMAGE_VALIDATION_RULES.storeDisabledBanner
 
@@ -90,11 +102,25 @@ watch(isScheduleEnabled, val => {
 })
 
 async function save() {
-  const ok = await store.saveConfig()
-  if (ok) {
+  const promises: Promise<unknown>[] = []
+  if (store.hasChanges) {
+    promises.push(store.saveConfig())
+  }
+  if (whatsappConsultaChanged.value) {
+    promises.push(storeInfoStore.saveInfo({ tienda_sw_consulta_whatsapp: whatsappConsultaDraft.value }))
+  }
+  if (promises.length === 0) return
+
+  try {
+    const results = await Promise.all(promises)
+    const configFailed = store.hasChanges && results[0] === false
+    if (configFailed) {
+      toast.add({ severity: 'error', summary: 'Error', detail: store.error, life: 5000 })
+      return
+    }
     toast.add({ severity: 'success', summary: 'Configuración guardada', life: 3000 })
-  } else {
-    toast.add({ severity: 'error', summary: 'Error', detail: store.error, life: 5000 })
+  } catch (err: any) {
+    toast.add({ severity: 'error', summary: 'Error', detail: err?.message || 'Error al guardar', life: 5000 })
   }
 }
 
@@ -121,9 +147,18 @@ onMounted(() => {
     store.fetchConfig(),
     store.fetchCurrencies(),
     store.fetchCountries(),
-    store.fetchCountryConfig()
+    store.fetchCountryConfig(),
+    storeInfoStore.fetchInfo()
   ])
 })
+
+watch(
+  () => storeInfoStore.info?.tienda_sw_consulta_whatsapp,
+  (val) => {
+    whatsappConsultaDraft.value = Number(val) === 1 ? 1 : 0
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
@@ -417,14 +452,35 @@ onMounted(() => {
               </div>
             </div>
           </div>
+
+          <hr class="border-gray-100" />
+
+          <!-- Pedir por WhatsApp -->
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <label class="text-sm font-medium text-secondary-700">Pedir por WhatsApp en la ficha de producto</label>
+                <p class="text-xs text-gray-400 mt-0.5">
+                  Agrega un botón en cada producto que abre WhatsApp con un mensaje prellenado (nombre, SKU y precio).
+                </p>
+              </div>
+              <InputSwitch
+                v-model="whatsappConsultaEnabled"
+                :disabled="!storeInfoStore.info?.tienda_whatsapp"
+              />
+            </div>
+            <p v-if="!storeInfoStore.info?.tienda_whatsapp" class="text-xs text-amber-600 mt-1">
+              Configura primero un número de WhatsApp en <em>Información de tienda</em> para poder activar esta opción.
+            </p>
+          </div>
         </div>
       </div>
 
     </div>
 
     <UnsavedChangesBar
-      :dirty="store.hasChanges"
-      :loading="store.isSaving"
+      :dirty="store.hasChanges || whatsappConsultaChanged"
+      :loading="store.isSaving || storeInfoStore.isSaving"
       save-label="Guardar configuración"
       @save="save"
     />

@@ -165,6 +165,24 @@
                 </div>
               </div>
             </div>
+            <div class="md:col-span-2">
+              <div class="flex items-start gap-3 p-3 bg-secondary-50 rounded-lg border border-secondary-100">
+                <InputSwitch
+                  v-model="whatsappConsultaEnabled"
+                  :disabled="!formData.tienda_whatsapp"
+                  inputId="whatsappConsulta"
+                />
+                <div class="flex-1">
+                  <label for="whatsappConsulta" class="block text-sm font-medium text-secondary-700 cursor-pointer">
+                    Pedir por WhatsApp en la ficha de producto
+                  </label>
+                  <small class="text-secondary-400">
+                    Agrega un botón en cada producto que abre WhatsApp con un mensaje prellenado (nombre, SKU y precio).
+                    <span v-if="!formData.tienda_whatsapp" class="text-amber-600">Ingresa un número de WhatsApp para activarlo.</span>
+                  </small>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -315,6 +333,7 @@ const formData = ref<StoreInfoUpdateRequest>({
   tienda_telefonocelular1: '',
   tienda_whatsapp: '',
   tienda_sw_whatsapp_fab: 0,
+  tienda_sw_consulta_whatsapp: 0,
   tienda_url_paginaweb: '',
   tienda_url_facebook: '',
   tienda_url_instagram: '',
@@ -329,6 +348,13 @@ const whatsappFabEnabled = computed<boolean>({
   get: () => formData.value.tienda_sw_whatsapp_fab === 1,
   set: (value) => {
     formData.value.tienda_sw_whatsapp_fab = value ? 1 : 0
+  }
+})
+
+const whatsappConsultaEnabled = computed<boolean>({
+  get: () => formData.value.tienda_sw_consulta_whatsapp === 1,
+  set: (value) => {
+    formData.value.tienda_sw_consulta_whatsapp = value ? 1 : 0
   }
 })
 
@@ -352,6 +378,7 @@ const loadData = async () => {
         tienda_telefonocelular1: storeInfoStore.info.tienda_telefonocelular1 || '',
         tienda_whatsapp: storeInfoStore.info.tienda_whatsapp || '',
         tienda_sw_whatsapp_fab: Number(storeInfoStore.info.tienda_sw_whatsapp_fab) === 1 ? 1 : 0,
+        tienda_sw_consulta_whatsapp: Number(storeInfoStore.info.tienda_sw_consulta_whatsapp) === 1 ? 1 : 0,
         tienda_url_paginaweb: storeInfoStore.info.tienda_url_paginaweb || '',
         tienda_url_facebook: storeInfoStore.info.tienda_url_facebook || '',
         tienda_url_instagram: storeInfoStore.info.tienda_url_instagram || '',

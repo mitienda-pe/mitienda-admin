@@ -10,6 +10,7 @@ export interface StoreInfo {
   tienda_telefonocelular1: string
   tienda_whatsapp: string
   tienda_sw_whatsapp_fab: number
+  tienda_sw_consulta_whatsapp: number
   tienda_url_paginaweb: string
   tienda_url_facebook: string
   tienda_url_instagram: string
@@ -31,6 +32,7 @@ export interface StoreInfoUpdateRequest {
   tienda_telefonocelular1?: string
   tienda_whatsapp?: string
   tienda_sw_whatsapp_fab?: number
+  tienda_sw_consulta_whatsapp?: number
   tienda_url_paginaweb?: string
   tienda_url_facebook?: string
   tienda_url_instagram?: string
