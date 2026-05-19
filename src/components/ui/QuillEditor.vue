@@ -1,6 +1,25 @@
 <template>
   <div class="quill-editor-wrapper" :style="{ height: height }">
-    <div ref="editorRef"></div>
+    <button
+      v-if="allowSourceMode"
+      type="button"
+      class="source-toggle"
+      :title="mode === 'visual' ? 'Ver/editar HTML fuente' : 'Volver al editor visual'"
+      @click="toggleMode"
+    >
+      <span v-if="mode === 'visual'">&lt;/&gt; HTML</span>
+      <span v-else>✎ Visual</span>
+    </button>
+    <div v-show="mode === 'visual'" ref="editorRef"></div>
+    <textarea
+      v-show="mode === 'source'"
+      ref="textareaRef"
+      v-model="rawHtml"
+      class="source-textarea"
+      spellcheck="false"
+      :readonly="readOnly"
+      @input="onSourceInput"
+    />
   </div>
 </template>
 
@@ -9,7 +28,6 @@ import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import Quill from 'quill'
 import 'quill/dist/quill.snow.css'
 
-// Register custom <hr> (divider) blot — Quill 2.x doesn't support <hr> natively
 const BlockEmbed = Quill.import('blots/block/embed') as any
 
 class DividerBlot extends BlockEmbed {
@@ -31,6 +49,16 @@ interface Props {
   toolbar?: ToolbarPreset
   placeholder?: string
   readOnly?: boolean
+  /**
+   * Permite alternar entre el editor visual (Quill) y un textarea con el HTML
+   * fuente. Útil para campos CMS donde el merchant pega HTML con CSS custom
+   * que Quill simplificaría al convertir a su formato Delta.
+   *
+   * Nota: alternar Source → Visual puede simplificar el HTML (Quill solo
+   * preserva un subconjunto de tags/atributos). Mientras el usuario edite
+   * solo en modo Source, el HTML se preserva tal cual.
+   */
+  allowSourceMode?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -38,7 +66,8 @@ const props = withDefaults(defineProps<Props>(), {
   height: '300px',
   toolbar: 'full',
   placeholder: '',
-  readOnly: false
+  readOnly: false,
+  allowSourceMode: false
 })
 
 const emit = defineEmits<{
@@ -46,6 +75,9 @@ const emit = defineEmits<{
 }>()
 
 const editorRef = ref<HTMLElement | null>(null)
+const textareaRef = ref<HTMLTextAreaElement | null>(null)
+const mode = ref<'visual' | 'source'>('visual')
+const rawHtml = ref<string>(props.modelValue || '')
 let quill: Quill | null = null
 
 const TOOLBAR_FULL = [
@@ -69,6 +101,32 @@ const TOOLBAR_COMPACT = [
 
 function getToolbar(): unknown[] {
   return props.toolbar === 'compact' ? TOOLBAR_COMPACT : TOOLBAR_FULL
+}
+
+function loadIntoQuill(html: string) {
+  if (!quill) return
+  const clipboard = quill.getModule('clipboard') as any
+  const delta = clipboard.convert({ html: html || '' })
+  quill.setContents(delta, 'silent')
+}
+
+function toggleMode() {
+  if (mode.value === 'visual') {
+    if (quill) {
+      const current = quill.getSemanticHTML()
+      if (current !== rawHtml.value) {
+        rawHtml.value = current
+      }
+    }
+    mode.value = 'source'
+  } else {
+    loadIntoQuill(rawHtml.value)
+    mode.value = 'visual'
+  }
+}
+
+function onSourceInput() {
+  emit('update:modelValue', rawHtml.value)
 }
 
 onMounted(() => {
@@ -101,37 +159,38 @@ onMounted(() => {
     readOnly: props.readOnly
   })
 
-  // Expose Quill instance globally for AI Text Enhancer's QuillAdapter
   ;(window as any).quillInstance = quill
 
-  // Set initial content using clipboard API (not innerHTML which bypasses Quill's parser)
   if (props.modelValue) {
-    const clipboard = quill.getModule('clipboard') as any
-    const delta = clipboard.convert({ html: props.modelValue })
-    quill.setContents(delta, 'silent')
+    loadIntoQuill(props.modelValue)
     quill.setSelection(0, 0, 'silent')
   }
 
-  // Emit on any change EXCEPT 'silent' (which we use when syncing parent → editor).
-  // 'user' covers typing/formatting; 'api' covers external integrations like the
-  // AI Text Enhancer that call clipboard.dangerouslyPasteHTML without passing a source.
   quill.on('text-change', (_delta: any, _oldDelta: any, source: string) => {
     if (!quill || source === 'silent') return
+    if (mode.value !== 'visual') return
     const html = quill.getSemanticHTML()
-    emit('update:modelValue', html === '<p><br></p>' ? '' : html)
+    const normalized = html === '<p><br></p>' ? '' : html
+    rawHtml.value = normalized
+    emit('update:modelValue', normalized)
   })
 })
 
-// Watch for external content changes (e.g. parent loads data from API)
 watch(
   () => props.modelValue,
   (newVal) => {
+    const val = newVal || ''
+    if (mode.value === 'source') {
+      if (val !== rawHtml.value) {
+        rawHtml.value = val
+      }
+      return
+    }
     if (!quill) return
     const currentHtml = quill.getSemanticHTML()
-    if (newVal !== currentHtml) {
-      const clipboard = quill.getModule('clipboard') as any
-      const delta = clipboard.convert({ html: newVal || '' })
-      quill.setContents(delta, 'silent')
+    if (val !== currentHtml) {
+      loadIntoQuill(val)
+      rawHtml.value = val
     }
   }
 )
@@ -146,6 +205,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .quill-editor-wrapper {
+  position: relative;
   display: flex;
   flex-direction: column;
 }
@@ -168,14 +228,12 @@ onBeforeUnmount(() => {
   border-bottom-right-radius: 0.375rem;
 }
 
-/* Divider (hr) button icon in toolbar */
 .quill-editor-wrapper :deep(.ql-divider::before) {
   content: '―';
   font-weight: 700;
   font-size: 14px;
 }
 
-/* HR styling inside editor */
 .quill-editor-wrapper :deep(hr) {
   border: none;
   border-top: 2px solid #ccc;
@@ -183,7 +241,6 @@ onBeforeUnmount(() => {
   cursor: pointer;
 }
 
-/* Table styles inside editor */
 .quill-editor-wrapper :deep(table) {
   border-collapse: collapse;
   width: 100%;
@@ -194,5 +251,53 @@ onBeforeUnmount(() => {
   border: 1px solid #ccc;
   padding: 6px 10px;
   min-width: 50px;
+}
+
+.source-toggle {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  z-index: 5;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #4b5563;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.02em;
+  transition: background-color 120ms, color 120ms, border-color 120ms;
+}
+
+.source-toggle:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.source-toggle:active {
+  background: #e5e7eb;
+}
+
+.source-textarea {
+  flex: 1;
+  width: 100%;
+  padding: 12px 14px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #111827;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  resize: none;
+  outline: none;
+  tab-size: 2;
+}
+
+.source-textarea:focus {
+  border-color: #00b2a6;
+  box-shadow: 0 0 0 3px rgba(0, 178, 166, 0.15);
 }
 </style>

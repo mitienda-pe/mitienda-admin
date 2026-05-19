@@ -84,8 +84,9 @@ onMounted(() => {
         <p class="text-xs text-gray-400 mb-3">{{ field.hint }}</p>
         <QuillEditor
           :modelValue="store.draftMessages[field.key] || ''"
-          height="200px"
+          height="240px"
           toolbar="compact"
+          allow-source-mode
           @update:modelValue="onEditorUpdate(field.key, $event)"
         />
       </div>
