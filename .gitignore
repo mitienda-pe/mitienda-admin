@@ -54,8 +54,9 @@ public/tinymce/*
 !public/tinymce/langs/
 !public/tinymce/README.md
 
-# Auto-generated version file
+# Auto-generated version/health files
 public/version.json
+public/health.json
 
 # Claude Code
 .claude/

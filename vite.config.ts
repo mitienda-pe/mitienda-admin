@@ -21,13 +21,20 @@ export default defineConfig({
     __BUILD_ID__: JSON.stringify(buildId),
   },
   plugins: [
-    // Write version.json to public/ so it's served as a static file
+    // Write version.json and health.json to public/ so they're served as static files.
+    // health.json is consumed by external uptime monitors (UptimeRobot) and follows
+    // the same shape as the backend health endpoints.
     {
       name: 'version-json',
       buildStart() {
+        const buildTime = new Date().toISOString()
         writeFileSync(
           resolve(__dirname, 'public/version.json'),
-          JSON.stringify({ version: buildId, buildTime: new Date().toISOString() })
+          JSON.stringify({ version: buildId, buildTime })
+        )
+        writeFileSync(
+          resolve(__dirname, 'public/health.json'),
+          JSON.stringify({ status: 'ok', service: 'backoffice', version: buildId, buildTime })
         )
       },
     },
