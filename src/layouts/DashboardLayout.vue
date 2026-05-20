@@ -1404,11 +1404,7 @@ function getPosItemLockedColor(item: PosMenuItem): string {
 }
 
 function openPosApp() {
-  const url = import.meta.env.VITE_POS_URL
-  if (!url) {
-    console.warn('VITE_POS_URL no está configurada')
-    return
-  }
+  const url = import.meta.env.VITE_POS_URL || 'https://pos.mitienda.pe/'
   window.open(url, '_blank', 'noopener')
 }
 

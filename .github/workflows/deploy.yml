@@ -32,6 +32,7 @@ jobs:
           VITE_WHATSAPP_APP_ID: ${{ vars.VITE_WHATSAPP_APP_ID }}
           VITE_WHATSAPP_CONFIG_ID: ${{ vars.VITE_WHATSAPP_CONFIG_ID }}
           VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
+          VITE_POS_URL: ${{ vars.VITE_POS_URL }}
 
       - name: Setup SSH key
         run: |
