@@ -74,7 +74,10 @@ export const MODULE_ROUTE_MAP: Record<string, string[]> = {
   mod_netsuite: ['/configuracion/netsuite'],
 
   // API
-  mod_api: ['/api']
+  mod_api: ['/api'],
+
+  // POS (Punto de Venta)
+  mod_pos: ['/pos']
 }
 
 /**

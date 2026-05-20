@@ -1394,16 +1394,27 @@ const posMenuItems: PosMenuItem[] = [
 ]
 
 function isPosItemLocked(item: PosMenuItem): boolean {
+  if (item.action === 'open-pos') {
+    // "Abrir POS" requiere mod_pos (mismo gating que las rutas /pos/*)
+    return isItemLocked({ to: '/pos' })
+  }
   if (!item.to) return false
   return isItemLocked({ to: item.to })
 }
 
 function getPosItemLockedColor(item: PosMenuItem): string {
+  if (item.action === 'open-pos') {
+    return getLockedIconColor({ to: '/pos' })
+  }
   if (!item.to) return 'text-secondary-300'
   return getLockedIconColor({ to: item.to })
 }
 
 function openPosApp() {
+  if (isPosItemLocked({ label: '', icon: '', action: 'open-pos' })) {
+    planStore.showUpgradeModal(planStore.getModuleForRoute('/pos'))
+    return
+  }
   const url = import.meta.env.VITE_POS_URL || 'https://pos.mitienda.pe/'
   window.open(url, '_blank', 'noopener')
 }
