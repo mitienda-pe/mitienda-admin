@@ -4,12 +4,19 @@ import { useRouter } from 'vue-router'
 import { useIntegrationProvidersStore } from '@/stores/integration-providers.store'
 import { usePaymentGatewaysStore } from '@/stores/payment-gateways.store'
 import { useCourierProvidersStore } from '@/stores/courier-providers.store'
+import { usePlanStore } from '@/stores/plan.store'
+import { useAuthStore } from '@/stores/auth.store'
+import { useAdminStore } from '@/stores/admin.store'
 import { AppBadge, AppEmptyState, AppErrorState } from '@/components/ui'
 import type { IntegrationProvider } from '@/types/integration-provider.types'
+import type { PlanModule } from '@/types/plan.types'
 
 const store = useIntegrationProvidersStore()
 const paymentStore = usePaymentGatewaysStore()
 const courierStore = useCourierProvidersStore()
+const planStore = usePlanStore()
+const authStore = useAuthStore()
+const adminStore = useAdminStore()
 const router = useRouter()
 
 onMounted(() => {
@@ -17,6 +24,58 @@ onMounted(() => {
   paymentStore.fetchGateways()
   courierStore.fetchProviders()
 })
+
+// Minimum plan required per integration category.
+// Plan tiers (ascending): Micro → Small → Medium → Large.
+const CATEGORY_MIN_PLAN: Record<string, string> = {
+  payments: 'Micro',
+  push_notifications: 'Micro',
+  shipping: 'Small',
+  ads: 'Small',
+  analytics: 'Small',
+  email_marketing: 'Medium',
+  lead_capture: 'Medium',
+  chat: 'Medium',
+  fulfillment: 'Large',
+}
+
+const PLAN_RANK: Record<string, number> = {
+  Micro: 1,
+  Small: 2,
+  Medium: 3,
+  Large: 4,
+}
+
+const skipPlanGate = computed(() => authStore.isSuperAdmin || adminStore.isImpersonating)
+
+const currentPlanRank = computed(() => {
+  const name = planStore.plan?.name
+  return name ? (PLAN_RANK[name] ?? 0) : 0
+})
+
+function isCategoryLocked(categoryKey: string): boolean {
+  if (skipPlanGate.value) return false
+  const min = CATEGORY_MIN_PLAN[categoryKey]
+  if (!min) return false
+  if (!currentPlanRank.value) return false // Unknown plan: do not gate
+  return currentPlanRank.value < (PLAN_RANK[min] ?? 0)
+}
+
+function getCategoryMinPlan(categoryKey: string): string | null {
+  return CATEGORY_MIN_PLAN[categoryKey] ?? null
+}
+
+function showCategoryUpgrade(categoryKey: string, categoryLabel: string) {
+  const min = CATEGORY_MIN_PLAN[categoryKey] ?? null
+  const synthetic: PlanModule = {
+    code: `category_${categoryKey}`,
+    name: categoryLabel,
+    group: 'Integraciones',
+    enabled: false,
+    minimum_plan: min,
+  }
+  planStore.showUpgradeModal(synthetic)
+}
 
 // Category definitions with display order
 const categoryConfig: Record<string, { label: string; icon: string; iconColor: string; bgColor: string }> = {
@@ -155,12 +214,27 @@ const providerIcons: Record<string, string> = {
   cr_hop: 'pi pi-truck',
 }
 
-function navigateToProvider(provider: IntegrationProvider) {
+function navigateToProvider(provider: IntegrationProvider, categoryKey: string, categoryLabel: string) {
+  if (isCategoryLocked(categoryKey)) {
+    showCategoryUpgrade(categoryKey, categoryLabel)
+    return
+  }
   if (provider.config_url) {
     router.push(provider.config_url)
   } else {
     router.push(`/integrations/providers/${provider.code}`)
   }
+}
+
+const PLAN_PILL_STYLES: Record<string, string> = {
+  Micro: 'bg-gray-100 text-gray-700',
+  Small: 'bg-sky-100 text-sky-700',
+  Medium: 'bg-violet-100 text-violet-700',
+  Large: 'bg-amber-100 text-amber-700',
+}
+
+function planPillClass(plan: string | null): string {
+  return plan ? (PLAN_PILL_STYLES[plan] ?? 'bg-gray-100 text-gray-700') : 'bg-gray-100 text-gray-700'
 }
 
 function getStatusLabel(provider: IntegrationProvider): string {
@@ -209,17 +283,29 @@ function getStatusVariant(provider: IntegrationProvider): BadgeVariant {
         :key="category.key"
         class="mb-8"
       >
-        <h2 class="text-lg font-semibold text-gray-700 mb-4">{{ category.label }}</h2>
+        <div class="flex items-center gap-3 mb-4">
+          <h2 class="text-lg font-semibold text-gray-700">{{ category.label }}</h2>
+          <span
+            v-if="isCategoryLocked(category.key)"
+            class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold"
+            :class="planPillClass(getCategoryMinPlan(category.key))"
+          >
+            <i class="pi pi-lock text-[0.65rem]"></i>
+            Disponible desde {{ getCategoryMinPlan(category.key) }}
+          </span>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div
             v-for="provider in category.providers"
             :key="provider.code"
-            class="bg-white border rounded-lg p-5 cursor-pointer hover:shadow-md transition-shadow"
+            class="bg-white border rounded-lg p-5 cursor-pointer transition-shadow"
             :class="{
-              'border-green-400': provider.configured && provider.enabled,
-              'border-yellow-400': provider.configured && !provider.enabled
+              'border-green-400': !isCategoryLocked(category.key) && provider.configured && provider.enabled,
+              'border-yellow-400': !isCategoryLocked(category.key) && provider.configured && !provider.enabled,
+              'opacity-60 hover:shadow-sm': isCategoryLocked(category.key),
+              'hover:shadow-md': !isCategoryLocked(category.key)
             }"
-            @click="navigateToProvider(provider)"
+            @click="navigateToProvider(provider, category.key, category.label)"
           >
             <div class="flex items-start justify-between mb-3">
               <div class="flex items-center gap-3">
@@ -230,7 +316,12 @@ function getStatusVariant(provider: IntegrationProvider): BadgeVariant {
                   <h3 class="font-semibold text-gray-800">{{ provider.name }}</h3>
                 </div>
               </div>
-              <AppBadge :variant="getStatusVariant(provider)">
+              <i
+                v-if="isCategoryLocked(category.key)"
+                class="pi pi-lock text-gray-400"
+                :title="`Disponible desde ${getCategoryMinPlan(category.key)}`"
+              />
+              <AppBadge v-else :variant="getStatusVariant(provider)">
                 {{ getStatusLabel(provider) }}
               </AppBadge>
             </div>
