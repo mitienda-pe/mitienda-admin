@@ -56,8 +56,10 @@ export const MODULE_ROUTE_MAP: Record<string, string[]> = {
   // Dispatch
   mod_panel_despacho: ['/dispatch'],
 
-  // Shipping
-  mod_tarifas_envio: ['/shipping'],
+  // Shipping (básico: disponible en todos los planes)
+  mod_tarifas_envio: ['/shipping/rates', '/shipping/zones', '/shipping/config'],
+  // Courier (avanzado: Proveedores y Reglas, gated a Medium+)
+  mod_courier_avanzado: ['/shipping/couriers', '/shipping/courier-routing'],
 
   // Store settings
   mod_varios_usuarios: ['/store/users'],
