@@ -228,29 +228,35 @@ async function handleMoveDown(slide: CarouselSlide) {
       />
     </div>
 
-    <!-- Aspect ratio selectors -->
+    <!-- Aspect ratio selectors (for new uploads) -->
     <div class="aspect-ratios-bar">
-      <div class="flex items-center gap-3">
-        <label class="text-sm font-medium text-gray-700">
-          <i class="pi pi-desktop mr-1"></i>Desktop:
-        </label>
-        <Dropdown
-          v-model="selectedDesktopPreset"
-          :options="DESKTOP_PRESETS"
-          optionLabel="label"
-          class="w-52"
-        />
+      <div class="aspect-ratios-bar__hint">
+        <i class="pi pi-info-circle"></i>
+        <span>Aspecto para la <strong>próxima imagen que subas</strong>. Para cambiar el aspecto de un slide existente, usa el selector dentro de cada slide (se graba al cambiarlo).</span>
       </div>
-      <div class="flex items-center gap-3">
-        <label class="text-sm font-medium text-gray-700">
-          <i class="pi pi-mobile mr-1"></i>Mobile:
-        </label>
-        <Dropdown
-          v-model="selectedMobilePreset"
-          :options="MOBILE_PRESETS"
-          optionLabel="label"
-          class="w-52"
-        />
+      <div class="aspect-ratios-bar__controls">
+        <div class="flex items-center gap-3">
+          <label class="text-sm font-medium text-gray-700">
+            <i class="pi pi-desktop mr-1"></i>Desktop:
+          </label>
+          <Dropdown
+            v-model="selectedDesktopPreset"
+            :options="DESKTOP_PRESETS"
+            optionLabel="label"
+            class="w-52"
+          />
+        </div>
+        <div class="flex items-center gap-3">
+          <label class="text-sm font-medium text-gray-700">
+            <i class="pi pi-mobile mr-1"></i>Mobile:
+          </label>
+          <Dropdown
+            v-model="selectedMobilePreset"
+            :options="MOBILE_PRESETS"
+            optionLabel="label"
+            class="w-52"
+          />
+        </div>
       </div>
     </div>
 
@@ -317,13 +323,35 @@ async function handleMoveDown(slide: CarouselSlide) {
 <style scoped>
 .aspect-ratios-bar {
   display: flex;
-  gap: 2rem;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.75rem;
   padding: 1rem;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   margin-bottom: 1.5rem;
+}
+
+.aspect-ratios-bar__hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.aspect-ratios-bar__hint i {
+  color: #00b2a6;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.aspect-ratios-bar__controls {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .slides-list {

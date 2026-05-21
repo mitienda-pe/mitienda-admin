@@ -129,6 +129,7 @@ function onMobileAspectChange(value: MobileAspectRatio) {
             placeholder="Sin definir"
             class="slide-card__aspect-dropdown"
             :pt="{ root: { class: 'p-inputtext-sm' } }"
+            v-tooltip.top="'Cambiar aspecto (se graba al elegir)'"
             @update:model-value="onDesktopAspectChange($event)"
             @click.stop
           />
@@ -167,6 +168,7 @@ function onMobileAspectChange(value: MobileAspectRatio) {
             placeholder="Sin definir"
             class="slide-card__aspect-dropdown"
             :pt="{ root: { class: 'p-inputtext-sm' } }"
+            v-tooltip.top="'Cambiar aspecto (se graba al elegir)'"
             @update:model-value="onMobileAspectChange($event)"
             @click.stop
           />
@@ -272,18 +274,25 @@ function onMobileAspectChange(value: MobileAspectRatio) {
 }
 
 .slide-card__aspect-dropdown {
-  height: 26px;
-  font-size: 0.7rem;
+  min-width: 110px;
+  height: 28px;
+  font-size: 0.75rem;
+  border-color: #cbd5e1;
+}
+
+.slide-card__aspect-dropdown:hover {
+  border-color: #00b2a6;
 }
 
 .slide-card__aspect-dropdown :deep(.p-dropdown-label) {
   padding: 0.25rem 0.5rem;
-  font-size: 0.7rem;
-  line-height: 1;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  font-weight: 500;
 }
 
 .slide-card__aspect-dropdown :deep(.p-dropdown-trigger) {
-  width: 1.5rem;
+  width: 1.75rem;
 }
 
 .slide-card__image-preview {
