@@ -10,7 +10,7 @@ export interface CarouselSlide {
   tiendacarruselimagen_orden: number
 }
 
-export type DesktopAspectRatio = '16:9' | '21:9'
+export type DesktopAspectRatio = '16:9' | '21:9' | '4:1' | '3:1' | '2:1'
 export type MobileAspectRatio = '4:5' | '1:1'
 
 export interface CarouselSlideFormData {
@@ -28,7 +28,10 @@ export interface AspectRatioPreset {
 
 export const DESKTOP_PRESETS: AspectRatioPreset[] = [
   { value: '16:9', label: '16:9 — Hero inmersivo', width: 1920, height: 1080, ratio: 16 / 9 },
-  { value: '21:9', label: '21:9 — Ultra-wide', width: 1920, height: 823, ratio: 21 / 9 }
+  { value: '21:9', label: '21:9 — Ultra-wide', width: 1920, height: 823, ratio: 21 / 9 },
+  { value: '4:1', label: '4:1 — Panorámico (legacy)', width: 1920, height: 480, ratio: 4 },
+  { value: '3:1', label: '3:1 — Panorámico (legacy)', width: 1920, height: 640, ratio: 3 },
+  { value: '2:1', label: '2:1 — Panorámico (legacy)', width: 1920, height: 960, ratio: 2 }
 ]
 
 export const MOBILE_PRESETS: AspectRatioPreset[] = [

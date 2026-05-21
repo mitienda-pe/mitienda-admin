@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import Button from 'primevue/button'
 import type { CarouselSlide } from '@/types/carousel.types'
 
@@ -8,7 +9,26 @@ interface Props {
   totalSlides: number
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
+
+function ratioStyle(value: string | null | undefined, fallback: string) {
+  if (!value) return { aspectRatio: fallback }
+  const [w, h] = value.split(':')
+  if (!w || !h) return { aspectRatio: fallback }
+  return { aspectRatio: `${w} / ${h}` }
+}
+
+const desktopRatioStyle = computed(() =>
+  ratioStyle(props.slide.tiendacarruselimagen_desktop_aspect, '21 / 9')
+)
+
+const mobileRatioStyle = computed(() =>
+  ratioStyle(
+    props.slide.tiendacarruselimagen_mobile_aspect
+      ?? props.slide.tiendacarruselimagen_desktop_aspect,
+    '4 / 5'
+  )
+)
 
 const emit = defineEmits<{
   edit: [slide: CarouselSlide]
@@ -85,6 +105,7 @@ const emit = defineEmits<{
         </div>
         <div
           class="slide-card__image-preview slide-card__image-preview--desktop"
+          :style="desktopRatioStyle"
           @click="emit('upload-desktop', slide)"
         >
           <img
@@ -113,6 +134,7 @@ const emit = defineEmits<{
         </div>
         <div
           class="slide-card__image-preview slide-card__image-preview--mobile"
+          :style="mobileRatioStyle"
           @click="emit('upload-mobile', slide)"
         >
           <img
@@ -223,12 +245,7 @@ const emit = defineEmits<{
   border-color: #00b2a6;
 }
 
-.slide-card__image-preview--desktop {
-  aspect-ratio: 21 / 9;
-}
-
 .slide-card__image-preview--mobile {
-  aspect-ratio: 4 / 5;
   max-height: 150px;
 }
 

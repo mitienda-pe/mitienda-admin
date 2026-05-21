@@ -86,10 +86,10 @@ const validateImage = async (file: File): Promise<{ valid: boolean; error?: stri
     const img = new Image()
     img.onload = () => {
       URL.revokeObjectURL(img.src)
-      if (img.width < rules.minWidth || img.height < rules.minHeight) {
+      if (img.width < props.preset.width || img.height < props.preset.height) {
         resolve({
           valid: false,
-          error: `Imagen muy pequeña. Mínimo ${rules.minWidth}x${rules.minHeight} píxeles`
+          error: `Imagen muy pequeña. Mínimo ${props.preset.width}x${props.preset.height} píxeles para ${props.preset.value}`
         })
       } else {
         resolve({ valid: true })
