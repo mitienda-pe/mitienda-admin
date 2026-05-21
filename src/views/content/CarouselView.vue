@@ -14,7 +14,9 @@ import {
   MOBILE_PRESETS,
   MAX_SLIDES,
   type CarouselSlide,
-  type AspectRatioPreset
+  type AspectRatioPreset,
+  type DesktopAspectRatio,
+  type MobileAspectRatio
 } from '@/types/carousel.types'
 
 const store = useCarouselStore()
@@ -114,6 +116,34 @@ async function handleSaveMetadata(data: { alt_text: string; enlace: string }) {
       severity: 'error',
       summary: 'Error',
       detail: e.message || 'Error al actualizar',
+      life: 5000
+    })
+  }
+}
+
+async function handleUpdateDesktopAspect(slide: CarouselSlide, aspect: DesktopAspectRatio) {
+  try {
+    await store.updateSlide(slide.tiendaimagen_id, { desktop_aspect: aspect })
+    toast.add({ severity: 'success', summary: `Aspecto desktop actualizado a ${aspect}`, life: 3000 })
+  } catch (e: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: e.message || 'No se pudo actualizar el aspecto',
+      life: 5000
+    })
+  }
+}
+
+async function handleUpdateMobileAspect(slide: CarouselSlide, aspect: MobileAspectRatio) {
+  try {
+    await store.updateSlide(slide.tiendaimagen_id, { mobile_aspect: aspect })
+    toast.add({ severity: 'success', summary: `Aspecto mobile actualizado a ${aspect}`, life: 3000 })
+  } catch (e: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: e.message || 'No se pudo actualizar el aspecto',
       life: 5000
     })
   }
@@ -255,6 +285,8 @@ async function handleMoveDown(slide: CarouselSlide) {
         @delete="confirmDelete"
         @move-up="handleMoveUp"
         @move-down="handleMoveDown"
+        @update-desktop-aspect="handleUpdateDesktopAspect"
+        @update-mobile-aspect="handleUpdateMobileAspect"
       />
     </div>
 

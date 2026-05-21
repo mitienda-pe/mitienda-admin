@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import Button from 'primevue/button'
-import type { CarouselSlide } from '@/types/carousel.types'
+import Dropdown from 'primevue/dropdown'
+import {
+  DESKTOP_PRESETS,
+  MOBILE_PRESETS,
+  type CarouselSlide,
+  type DesktopAspectRatio,
+  type MobileAspectRatio
+} from '@/types/carousel.types'
 
 interface Props {
   slide: CarouselSlide
@@ -30,6 +37,9 @@ const mobileRatioStyle = computed(() =>
   )
 )
 
+const desktopAspectOptions = DESKTOP_PRESETS.map(p => ({ value: p.value, label: p.value }))
+const mobileAspectOptions = MOBILE_PRESETS.map(p => ({ value: p.value, label: p.value }))
+
 const emit = defineEmits<{
   edit: [slide: CarouselSlide]
   'upload-desktop': [slide: CarouselSlide]
@@ -38,7 +48,19 @@ const emit = defineEmits<{
   delete: [slide: CarouselSlide]
   'move-up': [slide: CarouselSlide]
   'move-down': [slide: CarouselSlide]
+  'update-desktop-aspect': [slide: CarouselSlide, aspect: DesktopAspectRatio]
+  'update-mobile-aspect': [slide: CarouselSlide, aspect: MobileAspectRatio]
 }>()
+
+function onDesktopAspectChange(value: DesktopAspectRatio) {
+  if (!value || value === props.slide.tiendacarruselimagen_desktop_aspect) return
+  emit('update-desktop-aspect', props.slide, value)
+}
+
+function onMobileAspectChange(value: MobileAspectRatio) {
+  if (!value || value === props.slide.tiendacarruselimagen_mobile_aspect) return
+  emit('update-mobile-aspect', props.slide, value)
+}
 </script>
 
 <template>
@@ -99,9 +121,17 @@ const emit = defineEmits<{
         <div class="slide-card__image-label">
           <i class="pi pi-desktop text-xs"></i>
           <span>Desktop</span>
-          <span v-if="slide.tiendacarruselimagen_desktop_aspect" class="text-gray-400">
-            ({{ slide.tiendacarruselimagen_desktop_aspect }})
-          </span>
+          <Dropdown
+            :model-value="slide.tiendacarruselimagen_desktop_aspect"
+            :options="desktopAspectOptions"
+            option-label="label"
+            option-value="value"
+            placeholder="Sin definir"
+            class="slide-card__aspect-dropdown"
+            :pt="{ root: { class: 'p-inputtext-sm' } }"
+            @update:model-value="onDesktopAspectChange($event)"
+            @click.stop
+          />
         </div>
         <div
           class="slide-card__image-preview slide-card__image-preview--desktop"
@@ -128,9 +158,19 @@ const emit = defineEmits<{
         <div class="slide-card__image-label">
           <i class="pi pi-mobile text-xs"></i>
           <span>Mobile</span>
-          <span v-if="slide.tiendacarruselimagen_mobile_aspect" class="text-gray-400">
-            ({{ slide.tiendacarruselimagen_mobile_aspect }})
-          </span>
+          <Dropdown
+            v-if="slide.tiendacarruselimagen_mobile_r2_url"
+            :model-value="slide.tiendacarruselimagen_mobile_aspect"
+            :options="mobileAspectOptions"
+            option-label="label"
+            option-value="value"
+            placeholder="Sin definir"
+            class="slide-card__aspect-dropdown"
+            :pt="{ root: { class: 'p-inputtext-sm' } }"
+            @update:model-value="onMobileAspectChange($event)"
+            @click.stop
+          />
+          <span v-else class="text-gray-400 italic">(usa desktop)</span>
         </div>
         <div
           class="slide-card__image-preview slide-card__image-preview--mobile"
@@ -224,11 +264,26 @@ const emit = defineEmits<{
 .slide-card__image-label {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.5rem;
   font-size: 0.75rem;
   font-weight: 500;
   color: #64748b;
   margin-bottom: 0.25rem;
+}
+
+.slide-card__aspect-dropdown {
+  height: 26px;
+  font-size: 0.7rem;
+}
+
+.slide-card__aspect-dropdown :deep(.p-dropdown-label) {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.slide-card__aspect-dropdown :deep(.p-dropdown-trigger) {
+  width: 1.5rem;
 }
 
 .slide-card__image-preview {

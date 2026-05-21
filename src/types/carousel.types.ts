@@ -16,6 +16,8 @@ export type MobileAspectRatio = '4:5' | '1:1'
 export interface CarouselSlideFormData {
   alt_text?: string
   enlace?: string
+  desktop_aspect?: DesktopAspectRatio | null
+  mobile_aspect?: MobileAspectRatio | null
 }
 
 export interface AspectRatioPreset {
