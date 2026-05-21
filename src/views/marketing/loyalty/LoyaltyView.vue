@@ -452,7 +452,7 @@ onMounted(async () => {
   if (store.program) {
     form.value = {
       type: store.program.type,
-      is_active: store.program.is_active === 1,
+      is_active: Number(store.program.is_active) === 1,
       min_order_amount: parseFloat(store.program.min_order_amount) || 0,
       stamps_required: store.program.stamps_required,
       stamp_reward_amount: store.program.stamp_reward_amount ? parseFloat(store.program.stamp_reward_amount) : null,
