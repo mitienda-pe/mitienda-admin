@@ -208,6 +208,27 @@ onMounted(() => {
           <strong>{{ store.savedSettings.tienda_dominio }}</strong> apunte a tu tienda.
         </p>
 
+        <!-- AAAA records warning -->
+        <div class="mb-4 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <i class="pi pi-exclamation-triangle text-amber-600 mt-0.5" />
+          <div class="text-sm text-amber-800">
+            <p class="font-semibold">No debes tener registros AAAA (IPv6) en tu dominio</p>
+            <p class="mt-1 text-amber-700">
+              Si tu dominio tiene un registro <strong>AAAA</strong> apuntando a otro servidor
+              (por ejemplo, de tu hosting anterior), la emisión del certificado SSL fallará
+              y tu sitio no será accesible por HTTPS. Elimina cualquier registro AAAA
+              <template v-if="store.savedSettings.domain_type === 'root'">
+                para <strong>{{ store.savedSettings.tienda_dominio }}</strong> y
+                <strong>www.{{ store.savedSettings.tienda_dominio }}</strong>
+              </template>
+              <template v-else>
+                para <strong>{{ store.savedSettings.tienda_dominio }}</strong>
+              </template>
+              en el panel DNS de tu proveedor.
+            </p>
+          </div>
+        </div>
+
         <!-- DNS Instructions table -->
         <div
           v-if="store.savedSettings.dns_instructions"
