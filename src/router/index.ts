@@ -550,16 +550,39 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'promotions-v2',
         name: 'PromotionsV2',
+        meta: { mode: 'promotion' },
         component: () => import('@/views/marketing/promotions-v2/PromotionsV2ListView.vue')
       },
       {
         path: 'promotions-v2/new',
         name: 'PromotionV2Create',
+        meta: { mode: 'promotion' },
         component: () => import('@/views/marketing/promotions-v2/PromotionV2CreateView.vue')
       },
       {
         path: 'promotions-v2/:id',
         name: 'PromotionV2Detail',
+        meta: { mode: 'promotion' },
+        component: () => import('@/views/marketing/promotions-v2/PromotionV2DetailView.vue')
+      },
+      // /marketing/coupons: subset de V2 con activation_type=coupon, gateado a mod_cupones (Small+).
+      // Reusa los mismos componentes V2; el modo se setea desde route.meta.
+      {
+        path: 'coupons',
+        name: 'CouponsList',
+        meta: { mode: 'coupon' },
+        component: () => import('@/views/marketing/promotions-v2/PromotionsV2ListView.vue')
+      },
+      {
+        path: 'coupons/new',
+        name: 'CouponCreate',
+        meta: { mode: 'coupon' },
+        component: () => import('@/views/marketing/promotions-v2/PromotionV2CreateView.vue')
+      },
+      {
+        path: 'coupons/:id',
+        name: 'CouponDetail',
+        meta: { mode: 'coupon' },
         component: () => import('@/views/marketing/promotions-v2/PromotionV2DetailView.vue')
       },
       {
@@ -1055,6 +1078,19 @@ router.beforeEach(async (to, _from, next) => {
         await planStore.fetchPlan()
       }
     }
+
+    // Redirect legacy V1 marketing/promotions root → V2 (preserva sub-rutas con :id
+    // para no romper edición de promociones legacy aún no migradas). Eliminar tras
+    // que todas las tiendas estén migradas con `php spark promotions:migrate-legacy`.
+    if (to.path === '/marketing/promotions') {
+      if (planStore.isModuleEnabled('mod_promociones_v2')) {
+        return next('/marketing/promotions-v2')
+      }
+      if (planStore.isModuleEnabled('mod_cupones')) {
+        return next('/marketing/coupons')
+      }
+    }
+
     if (!planStore.isRouteAccessible(to.path)) {
       const blockedModule = planStore.getModuleForRoute(to.path)
       if (blockedModule) planStore.showUpgradeModal(blockedModule)

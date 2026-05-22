@@ -3,17 +3,15 @@
     <!-- Header -->
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900">Promociones v2</h1>
-        <p class="mt-1 text-sm text-gray-500">
-          Motor de reglas: activaciones, condiciones, efectos y restricciones
-        </p>
+        <h1 class="text-2xl font-bold text-gray-900">{{ pageTitle }}</h1>
+        <p class="mt-1 text-sm text-gray-500">{{ pageSubtitle }}</p>
       </div>
       <router-link
-        to="/marketing/promotions-v2/new"
+        :to="createRoute"
         class="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90"
       >
         <i class="pi pi-plus mr-2"></i>
-        Nueva Promoción
+        {{ createCtaLabel }}
       </router-link>
     </div>
 
@@ -86,15 +84,15 @@
       v-else-if="!store.hasPromotions"
       class="rounded-lg bg-white p-12 text-center shadow"
     >
-      <i class="pi pi-percentage mb-4 text-5xl text-gray-300"></i>
-      <h3 class="text-lg font-medium text-gray-900">Sin promociones</h3>
-      <p class="mt-1 text-sm text-gray-500">Crea tu primera promoción con el motor de reglas</p>
+      <i :class="emptyIcon" class="mb-4 text-5xl text-gray-300"></i>
+      <h3 class="text-lg font-medium text-gray-900">{{ emptyTitle }}</h3>
+      <p class="mt-1 text-sm text-gray-500">{{ emptySubtitle }}</p>
       <router-link
-        to="/marketing/promotions-v2/new"
+        :to="createRoute"
         class="mt-4 inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90"
       >
         <i class="pi pi-plus mr-2"></i>
-        Nueva Promoción
+        {{ createCtaLabel }}
       </router-link>
     </div>
 
@@ -240,17 +238,42 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import Dialog from 'primevue/dialog'
 import { usePromotionV2Store } from '@/stores/promotion-v2.store'
 import { useFormatters } from '@/composables/useFormatters'
 import { STATUS_LABELS } from '@/types/promotion-v2.types'
 import type { PromotionV2, PromotionV2Status } from '@/types/promotion-v2.types'
+import type { PromotionApiMode } from '@/api/promotion-v2.api'
 
+const route = useRoute()
 const router = useRouter()
 const store = usePromotionV2Store()
 const { formatDate } = useFormatters()
+
+// Mode viene de route.meta.mode (configurado en router/index.ts). 'coupon' activa
+// el subset gateado a mod_cupones (Small+); 'promotion' usa el motor completo V2.
+const mode = computed<PromotionApiMode>(() => (route.meta.mode as PromotionApiMode) ?? 'promotion')
+const isCouponMode = computed(() => mode.value === 'coupon')
+
+const pageTitle = computed(() => (isCouponMode.value ? 'Cupones' : 'Promociones v2'))
+const pageSubtitle = computed(() =>
+  isCouponMode.value
+    ? 'Códigos de descuento que tus clientes pueden aplicar en el carrito'
+    : 'Motor de reglas: activaciones, condiciones, efectos y restricciones'
+)
+const createCtaLabel = computed(() => (isCouponMode.value ? 'Nuevo cupón' : 'Nueva promoción'))
+const createRoute = computed(() =>
+  isCouponMode.value ? '/marketing/coupons/new' : '/marketing/promotions-v2/new'
+)
+const emptyIcon = computed(() => (isCouponMode.value ? 'pi pi-ticket' : 'pi pi-percentage'))
+const emptyTitle = computed(() => (isCouponMode.value ? 'Sin cupones' : 'Sin promociones'))
+const emptySubtitle = computed(() =>
+  isCouponMode.value
+    ? 'Crea tu primer código de descuento para compartir con tus clientes'
+    : 'Crea tu primera promoción con el motor de reglas'
+)
 
 const searchQuery = ref('')
 const statusFilter = ref<PromotionV2Status | undefined>(undefined)
@@ -292,7 +315,7 @@ function statusClasses(status: PromotionV2Status) {
 }
 
 function goToDetail(id: number) {
-  router.push(`/marketing/promotions-v2/${id}`)
+  router.push(`${isCouponMode.value ? '/marketing/coupons' : '/marketing/promotions-v2'}/${id}`)
 }
 
 function confirmDelete(promo: PromotionV2) {
@@ -316,6 +339,8 @@ async function loadPromotions() {
 }
 
 onMounted(() => {
+  // setMode ANTES de cargar para que el fetch use el prefix correcto (/coupons o /promotions-v2)
+  store.setMode(mode.value)
   loadPromotions()
 })
 </script>

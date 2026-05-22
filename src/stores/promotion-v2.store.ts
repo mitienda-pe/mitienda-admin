@@ -7,6 +7,7 @@ import {
   updatePromotionV2,
   deletePromotionV2,
   updatePromotionV2Status,
+  createSimpleCoupon,
   addActivation,
   updateActivation,
   deleteActivation,
@@ -22,6 +23,8 @@ import {
   getCoupons,
   addCoupon,
   deleteCoupon,
+  type PromotionApiMode,
+  type CreateSimpleCouponPayload,
 } from '@/api/promotion-v2.api'
 import type {
   PromotionV2,
@@ -39,6 +42,27 @@ export const usePromotionV2Store = defineStore('promotion-v2', () => {
   const currentPromotion = ref<PromotionV2 | null>(null)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
+
+  /**
+   * Determina el prefix de la API: 'promotion' usa /promotions-v2 (Medium+),
+   * 'coupon' usa /coupons (Small+). Las vistas lo setean según route.meta.mode
+   * para que el mismo componente sirva ambos contextos.
+   */
+  const mode = ref<PromotionApiMode>('promotion')
+
+  /** Para que UpgradeModal apunte al módulo correcto cuando el API responde 422. */
+  const lastBlockedByPlan = ref<string | null>(null)
+
+  function setMode(newMode: PromotionApiMode) {
+    mode.value = newMode
+  }
+
+  function captureBlockedByPlan(err: any) {
+    const blocked = err?.response?.data?.blocked_by_plan
+    if (typeof blocked === 'string') {
+      lastBlockedByPlan.value = blocked
+    }
+  }
 
   const pagination = ref({
     page: 1,
@@ -73,7 +97,7 @@ export const usePromotionV2Store = defineStore('promotion-v2', () => {
         active_only: params?.active_only ?? filters.value.active_only,
       }
 
-      const response = await getPromotionsV2(queryParams)
+      const response = await getPromotionsV2(queryParams, mode.value)
 
       if (response.status === 'success') {
         promotions.value = response.data
@@ -92,7 +116,7 @@ export const usePromotionV2Store = defineStore('promotion-v2', () => {
       isLoading.value = true
       error.value = null
 
-      const response = await getPromotionV2(id)
+      const response = await getPromotionV2(id, mode.value)
 
       if (response.status === 'success') {
         currentPromotion.value = response.data
@@ -113,7 +137,7 @@ export const usePromotionV2Store = defineStore('promotion-v2', () => {
       isLoading.value = true
       error.value = null
 
-      const response = await createPromotionV2(data)
+      const response = await createPromotionV2(data, mode.value)
 
       if (response.status === 'success') {
         await fetchPromotions()
@@ -133,7 +157,7 @@ export const usePromotionV2Store = defineStore('promotion-v2', () => {
       isLoading.value = true
       error.value = null
 
-      const response = await updatePromotionV2(id, data)
+      const response = await updatePromotionV2(id, data, mode.value)
 
       if (response.status === 'success') {
         if (currentPromotion.value?.promotions_v2_id === id) {
@@ -155,7 +179,7 @@ export const usePromotionV2Store = defineStore('promotion-v2', () => {
       isLoading.value = true
       error.value = null
 
-      const response = await deletePromotionV2(id)
+      const response = await deletePromotionV2(id, mode.value)
 
       if (response.status === 'success') {
         promotions.value = promotions.value.filter(p => p.promotions_v2_id !== id)
@@ -176,7 +200,7 @@ export const usePromotionV2Store = defineStore('promotion-v2', () => {
     try {
       error.value = null
 
-      const response = await updatePromotionV2Status(id, status)
+      const response = await updatePromotionV2Status(id, status, mode.value)
 
       if (response.status === 'success') {
         // Update in list
@@ -215,13 +239,14 @@ export const usePromotionV2Store = defineStore('promotion-v2', () => {
         constraints: addConstraint,
       }
 
-      const response = await fns[ruleType](promotionId, data)
+      const response = await fns[ruleType](promotionId, data, mode.value)
 
       if (response.status === 'success') {
         await fetchPromotion(promotionId)
         return response.data
       }
     } catch (err: any) {
+      captureBlockedByPlan(err)
       error.value = err.response?.data?.message || 'Error al agregar regla'
       throw err
     }
@@ -243,13 +268,14 @@ export const usePromotionV2Store = defineStore('promotion-v2', () => {
         constraints: updateConstraint,
       }
 
-      const response = await fns[ruleType](promotionId, ruleId, data)
+      const response = await fns[ruleType](promotionId, ruleId, data, mode.value)
 
       if (response.status === 'success') {
         await fetchPromotion(promotionId)
         return response.data
       }
     } catch (err: any) {
+      captureBlockedByPlan(err)
       error.value = err.response?.data?.message || 'Error al actualizar regla'
       throw err
     }
@@ -270,7 +296,7 @@ export const usePromotionV2Store = defineStore('promotion-v2', () => {
         constraints: deleteConstraint,
       }
 
-      const response = await fns[ruleType](promotionId, ruleId)
+      const response = await fns[ruleType](promotionId, ruleId, mode.value)
 
       if (response.status === 'success') {
         await fetchPromotion(promotionId)
@@ -288,7 +314,7 @@ export const usePromotionV2Store = defineStore('promotion-v2', () => {
   async function fetchCoupons(promotionId: number) {
     try {
       error.value = null
-      const response = await getCoupons(promotionId)
+      const response = await getCoupons(promotionId, mode.value)
 
       if (response.status === 'success' && currentPromotion.value) {
         currentPromotion.value.coupons = response.data
@@ -304,7 +330,7 @@ export const usePromotionV2Store = defineStore('promotion-v2', () => {
   async function createCoupon(promotionId: number, data: CreateCouponData) {
     try {
       error.value = null
-      const response = await addCoupon(promotionId, data)
+      const response = await addCoupon(promotionId, data, mode.value)
 
       if (response.status === 'success') {
         await fetchCoupons(promotionId)
@@ -316,10 +342,39 @@ export const usePromotionV2Store = defineStore('promotion-v2', () => {
     }
   }
 
+  /**
+   * Crea un cupón "de un solo paso" usando el endpoint simplificado /coupons.
+   * Solo válido cuando el store está en mode='coupon' (gateado a mod_cupones).
+   * El backend arma promoción + activation coupon + effect + cupón en una
+   * transacción.
+   */
+  async function addSimpleCoupon(payload: CreateSimpleCouponPayload) {
+    if (mode.value !== 'coupon') {
+      throw new Error('addSimpleCoupon solo está disponible cuando el store está en mode="coupon"')
+    }
+    try {
+      isLoading.value = true
+      error.value = null
+
+      const response = await createSimpleCoupon(payload)
+
+      if (response.status === 'success') {
+        await fetchPromotions()
+        return response.data
+      }
+    } catch (err: any) {
+      captureBlockedByPlan(err)
+      error.value = err.response?.data?.message || 'Error al crear el cupón'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   async function removeCoupon(promotionId: number, couponId: number) {
     try {
       error.value = null
-      const response = await deleteCoupon(promotionId, couponId)
+      const response = await deleteCoupon(promotionId, couponId, mode.value)
 
       if (response.status === 'success') {
         await fetchCoupons(promotionId)
@@ -372,9 +427,14 @@ export const usePromotionV2Store = defineStore('promotion-v2', () => {
     error,
     pagination,
     filters,
+    mode,
+    lastBlockedByPlan,
 
     // Getters
     hasPromotions,
+
+    // Mode (coupon vs promotion)
+    setMode,
 
     // Promotion CRUD
     fetchPromotions,
@@ -383,6 +443,7 @@ export const usePromotionV2Store = defineStore('promotion-v2', () => {
     modifyPromotion,
     removePromotion,
     changeStatus,
+    addSimpleCoupon,
 
     // Sub-resource CRUD
     addRule,

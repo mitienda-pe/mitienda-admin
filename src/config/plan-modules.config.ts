@@ -30,7 +30,13 @@ export const MODULE_ROUTE_MAP: Record<string, string[]> = {
   mod_etiquetas: ['/catalog/product-tags'],
 
   // Marketing
-  mod_promociones: ['/marketing/promotions', '/marketing/promotions-v2'],
+  // mod_promociones (legacy): mantiene gating para /marketing/promotions (V1) durante la
+  // ventana de transición. Después de migrar todas las tiendas y deprecar V1, eliminar.
+  mod_promociones: ['/marketing/promotions'],
+  // mod_cupones: subset de promotions V2 (solo activation_type=coupon). Plan Small+.
+  mod_cupones: ['/marketing/coupons'],
+  // mod_promociones_v2: motor completo (automáticas, referrals, conditions avanzadas). Plan Medium+.
+  mod_promociones_v2: ['/marketing/promotions-v2'],
   mod_upsales: ['/marketing/upsales'],
   mod_combos: ['/marketing/combos'],
   mod_barras_anuncios: ['/marketing/announcement-bars'],

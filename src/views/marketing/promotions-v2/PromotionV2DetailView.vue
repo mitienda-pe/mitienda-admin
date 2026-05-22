@@ -21,7 +21,7 @@
         <div class="flex items-center gap-3">
           <button
             class="rounded-md p-1 text-gray-400 hover:text-gray-600"
-            @click="router.push('/marketing/promotions-v2')"
+            @click="router.push(listRoute)"
           >
             <i class="pi pi-arrow-left text-lg"></i>
           </button>
@@ -320,6 +320,11 @@ const route = useRoute()
 const store = usePromotionV2Store()
 const { formatDate } = useFormatters()
 
+// 'coupon' → ruta /marketing/coupons (mod_cupones, Small+). Define la URL de back
+// y a qué prefix API se hacen las llamadas (via store.mode).
+const isCouponMode = computed(() => route.meta.mode === 'coupon')
+const listRoute = computed(() => (isCouponMode.value ? '/marketing/coupons' : '/marketing/promotions-v2'))
+
 const promotion = computed(() => store.currentPromotion)
 
 const hasCouponActivation = computed(() =>
@@ -427,7 +432,7 @@ function confirmDelete() {
 async function handleDelete() {
   if (!promotion.value) return
   await store.removePromotion(promotion.value.promotions_v2_id)
-  router.push('/marketing/promotions-v2')
+  router.push(listRoute.value)
 }
 
 async function loadPromotion() {
@@ -438,6 +443,8 @@ async function loadPromotion() {
 }
 
 onMounted(() => {
+  // setMode antes de cargar para que fetchPromotion use el prefix correcto (/coupons o /promotions-v2)
+  store.setMode(isCouponMode.value ? 'coupon' : 'promotion')
   loadPromotion()
 })
 </script>
