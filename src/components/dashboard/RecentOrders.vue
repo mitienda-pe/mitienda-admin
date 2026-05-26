@@ -84,6 +84,12 @@ const statusConfig = (status: OrderStatus) => {
       textClass: 'text-red-800',
       iconClass: 'pi-times-circle'
     },
+    voided: {
+      label: 'Anulado',
+      bgClass: 'bg-red-100',
+      textClass: 'text-red-800',
+      iconClass: 'pi-ban'
+    },
     // Fallbacks (no deberían usarse con el backend actual)
     processing: {
       label: 'Procesando',

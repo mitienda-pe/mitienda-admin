@@ -67,6 +67,25 @@ const canMarkAsChargeback = computed(() => {
   return order.value?.status === 'paid' && order.value?.payment_method === 'credit_card'
 })
 
+const voidInfo = computed(() => {
+  if (order.value?.status !== 'voided') return null
+  const raw = order.value?.gateway_error_user || order.value?.gateway_error_store
+  if (!raw) return null
+  try {
+    const parsed = JSON.parse(raw)
+    if (parsed?.tipo === 'anulacion_pos') {
+      return {
+        motivo: parsed.motivo as string | undefined,
+        fecha: parsed.fecha as string | undefined,
+        empleadoNombre: parsed.empleado_nombre as string | null | undefined,
+      }
+    }
+  } catch {
+    // raw is not JSON — fall through
+  }
+  return null
+})
+
 async function handleConfirmPayment() {
   if (!order.value || isUpdatingPayment.value) return
   isUpdatingPayment.value = true
@@ -442,6 +461,12 @@ const statusConfig = computed(() => {
       bgClass: 'bg-red-100',
       textClass: 'text-red-800',
       iconClass: 'pi-times-circle'
+    },
+    voided: {
+      label: 'Anulado',
+      bgClass: 'bg-red-100',
+      textClass: 'text-red-800',
+      iconClass: 'pi-ban'
     },
     chargeback: {
       label: 'Contracargo',
@@ -1179,9 +1204,28 @@ const handleDebugPayments = async () => {
                   <p class="text-gray-900">{{ order.gateway_message }}</p>
                 </div>
 
+                <!-- Motivo de anulación (POS void) -->
+                <div
+                  v-if="voidInfo"
+                  class="mt-3 p-3 rounded-lg border bg-red-50 border-red-200"
+                >
+                  <p class="text-sm font-semibold mb-1 text-red-700">
+                    <i class="pi pi-ban mr-1"></i>
+                    Motivo de anulación
+                  </p>
+                  <p v-if="voidInfo.motivo" class="text-sm text-red-600">
+                    {{ voidInfo.motivo }}
+                  </p>
+                  <p v-if="voidInfo.empleadoNombre || voidInfo.fecha" class="text-xs mt-1 text-gray-500">
+                    <span v-if="voidInfo.empleadoNombre">Anulado por {{ voidInfo.empleadoNombre }}</span>
+                    <span v-if="voidInfo.empleadoNombre && voidInfo.fecha"> · </span>
+                    <span v-if="voidInfo.fecha">{{ voidInfo.fecha }}</span>
+                  </p>
+                </div>
+
                 <!-- Motivo de rechazo -->
                 <div
-                  v-if="order.gateway_error_user || order.gateway_error_store || (order.status === 'cancelled' && !order.gateway_message)"
+                  v-else-if="order.gateway_error_user || order.gateway_error_store || (order.status === 'cancelled' && !order.gateway_message)"
                   class="mt-3 p-3 rounded-lg border"
                   :class="order.status === 'cancelled' ? 'bg-red-50 border-red-200' : 'bg-yellow-50 border-yellow-200'"
                 >

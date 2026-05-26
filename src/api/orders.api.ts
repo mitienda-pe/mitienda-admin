@@ -27,13 +27,16 @@ export interface OrderStats {
 }
 
 // Helper para mapear el estado del pago a OrderStatus
-// tiendaventa_pagado: '0' = rechazado, '1' = confirmado/pagado, '2' = pendiente
+// tiendaventa_pagado: 0=rechazado, 1=pagado, 2=pendiente, 4=anulado, 9=creado,
+// 12=expirado, 13=contracargo, 14=reembolsado
 function mapPaymentToOrderStatus(pagado: string | number): OrderStatus {
   const statusStr = String(pagado)
   if (statusStr === '1') return 'paid'
   if (statusStr === '0') return 'cancelled'
-  if (statusStr === '5') return 'chargeback'
-  if (statusStr === '6') return 'refunded'
+  if (statusStr === '4') return 'voided'
+  if (statusStr === '12') return 'cancelled'
+  if (statusStr === '13') return 'chargeback'
+  if (statusStr === '14') return 'refunded'
   return 'pending'
 }
 
@@ -42,8 +45,10 @@ function mapPaymentStatusText(pagado: string | number): string {
   const statusStr = String(pagado)
   if (statusStr === '1') return 'confirmado'
   if (statusStr === '0') return 'rechazado'
-  if (statusStr === '5') return 'contracargo'
-  if (statusStr === '6') return 'reembolsado'
+  if (statusStr === '4') return 'anulado'
+  if (statusStr === '12') return 'expirado'
+  if (statusStr === '13') return 'contracargo'
+  if (statusStr === '14') return 'reembolsado'
   return 'pendiente'
 }
 
@@ -56,6 +61,7 @@ function statusToPaymentCode(status: OrderStatus): string {
     processing: '1',  // procesando = ya está pagado
     shipped: '1',     // enviado = ya está pagado
     delivered: '1',   // entregado = ya está pagado
+    voided: '4',      // anulado
     chargeback: '13', // contracargo
     refunded: '14'    // reembolsado
   }

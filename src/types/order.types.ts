@@ -180,7 +180,7 @@ export interface Address {
   reference?: string
 }
 
-export type OrderStatus = 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'chargeback' | 'refunded'
+export type OrderStatus = 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'voided' | 'chargeback' | 'refunded'
 
 export interface OrderFilters {
   search: string

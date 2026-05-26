@@ -86,6 +86,7 @@ const statusConfig = (status: OrderStatus) => {
     pending:    { label: 'Pendiente',   severity: 'warn',      icon: 'pi-clock' },
     paid:       { label: 'Pagado',      severity: 'success',   icon: 'pi-check-circle' },
     cancelled:  { label: 'Rechazado',   severity: 'danger',    icon: 'pi-times-circle' },
+    voided:     { label: 'Anulado',     severity: 'danger',    icon: 'pi-ban' },
     chargeback: { label: 'Contracargo', severity: 'danger',    icon: 'pi-exclamation-triangle' },
     refunded:   { label: 'Reembolsado', severity: 'warn',      icon: 'pi-replay' },
     processing: { label: 'Procesando',  severity: 'info',      icon: 'pi-spin pi-spinner' },
