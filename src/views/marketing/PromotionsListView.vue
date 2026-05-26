@@ -1,5 +1,37 @@
 <template>
   <div class="promotions-list-view">
+    <!-- Deprecación V1: el merchant debe recrear sus promociones en V2 antes
+         del 2026-09-30. Los cupones legacy sí se auto-migran; las promociones
+         no, por ambigüedades de mapeo. Eliminar este banner cuando se apague V1. -->
+    <div class="mb-6 rounded-md border-l-4 border-amber-500 bg-amber-50 p-4">
+      <div class="flex items-start">
+        <i class="pi pi-exclamation-triangle mt-0.5 text-amber-600"></i>
+        <div class="ml-3 flex-1">
+          <h3 class="text-sm font-semibold text-amber-900">
+            Esta vista será descontinuada el 30 de septiembre de 2026
+          </h3>
+          <p class="mt-1 text-sm text-amber-800">
+            Las promociones se administran ahora en
+            <router-link to="/marketing/promotions-v2" class="font-semibold underline hover:text-amber-900">
+              Promociones avanzadas
+            </router-link>. Tus cupones siguen funcionando y se migraron automáticamente; las
+            <strong>promociones por producto y bonificaciones debes recrearlas manualmente</strong>
+            antes de la fecha límite, ya que el motor nuevo expresa los descuentos de forma más
+            precisa que el modelo antiguo.
+          </p>
+          <p class="mt-2 text-sm text-amber-800">
+            <router-link
+              to="/marketing/promotions-v2/new"
+              class="inline-flex items-center font-semibold text-amber-900 underline hover:text-amber-950"
+            >
+              Crear una promoción en el sistema nuevo
+              <i class="pi pi-arrow-right ml-1 text-xs"></i>
+            </router-link>
+          </p>
+        </div>
+      </div>
+    </div>
+
     <!-- Header -->
     <div class="mb-6 flex items-center justify-between">
       <div>
