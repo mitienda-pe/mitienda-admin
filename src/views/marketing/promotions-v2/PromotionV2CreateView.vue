@@ -151,16 +151,11 @@
               </div>
             </div>
 
-            <div>
-              <label class="flex items-center">
-                <input
-                  v-model="form.stackable"
-                  type="checkbox"
-                  class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                />
-                <span class="ml-2 text-sm text-gray-700">Acumulable con otras promociones</span>
-              </label>
-            </div>
+            <!-- Toggle "Acumulable" oculto desde 2026-05-26: política sin
+                 stacking. El motor V2 aplica el mejor descuento por slot
+                 (carrito + envío). El campo sigue en la BD y en el form data
+                 con default false; se mantiene oculto hasta que se reactive
+                 el stacking. -->
           </template>
 
           <!-- Dates -->

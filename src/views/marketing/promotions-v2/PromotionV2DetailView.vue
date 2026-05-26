@@ -157,10 +157,10 @@
                 <dt class="text-gray-500">Prioridad</dt>
                 <dd class="font-medium text-gray-900">{{ promotion.priority }}</dd>
               </div>
-              <div>
-                <dt class="text-gray-500">Acumulable</dt>
-                <dd class="font-medium text-gray-900">{{ promotion.stackable ? 'Sí' : 'No' }}</dd>
-              </div>
+              <!-- Fila "Acumulable" oculta desde 2026-05-26: política sin
+                   stacking. Se muestra siempre el mejor descuento; el flag
+                   sigue persistido pero ignorado en evaluación. -->
+
               <div v-if="promotion.exclusive_group">
                 <dt class="text-gray-500">Grupo exclusivo</dt>
                 <dd class="font-medium text-gray-900">{{ promotion.exclusive_group }}</dd>
@@ -223,10 +223,11 @@
             <InputText v-model="editForm.exclusive_group" placeholder="Opcional" class="w-full" />
           </div>
         </div>
-        <div class="flex items-center gap-2">
-          <Checkbox v-model="editForm.stackable" :binary="true" inputId="stackable" />
-          <label for="stackable" class="text-sm text-gray-700">Acumulable con otras promociones</label>
-        </div>
+        <!-- Checkbox "Acumulable" oculto desde 2026-05-26: política sin
+             stacking. El campo sigue en el form (preserva el valor existente)
+             para no perder configuración en promos antiguas hasta limpieza
+             total. -->
+
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="mb-1 block text-sm font-medium text-secondary-700">Fecha inicio</label>
