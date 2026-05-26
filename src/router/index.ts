@@ -1067,8 +1067,13 @@ router.beforeEach(async (to, _from, next) => {
     }
   }
 
-  // Plan module access check (skip for superadmin and impersonation)
-  if (requiresStore && authStore.selectedStore && !authStore.isSuperAdmin && !isImpersonating) {
+  // Plan module access check. Aplica también durante impersonación:
+  // un superadmin actuando como merchant no debe poder crear datos
+  // que el merchant luego no puede administrar (caso típico: promo V2
+  // en una tienda Small que sólo tiene mod_cupones).
+  // Sólo se omite cuando el superadmin navega su propia consola sin
+  // estar impersonando una tienda.
+  if (requiresStore && authStore.selectedStore && (!authStore.isSuperAdmin || isImpersonating)) {
     const { usePlanStore } = await import('@/stores/plan.store')
     const planStore = usePlanStore()
     if (!planStore.planInfo) {
