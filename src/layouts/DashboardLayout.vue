@@ -35,7 +35,24 @@
           <!-- Tienda seleccionada -->
           <div v-if="authStore.selectedStore" class="hidden md:flex items-center gap-2">
             <i class="pi pi-shop text-secondary-400"></i>
-            <span class="text-sm font-medium">{{ authStore.selectedStore.name }}</span>
+            <a
+              v-if="authStore.selectedStore.url"
+              :href="authStore.selectedStore.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-sm font-medium text-gray-900 hover:text-primary transition-colors inline-flex items-center gap-1"
+              v-tooltip.bottom="'Abrir tienda en una nueva pestaña'"
+            >
+              {{ authStore.selectedStore.name }}
+              <i class="pi pi-external-link text-xs"></i>
+            </a>
+            <span v-else class="text-sm font-medium">{{ authStore.selectedStore.name }}</span>
+            <span
+              class="text-xs font-mono text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded"
+              v-tooltip.bottom="'ID de tienda (útil para soporte)'"
+            >
+              #{{ authStore.selectedStore.id }}
+            </span>
           </div>
 
           <!-- Usuario -->
