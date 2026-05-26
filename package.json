@@ -1,7 +1,7 @@
 {
   "name": "mitienda-backoffice",
   "private": true,
-  "version": "2.38.27",
+  "version": "2.38.28",
   "type": "module",
   "scripts": {
     "dev": "vite",
