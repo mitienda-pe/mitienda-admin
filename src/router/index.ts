@@ -51,6 +51,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/forgot-password',
     component: AuthLayout,
+    meta: { requiresAuth: false },
     children: [
       {
         path: '',
@@ -63,6 +64,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/reset-password',
     component: AuthLayout,
+    meta: { requiresAuth: false },
     children: [
       {
         path: '',
