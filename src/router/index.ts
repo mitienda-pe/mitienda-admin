@@ -256,6 +256,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/reports/PromotionsReportView.vue')
       },
       {
+        path: 'payment-rejections',
+        name: 'PaymentRejectionsReport',
+        component: () => import('@/views/reports/PaymentRejectionsReportView.vue')
+      },
+      {
         path: 'web-analytics',
         name: 'WebAnalytics',
         component: () => import('@/views/reports/WebAnalyticsView.vue')

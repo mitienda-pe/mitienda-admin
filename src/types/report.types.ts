@@ -148,3 +148,51 @@ export interface PromotionsPreviewResponse {
   has_more: boolean
   filters_applied: PromotionsFilters
 }
+
+// Payment Rejections Report
+export interface PaymentRejectionsFilters {
+  date_from?: string
+  date_to?: string
+  payment_gateway_id?: number
+}
+
+export interface PaymentRejectionsSummary {
+  total_attempts: number
+  approved: number
+  rejected: number
+  pending: number
+  expired: number
+  rejection_rate_pct: number
+  rejected_amount: number
+}
+
+export interface RejectionByGateway {
+  gateway_id: number
+  gateway_name: string
+  attempts: number
+  approved: number
+  rejected: number
+  rejection_rate_pct: number
+}
+
+export interface RejectionCountItem {
+  reason?: string
+  brand?: string
+  bank?: string
+  total: number
+}
+
+export interface RejectionByDay {
+  day: string
+  approved: number
+  rejected: number
+}
+
+export interface PaymentRejectionsResponse {
+  summary: PaymentRejectionsSummary
+  by_gateway: RejectionByGateway[]
+  by_reason: RejectionCountItem[]
+  by_brand: RejectionCountItem[]
+  by_bank: RejectionCountItem[]
+  by_day: RejectionByDay[]
+}

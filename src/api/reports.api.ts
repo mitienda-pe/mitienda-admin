@@ -12,7 +12,9 @@ import {
   type ProductCatalogPreviewResponse,
   type PromotionsFilters,
   type PromotionReportRow,
-  type PromotionsPreviewResponse
+  type PromotionsPreviewResponse,
+  type PaymentRejectionsFilters,
+  type PaymentRejectionsResponse
 } from '@/types/report.types'
 
 export const reportsApi = {
@@ -278,6 +280,32 @@ export const reportsApi = {
     })
 
     return response.data
+  },
+
+  /**
+   * Get payment rejection analytics (summary, by gateway/reason/brand/bank/day).
+   * Defaults: last 30 days if dates not provided.
+   */
+  async getPaymentRejections(
+    filters: PaymentRejectionsFilters = {}
+  ): Promise<PaymentRejectionsResponse> {
+    const params = new URLSearchParams()
+    if (filters.date_from) params.append('date_from', filters.date_from)
+    if (filters.date_to) params.append('date_to', filters.date_to)
+    if (filters.payment_gateway_id) {
+      params.append('payment_gateway_id', filters.payment_gateway_id.toString())
+    }
+
+    const response = await apiClient.get<{
+      success: boolean
+      data: PaymentRejectionsResponse
+    }>(`/reports/payment-rejections?${params.toString()}`)
+
+    if (!response.data.success) {
+      throw new Error('Failed to fetch payment rejections report')
+    }
+
+    return response.data.data
   },
 
   /**
