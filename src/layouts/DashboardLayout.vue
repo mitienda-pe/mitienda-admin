@@ -1355,12 +1355,11 @@ const catalogMenuItems = [
 // Items del grupo Marketing
 // - 'Cupones' (mod_cupones, Small+): subset de promotions V2 con activation_type=coupon
 // - 'Promociones avanzadas' (mod_promociones_v2, Medium+): motor completo (automáticas, referrals, etc.)
-// - 'Promociones (legacy)' (mod_promociones): vista V1 antigua, se mantiene durante la transición.
-//   Se ocultará tras Fase 4 (deprecación V1).
+// "Promociones (legacy)" se retiró del menú: mod_promociones quedó despublicado.
+// Las rutas /marketing/promotions* siguen vivas para edición residual y redirigen a V2/Cupones.
 const marketingMenuItems = [
   { label: 'Cupones', icon: 'pi pi-ticket', to: '/marketing/coupons' },
   { label: 'Promociones avanzadas', icon: 'pi pi-sparkles', to: '/marketing/promotions-v2' },
-  { label: 'Promociones (legacy)', icon: 'pi pi-percentage', to: '/marketing/promotions' },
   { label: 'Barras de Anuncios', icon: 'pi pi-megaphone', to: '/marketing/announcement-bars' },
   { label: 'Upsales', icon: 'pi pi-arrow-up', to: '/marketing/upsales' },
   { label: 'Combos', icon: 'pi pi-box', to: '/marketing/combos' },
