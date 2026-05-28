@@ -316,6 +316,56 @@ export const netsuiteApi = {
     return response.data
   },
 
+  /**
+   * Importa productos NUEVOS desde NetSuite con filtros multi-capa.
+   * Por defecto corre en dry-run (preview); pasar dryRun=false para ejecutar.
+   */
+  async syncTiendaProducts(dryRun = true, limit?: number): Promise<{
+    success: boolean
+    dry_run: boolean
+    data: {
+      filters: {
+        tienda_id: number
+        itemtypes: string[]
+        excluded_classes: number[]
+        location_id: number | null
+        subsidiary_id: number | null
+        price_level_id: number
+      }
+      query: string
+      dry_run: boolean
+      total_from_netsuite: number
+      total_candidates: number
+      attempted: number
+      created: number
+      skipped_duplicate: number
+      skipped_missing_data: number
+      errors: number
+      items: Array<{
+        status: string
+        netsuite_item_id: string | number
+        producto_id?: number | null
+        reason?: string | null
+        preview?: Record<string, any>
+        source?: Record<string, any>
+      }>
+      skipped: Array<{
+        item: Record<string, any>
+        reason: string
+        detail: any
+      }>
+    }
+    finished_at: string
+    message?: string
+  }> {
+    const params = new URLSearchParams()
+    params.append('dry_run', dryRun ? '1' : '0')
+    if (limit && limit > 0) params.append('limit', String(limit))
+    const qs = params.toString() ? `?${params.toString()}` : ''
+    const response = await apiClient.post(`/tienda/sync-products${qs}`, {}, { timeout: 600000 })
+    return response.data
+  },
+
   // ========== Locations API ==========
 
   /**

@@ -13,7 +13,7 @@
           severity="secondary"
           outlined
           :loading="syncingStock"
-          :disabled="syncingPrices"
+          :disabled="syncingPrices || syncingProducts"
           @click="onSyncTiendaStock"
         />
         <Button
@@ -22,8 +22,17 @@
           severity="secondary"
           outlined
           :loading="syncingPrices"
-          :disabled="syncingStock"
+          :disabled="syncingStock || syncingProducts"
           @click="onSyncTiendaPrices"
+        />
+        <Button
+          label="Importar productos nuevos"
+          icon="pi pi-plus-circle"
+          severity="primary"
+          outlined
+          :loading="syncingProducts"
+          :disabled="syncingStock || syncingPrices"
+          @click="onPreviewSyncProducts"
         />
         <Button
           label="Actualizar"
@@ -186,6 +195,98 @@
           </Column>
         </DataTable>
 
+        <!-- Import products preview dialog -->
+        <Dialog
+          v-model:visible="showImportPreview"
+          modal
+          header="Importar productos nuevos desde NetSuite"
+          :style="{ width: '90vw', maxWidth: '1100px' }"
+          :closable="!importExecuting"
+        >
+          <div class="space-y-3">
+            <Message v-if="importPreviewError" severity="error" :closable="false">
+              {{ importPreviewError }}
+            </Message>
+
+            <div v-if="importPreviewData && !importPreviewError">
+              <div class="flex flex-wrap gap-3 text-sm text-secondary-700 mb-3">
+                <Tag :value="`Items NetSuite: ${importPreviewData.data.total_from_netsuite}`" severity="info" />
+                <Tag :value="`Candidatos nuevos: ${importPreviewData.data.total_candidates}`" severity="success" />
+                <Tag :value="`Ya existen en MiTienda: ${importPreviewData.data.skipped.length}`" severity="secondary" />
+              </div>
+
+              <p class="text-sm text-secondary-600 mb-3">
+                Filtros: types <code class="text-xs">{{ importPreviewData.data.filters.itemtypes.join(',') }}</code>,
+                clases excluidas <code class="text-xs">{{ importPreviewData.data.filters.excluded_classes.join(',') || 'ninguna' }}</code>,
+                location <code class="text-xs">{{ importPreviewData.data.filters.location_id ?? 'sin filtro' }}</code>,
+                price level <code class="text-xs">{{ importPreviewData.data.filters.price_level_id }}</code>.
+              </p>
+
+              <DataTable
+                :value="previewCandidates"
+                striped-rows
+                class="p-datatable-sm"
+                scroll-height="50vh"
+                scrollable
+              >
+                <template #empty>
+                  <div class="text-center py-6 text-secondary-500">
+                    <i class="pi pi-check-circle text-3xl mb-3 block text-green-500"></i>
+                    <p>No hay productos nuevos en NetSuite para importar.</p>
+                  </div>
+                </template>
+                <Column field="netsuite_item_id" header="Item.ID" style="min-width: 90px">
+                  <template #body="{ data }"><span class="font-mono text-xs">{{ data.netsuite_item_id }}</span></template>
+                </Column>
+                <Column header="SKU NetSuite" style="min-width: 120px">
+                  <template #body="{ data }"><span class="font-mono text-xs">{{ data.source?.ns_sku ?? '—' }}</span></template>
+                </Column>
+                <Column header="Título a crear" style="min-width: 280px">
+                  <template #body="{ data }"><span class="text-sm">{{ data.preview?.producto_titulo ?? '—' }}</span></template>
+                </Column>
+                <Column header="Tipo" style="min-width: 90px">
+                  <template #body="{ data }"><Tag severity="secondary" :value="data.source?.item_type ?? '—'" /></template>
+                </Column>
+                <Column header="Class" style="min-width: 80px">
+                  <template #body="{ data }"><span class="font-mono text-xs">{{ data.source?.class ?? '—' }}</span></template>
+                </Column>
+                <Column header="Precio" style="min-width: 110px" class="text-right">
+                  <template #body="{ data }">
+                    <span class="font-semibold">S/ {{ Number(data.preview?.producto_precio ?? 0).toFixed(2) }}</span>
+                  </template>
+                </Column>
+                <Column header="Stock" style="min-width: 80px" class="text-right">
+                  <template #body="{ data }"><span class="font-semibold">{{ data.preview?.producto_stock ?? 0 }}</span></template>
+                </Column>
+                <Column header="Barcode" style="min-width: 130px">
+                  <template #body="{ data }">
+                    <span v-if="data.preview?.producto_barcode" class="font-mono text-xs">{{ data.preview.producto_barcode }}</span>
+                    <span v-else class="text-secondary-400 italic text-xs">sin UPC</span>
+                  </template>
+                </Column>
+              </DataTable>
+            </div>
+          </div>
+
+          <template #footer>
+            <Button
+              label="Cancelar"
+              icon="pi pi-times"
+              text
+              :disabled="importExecuting"
+              @click="showImportPreview = false"
+            />
+            <Button
+              v-if="previewCandidates.length > 0"
+              :label="`Importar ${previewCandidates.length} producto${previewCandidates.length === 1 ? '' : 's'}`"
+              icon="pi pi-check"
+              severity="primary"
+              :loading="importExecuting"
+              @click="onConfirmSyncProducts"
+            />
+          </template>
+        </Dialog>
+
         <!-- Pagination -->
         <div v-if="pagination.pages > 1" class="flex items-center justify-between mt-4 pt-4 border-t">
           <span class="text-sm text-secondary-600">
@@ -207,7 +308,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { netsuiteApi } from '@/api/netsuite.api'
 
@@ -219,6 +320,7 @@ import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Paginator from 'primevue/paginator'
 import Message from 'primevue/message'
+import Dialog from 'primevue/dialog'
 
 const toast = useToast()
 
@@ -255,8 +357,19 @@ const pagination = ref({
 const loadingProductId = ref<number | null>(null)
 const syncingStock = ref(false)
 const syncingPrices = ref(false)
+const syncingProducts = ref(false)
 const lastSyncMessage = ref('')
 const lastSyncSeverity = ref<'success' | 'warn' | 'error'>('success')
+
+// Import products preview modal state
+const showImportPreview = ref(false)
+const importPreviewData = ref<Awaited<ReturnType<typeof netsuiteApi.syncTiendaProducts>> | null>(null)
+const importPreviewError = ref<string | null>(null)
+const importExecuting = ref(false)
+
+const previewCandidates = computed(() =>
+  importPreviewData.value?.data?.items?.filter(i => i.status === 'dry_run') ?? []
+)
 
 async function loadStock() {
   isLoading.value = true
@@ -399,6 +512,61 @@ async function onSyncTiendaPrices() {
     toast.add({ severity: 'error', summary: 'Error', detail: lastSyncMessage.value, life: 6000 })
   } finally {
     syncingPrices.value = false
+  }
+}
+
+async function onPreviewSyncProducts() {
+  syncingProducts.value = true
+  importPreviewError.value = null
+  importPreviewData.value = null
+  showImportPreview.value = true
+  try {
+    const res = await netsuiteApi.syncTiendaProducts(true)
+    importPreviewData.value = res
+  } catch (err: any) {
+    console.error('Error preview sync products:', err)
+    importPreviewError.value = err?.response?.data?.messages?.error
+      || err?.response?.data?.error
+      || err?.message
+      || 'Error consultando productos nuevos en NetSuite'
+  } finally {
+    syncingProducts.value = false
+  }
+}
+
+async function onConfirmSyncProducts() {
+  importExecuting.value = true
+  try {
+    const res = await netsuiteApi.syncTiendaProducts(false)
+    const data = res?.data
+    const created = data?.created ?? 0
+    const errors = data?.errors ?? 0
+    const skipped = (data?.skipped_duplicate ?? 0) + (data?.skipped_missing_data ?? 0)
+
+    lastSyncSeverity.value = errors > 0 ? 'warn' : 'success'
+    lastSyncMessage.value = `Importación completada: ${created} producto(s) creado(s)`
+      + (skipped > 0 ? `, ${skipped} omitido(s)` : '')
+      + (errors > 0 ? `, ${errors} error(es)` : '')
+      + '.'
+
+    toast.add({
+      severity: lastSyncSeverity.value,
+      summary: 'Productos',
+      detail: lastSyncMessage.value,
+      life: 5000,
+    })
+    showImportPreview.value = false
+    importPreviewData.value = null
+    await loadStock()
+  } catch (err: any) {
+    console.error('Error executing sync products:', err)
+    const msg = err?.response?.data?.messages?.error
+      || err?.response?.data?.error
+      || err?.message
+      || 'Error importando productos desde NetSuite'
+    toast.add({ severity: 'error', summary: 'Error', detail: msg, life: 6000 })
+  } finally {
+    importExecuting.value = false
   }
 }
 
