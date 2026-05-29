@@ -251,10 +251,11 @@
                   v-model="form.slug"
                   class="w-full font-mono text-sm"
                   placeholder="mi-producto-ejemplo"
+                  @blur="form.slug = slugify(form.slug)"
                 />
                 <small class="text-yellow-600">
                   <i class="pi pi-exclamation-triangle mr-1"></i>
-                  Cambiar el slug puede romper enlaces existentes
+                  Solo letras sin tildes, números y guiones. Cambiar el slug puede romper enlaces existentes
                 </small>
               </div>
 
@@ -893,6 +894,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useFormatters } from '@/composables/useFormatters'
 import { useUnsavedChanges } from '@/composables/useUnsavedChanges'
 import { sanitizeHtml } from '@/utils/sanitize'
+import { slugify } from '@/utils/slugify'
 import { useToast } from 'primevue/usetoast'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
