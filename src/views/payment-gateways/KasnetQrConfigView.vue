@@ -91,6 +91,19 @@
 
             <Message v-if="store.error" severity="error" :closable="false">{{ store.error }}</Message>
 
+            <div v-if="!isConfigured" class="pt-4">
+              <Button
+                type="button"
+                label="Activar Kasnet QR"
+                icon="pi pi-check"
+                :loading="store.isSaving"
+                @click="handleSubmit"
+              />
+              <p class="text-xs text-secondary-500 mt-2">
+                Se activará con los valores seleccionados arriba. Podrás modificar el modo o ambiente después.
+              </p>
+            </div>
+
             <div v-if="isConfigured" class="flex gap-3 pt-4">
               <Button type="button" label="Eliminar" icon="pi pi-trash" severity="danger" outlined @click="handleDelete" />
             </div>
