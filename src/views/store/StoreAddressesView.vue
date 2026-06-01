@@ -8,11 +8,20 @@
           {{ storeInfoStore.addresses.length }} direcciones registradas
         </p>
       </div>
-      <Button
-        label="Nueva Dirección"
-        icon="pi pi-plus"
-        @click="$router.push({ name: 'store-address-create' })"
-      />
+      <div class="flex items-center gap-2">
+        <Button
+          v-if="branchStockEnabled"
+          label="Stock por sucursal"
+          icon="pi pi-box"
+          outlined
+          @click="$router.push({ name: 'store-branch-stock' })"
+        />
+        <Button
+          label="Nueva Dirección"
+          icon="pi pi-plus"
+          @click="$router.push({ name: 'store-address-create' })"
+        />
+      </div>
     </div>
 
     <!-- Loading -->
@@ -182,6 +191,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useStoreInfoStore } from '@/stores/store-info.store'
+import { usePlanStore } from '@/stores/plan.store'
 import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
@@ -207,7 +217,10 @@ L.Icon.Default.mergeOptions({
 })
 
 const storeInfoStore = useStoreInfoStore()
+const planStore = usePlanStore()
 const toast = useToast()
+
+const branchStockEnabled = computed(() => planStore.isModuleEnabled('mod_stock_sucursal'))
 
 const showDeleteDialog = ref(false)
 const addressToDelete = ref<StoreAddress | null>(null)

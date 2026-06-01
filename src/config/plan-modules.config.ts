@@ -20,6 +20,7 @@ export const MODULE_ROUTE_MAP: Record<string, string[]> = {
   mod_carga_productos_lote: ['/products/bulk-import'],
   mod_precios_producto: ['/products/prices'],
   mod_stock_producto: ['/products/stock'],
+  mod_stock_sucursal: ['/store/branch-stock'],
   mod_orden_producto: ['/products/order'],
   mod_productos: ['/products'],
   mod_categorias: ['/catalog/categories'],

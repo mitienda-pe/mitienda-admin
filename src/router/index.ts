@@ -766,6 +766,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/store/StoreConfigView.vue')
       },
       {
+        path: 'branch-stock',
+        name: 'store-branch-stock',
+        component: () => import('@/views/stock/BranchStockView.vue')
+      },
+      {
         path: 'seo',
         name: 'store-seo',
         component: () => import('@/views/store/StoreSeoView.vue')
