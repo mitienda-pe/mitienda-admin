@@ -251,7 +251,7 @@
                   v-model="form.slug"
                   class="w-full font-mono text-sm"
                   placeholder="mi-producto-ejemplo"
-                  @blur="form.slug = slugify(form.slug)"
+                  @blur="form.slug = slugify(form.slug ?? '')"
                 />
                 <small class="text-yellow-600">
                   <i class="pi pi-exclamation-triangle mr-1"></i>
