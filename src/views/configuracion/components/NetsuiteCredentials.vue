@@ -1228,6 +1228,7 @@ async function handleSubmit() {
     discount_item_id: stringOrNull(formData.discount_item_id),
     default_salesrep_id: stringOrNull(formData.default_salesrep_id),
     autosync_enabled: formData.autosync_enabled || false,
+    delegate_billing: formData.delegate_billing || false,
     estado: formData.estado || 1,
     locations: locations.value.length > 0 ? locations.value : undefined
   }
