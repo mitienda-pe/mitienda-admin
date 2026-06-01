@@ -228,7 +228,7 @@ const effectSchemas: Record<string, ConfigFieldSchema[]> = {
       label: 'Porcentaje de descuento',
       type: 'percentage',
       required: true,
-      min: 1,
+      min: 0.01,
       max: 100,
     },
     {
@@ -244,7 +244,7 @@ const effectSchemas: Record<string, ConfigFieldSchema[]> = {
       label: 'Porcentaje de descuento',
       type: 'percentage',
       required: true,
-      min: 1,
+      min: 0.01,
       max: 100,
     },
     {
@@ -260,7 +260,7 @@ const effectSchemas: Record<string, ConfigFieldSchema[]> = {
       label: 'Porcentaje de descuento al envío',
       type: 'percentage',
       required: true,
-      min: 1,
+      min: 0.01,
       max: 100,
     },
   ],
@@ -276,7 +276,7 @@ const effectSchemas: Record<string, ConfigFieldSchema[]> = {
       label: 'Porcentaje de descuento',
       type: 'percentage',
       required: true,
-      min: 1,
+      min: 0.01,
       max: 100,
     },
     {
@@ -298,7 +298,7 @@ const effectSchemas: Record<string, ConfigFieldSchema[]> = {
       label: 'Porcentaje de descuento',
       type: 'percentage',
       required: true,
-      min: 1,
+      min: 0.01,
       max: 100,
     },
     {
@@ -320,7 +320,7 @@ const effectSchemas: Record<string, ConfigFieldSchema[]> = {
       label: 'Porcentaje de descuento',
       type: 'percentage',
       required: true,
-      min: 1,
+      min: 0.01,
       max: 100,
     },
     {
