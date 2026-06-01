@@ -74,6 +74,7 @@
             optionValue="value"
             placeholder="Seleccionar tipo..."
             class="w-full"
+            @change="onTypeChange"
           />
         </div>
 
@@ -213,13 +214,17 @@ watch(advancedMode, (isAdvanced) => {
   }
 })
 
-// Reset config when type changes
-watch(() => dialogForm.type, () => {
+// Reset config only when the USER changes the type in the dropdown.
+// NOT a watcher on dialogForm.type: openEditDialog sets the type
+// programmatically and then loads the existing config; a watcher would
+// fire asynchronously afterwards and wipe that config (incl. product_ids),
+// silently deleting linked products on save.
+function onTypeChange() {
   configObject.value = {}
   configText.value = ''
   configError.value = ''
   advancedMode.value = false
-})
+}
 
 function formatConfigHumanReadable(type: string, config: Record<string, any> | null): string {
   return formatConfigHuman(props.ruleCategory, type, config)
