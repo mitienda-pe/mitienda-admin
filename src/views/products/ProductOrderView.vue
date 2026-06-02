@@ -2,11 +2,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { useProductManagementStore } from '@/stores/product-management.store'
 import DataTable, {
-  type DataTableSortEvent,
   type DataTableRowReorderEvent,
 } from 'primevue/datatable'
 import Column from 'primevue/column'
-import InputNumber from 'primevue/inputnumber'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import { useToast } from 'primevue/usetoast'
@@ -19,63 +17,42 @@ const toast = useToast()
 
 const searchQuery = ref('')
 
-const sortFieldMap: Record<string, string> = {
-  sku: 'sku',
-  name: 'name',
-  order: 'order',
-}
+// The whole catalog is loaded once; search filters the loaded list in-memory.
+const isFiltered = computed(() => searchQuery.value.trim().length > 0)
 
-const sortField = ref<string>('order')
-const sortOrder = ref<number>(1)
+const displayedItems = computed<ProductOrderItem[]>(() => {
+  if (!isFiltered.value) return store.orderItems
+  const q = searchQuery.value.trim().toLowerCase()
+  return store.orderItems.filter(
+    p =>
+      p.name?.toLowerCase().includes(q) ||
+      (p.sku || '').toLowerCase().includes(q),
+  )
+})
 
 onMounted(() => {
-  store.fetchOrder({ sort_field: 'order', sort_order: 'ASC' })
+  store.fetchAllOrder()
 })
 
 // ── Handlers ──
 
 const onSearch = (value: string) => {
   searchQuery.value = value
-  store.orderPagination.page = 1
-  store.fetchOrder({ search: value, sort_field: 'order', sort_order: 'ASC' })
 }
 
-const onPage = (event: { page: number; rows: number }) => {
-  store.orderPagination.page = event.page + 1
-  store.orderPagination.limit = event.rows
-  store.fetchOrder({
-    search: searchQuery.value,
-    sort_field: sortFieldMap[sortField.value] || 'order',
-    sort_order: sortOrder.value === 1 ? 'ASC' : 'DESC',
-  })
-}
-
-const onSort = (event: DataTableSortEvent) => {
-  const field = typeof event.sortField === 'string' ? event.sortField : 'order'
-  const backendField = sortFieldMap[field] || 'order'
-  const order = event.sortOrder === 1 ? 'ASC' : 'DESC'
-  sortField.value = field
-  sortOrder.value = event.sortOrder ?? 1
-  store.orderPagination.page = 1
-  store.fetchOrder({
-    search: searchQuery.value,
-    sort_field: backendField,
-    sort_order: order,
-  })
-}
-
-// ── Row reorder (drag & drop) ──
+// ── Row reorder (drag & drop) — only enabled on the full unfiltered list ──
 
 const onRowReorder = (event: DataTableRowReorderEvent) => {
+  if (isFiltered.value) return
   const reordered = event.value as ProductOrderItem[]
   store.reorderItems([...reordered])
 }
 
-// ── Inline order edit ──
+// ── Inline order edit: move the product to the typed absolute position ──
 
 const onOrderChange = (productId: number, value: number) => {
-  if (value == null || value < 0) return
-  store.updateLocalOrder(productId, value)
+  if (value == null || value < 1) return
+  store.moveToPosition(productId, value)
 }
 
 // ── Save ──
@@ -89,11 +66,7 @@ const handleSave = async () => {
       detail: 'Los cambios se guardaron correctamente',
       life: 3000,
     })
-    store.fetchOrder({
-      search: searchQuery.value,
-      sort_field: 'order',
-      sort_order: 'ASC',
-    })
+    await store.fetchAllOrder()
   } else {
     toast.add({
       severity: 'error',
@@ -104,13 +77,9 @@ const handleSave = async () => {
   }
 }
 
-const handleDiscard = () => {
+const handleDiscard = async () => {
   store.resetOrderDirty()
-  store.fetchOrder({
-    search: searchQuery.value,
-    sort_field: 'order',
-    sort_order: 'ASC',
-  })
+  await store.fetchAllOrder()
 }
 
 // ── Export ──
@@ -131,9 +100,6 @@ const handleExport = async () => {
 }
 
 const hasDirtyChanges = computed(() => store.dirtyOrderCount > 0)
-const first = computed(
-  () => (store.orderPagination.page - 1) * store.orderPagination.limit,
-)
 </script>
 
 <template>
@@ -211,13 +177,24 @@ const first = computed(
         label="Reintentar"
         icon="pi pi-refresh"
         class="mt-4"
-        @click="store.fetchOrder()"
+        @click="store.fetchAllOrder()"
       />
+    </div>
+
+    <!-- Filtered banner: reorder by dragging is disabled while searching -->
+    <div
+      v-if="isFiltered"
+      class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-800 flex items-center gap-2"
+    >
+      <i class="pi pi-info-circle"></i>
+      Estás viendo resultados filtrados. Limpia la búsqueda para reordenar
+      arrastrando todo el catálogo. Mientras filtras, puedes mover un producto
+      escribiendo su número de orden.
     </div>
 
     <!-- Empty -->
     <div
-      v-else-if="store.orderItems.length === 0 && !store.orderLoading"
+      v-else-if="displayedItems.length === 0 && !store.orderLoading"
       class="bg-white border border-gray-200 rounded-lg p-12 text-center"
     >
       <i class="pi pi-sort-alt text-6xl text-gray-300 mb-4"></i>
@@ -228,30 +205,22 @@ const first = computed(
     </div>
 
     <!-- DataTable -->
-    <div v-else class="bg-white rounded-lg shadow overflow-hidden">
+    <div
+      v-if="displayedItems.length > 0"
+      class="bg-white rounded-lg shadow overflow-hidden"
+    >
       <DataTable
-        :value="store.orderItems"
+        :value="displayedItems"
         :loading="store.orderLoading"
-        :paginator="true"
-        :rows="store.orderPagination.limit"
-        :totalRecords="store.orderPagination.total"
-        :lazy="true"
-        :first="first"
-        :rowsPerPageOptions="[25, 50, 100]"
-        :sortField="sortField"
-        :sortOrder="sortOrder"
-        @page="onPage"
-        @sort="onSort"
         @rowReorder="onRowReorder"
         :rowHover="true"
         responsiveLayout="scroll"
         stripedRows
-        removableSort
         dataKey="id"
         size="small"
       >
-        <!-- Drag handle -->
-        <Column :rowReorder="true" style="width: 40px" />
+        <!-- Drag handle (only when not filtered — order is global) -->
+        <Column v-if="!isFiltered" :rowReorder="true" style="width: 40px" />
 
         <!-- Imagen -->
         <Column header="" style="width: 50px">
@@ -274,30 +243,28 @@ const first = computed(
         </Column>
 
         <!-- SKU -->
-        <Column field="sku" header="SKU" sortable style="min-width: 100px">
+        <Column field="sku" header="SKU" style="min-width: 100px">
           <template #body="{ data }">
             <span class="text-sm font-mono text-gray-600">{{ data.sku || '-' }}</span>
           </template>
         </Column>
 
         <!-- Producto -->
-        <Column field="name" header="Producto" sortable style="min-width: 200px">
+        <Column field="name" header="Producto" style="min-width: 200px">
           <template #body="{ data }">
             <span class="font-medium text-gray-900">{{ data.name }}</span>
           </template>
         </Column>
 
-        <!-- Orden -->
-        <Column field="order" header="Orden" sortable style="min-width: 100px">
+        <!-- Orden — type an absolute position to move the product there -->
+        <Column field="order" header="Orden" style="min-width: 100px">
           <template #body="{ data }">
-            <InputNumber
-              :modelValue="data.order"
-              @update:modelValue="val => onOrderChange(data.id, val)"
-              :min="0"
-              :useGrouping="false"
-              class="w-20"
-              inputClass="w-full text-center text-sm"
-              size="small"
+            <input
+              type="number"
+              min="1"
+              :value="data.order"
+              @change="e => onOrderChange(data.id, Number((e.target as HTMLInputElement).value))"
+              class="w-20 text-center text-sm border border-gray-300 rounded px-2 py-1 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
             />
           </template>
         </Column>
@@ -338,7 +305,9 @@ const first = computed(
     <!-- Help text -->
     <div class="text-sm text-gray-500 flex items-center gap-2">
       <i class="pi pi-info-circle"></i>
-      Arrastra las filas para reordenar o edita el numero de orden directamente.
+      Arrastra las filas para reordenar todo el catálogo, o escribe el número de
+      orden para mover un producto a esa posición. El orden es global: al guardar
+      se reenumera de 1 a {{ store.orderPagination.total }}.
     </div>
   </div>
 </template>

@@ -271,18 +271,42 @@ export const useProductManagementStore = defineStore('productManagement', () => 
     }
   }
 
-  function updateLocalOrder(productId: number, order: number) {
-    const item = orderItems.value.find(p => p.id === productId)
-    if (!item) return
-    item.order = order
-    dirtyOrderItems.value.set(productId, { id: productId, order })
+  // Load the ENTIRE catalog in one request so drag-reorder operates over all
+  // products at once (the order is global, not per-page). Without this, the
+  // user could only reorder the visible page/search subset, leaving the rest
+  // at order 0 — which then sort ahead and look like the order "reverted".
+  async function fetchAllOrder() {
+    try {
+      orderLoading.value = true
+      orderError.value = null
+      const response = await productManagementApi.listOrder({
+        page: 1,
+        limit: 5000,
+        sort_field: 'order',
+        sort_order: 'ASC',
+      })
+      if (response.success && response.data) {
+        orderItems.value = response.data
+        dirtyOrderItems.value.clear()
+        orderPagination.value = {
+          page: 1,
+          limit: response.data.length || 1,
+          total: response.meta?.total || response.data.length,
+          totalPages: 1,
+        }
+      }
+    } catch (err: any) {
+      orderError.value = err.response?.data?.message || 'Error al cargar orden'
+    } finally {
+      orderLoading.value = false
+    }
   }
 
-  function reorderItems(reorderedItems: ProductOrderItem[]) {
-    orderItems.value = reorderedItems
-    reorderedItems.forEach((item, index) => {
-      const newOrder =
-        (orderPagination.value.page - 1) * orderPagination.value.limit + index + 1
+  // Renumber every item by its current array position and mark as dirty when it
+  // changed. Keeps `producto_orden` contiguous (1..N) and global.
+  function renumberOrder() {
+    orderItems.value.forEach((item, index) => {
+      const newOrder = index + 1
       if (item.order !== newOrder) {
         item.order = newOrder
         dirtyOrderItems.value.set(item.id, { id: item.id, order: newOrder })
@@ -290,17 +314,51 @@ export const useProductManagementStore = defineStore('productManagement', () => 
     })
   }
 
+  function updateLocalOrder(productId: number, order: number) {
+    const item = orderItems.value.find(p => p.id === productId)
+    if (!item) return
+    item.order = order
+    dirtyOrderItems.value.set(productId, { id: productId, order })
+  }
+
+  // Move a product to an absolute 1-based position within the full list and
+  // renumber everything so positions stay contiguous (used by inline edit).
+  function moveToPosition(productId: number, position: number) {
+    const arr = orderItems.value
+    const from = arr.findIndex(p => p.id === productId)
+    if (from === -1) return
+    const to = Math.max(0, Math.min(arr.length - 1, position - 1))
+    if (from === to) return
+    const [moved] = arr.splice(from, 1)
+    arr.splice(to, 0, moved)
+    renumberOrder()
+  }
+
+  function reorderItems(reorderedItems: ProductOrderItem[]) {
+    orderItems.value = reorderedItems
+    renumberOrder()
+  }
+
   async function saveOrderChanges(): Promise<boolean> {
     if (dirtyOrderItems.value.size === 0) return true
     try {
       orderLoading.value = true
-      const items = Array.from(dirtyOrderItems.value.values())
-      const response = await productManagementApi.batchUpdateOrder(items)
-      if (response.data) {
-        dirtyOrderItems.value.clear()
-        return true
+      // Commit the ENTIRE current order (contiguous 1..N), not just the dirty
+      // items. This wipes stale duplicates / zeros from older per-page saves.
+      const allItems = orderItems.value.map((item, index) => ({
+        id: item.id,
+        order: index + 1,
+      }))
+      // Backend caps each batch at 100 items.
+      const CHUNK = 100
+      for (let i = 0; i < allItems.length; i += CHUNK) {
+        await productManagementApi.batchUpdateOrder(allItems.slice(i, i + CHUNK))
       }
-      return false
+      orderItems.value.forEach((item, index) => {
+        item.order = index + 1
+      })
+      dirtyOrderItems.value.clear()
+      return true
     } catch (err: any) {
       orderError.value = err.response?.data?.message || 'Error al guardar orden'
       return false
@@ -353,7 +411,9 @@ export const useProductManagementStore = defineStore('productManagement', () => 
     orderError,
     dirtyOrderCount,
     fetchOrder,
+    fetchAllOrder,
     updateLocalOrder,
+    moveToPosition,
     reorderItems,
     saveOrderChanges,
     resetOrderDirty,
