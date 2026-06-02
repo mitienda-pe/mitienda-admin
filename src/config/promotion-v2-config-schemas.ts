@@ -7,7 +7,7 @@
 
 export type FieldType =
   | 'number'
-  | 'currency' // number displayed as soles, stored as centavos
+  | 'currency' // monto en soles (PEN); el motor de evaluación lo convierte a centavos al leer
   | 'percentage'
   | 'text'
   | 'textarea'
@@ -350,6 +350,18 @@ const effectSchemas: Record<string, ConfigFieldSchema[]> = {
   ],
   gift_product: [
     {
+      key: 'add_to_cart',
+      label: 'Modo de regalo',
+      type: 'select',
+      required: true,
+      defaultValue: 'auto',
+      options: [
+        { label: 'Agregar automáticamente al carrito (por umbral)', value: 'auto' },
+        { label: 'Descontar el producto si ya está en el carrito (BOGO)', value: 'bogo' },
+      ],
+      helpText: 'Auto-agregar: el regalo se añade solo al cumplirse las condiciones (ej. monto mínimo de la promoción). BOGO: solo descuenta el producto si el cliente ya lo tiene en el carrito.',
+    },
+    {
       key: 'gift_quantity',
       label: 'Cantidad de regalo',
       type: 'number',
@@ -472,7 +484,7 @@ export function formatConfigHuman(
     case 'none':
       return 'Sin condiciones — apto para todos'
     case 'cart_minimum_amount':
-      return `Monto mínimo: ${sym} ${formatCentavos(config.amount)}`
+      return `Monto mínimo: ${sym} ${formatSoles(config.amount)}`
     case 'cart_minimum_quantity':
       return `Cantidad mínima: ${config.quantity} producto(s)`
     case 'cart_contains_product':
@@ -499,31 +511,34 @@ export function formatConfigHuman(
     // Effects
     case 'percentage_discount_product': {
       const pCount = (config.product_ids || []).length
-      return `${config.percentage}% desc. ${pCount} producto(s)${config.max_discount ? ` (máx ${sym} ${formatCentavos(config.max_discount)})` : ''}`
+      return `${config.percentage}% desc. ${pCount} producto(s)${config.max_discount ? ` (máx ${sym} ${formatSoles(config.max_discount)})` : ''}`
     }
     case 'percentage_discount_cart':
-      return `${config.percentage}% desc. al carrito${config.max_discount ? ` (máx ${sym} ${formatCentavos(config.max_discount)})` : ''}`
+      return `${config.percentage}% desc. al carrito${config.max_discount ? ` (máx ${sym} ${formatSoles(config.max_discount)})` : ''}`
     case 'percentage_discount_shipping':
       return `${config.percentage}% desc. al envío`
     case 'percentage_discount_category':
-      return `${config.percentage}% desc. categoría${config.max_discount ? ` (máx ${sym} ${formatCentavos(config.max_discount)})` : ''}`
+      return `${config.percentage}% desc. categoría${config.max_discount ? ` (máx ${sym} ${formatSoles(config.max_discount)})` : ''}`
     case 'percentage_discount_brand':
-      return `${config.percentage}% desc. marca${config.max_discount ? ` (máx ${sym} ${formatCentavos(config.max_discount)})` : ''}`
+      return `${config.percentage}% desc. marca${config.max_discount ? ` (máx ${sym} ${formatSoles(config.max_discount)})` : ''}`
     case 'percentage_discount_gamma':
-      return `${config.percentage}% desc. gamma${config.max_discount ? ` (máx ${sym} ${formatCentavos(config.max_discount)})` : ''}`
+      return `${config.percentage}% desc. gamma${config.max_discount ? ` (máx ${sym} ${formatSoles(config.max_discount)})` : ''}`
     case 'fixed_discount_cart':
-      return `${sym} ${formatCentavos(config.amount)} desc. al carrito`
+      return `${sym} ${formatSoles(config.amount)} desc. al carrito`
     case 'free_shipping':
       return config.max_shipping_discount
-        ? `Envío gratis (máx ${sym} ${formatCentavos(config.max_shipping_discount)})`
+        ? `Envío gratis (máx ${sym} ${formatSoles(config.max_shipping_discount)})`
         : 'Envío gratis'
     case 'gift_product': {
       const gpCount = (config.product_ids || []).length
-      return `${config.gift_quantity || 1} unidad(es) gratis (${gpCount} producto(s))`
+      const mode = config.add_to_cart === 'auto' || config.add_to_cart === true
+        ? 'auto-agregar'
+        : 'BOGO'
+      return `${config.gift_quantity || 1} unidad(es) gratis (${gpCount} producto(s)) · ${mode}`
     }
     case 'override_price': {
       const opCount = (config.product_ids || []).length
-      return `Precio especial: ${sym} ${formatCentavos(config.new_price)} (${opCount} producto(s))`
+      return `Precio especial: ${sym} ${formatSoles(config.new_price)} (${opCount} producto(s))`
     }
 
     // Constraints
@@ -584,12 +599,10 @@ function parseBins(value: string | undefined): string[] {
     .filter((b) => /^\d{6,8}$/.test(b))
 }
 
-function formatCentavos(value: number | undefined): string {
+function formatSoles(value: number | undefined): string {
   if (value === undefined || value === null) return '0.00'
-  // If value is already in soles (has decimals or is small), display as-is
-  // Config stores amounts in centavos (integers)
-  if (Number.isInteger(value) && value > 100) {
-    return (value / 100).toFixed(2)
-  }
+  // Los montos del config se almacenan en SOLES (el InputNumber currency PEN
+  // los graba tal cual; el motor de evaluación los convierte a centavos al
+  // leer). Aquí solo formateamos, sin dividir.
   return Number(value).toFixed(2)
 }
