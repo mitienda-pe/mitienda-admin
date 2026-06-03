@@ -53,15 +53,27 @@ export const usePlanStore = defineStore('plan', () => {
   /**
    * Check if a route path is accessible based on the current plan's modules
    */
+  /**
+   * Compara una ruta contra un prefijo del MODULE_ROUTE_MAP con boundary
+   * de segmento — i.e., `/marketing/promotions-v2` NO matchea con el prefijo
+   * `/marketing/promotions` aunque comparta el principio. Sin esto, los items
+   * cuyo path comienza igual a otro path mapeado (caso real: V2 vs legacy)
+   * pueden quedar bloqueados por el módulo del prefijo más corto.
+   */
+  function routeMatchesPrefix(routePath: string, prefix: string): boolean {
+    if (routePath === prefix) return true
+    return routePath.startsWith(prefix + '/')
+  }
+
   function isRouteAccessible(routePath: string): boolean {
     if (!planInfo.value) return true // Not loaded yet
 
     // Always-accessible routes
-    if (ALWAYS_ACCESSIBLE_ROUTES.some(r => routePath.startsWith(r))) return true
+    if (ALWAYS_ACCESSIBLE_ROUTES.some(r => routeMatchesPrefix(routePath, r))) return true
 
     // Check each module's routes
     for (const [moduleCode, paths] of Object.entries(MODULE_ROUTE_MAP)) {
-      if (paths.some(p => routePath.startsWith(p))) {
+      if (paths.some(p => routeMatchesPrefix(routePath, p))) {
         return isModuleEnabled(moduleCode)
       }
     }
@@ -75,7 +87,7 @@ export const usePlanStore = defineStore('plan', () => {
    */
   function getModuleForRoute(routePath: string): PlanModule | null {
     for (const [moduleCode, paths] of Object.entries(MODULE_ROUTE_MAP)) {
-      if (paths.some(p => routePath.startsWith(p))) {
+      if (paths.some(p => routeMatchesPrefix(routePath, p))) {
         return modules.value.find(m => m.code === moduleCode) ?? null
       }
     }
