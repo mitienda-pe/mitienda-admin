@@ -14,7 +14,9 @@ import {
   type PromotionReportRow,
   type PromotionsPreviewResponse,
   type PaymentRejectionsFilters,
-  type PaymentRejectionsResponse
+  type PaymentRejectionsResponse,
+  type RoundingReportFilters,
+  type RoundingReportResponse
 } from '@/types/report.types'
 
 export const reportsApi = {
@@ -303,6 +305,29 @@ export const reportsApi = {
 
     if (!response.data.success) {
       throw new Error('Failed to fetch payment rejections report')
+    }
+
+    return response.data.data
+  },
+
+  /**
+   * Get rounding (redondeo POS) summary: gain/loss per period and per day.
+   * Defaults: last 30 days if dates not provided.
+   */
+  async getRoundingSummary(
+    filters: RoundingReportFilters = {}
+  ): Promise<RoundingReportResponse> {
+    const params = new URLSearchParams()
+    if (filters.date_from) params.append('date_from', filters.date_from)
+    if (filters.date_to) params.append('date_to', filters.date_to)
+
+    const response = await apiClient.get<{
+      success: boolean
+      data: RoundingReportResponse
+    }>(`/reports/rounding?${params.toString()}`)
+
+    if (!response.data.success) {
+      throw new Error('Failed to fetch rounding report')
     }
 
     return response.data.data

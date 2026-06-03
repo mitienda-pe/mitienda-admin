@@ -261,6 +261,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/reports/PaymentRejectionsReportView.vue')
       },
       {
+        path: 'rounding',
+        name: 'RoundingReport',
+        component: () => import('@/views/reports/RoundingReportView.vue')
+      },
+      {
         path: 'web-analytics',
         name: 'WebAnalytics',
         component: () => import('@/views/reports/WebAnalyticsView.vue')

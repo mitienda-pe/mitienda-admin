@@ -196,3 +196,31 @@ export interface PaymentRejectionsResponse {
   by_bank: RejectionCountItem[]
   by_day: RejectionByDay[]
 }
+
+// Rounding (redondeo POS) Report
+export interface RoundingReportFilters {
+  date_from?: string
+  date_to?: string
+}
+
+export interface RoundingSummary {
+  cantidad: number
+  ganancia_redondeo: number
+  perdida_redondeo: number
+  neto: number
+  total_ventas_registradas: number
+  total_efectivo_cobrado: number
+}
+
+export interface RoundingByDay {
+  fecha: string
+  cantidad: number
+  ganancia_redondeo: number
+  perdida_redondeo: number
+  neto: number
+}
+
+export interface RoundingReportResponse {
+  summary: RoundingSummary
+  by_day: RoundingByDay[]
+}

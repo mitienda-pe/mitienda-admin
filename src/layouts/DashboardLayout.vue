@@ -1332,7 +1332,8 @@ const reportsMenuItems = [
   { label: 'Ventas por Producto', icon: 'pi pi-box', to: '/reports/product-sales' },
   { label: 'Catálogo de Productos', icon: 'pi pi-list', to: '/reports/product-catalog' },
   { label: 'Promociones', icon: 'pi pi-percentage', to: '/reports/promotions' },
-  { label: 'Rechazos de Pago', icon: 'pi pi-exclamation-triangle', to: '/reports/payment-rejections' }
+  { label: 'Rechazos de Pago', icon: 'pi pi-exclamation-triangle', to: '/reports/payment-rejections' },
+  { label: 'Redondeo POS', icon: 'pi pi-money-bill', to: '/reports/rounding' }
 ]
 
 // Items del grupo Catálogo

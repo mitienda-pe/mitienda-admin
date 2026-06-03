@@ -1572,8 +1572,19 @@ const handleDebugPayments = async () => {
                         </td>
                       </tr>
 
-                      <!-- Redondeo (si existe) -->
+                      <!-- Con redondeo: distinguir total de venta vs efectivo cobrado -->
                       <template v-if="roundingAmount !== 0">
+                        <!-- Total de la venta (monto original, lo que se reporta y factura) -->
+                        <tr class="border-t-2 border-gray-300">
+                          <td class="px-6 py-3 text-sm font-semibold text-gray-900">
+                            Total venta:
+                          </td>
+                          <td class="px-6 py-3 text-sm text-right font-semibold text-gray-900">
+                            {{ formatCurrency(order.total) }}
+                          </td>
+                        </tr>
+
+                        <!-- Redondeo aplicado -->
                         <tr>
                           <td class="px-6 py-3 text-sm text-gray-700">
                             Redondeo:
@@ -1582,15 +1593,25 @@ const handleDebugPayments = async () => {
                             {{ formatCurrency(roundingAmount) }}
                           </td>
                         </tr>
+
+                        <!-- Efectivo realmente cobrado -->
+                        <tr class="border-t-2 border-gray-300 bg-gray-50">
+                          <td class="px-6 py-4 text-lg font-bold text-gray-900">
+                            Efectivo cobrado <span class="text-xs font-normal text-gray-500">(incl. redondeo)</span>:
+                          </td>
+                          <td class="px-6 py-4 text-lg text-right font-bold text-primary">
+                            {{ formatCurrency(totalAfterRounding) }}
+                          </td>
+                        </tr>
                       </template>
 
-                      <!-- Total final -->
-                      <tr class="border-t-2 border-gray-300 bg-gray-50">
+                      <!-- Sin redondeo: total único -->
+                      <tr v-else class="border-t-2 border-gray-300 bg-gray-50">
                         <td class="px-6 py-4 text-lg font-bold text-gray-900">
                           Total a pagar:
                         </td>
                         <td class="px-6 py-4 text-lg text-right font-bold text-primary">
-                          {{ formatCurrency(roundingAmount !== 0 ? totalAfterRounding : order.total) }}
+                          {{ formatCurrency(order.total) }}
                         </td>
                       </tr>
                     </tbody>
