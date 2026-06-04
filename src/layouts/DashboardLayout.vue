@@ -1305,6 +1305,7 @@ const appearanceMenuItems = [
   { label: 'Tipografía', icon: 'pi pi-language', to: '/appearance/typography' },
   { label: 'Viñeta de Producto', icon: 'pi pi-th-large', to: '/appearance/product-card' },
   { label: 'Menú', icon: 'pi pi-bars', to: '/appearance/menu' },
+  { label: 'CSS personalizado', icon: 'pi pi-code', to: '/appearance/css' },
   { label: 'Plantilla', icon: 'pi pi-layout', to: '/content/template' },
   { label: 'Bloques de Plantilla', icon: 'pi pi-box', to: '/content/components' },
 ]

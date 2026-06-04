@@ -504,6 +504,11 @@ const routes: RouteRecordRaw[] = [
         path: 'menu',
         name: 'appearance-menu',
         component: () => import('@/views/appearance/MenuView.vue')
+      },
+      {
+        path: 'css',
+        name: 'appearance-css',
+        component: () => import('@/views/appearance/AppearanceCssView.vue')
       }
     ]
   },
