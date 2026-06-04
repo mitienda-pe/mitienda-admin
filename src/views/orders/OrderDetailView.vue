@@ -680,6 +680,21 @@ const getItemDiscount = (itemId: number): number => {
   return promotion?.discount_amount || 0
 }
 
+// Effective discount percentage for an item line.
+// NOTE: do NOT use promotion.discount_value directly: for V2 promotions the API
+// returns discount_value equal to the soles amount (not a percentage), so showing
+// it with a "%" prints e.g. "25.74%" for a S/25.74 (16%) discount. Derive the real
+// rate from the amount over the line's gross value instead — correct for V1, V2 and
+// fixed-amount promotions alike.
+const getItemDiscountPercent = (itemId: number): number | null => {
+  const item = order.value?.items.find(i => i.id === itemId)
+  const discount = getItemDiscount(itemId)
+  if (!item || discount <= 0) return null
+  const gross = item.price * item.quantity
+  if (gross <= 0) return null
+  return Math.round((discount / gross) * 100)
+}
+
 // Check if item is bonificado (100% discount - free item from promotion like 2x1)
 const isItemBonificado = (itemId: number): boolean => {
   const promotion = getItemPromotion(itemId)
@@ -1379,8 +1394,8 @@ const handleDebugPayments = async () => {
                               <span v-if="isItemBonificado(item.id)" class="ml-2 text-xs font-semibold text-green-700 bg-green-100 px-2 py-0.5 rounded">
                                 BONIFICADO
                               </span>
-                              <span v-else-if="getItemPromotion(item.id)" class="ml-2 text-xs font-semibold text-green-700">
-                                {{ getItemPromotion(item.id)?.discount_value }}% OFF
+                              <span v-else-if="getItemDiscountPercent(item.id)" class="ml-2 text-xs font-semibold text-green-700">
+                                {{ getItemDiscountPercent(item.id) }}% OFF
                               </span>
                             </p>
                             <p v-if="item.product_variant" class="text-xs text-gray-600 mt-0.5">
@@ -1431,7 +1446,7 @@ const handleDebugPayments = async () => {
                           </template>
                           <template v-else-if="getItemDiscount(item.id) > 0">
                             <span>-{{ formatCurrency(getItemDiscount(item.id)) }}</span>
-                            <span v-if="getItemPromotion(item.id)?.discount_value" class="block text-xs text-green-600">({{ getItemPromotion(item.id)?.discount_value }}% OFF)</span>
+                            <span v-if="getItemDiscountPercent(item.id)" class="block text-xs text-green-600">({{ getItemDiscountPercent(item.id) }}% OFF)</span>
                           </template>
                           <template v-else>
                             <span>—</span>
