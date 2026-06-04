@@ -79,6 +79,16 @@ const appearanceApi = {
     return response.data
   },
 
+  async getCustomCss(): Promise<ApiResponse<{ css: string }>> {
+    const response = await apiClient.get('/appearance/css')
+    return response.data
+  },
+
+  async updateCustomCss(css: string): Promise<ApiResponse<{ css: string }>> {
+    const response = await apiClient.put('/appearance/css', { css })
+    return response.data
+  },
+
   async getCatalogPreferences(): Promise<ApiResponse<CatalogPreferences>> {
     const response = await apiClient.get('/appearance/catalog')
     return response.data
