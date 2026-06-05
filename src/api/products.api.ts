@@ -337,6 +337,12 @@ export const productsApi = {
     return response.data
   },
 
+  // Reindexar el catálogo completo en el buscador (Meilisearch)
+  async reindex(): Promise<ApiResponse<any>> {
+    const response = await apiClient.post('/products/reindex')
+    return response.data
+  },
+
   // Obtener link de upload directo a Cloudflare
   async getVideoUploadLink(id: number): Promise<ApiResponse<any>> {
     const response = await apiClient.post(`/products/${id}/video/upload-link`)

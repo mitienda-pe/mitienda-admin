@@ -7,6 +7,14 @@
         <span class="text-sm text-secondary-500">
           {{ productsStore.pagination.total }} productos
         </span>
+        <Button
+          label="Reindexar buscador"
+          icon="pi pi-sync"
+          outlined
+          :loading="reindexing"
+          @click="handleReindex"
+          v-tooltip.bottom="'Actualiza el buscador con los últimos cambios de tu catálogo'"
+        />
         <router-link :to="{ name: 'ProductCreate' }">
           <Button label="Crear producto" icon="pi pi-plus" />
         </router-link>
@@ -89,9 +97,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
+import { useToast } from 'primevue/usetoast'
 import { useProductsStore } from '@/stores/products.store'
 import { useCatalogStore } from '@/stores/catalog.store'
+import { productsApi } from '@/api/products.api'
 import Message from 'primevue/message'
 import Button from 'primevue/button'
 import SearchBar from '@/components/common/SearchBar.vue'
@@ -100,6 +110,34 @@ import ProductFilters from '@/components/products/ProductFilters.vue'
 
 const productsStore = useProductsStore()
 const catalogStore = useCatalogStore()
+const toast = useToast()
+
+// Reindexación del buscador (Meilisearch)
+const reindexing = ref(false)
+
+const handleReindex = async () => {
+  if (reindexing.value) return
+  reindexing.value = true
+  try {
+    const response = await productsApi.reindex()
+    toast.add({
+      severity: 'success',
+      summary: 'Reindexación iniciada',
+      detail: response.message || 'El buscador se actualizará en uno o dos minutos.',
+      life: 5000,
+    })
+  } catch (err: any) {
+    const status = err.response?.status
+    toast.add({
+      severity: status === 429 ? 'warn' : 'error',
+      summary: status === 429 ? 'Espera un momento' : 'Error',
+      detail: err.response?.data?.message || 'No se pudo iniciar la reindexación. Intenta nuevamente.',
+      life: 5000,
+    })
+  } finally {
+    reindexing.value = false
+  }
+}
 
 // Scroll infinito
 let scrollTimeout: NodeJS.Timeout | null = null
