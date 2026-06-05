@@ -1601,7 +1601,28 @@ const handleImageReorder = async (
 const handleVideoUploadSuccess = async () => {
   toast.add({ severity: 'success', summary: 'Video en proceso', detail: 'El video se esta procesando.', life: 5000 })
   showVideoUploader.value = false
-  if (product.value) await productsStore.fetchProduct(product.value.id)
+  if (!product.value) return
+
+  // El procesamiento corre en segundo plano (mtservicios sube a Cloudflare y
+  // recién entonces se asigna el cloudflare_uid). Hacemos polling hasta que el
+  // video aparezca, en vez de un solo fetch inmediato que llega demasiado pronto.
+  const id = product.value.id
+  const maxAttempts = 20 // ~60s (20 x 3s)
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    await productsStore.fetchProduct(id)
+    if (product.value?.video?.cloudflare_uid) {
+      toast.add({ severity: 'success', summary: 'Video listo', detail: 'El video ya esta disponible.', life: 4000 })
+      return
+    }
+    await new Promise(resolve => setTimeout(resolve, 3000))
+  }
+  // Si tras el timeout aun no aparece, el usuario puede recargar mas tarde.
+  toast.add({
+    severity: 'info',
+    summary: 'Procesamiento en curso',
+    detail: 'El video sigue procesandose. Recarga la pagina en unos momentos para verlo.',
+    life: 6000
+  })
 }
 
 const handleVideoUploadError = (error: any) => {
