@@ -156,7 +156,7 @@ const formatFileSize = (bytes: number): string => {
         <p class="text-sm text-gray-500 mt-3">
           Formatos: MP4, MOV, AVI, WebM<br>
           Tamaño máximo: 100MB<br>
-          <span class="text-yellow-600">Duración máxima: 40 segundos (se recortará automáticamente)</span>
+          <span class="text-yellow-600">Duración máxima: 45 segundos (se recortará automáticamente)</span>
         </p>
       </div>
 
