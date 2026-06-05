@@ -6,6 +6,8 @@
       <div v-if="product" class="flex gap-2">
         <Button v-if="storeUrl && product.seo?.slug" label="Ver en tienda" icon="pi pi-external-link"
           severity="secondary" outlined @click="openProductInStore" />
+        <Button label="Eliminar" icon="pi pi-trash" severity="danger" outlined
+          @click="showDeleteDialog = true" />
       </div>
     </div>
 
@@ -873,6 +875,35 @@
       </template>
     </Dialog>
 
+    <!-- Dialog de confirmacion de eliminacion -->
+    <Dialog
+      v-model:visible="showDeleteDialog"
+      header="Eliminar producto"
+      :modal="true"
+      :closable="!isDeleting"
+      :style="{ width: '450px' }"
+    >
+      <div class="flex gap-3">
+        <i class="pi pi-exclamation-triangle text-2xl text-red-500"></i>
+        <div>
+          <p class="mb-2">
+            ¿Eliminar el producto <strong>{{ product?.name }}</strong>?
+          </p>
+          <p class="text-sm text-secondary-500">
+            Se ocultara de tu tienda. Esta accion puede revertirse desde soporte.
+          </p>
+          <Message v-if="deleteError" severity="error" :closable="false" class="mt-2">
+            {{ deleteError }}
+          </Message>
+        </div>
+      </div>
+      <template #footer>
+        <Button label="Cancelar" text :disabled="isDeleting" @click="showDeleteDialog = false" />
+        <Button label="Eliminar" icon="pi pi-trash" severity="danger" :loading="isDeleting"
+          @click="handleDelete" />
+      </template>
+    </Dialog>
+
     <UnsavedChangesBar
       :dirty="isDirty"
       :loading="saving"
@@ -1422,6 +1453,31 @@ const openProductInStore = () => {
   if (storeUrl.value && product.value?.seo?.slug) {
     const baseUrl = storeUrl.value.endsWith('/') ? storeUrl.value : `${storeUrl.value}/`
     window.open(`${baseUrl}producto/${product.value.seo.slug}`, '_blank')
+  }
+}
+
+// ── Eliminar producto (soft delete) ──
+const showDeleteDialog = ref(false)
+const isDeleting = ref(false)
+const deleteError = ref<string | null>(null)
+
+const handleDelete = async () => {
+  if (!product.value) return
+  isDeleting.value = true
+  deleteError.value = null
+  try {
+    const result = await productsStore.deleteProduct(product.value.id)
+    if (result.success) {
+      showDeleteDialog.value = false
+      toast.add({ severity: 'success', summary: 'Producto eliminado', life: 3000 })
+      router.push('/products')
+    } else {
+      deleteError.value = result.message || 'No se pudo eliminar el producto'
+    }
+  } catch (err: any) {
+    deleteError.value = err?.response?.data?.message || 'No se pudo eliminar el producto'
+  } finally {
+    isDeleting.value = false
   }
 }
 

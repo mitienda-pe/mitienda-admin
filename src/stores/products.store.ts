@@ -180,6 +180,33 @@ export const useProductsStore = defineStore('products', () => {
     }
   }
 
+  async function deleteProduct(id: number) {
+    try {
+      isLoading.value = true
+      error.value = null
+
+      const response = await productsApi.deleteProduct(id)
+
+      if (response.success) {
+        // Quitar de la lista local; el detalle redirige tras eliminar
+        products.value = products.value.filter(p => p.id !== id)
+        if (currentProduct.value?.id === id) {
+          currentProduct.value = null
+        }
+        return { success: true }
+      }
+
+      error.value = response.message || 'Error al eliminar producto'
+      return { success: false, message: error.value }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Error al eliminar producto'
+      console.error('Error al eliminar producto:', err)
+      return { success: false, message: error.value }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     // State
     products,
@@ -197,6 +224,7 @@ export const useProductsStore = defineStore('products', () => {
     setFilters,
     loadMore,
     resetFilters,
-    updateProduct
+    updateProduct,
+    deleteProduct
   }
 })

@@ -488,4 +488,13 @@ export const productsApi = {
     const response = await apiClient.delete(`/products/${productId}/variants/${variantId}`)
     return response.data
   },
+
+  // Eliminar producto (soft delete: el backend pone producto_status = 0)
+  async deleteProduct(id: number): Promise<ApiResponse<void>> {
+    const response = await apiClient.delete(`/products/${id}`)
+    return {
+      success: response.data?.success ?? (response.status >= 200 && response.status < 300),
+      message: response.data?.message,
+    }
+  },
 }
