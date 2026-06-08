@@ -136,10 +136,11 @@
             </td>
             <td class="whitespace-nowrap px-6 py-4">
               <span
-                class="inline-flex rounded-full px-2 py-1 text-xs font-semibold"
-                :class="statusClasses(promo.status)"
+                class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold"
+                :class="STATUS_META[promo.status].badgeClass"
               >
-                {{ statusLabel(promo.status) }}
+                <i :class="STATUS_META[promo.status].icon"></i>
+                {{ STATUS_META[promo.status].label }}
               </span>
             </td>
             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
@@ -243,7 +244,7 @@ import { useRoute, useRouter } from 'vue-router'
 import Dialog from 'primevue/dialog'
 import { usePromotionV2Store } from '@/stores/promotion-v2.store'
 import { useFormatters } from '@/composables/useFormatters'
-import { STATUS_LABELS } from '@/types/promotion-v2.types'
+import { STATUS_META } from '@/types/promotion-v2.types'
 import type { PromotionV2, PromotionV2Status } from '@/types/promotion-v2.types'
 import type { PromotionApiMode } from '@/api/promotion-v2.api'
 
@@ -297,21 +298,6 @@ function applyFilters() {
     active_only: activeOnlyFilter.value,
   })
   store.fetchPromotions({ page: 1 })
-}
-
-function statusLabel(status: PromotionV2Status) {
-  return STATUS_LABELS[status] || status
-}
-
-function statusClasses(status: PromotionV2Status) {
-  const map: Record<PromotionV2Status, string> = {
-    draft: 'bg-gray-100 text-gray-700',
-    scheduled: 'bg-primary/10 text-primary',
-    active: 'bg-green-100 text-green-700',
-    paused: 'bg-yellow-100 text-yellow-700',
-    expired: 'bg-red-100 text-red-700',
-  }
-  return map[status] || 'bg-gray-100 text-gray-700'
 }
 
 function goToDetail(id: number) {

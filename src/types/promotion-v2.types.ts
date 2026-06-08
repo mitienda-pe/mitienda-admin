@@ -157,6 +157,26 @@ export const STATUS_LABELS: Record<PromotionV2Status, string> = {
   expired: 'Expirada',
 }
 
+/**
+ * Metadata visual del estado de una promoción. Fuente única para badges
+ * vívidos (con icono) que hacen evidente si una promoción está activa o no,
+ * en la lista y en el detalle. `active` usa un badge sólido (alto contraste);
+ * los estados inactivos quedan claramente apagados o en alerta.
+ */
+export interface PromotionV2StatusMeta {
+  label: string
+  badgeClass: string
+  icon: string
+}
+
+export const STATUS_META: Record<PromotionV2Status, PromotionV2StatusMeta> = {
+  draft:     { label: 'Borrador',   icon: 'pi pi-file-edit',     badgeClass: 'bg-gray-100 text-gray-600 ring-1 ring-inset ring-gray-300' },
+  scheduled: { label: 'Programada', icon: 'pi pi-calendar-clock', badgeClass: 'bg-primary/10 text-primary ring-1 ring-inset ring-primary/30' },
+  active:    { label: 'Activa',     icon: 'pi pi-check-circle',   badgeClass: 'bg-green-500 text-white ring-1 ring-inset ring-green-600 shadow-sm' },
+  paused:    { label: 'Pausada',    icon: 'pi pi-pause-circle',   badgeClass: 'bg-amber-400 text-amber-950 ring-1 ring-inset ring-amber-500' },
+  expired:   { label: 'Expirada',   icon: 'pi pi-times-circle',   badgeClass: 'bg-red-500 text-white ring-1 ring-inset ring-red-600' },
+}
+
 export const STATUS_SEVERITY: Record<PromotionV2Status, string> = {
   draft: 'neutral',
   scheduled: 'info',

@@ -34,10 +34,11 @@
         </div>
         <div class="flex items-center gap-2">
           <span
-            class="inline-flex rounded-full px-3 py-1 text-sm font-semibold"
-            :class="statusClasses(promotion.status)"
+            class="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold"
+            :class="STATUS_META[promotion.status].badgeClass"
           >
-            {{ statusLabel(promotion.status) }}
+            <i :class="STATUS_META[promotion.status].icon"></i>
+            {{ STATUS_META[promotion.status].label }}
           </span>
           <button
             class="rounded-md border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
@@ -292,7 +293,7 @@ import RuleSection from '@/components/promotions-v2/RuleSection.vue'
 import CouponsSection from '@/components/promotions-v2/CouponsSection.vue'
 import EffectProductsSection from '@/components/promotions-v2/EffectProductsSection.vue'
 import {
-  STATUS_LABELS,
+  STATUS_META,
   ACTIVATION_TYPE_LABELS,
   CONDITION_TYPE_LABELS,
   EFFECT_TYPE_LABELS,
@@ -358,21 +359,6 @@ const availableStatuses = [
   { value: 'paused' as const, label: 'Pausada', icon: 'pi pi-pause' },
   // 'expired' is system-managed and should not be manually selectable
 ]
-
-function statusLabel(status: PromotionV2Status) {
-  return STATUS_LABELS[status] || status
-}
-
-function statusClasses(status: PromotionV2Status) {
-  const map: Record<PromotionV2Status, string> = {
-    draft: 'bg-gray-100 text-gray-700',
-    scheduled: 'bg-primary/10 text-primary',
-    active: 'bg-green-100 text-green-700',
-    paused: 'bg-yellow-100 text-yellow-700',
-    expired: 'bg-red-100 text-red-700',
-  }
-  return map[status] || 'bg-gray-100 text-gray-700'
-}
 
 async function handleStatusChange(status: PromotionV2Status) {
   if (!promotion.value || promotion.value.status === status) return
