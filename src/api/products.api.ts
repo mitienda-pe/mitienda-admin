@@ -91,6 +91,7 @@ export const productsApi = {
             price_without_tax: product.price_without_tax !== undefined && product.price_without_tax !== null ? parseFloat(product.price_without_tax) : undefined,
             stock: product.stock || 0,
             unlimited_stock: product.unlimited_stock === 1 || product.unlimited_stock === true,
+            has_variation_attributes: product.has_variation_attributes === true,
             published: product.published || false,
             featured: product.featured || false,
             images,

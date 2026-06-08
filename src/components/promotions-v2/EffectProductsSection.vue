@@ -18,6 +18,17 @@
       </button>
     </div>
 
+    <!-- Aviso: regalo no entregable (todos los productos con variantes/sin stock) -->
+    <div v-if="noDeliverableGift" class="border-b border-amber-200 bg-amber-50 px-5 py-3">
+      <p class="flex items-start gap-2 text-xs text-amber-700">
+        <i class="pi pi-exclamation-triangle mt-0.5"></i>
+        <span>
+          Ningún producto vinculado puede entregarse como regalo (todos tienen variantes o no
+          tienen stock). El motor no agregará ningún regalo. Vincula un producto sin variantes y con stock.
+        </span>
+      </p>
+    </div>
+
     <!-- Linked products preview -->
     <div v-if="linkedProducts.length === 0" class="px-5 py-6 text-center">
       <p class="text-sm text-gray-400">Sin productos vinculados. Haz clic en "Gestionar productos" para agregar.</p>
@@ -43,6 +54,13 @@
             <p class="text-xs text-gray-500">SKU: {{ product.sku || '-' }}</p>
           </div>
         </div>
+        <span
+          v-if="isGiftEffect && !isDeliverableGift(product)"
+          class="inline-flex flex-shrink-0 items-center rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700"
+          :title="`No se entregará como regalo: ${giftIneligibleReason(product)}`"
+        >
+          No entregable · {{ giftIneligibleReason(product) }}
+        </span>
       </div>
       <div v-if="linkedProducts.length > 10" class="px-5 py-2 text-center">
         <p class="text-xs text-gray-400">y {{ linkedProducts.length - 10 }} producto(s) más...</p>
@@ -231,6 +249,9 @@ interface ProductItem {
   sku: string
   name: string
   image?: string
+  stock: number
+  unlimitedStock: boolean
+  hasVariants: boolean
 }
 
 const props = defineProps<{
@@ -277,6 +298,34 @@ const linkedProducts = computed(() =>
   allProducts.value.filter(p => productIds.value.includes(p.id))
 )
 
+// Elegibilidad de regalo: el motor (PromotionV2GiftResolver) NO entrega productos
+// con variantes ni sin stock. Solo aplica al efecto gift_product; en %/precio
+// especial las variantes/stock no descalifican. Es un aviso aproximado: el flag
+// de variantes del listado (producto_sw_preciofijo==0) casi siempre coincide con
+// el conteo real de variantes que usa el resolver.
+const isGiftEffect = computed(() => props.effect.type === 'gift_product')
+
+function isDeliverableGift(p: ProductItem): boolean {
+  if (p.hasVariants) return false
+  if (!p.unlimitedStock && p.stock <= 0) return false
+  return true
+}
+
+function giftIneligibleReason(p: ProductItem): string {
+  if (p.hasVariants) return 'tiene variantes'
+  if (!p.unlimitedStock && p.stock <= 0) return 'sin stock'
+  return ''
+}
+
+// Solo evaluamos elegibilidad cuando ya cargaron los productos, para no mostrar
+// un falso "no entregable" mientras allProducts está vacío.
+const noDeliverableGift = computed(() =>
+  isGiftEffect.value &&
+  !isLoading.value &&
+  linkedProducts.value.length > 0 &&
+  linkedProducts.value.every(p => !isDeliverableGift(p))
+)
+
 // Dialog-specific computed (uses allProducts loaded when dialog opens)
 const linkedProductsDialog = computed(() =>
   allProducts.value.filter(p => productIds.value.includes(p.id))
@@ -320,6 +369,9 @@ async function loadAllProducts() {
       name: p.name,
       sku: p.sku || '',
       image: p.images?.[0]?.url || null,
+      stock: typeof p.stock === 'number' ? p.stock : Number(p.stock) || 0,
+      unlimitedStock: !!p.unlimited_stock,
+      hasVariants: !!p.has_variation_attributes,
     }))
   } catch {
     allProducts.value = []
