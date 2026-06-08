@@ -172,9 +172,17 @@ export const useProductsStore = defineStore('products', () => {
         return { success: false, data: null }
       }
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Error al actualizar producto'
+      // CI4 devuelve errores de validación en data.messages (objeto campo→mensaje)
+      // y errores simples en data.message. Tomamos el primero disponible para no
+      // tragarnos el motivo real (ej. "description_short" excede el largo).
+      const msgs = err.response?.data?.messages
+      const firstMsg = msgs && typeof msgs === 'object' ? Object.values(msgs)[0] : undefined
+      error.value =
+        (typeof firstMsg === 'string' ? firstMsg : undefined) ||
+        err.response?.data?.message ||
+        'Error al actualizar producto'
       console.error('Error al actualizar producto:', err)
-      return { success: false, data: null }
+      return { success: false, data: null, error: error.value }
     } finally {
       isLoading.value = false
     }
