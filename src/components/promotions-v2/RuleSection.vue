@@ -31,9 +31,18 @@
         class="flex items-center justify-between px-5 py-3"
       >
         <div>
-          <span class="inline-flex rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">
-            {{ typeLabels[rule.type as keyof typeof typeLabels] || rule.type }}
-          </span>
+          <div class="flex items-center gap-2">
+            <span class="inline-flex rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">
+              {{ typeLabels[rule.type as keyof typeof typeLabels] || rule.type }}
+            </span>
+            <span
+              v-if="isIncompleteEffect(rule)"
+              class="inline-flex items-center rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700"
+              title="Este efecto no aplicará hasta vincular productos en la sección 'Productos del efecto'"
+            >
+              <i class="pi pi-exclamation-triangle mr-1 text-[10px]"></i> Sin productos vinculados
+            </span>
+          </div>
           <div class="mt-1 text-xs text-gray-500">
             {{ formatConfigHumanReadable(rule.type, rule.config) }}
           </div>
@@ -111,6 +120,11 @@
             {{ advancedMode ? 'Modo formulario' : 'Modo avanzado (JSON)' }}
           </button>
         </div>
+
+        <!-- Error de validación de campos requeridos -->
+        <p v-if="validationError" class="rounded-md bg-red-50 px-3 py-2 text-xs text-red-600">
+          {{ validationError }}
+        </p>
       </div>
       <template #footer>
         <Button
@@ -139,6 +153,7 @@ import {
   hasConfigFields,
   isKnownType,
   formatConfigHuman,
+  getConfigSchema,
   type RuleCategory,
 } from '@/config/promotion-v2-config-schemas'
 
@@ -170,7 +185,19 @@ const showDialog = ref(false)
 const isEditing = ref(false)
 const editingId = ref<number | null>(null)
 const configError = ref('')
+const validationError = ref('')
 const advancedMode = ref(false)
+
+// Efectos a nivel de producto: requieren productos vinculados (product_ids) para
+// surtir efecto. Se vinculan en EffectProductsSection, no en este diálogo.
+const PRODUCT_EFFECT_TYPES = ['percentage_discount_product', 'override_price', 'gift_product']
+
+function isIncompleteEffect(rule: any): boolean {
+  if (props.ruleCategory !== 'effects') return false
+  if (!PRODUCT_EFFECT_TYPES.includes(rule.type)) return false
+  const ids = rule.config?.product_ids
+  return !Array.isArray(ids) || ids.length === 0
+}
 
 const dialogForm = reactive({
   type: '',
@@ -223,7 +250,26 @@ function onTypeChange() {
   configObject.value = {}
   configText.value = ''
   configError.value = ''
+  validationError.value = ''
   advancedMode.value = false
+}
+
+// Valida los campos `required` del schema antes de guardar. En modo JSON/avanzado
+// el config es libre, así que no se valida. Devuelve '' cuando está todo OK.
+function validateRequired(config: Record<string, any> | null): string {
+  if (advancedMode.value || !useFormMode.value) return ''
+  const schema = getConfigSchema(props.ruleCategory, dialogForm.type)
+  if (!schema) return ''
+  const missing = schema
+    .filter((f) => f.required)
+    .filter((f) => {
+      const v = config?.[f.key]
+      return v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0)
+    })
+    .map((f) => f.label)
+  return missing.length > 0
+    ? `Completa los campos obligatorios: ${missing.join(', ')}`
+    : ''
 }
 
 function formatConfigHumanReadable(type: string, config: Record<string, any> | null): string {
@@ -237,6 +283,7 @@ function openAddDialog() {
   configText.value = ''
   configObject.value = {}
   configError.value = ''
+  validationError.value = ''
   advancedMode.value = false
   showDialog.value = true
 }
@@ -251,6 +298,7 @@ function openEditDialog(rule: any) {
     ? JSON.stringify(existingConfig, null, 2)
     : ''
   configError.value = ''
+  validationError.value = ''
   advancedMode.value = false
   showDialog.value = true
 }
@@ -277,6 +325,13 @@ function getConfig(): Record<string, any> | null | undefined {
 async function handleSave() {
   const config = getConfig()
   if (config === undefined) return // parse error
+
+  const err = validateRequired(config)
+  if (err) {
+    validationError.value = err
+    return
+  }
+  validationError.value = ''
 
   const data = { type: dialogForm.type, config }
 

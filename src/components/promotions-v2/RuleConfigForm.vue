@@ -310,6 +310,28 @@ const schema = computed<ConfigFieldSchema[] | null>(() => {
   return getConfigSchema(props.ruleCategory, props.type)
 })
 
+// Siembra los `defaultValue` del schema cuando faltan. Varios campos declaran
+// default (ej. gift_product: add_to_cart='auto', gift_quantity=1); sin esto el
+// formulario abriría vacío y podría guardarse como null. Solo rellena claves
+// ausentes, así editar una regla existente nunca pisa valores ya guardados
+// (incluido product_ids).
+watch(
+  schema,
+  (fields) => {
+    if (!fields || fields.length === 0) return
+    const missing: Record<string, any> = {}
+    for (const field of fields) {
+      if (field.defaultValue !== undefined && props.modelValue[field.key] === undefined) {
+        missing[field.key] = field.defaultValue
+      }
+    }
+    if (Object.keys(missing).length > 0) {
+      emit('update:modelValue', { ...props.modelValue, ...missing })
+    }
+  },
+  { immediate: true }
+)
+
 const emptyMessage = computed(() => {
   const messages: Record<string, string> = {
     automatic: 'Esta activación es automática. No requiere configuración adicional.',
