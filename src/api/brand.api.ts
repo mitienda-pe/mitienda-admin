@@ -68,8 +68,13 @@ export const brandApi = {
   },
 
   // Delete brand
-  async delete(id: number): Promise<ApiResponse<void>> {
-    await apiClient.delete(`/brands/${id}`)
+  // If the brand has products, the backend blocks the delete (409) unless
+  // `reassignTo` is provided: 0 = "sin marca", or another brand's id.
+  async delete(id: number, reassignTo?: number): Promise<ApiResponse<void>> {
+    await apiClient.delete(
+      `/brands/${id}`,
+      reassignTo !== undefined ? { data: { reassign_to: reassignTo } } : undefined
+    )
     return { success: true }
   },
 

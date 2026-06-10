@@ -106,10 +106,44 @@
       v-model:visible="showDeleteDialog"
       header="Confirmar Eliminación"
       :modal="true"
-      :style="{ width: '400px' }"
+      :style="{ width: '440px' }"
     >
       <p>¿Estás seguro de eliminar la marca <strong>{{ brandToDelete?.name }}</strong>?</p>
-      <p class="text-sm text-secondary-500 mt-2">Esta acción no se puede deshacer.</p>
+
+      <!-- Sin productos: borrado directo -->
+      <p v-if="!deleteProductCount" class="text-sm text-secondary-500 mt-2">
+        Esta acción no se puede deshacer.
+      </p>
+
+      <!-- Con productos: exigir qué hacer con ellos para no dejarlos huérfanos -->
+      <div v-else class="mt-4 space-y-3">
+        <Message severity="warn" :closable="false">
+          Esta marca tiene <strong>{{ deleteProductCount }}</strong>
+          producto{{ deleteProductCount !== 1 ? 's' : '' }} asociado{{ deleteProductCount !== 1 ? 's' : '' }}.
+          ¿Qué hacer con {{ deleteProductCount !== 1 ? 'ellos' : 'él' }} antes de borrar?
+        </Message>
+
+        <div class="flex items-center gap-2">
+          <RadioButton v-model="reassignChoice" input-id="reassign-none" value="none" />
+          <label for="reassign-none" class="text-sm cursor-pointer">Dejar sin marca</label>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <RadioButton v-model="reassignChoice" input-id="reassign-other" value="reassign" />
+          <label for="reassign-other" class="text-sm cursor-pointer">Reasignar a otra marca</label>
+        </div>
+
+        <Dropdown
+          v-if="reassignChoice === 'reassign'"
+          v-model="reassignTargetId"
+          :options="otherBrands"
+          option-label="name"
+          option-value="id"
+          placeholder="Selecciona una marca"
+          class="w-full"
+          filter
+        />
+      </div>
 
       <template #footer>
         <Button label="Cancelar" text @click="showDeleteDialog = false" />
@@ -117,6 +151,7 @@
           label="Eliminar"
           severity="danger"
           :loading="isDeleting"
+          :disabled="deleteConfirmDisabled"
           @click="deleteBrand"
         />
       </template>
@@ -140,6 +175,8 @@ import { useToast } from 'primevue/usetoast'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
+import Dropdown from 'primevue/dropdown'
+import RadioButton from 'primevue/radiobutton'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import SearchBar from '@/components/common/SearchBar.vue'
@@ -153,6 +190,24 @@ const searchQuery = ref('')
 const showDeleteDialog = ref(false)
 const brandToDelete = ref<Brand | null>(null)
 const isDeleting = ref(false)
+
+// Reasignación de productos al borrar una marca en uso (evita FKs huérfanos)
+const reassignChoice = ref<'none' | 'reassign'>('none')
+const reassignTargetId = ref<number | null>(null)
+
+const deleteProductCount = computed(() => brandToDelete.value?.product_count || 0)
+
+// Otras marcas (excluye la que se borra) como destino de reasignación
+const otherBrands = computed(() =>
+  catalogStore.brands.filter(b => b.id !== brandToDelete.value?.id)
+)
+
+// Bloquea el botón si eligió reasignar pero no seleccionó marca destino
+const deleteConfirmDisabled = computed(() =>
+  deleteProductCount.value > 0 &&
+  reassignChoice.value === 'reassign' &&
+  !reassignTargetId.value
+)
 
 // Link products dialog
 const showLinkDialog = ref(false)
@@ -170,6 +225,8 @@ const filteredBrands = computed(() => {
 
 const confirmDelete = (brand: Brand) => {
   brandToDelete.value = brand
+  reassignChoice.value = 'none'
+  reassignTargetId.value = null
   showDeleteDialog.value = true
 }
 
@@ -188,7 +245,17 @@ const deleteBrand = async () => {
 
   try {
     isDeleting.value = true
-    await catalogStore.deleteBrand(brandToDelete.value.id)
+
+    // Si la marca tiene productos, indicar qué hacer con ellos:
+    // 0 = dejar sin marca, o el id de otra marca. Sin productos → undefined.
+    let reassignTo: number | undefined
+    if (deleteProductCount.value > 0) {
+      reassignTo = reassignChoice.value === 'reassign'
+        ? (reassignTargetId.value ?? undefined)
+        : 0
+    }
+
+    await catalogStore.deleteBrand(brandToDelete.value.id, reassignTo)
 
     toast.add({
       severity: 'success',

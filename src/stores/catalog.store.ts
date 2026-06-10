@@ -178,9 +178,9 @@ export const useCatalogStore = defineStore('catalog', () => {
     }
   }
 
-  async function deleteBrand(id: number): Promise<void> {
+  async function deleteBrand(id: number, reassignTo?: number): Promise<void> {
     try {
-      await brandApi.delete(id)
+      await brandApi.delete(id, reassignTo)
       await fetchBrands() // Refresh list
     } catch (err: any) {
       console.error('Error al eliminar marca:', err)
