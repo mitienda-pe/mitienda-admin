@@ -54,6 +54,20 @@
             <Button type="submit" label="Agregar" icon="pi pi-plus" :loading="store.isSaving"
               :disabled="!emailForm.trim()" />
           </form>
+
+          <!-- Copia al correo principal de la tienda -->
+          <div class="mt-6 pt-4 border-t border-gray-100 flex items-start justify-between gap-4">
+            <div>
+              <p class="font-medium text-secondary">Enviar también al correo de la tienda</p>
+              <p class="text-secondary-500 text-sm mt-0.5">
+                Si lo desactivas, los avisos de pedidos llegarán únicamente a los correos de
+                arriba y no al correo principal de la tienda. Si no agregas ningún correo arriba,
+                seguiremos avisando al correo de la tienda.
+              </p>
+            </div>
+            <InputSwitch :modelValue="includeStoreEmailCopy" @update:modelValue="handleToggleStoreEmailCopy"
+              :disabled="!configStore.isLoaded || configStore.isSaving" />
+          </div>
         </template>
       </Card>
 
@@ -169,16 +183,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useNotificationsStore } from '@/stores/notifications.store'
+import { useStoreConfigStore } from '@/stores/store-config.store'
 import { useOneSignal } from '@/composables/useOneSignal'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
+import InputSwitch from 'primevue/inputswitch'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 
 const store = useNotificationsStore()
+const configStore = useStoreConfigStore()
 const {
   isSubscribed,
   pushSupported,
@@ -191,8 +208,26 @@ const {
 // Email form
 const emailForm = ref('')
 
+// Copia al correo de la tienda (flag en tiendasgenerales, vía store-config)
+const includeStoreEmailCopy = computed(
+  () => configStore.draftConfig.sw_notif_incluir_email_tienda === 1
+)
+
+async function handleToggleStoreEmailCopy(val: boolean) {
+  configStore.updateField('sw_notif_incluir_email_tienda', val ? 1 : 0)
+  const ok = await configStore.saveConfig()
+  if (ok) {
+    store.successMessage = 'Preferencia de notificaciones actualizada'
+  } else {
+    store.error = configStore.error || 'No se pudo guardar la preferencia'
+  }
+}
+
 onMounted(async () => {
-  await store.fetchNotifications()
+  await Promise.all([
+    store.fetchNotifications(),
+    configStore.fetchConfig()
+  ])
 })
 
 async function handleAddEmail() {

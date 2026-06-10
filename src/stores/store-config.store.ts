@@ -26,7 +26,8 @@ const DEFAULT_CONFIG: StoreConfig = {
   sw_logincliente: 0,
   tiendageneral_sw_verificacion_edad: 0,
   tiendageneral_edad_minima: 18,
-  tiendageneral_texto_verificacion_edad: null
+  tiendageneral_texto_verificacion_edad: null,
+  sw_notif_incluir_email_tienda: 1
 }
 
 export const useStoreConfigStore = defineStore('store-config', () => {
@@ -98,7 +99,8 @@ export const useStoreConfigStore = defineStore('store-config', () => {
         sw_logincliente: draftConfig.value.sw_logincliente,
         tiendageneral_sw_verificacion_edad: draftConfig.value.tiendageneral_sw_verificacion_edad,
         tiendageneral_edad_minima: draftConfig.value.tiendageneral_edad_minima,
-        tiendageneral_texto_verificacion_edad: draftConfig.value.tiendageneral_texto_verificacion_edad
+        tiendageneral_texto_verificacion_edad: draftConfig.value.tiendageneral_texto_verificacion_edad,
+        sw_notif_incluir_email_tienda: draftConfig.value.sw_notif_incluir_email_tienda
       }
       const response = await storeApi.updateConfig(update)
       if (response.success && response.data) {
