@@ -66,7 +66,7 @@
               </p>
             </div>
             <InputSwitch :modelValue="includeStoreEmailCopy" @update:modelValue="handleToggleStoreEmailCopy"
-              :disabled="!configStore.isLoaded || configStore.isSaving" />
+              :disabled="!configStore.isLoaded || configStore.isSaving" class="shrink-0" />
           </div>
         </template>
       </Card>
