@@ -1,0 +1,21 @@
+# Aprobar build scripts de dependencias.
+# pnpm 11 ignora los postinstall de dependencias por defecto; estos sí los
+# necesitamos (o conviene aprobarlos para que `pnpm install --frozen-lockfile`
+# salga con código 0 en CI):
+# - esbuild: bundler nativo usado por Vite
+# - vue-demi: switch de entrypoint Vue 2/3 (lo usan pinia, vue-echarts)
+# - core-js: postinstall informativo; se aprueba para no romper el exit code en CI
+allowBuilds:
+  esbuild: true
+  vue-demi: true
+  core-js: true
+  '@parcel/watcher': true
+
+# Forzar versiones parcheadas de transitivos con CVE (no son deps directas).
+# - lodash-es: code-injection en _.template + prototype pollution (HIGH)
+# - follow-redirects: fuga de datos en redirects (MODERATE)
+# - postcss: XSS vía </style> sin escapar en el stringify (MODERATE)
+overrides:
+  lodash-es@<4.18.1: '>=4.18.1'
+  follow-redirects@<1.16.0: '>=1.16.0'
+  postcss@<8.5.10: '>=8.5.10'

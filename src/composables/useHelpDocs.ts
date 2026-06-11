@@ -1,7 +1,7 @@
 import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { marked } from 'marked'
-import DOMPurify from 'dompurify'
+import { sanitizeHtml } from '@/utils/sanitize'
 import {
   HELP_DOCS_BASE_URL,
   getDocSlugForRoute,
@@ -49,7 +49,7 @@ export function useHelpDocs() {
       )
 
       const raw = await marked.parse(md)
-      const clean = DOMPurify.sanitize(raw)
+      const clean = sanitizeHtml(raw)
 
       cache.set(slug, clean)
       html.value = clean

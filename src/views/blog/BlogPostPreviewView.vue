@@ -63,7 +63,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import DOMPurify from 'dompurify'
+import { sanitizeHtml as sanitize } from '@/utils/sanitize'
 import { useRoute } from 'vue-router'
 import { useBlogStore } from '@/stores/blog.store'
 import Button from 'primevue/button'
@@ -74,8 +74,6 @@ import type { BlogPost } from '@/types/blog.types'
 
 const route = useRoute()
 const blogStore = useBlogStore()
-
-const sanitize = (html: string) => DOMPurify.sanitize(html)
 
 const post = ref<BlogPost | null>(null)
 const isLoading = ref(true)

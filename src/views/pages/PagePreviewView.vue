@@ -86,7 +86,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import DOMPurify from 'dompurify'
+import { sanitizeHtml as sanitize } from '@/utils/sanitize'
 import { useRoute } from 'vue-router'
 import { usePagesStore } from '@/stores/pages.store'
 import Button from 'primevue/button'
@@ -96,8 +96,6 @@ import type { Page } from '@/types/page.types'
 
 const route = useRoute()
 const pagesStore = usePagesStore()
-
-const sanitize = (html: string) => DOMPurify.sanitize(html)
 
 const page = ref<Page | null>(null)
 

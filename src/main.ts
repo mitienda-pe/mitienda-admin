@@ -34,6 +34,23 @@ if (sentryDsn) {
     ],
     tracesSampleRate: 0.1,
     environment: import.meta.env.MODE,
+    // No enviar PII por defecto (IP, cookies, datos de usuario)
+    sendDefaultPii: false,
+    // Scrubbing: nunca dejar que el token/cookies de sesión lleguen a Sentry.
+    // Los tokens viven en localStorage + header Authorization; los borramos de
+    // cualquier contexto de request antes de despachar el evento.
+    beforeSend(event) {
+      const headers = event.request?.headers as Record<string, string> | undefined
+      if (headers) {
+        for (const key of Object.keys(headers)) {
+          if (/^(authorization|cookie|x-csrf-token)$/i.test(key)) {
+            delete headers[key]
+          }
+        }
+      }
+      if (event.request?.cookies) delete event.request.cookies
+      return event
+    },
   })
 }
 

@@ -52,6 +52,11 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
+  build: {
+    // No emitir sourcemaps en prod (no exponer el código fuente en el bundle
+    // servido por Cloudflare Pages). Es el default de Vite; lo fijamos explícito.
+    sourcemap: false
+  },
   server: {
     port: 3001,
     host: true,
