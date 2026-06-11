@@ -608,6 +608,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/abandoned-carts/AbandonedCartsListView.vue')
       },
       {
+        path: 'cart-recovery',
+        name: 'CartRecoveryConfig',
+        component: () => import('@/views/marketing/CartRecoveryConfigView.vue')
+      },
+      {
         path: 'referrals',
         name: 'Referrals',
         component: () => import('@/views/marketing/referrals/ReferralsView.vue')
