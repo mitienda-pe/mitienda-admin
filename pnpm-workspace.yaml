@@ -10,6 +10,10 @@ allowBuilds:
   vue-demi: true
   core-js: true
   '@parcel/watcher': true
+  # workerd: dependencia de wrangler. El cloudflare/wrangler-action instala
+  # wrangler en tiempo de deploy (`pnpm add wrangler`); si su build script queda
+  # bloqueado, pnpm sale con código 1 y rompe el step de Cloudflare Pages.
+  workerd: true
 
 # Forzar versiones parcheadas de transitivos con CVE (no son deps directas).
 # - lodash-es: code-injection en _.template + prototype pollution (HIGH)
