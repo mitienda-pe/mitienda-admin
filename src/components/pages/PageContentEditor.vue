@@ -139,10 +139,13 @@ const onBuilderReady = () => {
 const onBuilderChange = (event: Event) => {
   const customEvent = event as CustomEvent
   const { data, html } = customEvent.detail
-  // Store both: JSON for editing, HTML for preview
+  // Store both: JSON for editing, HTML for rendering in the storefront.
+  // mtbuilder < 1.2.0 does not include `html` in the event detail; keep the
+  // key present (empty string) so consumers can distinguish "builder content
+  // without HTML" from legacy plain-HTML content.
   localContent.value = JSON.stringify({
     json: JSON.stringify(data),
-    html: html
+    html: typeof html === 'string' ? html : ''
   })
 }
 
