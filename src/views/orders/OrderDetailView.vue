@@ -867,6 +867,12 @@ const billingDocumentNumber = computed(() => {
   return `${serie}-${correlative}`
 })
 
+const nsInvoice = computed(() => debugPaymentData.value?.netsuite?.invoice ?? null)
+const nsPayments = computed(() => debugPaymentData.value?.netsuite?.payments ?? [])
+const nsFullyPaid = computed(
+  () => nsInvoice.value !== null && Number(nsInvoice.value.foreignamountunpaid) === 0
+)
+
 const handleDebugPayments = async () => {
   if (!order.value) return
 
@@ -875,9 +881,9 @@ const handleDebugPayments = async () => {
     debugPaymentError.value = null
     debugPaymentData.value = null
 
-    const response = await apiClient.get(`/debug/order-payments/${orderId}`)
+    const response = await apiClient.get(`/orders/${orderId}/netsuite-payments`)
 
-    debugPaymentData.value = response.data
+    debugPaymentData.value = response.data.data
   } catch (error: any) {
     debugPaymentError.value = error.message || 'Error desconocido'
     toast.add({
@@ -1863,8 +1869,9 @@ const handleDebugPayments = async () => {
                     <div v-if="debugPaymentData" class="space-y-3">
                       <!-- Payment Status Summary -->
                       <div
+                        v-if="nsInvoice"
                         class="p-3 rounded-lg border"
-                        :class="debugPaymentData.netsuite?.amount_remaining === 0
+                        :class="nsFullyPaid
                           ? 'bg-green-50 border-green-200'
                           : 'bg-yellow-50 border-yellow-200'"
                       >
@@ -1872,34 +1879,67 @@ const handleDebugPayments = async () => {
                           <i
                             :class="[
                               'pi',
-                              debugPaymentData.netsuite?.amount_remaining === 0
+                              nsFullyPaid
                                 ? 'pi-check-circle text-green-600'
                                 : 'pi-exclamation-circle text-yellow-600'
                             ]"
                           ></i>
                           <span class="font-semibold text-sm">
-                            {{ debugPaymentData.netsuite?.amount_remaining === 0 ? 'Pagado completamente' : 'Pago pendiente' }}
+                            {{ nsFullyPaid ? 'Pagado completamente' : 'Pago pendiente' }}
                           </span>
+                          <span class="text-xs text-gray-500">{{ nsInvoice.tranid }} · {{ nsInvoice.status }}</span>
                         </div>
                         <div class="grid grid-cols-3 gap-4 text-sm">
                           <div>
                             <p class="text-gray-500 text-xs">Total Invoice</p>
-                            <p class="font-mono font-semibold">{{ formatCurrency(debugPaymentData.netsuite?.total || 0) }}</p>
+                            <p class="font-mono font-semibold">{{ formatCurrency(Number(nsInvoice.foreigntotal) || 0) }}</p>
                           </div>
                           <div>
                             <p class="text-gray-500 text-xs">Pagado</p>
-                            <p class="font-mono font-semibold text-green-700">{{ formatCurrency(debugPaymentData.netsuite?.amount_paid || 0) }}</p>
+                            <p class="font-mono font-semibold text-green-700">{{ formatCurrency(Number(nsInvoice.foreignamountpaid) || 0) }}</p>
                           </div>
                           <div>
                             <p class="text-gray-500 text-xs">Pendiente</p>
                             <p
                               class="font-mono font-semibold"
-                              :class="debugPaymentData.netsuite?.amount_remaining > 0 ? 'text-red-600' : 'text-gray-500'"
+                              :class="Number(nsInvoice.foreignamountunpaid) > 0 ? 'text-red-600' : 'text-gray-500'"
                             >
-                              {{ formatCurrency(debugPaymentData.netsuite?.amount_remaining || 0) }}
+                              {{ formatCurrency(Number(nsInvoice.foreignamountunpaid) || 0) }}
                             </p>
                           </div>
                         </div>
+                      </div>
+                      <div v-else-if="debugPaymentData.netsuite?.error" class="p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <p class="text-sm text-red-800">Error consultando NetSuite: {{ debugPaymentData.netsuite.error }}</p>
+                      </div>
+                      <div v-else class="p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                        <p class="text-sm text-gray-600">La orden no tiene invoice en NetSuite (sin sync ERP).</p>
+                      </div>
+
+                      <!-- NetSuite Payments -->
+                      <div v-if="nsPayments.length > 0" class="border border-gray-200 rounded-lg overflow-hidden">
+                        <table class="w-full text-sm">
+                          <thead class="bg-gray-50 text-xs text-gray-500">
+                            <tr>
+                              <th class="px-3 py-2 text-left">Pago NetSuite</th>
+                              <th class="px-3 py-2 text-left">Memo</th>
+                              <th class="px-3 py-2 text-left">Cuenta contable</th>
+                              <th class="px-3 py-2 text-right">Monto</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr v-for="payment in nsPayments" :key="payment.id" class="border-t border-gray-100">
+                              <td class="px-3 py-2 font-mono">{{ payment.tranid }}</td>
+                              <td class="px-3 py-2">{{ payment.memo || '—' }}</td>
+                              <td class="px-3 py-2 text-xs">
+                                <span v-for="account in payment.accounts || []" :key="account.account" class="block">
+                                  {{ account.account_name }}
+                                </span>
+                              </td>
+                              <td class="px-3 py-2 text-right font-mono">{{ formatCurrency(Number(payment.foreigntotal) || 0) }}</td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
 
                       <!-- Full Debug Response -->
