@@ -15,6 +15,9 @@ allowBuilds:
   # bloqueado, pnpm sale con código 1 y rompe el step de Cloudflare Pages.
   workerd: true
 
+minimumReleaseAgeExclude:
+  - '@carlosvidalperu/mtbuilder@1.2.0'
+
 # Forzar versiones parcheadas de transitivos con CVE (no son deps directas).
 # - lodash-es: code-injection en _.template + prototype pollution (HIGH)
 # - follow-redirects: fuga de datos en redirects (MODERATE)

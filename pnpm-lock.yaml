@@ -14,8 +14,8 @@ importers:
   .:
     dependencies:
       '@carlosvidalperu/mtbuilder':
-        specifier: ^1.0.0
-        version: 1.0.0
+        specifier: ^1.2.0
+        version: 1.2.0
       '@monaco-editor/loader':
         specifier: ^1.5.0
         version: 1.7.0
@@ -220,8 +220,8 @@ packages:
   '@bufbuild/protobuf@2.12.0':
     resolution: {integrity: sha512-B/XlCaFIP8LOwzo+bz5uFzATYokcwCKQcghqnlfwSmM5eX/qTkvDBnDPs+gXtX/RyjxJ4DRikECcPJbyALA8FA==}
 
-  '@carlosvidalperu/mtbuilder@1.0.0':
-    resolution: {integrity: sha512-NRazKrnkziiptkrWW7y38rNFyc8KLsoyRv5tATitMtC7QSigB7H7Yh08bR/CicAVYHp74qg3uoTR54Kh/w5Nxw==}
+  '@carlosvidalperu/mtbuilder@1.2.0':
+    resolution: {integrity: sha512-RnnnI3IyWqFuEOBW/eCYSENYVy95erpb8uPYX0p1DGPoU4Vlcrs9kKOQmRpKTGYY8re01ecSUjrD5vQHiBKKrA==}
 
   '@csstools/color-helpers@6.0.2':
     resolution: {integrity: sha512-LMGQLS9EuADloEFkcTBR3BwV/CGHV7zyDxVRtVDTwdI2Ca4it0CCVTT9wCkxSgokjE5Ho41hEPgb8OEUwoXr6Q==}
@@ -2868,7 +2868,7 @@ snapshots:
 
   '@bufbuild/protobuf@2.12.0': {}
 
-  '@carlosvidalperu/mtbuilder@1.0.0': {}
+  '@carlosvidalperu/mtbuilder@1.2.0': {}
 
   '@csstools/color-helpers@6.0.2': {}
 
