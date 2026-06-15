@@ -207,7 +207,7 @@ const truncate = (text: string | null, len = 80) => {
         <InputText
           v-model="searchQuery"
           placeholder="Buscar por producto, cliente o comentario..."
-          class="w-full pl-10"
+          class="w-full !pl-10"
           @input="handleSearch"
         />
       </div>

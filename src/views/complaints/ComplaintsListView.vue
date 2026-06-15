@@ -134,7 +134,7 @@ const goToDetail = (id: number) => {
         <InputText
           v-model="searchQuery"
           placeholder="Buscar por nombre, código, email o documento..."
-          class="w-full pl-10"
+          class="w-full !pl-10"
           @input="handleSearch"
         />
       </div>

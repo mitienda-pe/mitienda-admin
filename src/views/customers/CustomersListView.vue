@@ -106,7 +106,7 @@ const totalCustomers = computed(() => customersStore.pagination.total)
         <InputText
           v-model="searchQuery"
           placeholder="Buscar por nombre, email o documento..."
-          class="w-full pl-10"
+          class="w-full !pl-10"
           @input="handleSearch"
         />
       </div>
