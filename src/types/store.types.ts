@@ -110,6 +110,9 @@ export interface StoreConfig {
   tiendageneral_texto_verificacion_edad: string | null
   // Notificaciones de venta: incluir copia al correo de la tienda
   sw_notif_incluir_email_tienda: number
+  // Derivado (solo lectura): la tienda tiene webhooks legacy configurados.
+  // El sidebar muestra "Webhooks (legacy)" solo cuando es true.
+  has_legacy_webhooks?: boolean
 }
 
 export interface StoreConfigUpdate {

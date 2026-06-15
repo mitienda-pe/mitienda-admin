@@ -470,38 +470,6 @@
               </ul>
             </li>
 
-            <!-- Grupo: API -->
-            <li>
-              <button
-                @click="apiExpanded = !apiExpanded"
-                :aria-expanded="apiExpanded"
-                class="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-primary-50 hover:text-primary transition-colors"
-                :class="{ 'bg-primary-50 text-primary font-medium': isApiActive }"
-              >
-                <div class="flex items-center gap-3">
-                  <i class="pi pi-code"></i>
-                  <span>API</span>
-                </div>
-                <i :class="apiExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
-              </button>
-
-              <!-- Submenú -->
-              <ul v-show="apiExpanded" class="ml-4 mt-1 space-y-1">
-                <li v-for="item in apiMenuItems" :key="item.to">
-                  <router-link
-                    :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
-                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
-                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
-                  >
-                    <i :class="item.icon"></i>
-                    <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
-                  </router-link>
-                </li>
-              </ul>
-            </li>
-
             <!-- Grupo: POS -->
             <li>
               <button
@@ -962,39 +930,6 @@
               </ul>
             </li>
 
-            <!-- Grupo API (móvil) -->
-            <li>
-              <button
-                @click="apiExpanded = !apiExpanded"
-                :aria-expanded="apiExpanded"
-                class="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
-                :class="{ 'bg-primary-50 text-primary font-medium': isApiActive }"
-              >
-                <div class="flex items-center gap-3">
-                  <i class="pi pi-code"></i>
-                  <span>API</span>
-                </div>
-                <i :class="apiExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-xs"></i>
-              </button>
-
-              <!-- Submenú -->
-              <ul v-show="apiExpanded" class="ml-4 mt-1 space-y-1">
-                <li v-for="item in apiMenuItems" :key="item.to">
-                  <router-link
-                    :to="item.to"
-                    class="flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-sm"
-                    :class="isItemLocked(item) ? 'text-secondary-400' : 'text-secondary-600 hover:bg-primary-50 hover:text-primary'"
-                    :active-class="isItemLocked(item) ? '' : 'bg-primary-50 text-primary font-medium'"
-                    @click="sidebarVisible = false"
-                  >
-                    <i :class="item.icon"></i>
-                    <span>{{ item.label }}</span>
-                    <i v-if="isItemLocked(item)" class="pi pi-lock text-xs ml-auto" :class="getLockedIconColor(item)"></i>
-                  </router-link>
-                </li>
-              </ul>
-            </li>
-
             <!-- Grupo POS (móvil) -->
             <li>
               <button
@@ -1136,6 +1071,11 @@ onMounted(() => {
   // formatters globales (useFormatters) rendericen el símbolo correcto en
   // todas las vistas, no sólo en /store/config.
   storeConfigStore.fetchCountryConfig()
+  // Carga la config de tienda (incluye has_legacy_webhooks) para decidir si
+  // mostrar el menú "Webhooks (legacy)". Solo si aún no está cargada.
+  if (!storeConfigStore.isLoaded) {
+    storeConfigStore.fetchConfig()
+  }
 })
 
 onUnmounted(() => {
@@ -1192,7 +1132,6 @@ const catalogExpandedRef = ref(false)
 const marketingExpandedRef = ref(false)
 const billingExpandedRef = ref(false)
 const integrationExpandedRef = ref(false)
-const apiExpandedRef = ref(false)
 const configExpandedRef = ref(false)
 const contentExpandedRef = ref(false)
 const appearanceExpandedRef = ref(false)
@@ -1228,13 +1167,8 @@ const billingExpanded = computed({
 
 
 const integrationExpanded = computed({
-  get: () => integrationExpandedRef.value || route.path.startsWith('/integrations'),
+  get: () => integrationExpandedRef.value || route.path.startsWith('/integrations') || route.path.startsWith('/api'),
   set: (val) => { integrationExpandedRef.value = val }
-})
-
-const apiExpanded = computed({
-  get: () => apiExpandedRef.value || route.path.startsWith('/api'),
-  set: (val) => { apiExpandedRef.value = val }
 })
 
 const configExpanded = computed({
@@ -1385,19 +1319,26 @@ const shippingMenuItems = [
   { label: 'Reglas de Courier', icon: 'pi pi-directions', to: '/shipping/courier-routing' }
 ]
 
-// Items del grupo Integraciones
-const integrationMenuItems = [
-  { label: 'Monitor', icon: 'pi pi-chart-bar', to: '/integrations/dashboard' },
-  { label: 'Proveedores', icon: 'pi pi-th-large', to: '/integrations/providers' },
-  { label: 'Webhooks', icon: 'pi pi-link', to: '/integrations/webhooks' },
-  { label: 'Cola de Trabajos', icon: 'pi pi-server', to: '/integrations/queue' }
-]
+// Items del grupo Integraciones (incluye lo que antes vivía en el grupo "API":
+// Credenciales y Webhooks legacy). "Webhooks (legacy)" se muestra solo a las
+// tiendas que lo tienen configurado, para ir deprecando el módulo sin romper a
+// quienes aún dependen de él.
+const integrationMenuItems = computed(() => {
+  const items = [
+    { label: 'Monitor', icon: 'pi pi-chart-bar', to: '/integrations/dashboard' },
+    { label: 'Proveedores', icon: 'pi pi-th-large', to: '/integrations/providers' },
+    { label: 'Webhooks', icon: 'pi pi-link', to: '/integrations/webhooks' },
+    { label: 'Credenciales', icon: 'pi pi-key', to: '/api/credentials' },
+    { label: 'Cola de Trabajos', icon: 'pi pi-server', to: '/integrations/queue' }
+  ]
 
-// Items del grupo API
-const apiMenuItems = [
-  { label: 'Credenciales', icon: 'pi pi-key', to: '/api/credentials' },
-  { label: 'Webhooks (legacy)', icon: 'pi pi-link', to: '/api/webhooks' }
-]
+  if (storeConfigStore.savedConfig.has_legacy_webhooks) {
+    // Insertar "Webhooks (legacy)" justo después de "Webhooks".
+    items.splice(3, 0, { label: 'Webhooks (legacy)', icon: 'pi pi-link', to: '/api/webhooks' })
+  }
+
+  return items
+})
 
 // Items del grupo NetSuite
 const configMenuItems = [
@@ -1489,14 +1430,10 @@ const isBillingActive = computed(() => {
   return route.path.startsWith('/billing')
 })
 
-// Detectar si estamos en alguna ruta de Integraciones
+// Detectar si estamos en alguna ruta de Integraciones (incluye las antiguas
+// rutas /api de Credenciales y Webhooks legacy, ahora bajo este grupo).
 const isIntegrationActive = computed(() => {
-  return route.path.startsWith('/integrations')
-})
-
-// Detectar si estamos en alguna ruta de API
-const isApiActive = computed(() => {
-  return route.path.startsWith('/api')
+  return route.path.startsWith('/integrations') || route.path.startsWith('/api')
 })
 
 // Detectar si estamos en alguna ruta de configuración

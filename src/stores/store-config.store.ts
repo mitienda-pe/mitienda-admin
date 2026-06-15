@@ -27,7 +27,8 @@ const DEFAULT_CONFIG: StoreConfig = {
   tiendageneral_sw_verificacion_edad: 0,
   tiendageneral_edad_minima: 18,
   tiendageneral_texto_verificacion_edad: null,
-  sw_notif_incluir_email_tienda: 1
+  sw_notif_incluir_email_tienda: 1,
+  has_legacy_webhooks: false
 }
 
 export const useStoreConfigStore = defineStore('store-config', () => {
