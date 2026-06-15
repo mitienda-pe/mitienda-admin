@@ -18,6 +18,7 @@ import FraudRiskCard from '@/components/fraud/FraudRiskCard.vue'
 import StarRating from '@/components/reviews/StarRating.vue'
 import PluginSlot from '@/components/plugins/PluginSlot.vue'
 import OrderPaymentComments from './components/OrderPaymentComments.vue'
+import OrderNotificationsCard from './components/OrderNotificationsCard.vue'
 import { reviewsApi } from '@/api/reviews.api'
 import { fulfillmentApi } from '@/api/fulfillment.api'
 import type { OrderItemReview } from '@/types/review.types'
@@ -1307,6 +1308,15 @@ const handleDebugPayments = async () => {
               </div>
             </template>
           </Card>
+      </div>
+
+      <!-- Notificaciones (Confirmación de Venta/Pedido): webhook v2 + email vendedor -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <OrderNotificationsCard
+          v-if="order.id"
+          :order-id="order.id"
+          class="lg:col-span-1"
+        />
       </div>
 
       <!-- Observaciones y Referidor (ancho completo) -->

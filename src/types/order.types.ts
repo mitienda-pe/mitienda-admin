@@ -76,6 +76,66 @@ export interface OrderPromotion {
   product_id?: number | null
 }
 
+// --- Notificaciones de orden (Confirmación de Venta/Pedido) ---------------
+// Estado y reenvío manual del webhook v2 + email al vendedor.
+
+export interface OrderWebhookDelivery {
+  id: number
+  subscription_id: number
+  url: string
+  status: 'success' | 'failed' | 'pending'
+  response_code: number | null
+  response_body: string | null
+  attempt: number
+  max_attempts: number
+  duration_ms: number | null
+  event_type: string
+  created_at: string
+}
+
+export interface OrderNotificationsStatus {
+  order_id: number
+  is_paid: boolean
+  webhook: {
+    active_subscriptions: number
+    last_status: 'success' | 'failed' | 'pending' | null
+    last_response_code: number | null
+    last_delivered_at: string | null
+    deliveries: OrderWebhookDelivery[]
+  }
+  seller_email: {
+    sent: boolean
+    is_paid: boolean
+  }
+}
+
+export type ResendNotificationChannel = 'webhook' | 'email' | 'both'
+
+export interface ResendNotificationsResult {
+  webhook?: {
+    ok: boolean
+    subscriptions?: number
+    delivered?: number
+    failed?: number
+    error?: string | null
+    deliveries?: Array<{
+      subscription_id: number
+      url: string
+      status: 'success' | 'failed' | 'pending'
+      response_code: number | null
+      response_body: string | null
+      duration_ms: number | null
+    }>
+  }
+  email?: {
+    ok: boolean
+    recipients?: string[]
+    sent?: string[]
+    failed?: string[]
+    error?: string | null
+  }
+}
+
 export interface OrderPayment {
   method: string
   method_name: string

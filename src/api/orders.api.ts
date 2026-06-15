@@ -1,5 +1,12 @@
 import apiClient from './axios'
-import type { Order, OrderPaymentComment, OrderStatus } from '@/types/order.types'
+import type {
+  Order,
+  OrderPaymentComment,
+  OrderStatus,
+  OrderNotificationsStatus,
+  ResendNotificationChannel,
+  ResendNotificationsResult
+} from '@/types/order.types'
 import type { ApiResponse, PaginatedResponse } from '@/types/api.types'
 
 export type OrderSortField = 'date' | 'total' | 'status' | 'customer' | 'code' | 'billed'
@@ -469,6 +476,33 @@ export const ordersApi = {
 
   async deletePaymentComment(orderId: number, commentId: number): Promise<ApiResponse<{ id: number }>> {
     const response = await apiClient.delete(`/orders/${orderId}/payment-comments/${commentId}`)
+    return {
+      success: response.data?.success === true,
+      data: response.data?.data
+    }
+  },
+
+  /**
+   * Estado de las notificaciones de "Confirmación de Venta/Pedido" de la orden:
+   * entregas del webhook v2 + estado del email al vendedor.
+   */
+  async getNotificationsStatus(orderId: number): Promise<ApiResponse<OrderNotificationsStatus>> {
+    const response = await apiClient.get(`/orders/${orderId}/notifications`)
+    return {
+      success: response.data?.success === true,
+      data: response.data?.data
+    }
+  },
+
+  /**
+   * Reenviar manualmente la notificación de la orden (webhook v2 y/o email al
+   * vendedor). `channel` por defecto reenvía ambos canales.
+   */
+  async resendNotifications(
+    orderId: number,
+    channel: ResendNotificationChannel = 'both'
+  ): Promise<ApiResponse<ResendNotificationsResult>> {
+    const response = await apiClient.post(`/orders/${orderId}/resend-notifications`, { channel })
     return {
       success: response.data?.success === true,
       data: response.data?.data
