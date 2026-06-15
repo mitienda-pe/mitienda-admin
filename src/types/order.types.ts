@@ -149,6 +149,9 @@ export interface OrderItem {
   price: number
   original_price?: number // Precio original antes de descuento
   igv_percent?: number
+  // Afectación tributaria de la línea: 1=Gravado, 2=Exonerado, 3=Inafecto.
+  tax_affectation?: number
+  tax_exempt?: boolean
   subtotal: number
   product?: {
     id: number

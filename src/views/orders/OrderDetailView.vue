@@ -619,18 +619,27 @@ const taxRatePercent = computed(() => {
 
 const taxRate = computed(() => taxRatePercent.value / 100)
 
-// Subtotal sin IGV - usar el total final de la orden (que ya incluye todos los descuentos)
+// Subtotal sin IGV. Se prioriza el desglose del backend (OrderTransformer), que
+// calcula el IGV solo sobre la porción gravada (ítems no exonerados + envío) según
+// la afectación tributaria de cada producto. Recalcular total/1.18 en el cliente
+// aplicaba IGV sobre el total general (mal para catálogos exonerados, ej: librerías).
+// Para ventas POS con redondeo se mantiene el cálculo histórico sobre el total redondeado.
 const subtotalSinIGV = computed(() => {
   if (!order.value) return 0
 
-  // El total de la orden ya tiene todos los descuentos aplicados (items + order-level)
-  // Dividimos entre (1 + taxRate) para obtener el monto sin IGV
+  if (roundingAmount.value === 0 && order.value.subtotal != null) {
+    return Number(order.value.subtotal)
+  }
+
   const totalConIGV = roundingAmount.value !== 0 ? totalAfterRounding.value : order.value.total
   return totalConIGV / (1 + taxRate.value)
 })
 
-// IGV (dynamic rate)
+// IGV: usa el monto calculado por el backend cuando está disponible.
 const igv = computed(() => {
+  if (roundingAmount.value === 0 && order.value?.tax != null) {
+    return Number(order.value.tax)
+  }
   return subtotalSinIGV.value * taxRate.value
 })
 

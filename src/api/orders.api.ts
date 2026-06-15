@@ -258,16 +258,20 @@ export const ordersApi = {
             product_image: item.image || undefined,
             quantity: item.quantity || 0,
             price: parseFloat(item.price || '0'),
+            tax_affectation: item.tax_affectation,
+            tax_exempt: item.tax_exempt,
             subtotal: parseFloat(item.total || '0')
           }
         }),
-        subtotal: 0, // Se calcula del total
+        // subtotal/tax vienen del backend (OrderTransformer) ya conscientes de la
+        // afectación tributaria por ítem; no recalcular sobre el total general.
+        subtotal: parseFloat(rawData.subtotal ?? '0'),
         discount: parseFloat(rawData.discount?.discount_amount || '0'),
         shipping_cost: rawData.shipping_cost !== undefined && rawData.shipping_cost !== null
           ? parseFloat(rawData.shipping_cost.toString())
           : parseFloat(shipping.cost || '0'),
         shipping: parseFloat(shipping.cost || '0'), // Mantener por compatibilidad
-        tax: 0,
+        tax: parseFloat(rawData.tax ?? '0'),
         total: parseFloat(rawData.total_amount || '0'),
         rounding_amount: rawData.rounding_amount !== undefined && rawData.rounding_amount !== null
           ? parseFloat(rawData.rounding_amount)
