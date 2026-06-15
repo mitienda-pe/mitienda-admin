@@ -39,6 +39,18 @@ const uploadProgress = ref(0)
 const errorMessage = ref('')
 const cropper = ref<InstanceType<typeof Cropper> | null>(null)
 const imageUrl = ref('')
+const imageWidth = ref(0)
+const imageHeight = ref(0)
+const usedOriginal = ref(false)
+
+// True when the uploaded image already matches the selected aspect ratio (within
+// a 1% tolerance for rounding, e.g. 1920x823 = 2.3329 vs 21:9 = 2.3333). In that
+// case cropping is optional and the user can upload the full image as-is.
+const matchesAspectRatio = computed(() => {
+  if (!imageWidth.value || !imageHeight.value) return false
+  const imageRatio = imageWidth.value / imageHeight.value
+  return Math.abs(imageRatio - props.preset.ratio) <= props.preset.ratio * 0.01
+})
 
 const dialogVisible = computed({
   get: () => props.visible,
@@ -73,7 +85,14 @@ const dialogHeader = computed(() =>
     : 'Imagen Mobile'
 )
 
-const validateImage = async (file: File): Promise<{ valid: boolean; error?: string }> => {
+interface ValidationResult {
+  valid: boolean
+  error?: string
+  width?: number
+  height?: number
+}
+
+const validateImage = async (file: File): Promise<ValidationResult> => {
   const rules = validationRules.value
 
   if (!rules.allowedFormats.includes(file.type)) {
@@ -100,7 +119,7 @@ const validateImage = async (file: File): Promise<{ valid: boolean; error?: stri
           error: `Imagen muy pequeña. Mínimo ${props.preset.width}x${props.preset.height} píxeles para ${props.preset.value}`
         })
       } else {
-        resolve({ valid: true })
+        resolve({ valid: true, width: img.width, height: img.height })
       }
     }
     img.onerror = () => {
@@ -123,6 +142,8 @@ const onFileSelect = async (event: FileUploadSelectEvent) => {
       return
     }
 
+    imageWidth.value = validation.width ?? 0
+    imageHeight.value = validation.height ?? 0
     selectedFile.value = file
     imageUrl.value = URL.createObjectURL(file)
     showCropper.value = true
@@ -146,6 +167,7 @@ const handleCrop = async () => {
       blob => {
         if (blob) {
           croppedBlob.value = blob
+          usedOriginal.value = false
           showCropper.value = false
         } else {
           errorMessage.value = 'Error al procesar la imagen recortada'
@@ -161,10 +183,19 @@ const handleCrop = async () => {
   }
 }
 
+// Skip cropping and use the original file. Only offered when the image already
+// matches the selected aspect ratio, so no distortion is introduced.
+const handleUseOriginal = () => {
+  croppedBlob.value = null
+  usedOriginal.value = true
+  showCropper.value = false
+}
+
 const handleCancelCrop = () => {
   if (imageUrl.value) URL.revokeObjectURL(imageUrl.value)
   selectedFile.value = null
   croppedBlob.value = null
+  usedOriginal.value = false
   showCropper.value = false
 }
 
@@ -172,6 +203,7 @@ const handleRemoveFile = () => {
   if (imageUrl.value) URL.revokeObjectURL(imageUrl.value)
   selectedFile.value = null
   croppedBlob.value = null
+  usedOriginal.value = false
   showCropper.value = false
 }
 
@@ -211,6 +243,9 @@ const handleClose = () => {
   if (imageUrl.value) URL.revokeObjectURL(imageUrl.value)
   selectedFile.value = null
   croppedBlob.value = null
+  usedOriginal.value = false
+  imageWidth.value = 0
+  imageHeight.value = 0
   showCropper.value = false
   errorMessage.value = ''
   uploadProgress.value = 0
@@ -220,6 +255,7 @@ const handleClose = () => {
 
 const previewUrl = computed(() => {
   if (croppedBlob.value) return URL.createObjectURL(croppedBlob.value)
+  if (usedOriginal.value && imageUrl.value) return imageUrl.value
   return null
 })
 </script>
@@ -269,7 +305,14 @@ const previewUrl = computed(() => {
           />
         </div>
 
-        <div class="info-message">
+        <div v-if="matchesAspectRatio" class="match-message">
+          <i class="pi pi-check-circle"></i>
+          <span>
+            La imagen ya tiene la proporción {{ preset.value }}.
+            Puedes subirla completa sin recortar.
+          </span>
+        </div>
+        <div v-else class="info-message">
           <i class="pi pi-info-circle"></i>
           <span>
             Ajusta el área de recorte para {{ preset.value }}.
@@ -277,21 +320,34 @@ const previewUrl = computed(() => {
           </span>
         </div>
 
-        <div class="flex justify-end gap-2 pt-2">
+        <div class="flex justify-between items-center gap-2 pt-2">
           <Button
-            label="Cancelar"
-            icon="pi pi-times"
+            v-if="matchesAspectRatio"
+            label="Usar imagen completa"
+            icon="pi pi-arrows-alt"
             severity="secondary"
-            outlined
-            @click="handleCancelCrop"
+            text
+            @click="handleUseOriginal"
             :disabled="isCropping"
           />
-          <Button
-            label="Aplicar recorte"
-            icon="pi pi-check"
-            @click="handleCrop"
-            :loading="isCropping"
-          />
+          <span v-else></span>
+
+          <div class="flex gap-2">
+            <Button
+              label="Cancelar"
+              icon="pi pi-times"
+              severity="secondary"
+              outlined
+              @click="handleCancelCrop"
+              :disabled="isCropping"
+            />
+            <Button
+              label="Aplicar recorte"
+              icon="pi pi-check"
+              @click="handleCrop"
+              :loading="isCropping"
+            />
+          </div>
         </div>
       </div>
 
@@ -323,7 +379,7 @@ const previewUrl = computed(() => {
           </div>
           <div class="text-xs text-green-700 bg-green-50 px-2 py-1 rounded">
             <i class="pi pi-check mr-1"></i>
-            Recorte aplicado ({{ preset.value }})
+            {{ usedOriginal ? 'Imagen completa' : 'Recorte aplicado' }} ({{ preset.value }})
           </div>
         </div>
 
@@ -444,6 +500,18 @@ const previewUrl = computed(() => {
   border: 1px solid #bfdbfe;
   border-radius: 6px;
   color: #1e40af;
+  font-size: 0.875rem;
+}
+
+.match-message {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  color: #15803d;
   font-size: 0.875rem;
 }
 
