@@ -168,6 +168,12 @@ export interface Customer {
   document_type?: string
   document_number?: string
   business_name?: string
+  billing_address?: {
+    address_line?: string
+    district?: string
+    province?: string
+    department?: string
+  }
   created_at: string
 }
 

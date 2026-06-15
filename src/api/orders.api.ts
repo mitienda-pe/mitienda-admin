@@ -5,6 +5,15 @@ import type { ApiResponse, PaginatedResponse } from '@/types/api.types'
 export type OrderSortField = 'date' | 'total' | 'status' | 'customer' | 'code' | 'billed'
 export type OrderSortDir = 'asc' | 'desc'
 
+/**
+ * Normaliza textos de ubigeo del backend: descarta placeholders como
+ * "Sin especificar" (default cuando no hay dato) y espacios en blanco.
+ */
+function cleanUbigeoText(value?: string | null): string {
+  const text = (value || '').trim()
+  return text === '' || text === 'Sin especificar' ? '' : text
+}
+
 export interface OrdersFilters {
   page?: number
   limit?: number
@@ -230,6 +239,12 @@ export const ordersApi = {
           document_type: billingInfo.doc_type || '',
           document_number: billingInfo.doc_number || '',
           business_name: billingInfo.bussiness_name || '',
+          billing_address: billingInfo.billing_address ? {
+            address_line: billingInfo.billing_address.address_line || '',
+            district: cleanUbigeoText(billingInfo.billing_address.distric?.name || billingInfo.billing_address.city?.name),
+            province: cleanUbigeoText(billingInfo.billing_address.state?.name),
+            department: cleanUbigeoText(billingInfo.billing_address.department?.name)
+          } : undefined,
           created_at: rawData.date_created || ''
         },
         items: (rawData.order_items || []).map((item: any) => {

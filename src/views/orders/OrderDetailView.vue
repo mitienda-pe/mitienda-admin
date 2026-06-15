@@ -1053,6 +1053,18 @@ const handleDebugPayments = async () => {
                 <p class="text-sm text-gray-500">Teléfono</p>
                 <p class="font-semibold text-gray-900">{{ order.customer.phone }}</p>
               </div>
+              <div v-if="order.customer?.billing_address?.address_line">
+                <p class="text-sm text-gray-500">Dirección de facturación</p>
+                <div class="space-y-1">
+                  <p class="font-semibold text-gray-900">{{ order.customer.billing_address.address_line }}</p>
+                  <p
+                    v-if="order.customer.billing_address.district || order.customer.billing_address.province || order.customer.billing_address.department"
+                    class="text-gray-900 text-sm"
+                  >
+                    {{ [order.customer.billing_address.district, order.customer.billing_address.province, order.customer.billing_address.department].filter(Boolean).join(', ') }}
+                  </p>
+                </div>
+              </div>
             </div>
           </template>
         </Card>
