@@ -49,6 +49,14 @@ const stencilProps = computed(() => ({
   aspectRatio: props.preset.ratio
 }))
 
+// Force the cropped output to be at least the preset dimensions. An image that
+// exactly meets the minimum would otherwise lose pixels during cropping and get
+// rejected by the server's min-size check (e.g. 1920x823 -> 1900x815 -> HTTP 400).
+const canvasProps = computed(() => ({
+  minWidth: props.preset.width,
+  minHeight: props.preset.height
+}))
+
 const acceptedFormats = computed(() =>
   validationRules.value.allowedFormats
     .map(f => {
@@ -256,6 +264,7 @@ const previewUrl = computed(() => {
             ref="cropper"
             :src="imageUrl"
             :stencil-props="stencilProps"
+            :canvas="canvasProps"
             class="cropper"
           />
         </div>
