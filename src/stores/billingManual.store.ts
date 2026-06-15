@@ -46,23 +46,32 @@ export const useBillingManualStore = defineStore('billingManual', () => {
   // ========== Computed ==========
   const totals = computed(() => {
     let totalGravada = 0
+    let totalExonerada = 0
+    let totalInafecta = 0
     let totalIgv = 0
 
+    // IGV solo sobre ítems gravados (affectation_type 10). Exonerado (30) e
+    // inafecto (20) no tributan — mismo criterio que AddManualItemDialog.
     for (const item of items.value) {
-      const unitPrice = item.unit_price || 0
-      const quantity = item.quantity || 0
-      const unitPriceWithoutIgv = unitPrice / (1 + IGV_RATE)
-      const subtotal = unitPriceWithoutIgv * quantity
-      const igv = subtotal * IGV_RATE
+      const lineTotal = (item.unit_price || 0) * (item.quantity || 0)
 
-      totalGravada += subtotal
-      totalIgv += igv
+      if (item.affectation_type === 10) {
+        const base = lineTotal / (1 + IGV_RATE)
+        totalGravada += base
+        totalIgv += base * IGV_RATE
+      } else if (item.affectation_type === 30) {
+        totalExonerada += lineTotal
+      } else {
+        totalInafecta += lineTotal
+      }
     }
 
+    const subtotal = totalGravada + totalExonerada + totalInafecta
+
     return {
-      subtotal: Math.round(totalGravada * 100) / 100,
+      subtotal: Math.round(subtotal * 100) / 100,
       igv: Math.round(totalIgv * 100) / 100,
-      total: Math.round((totalGravada + totalIgv) * 100) / 100
+      total: Math.round((subtotal + totalIgv) * 100) / 100
     }
   })
 
