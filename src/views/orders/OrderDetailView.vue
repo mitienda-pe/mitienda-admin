@@ -21,6 +21,8 @@ import OrderPaymentComments from './components/OrderPaymentComments.vue'
 import OrderNotificationsCard from './components/OrderNotificationsCard.vue'
 import { reviewsApi } from '@/api/reviews.api'
 import { fulfillmentApi } from '@/api/fulfillment.api'
+import { billingApi } from '@/api/billing.api'
+import type { BillingStatus } from '@/types/billing.types'
 import type { OrderItemReview } from '@/types/review.types'
 import type { FulfillmentProvider } from '@/types/fulfillment.types'
 import apiClient from '@/api/axios'
@@ -38,6 +40,7 @@ const { downloadPDF, downloadTicket, downloadPickingList, downloadCSV, downloadS
 
 const orderId = Number(route.params.id)
 const showEmitDialog = ref(false)
+const billingStatus = ref<BillingStatus | null>(null)
 const isSendingEmail = ref(false)
 const isDebugLoading = ref(false)
 const debugPaymentData = ref<any>(null)
@@ -331,13 +334,28 @@ onMounted(async () => {
   ordersStore.clearCurrentOrder()
   await ordersStore.fetchOrder(orderId)
 
-  // Load sender info, order reviews, and fulfillment provider in parallel
+  // Load sender info, order reviews, fulfillment provider and billing mode in parallel
   await Promise.all([
     loadSenderInfo(),
     loadOrderReviews(),
     loadFulfillmentProvider(),
+    loadBillingStatus(),
   ])
 })
+
+// Modo de facturación (auto/manual/delegada) para condicionar el botón
+// "Emitir Comprobante". Non-blocking: si falla, el botón queda habilitado
+// (comportamiento previo) y el backend valida igual.
+const loadBillingStatus = async () => {
+  try {
+    const response = await billingApi.getStatus()
+    if (response.success && response.data) {
+      billingStatus.value = response.data
+    }
+  } catch (err) {
+    // Non-critical, silently fail
+  }
+}
 
 const loadOrderReviews = async () => {
   try {
@@ -752,6 +770,23 @@ const canEmitDocument = computed(() => {
          !hasEmittedDocument.value
 })
 
+// El botón se deshabilita cuando la facturación está delegada al ERP (NetSuite
+// emite por su sync) o no hay proveedor configurado. En modo auto o manual con
+// proveedor queda habilitado (la emisión manual sirve también de override).
+const emitDisabled = computed(() => {
+  const s = billingStatus.value
+  if (!s) return false
+  return s.delegated || !s.provider_configured
+})
+
+const emitDisabledReason = computed(() => {
+  const s = billingStatus.value
+  if (!s) return ''
+  if (s.delegated) return 'La facturación está delegada al ERP; el comprobante se emite automáticamente.'
+  if (!s.provider_configured) return 'Configura un proveedor de facturación electrónica para emitir comprobantes.'
+  return ''
+})
+
 const canSendEmail = computed(() => {
   // Can send email if order is paid and has a valid customer email
   return order.value &&
@@ -961,6 +996,8 @@ const handleDebugPayments = async () => {
           label="Emitir Comprobante"
           icon="pi pi-file-pdf"
           severity="success"
+          :disabled="emitDisabled"
+          v-tooltip.left="emitDisabled ? emitDisabledReason : 'Emitir boleta/factura del pedido'"
           @click="showEmitDialog = true"
         />
         <Button

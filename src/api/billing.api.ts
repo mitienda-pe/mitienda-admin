@@ -13,7 +13,8 @@ import type {
   ManualEmitRequest,
   ManualEmitResponse,
   ManualDocument,
-  DocumentLookupResult
+  DocumentLookupResult,
+  BillingStatus
 } from '@/types/billing.types'
 
 export const billingApi = {
@@ -144,6 +145,15 @@ export const billingApi = {
   },
 
   // ========== Billing Documents API ==========
+
+  /**
+   * Get the store's electronic billing mode (auto/manual/delegated/none).
+   * Used to decide the state of the "Emitir Comprobante" action.
+   */
+  async getStatus(): Promise<ApiResponse<BillingStatus>> {
+    const response = await apiClient.get('/billing/status')
+    return response.data
+  },
 
   /**
    * Get list of emitted billing documents

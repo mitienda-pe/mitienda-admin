@@ -143,6 +143,16 @@ export interface EmitDocumentResponse {
   files: BillingDocumentFiles
 }
 
+// Modo de facturación electrónica de la tienda (GET /billing/status).
+// Decide el estado del botón "Emitir Comprobante".
+export interface BillingStatus {
+  provider_configured: boolean
+  provider_id: number | null
+  provider_name: string | null
+  auto_emission: boolean // emite automáticamente al pagar (= !sw_bloqueado)
+  delegated: boolean      // facturación delegada al ERP (NetSuite)
+}
+
 // Manual Billing Types
 
 export type ManualDocumentType = 1 | 2 | 3 // 1=Factura, 2=Boleta, 3=Nota de Crédito
