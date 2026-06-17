@@ -41,6 +41,32 @@ class DividerBlot extends BlockEmbed {
 
 Quill.register(DividerBlot)
 
+/**
+ * Convierte una URL de YouTube/Vimeo a su URL de embed (la que acepta el blot
+ * `video` de Quill, que renderiza <iframe class="ql-video" src=...>).
+ * Devuelve null si no reconoce un proveedor de video soportado.
+ */
+function toEmbedUrl(rawUrl: string): string | null {
+  const url = rawUrl.trim()
+  if (!url) return null
+
+  // YouTube: watch?v=ID, youtu.be/ID, /embed/ID, /shorts/ID
+  const yt = url.match(
+    /(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/i
+  )
+  if (yt?.[1]) {
+    return `https://www.youtube.com/embed/${yt[1]}`
+  }
+
+  // Vimeo: vimeo.com/ID o player.vimeo.com/video/ID
+  const vimeo = url.match(/(?:player\.)?vimeo\.com\/(?:video\/)?(\d+)/i)
+  if (vimeo?.[1]) {
+    return `https://player.vimeo.com/video/${vimeo[1]}`
+  }
+
+  return null
+}
+
 type ToolbarPreset = 'full' | 'compact'
 
 interface Props {
@@ -87,7 +113,7 @@ const TOOLBAR_FULL = [
   [{ align: [] }],
   [{ list: 'ordered' }, { list: 'bullet' }],
   [{ indent: '-1' }, { indent: '+1' }],
-  ['link', 'image'],
+  ['link', 'image', 'video'],
   ['table', 'divider'],
   ['clean']
 ]
@@ -150,6 +176,24 @@ onMounted(() => {
             quill.insertText(range.index, '\n', Quill.sources.USER)
             quill.insertEmbed(range.index + 1, 'divider', true, Quill.sources.USER)
             quill.setSelection(range.index + 2, Quill.sources.SILENT)
+          },
+          video: function () {
+            if (!quill) return
+            const input = window.prompt(
+              'Pega la URL del video de YouTube o Vimeo:'
+            )
+            if (!input) return
+            const embedUrl = toEmbedUrl(input)
+            if (!embedUrl) {
+              window.alert(
+                'No se reconoció la URL. Usa un enlace de YouTube o Vimeo.'
+              )
+              return
+            }
+            const range = quill.getSelection(true)
+            const index = range ? range.index : quill.getLength()
+            quill.insertEmbed(index, 'video', embedUrl, Quill.sources.USER)
+            quill.setSelection(index + 1, Quill.sources.SILENT)
           }
         }
       },
@@ -239,6 +283,16 @@ onBeforeUnmount(() => {
   border-top: 2px solid #ccc;
   margin: 1em 0;
   cursor: pointer;
+}
+
+.quill-editor-wrapper :deep(.ql-video) {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  margin: 0.5em 0;
+  border: 0;
 }
 
 .quill-editor-wrapper :deep(table) {
