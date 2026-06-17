@@ -60,3 +60,5 @@ public/health.json
 
 # Claude Code
 .claude/
+.agents/
+skills-lock.json
