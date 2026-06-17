@@ -156,7 +156,7 @@
         <template #content>
           <div class="space-y-4 text-sm">
             <p class="text-secondary-600">
-              Niubiz es la solución de pagos del BBVA Continental para comercios en Perú.
+              Niubiz es un procesador de pagos para comercios en Perú (antes VisaNet).
             </p>
             <Divider />
             <div>

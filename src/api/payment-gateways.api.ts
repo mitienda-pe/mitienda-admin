@@ -27,7 +27,7 @@ const MOCK_GATEWAYS: PaymentGateway[] = [
     code: 'niubiz',
     name: 'Niubiz',
     logo: 'niubiz.png',
-    description: 'Solución de pagos del BBVA para comercios en Perú.',
+    description: 'Procesador de pagos para comercios en Perú (antes VisaNet).',
     configured: true,
     enabled: true,
     environment: 'integracion'
