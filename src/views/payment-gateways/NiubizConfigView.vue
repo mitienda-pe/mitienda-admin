@@ -76,6 +76,21 @@
               </div>
             </div>
 
+            <!-- Webhook URL (Callback Niubiz) -->
+            <template v-if="webhookUrl">
+              <Divider />
+              <div>
+                <h3 class="text-lg font-semibold text-secondary-800 mb-4">Configuración de Webhook</h3>
+                <div class="bg-gray-100 p-4 rounded-lg">
+                  <p class="text-sm text-secondary-700 mb-2">Configura este URL como Callback en tu panel de Niubiz (notificación de pago QR/billeteras):</p>
+                  <div class="flex items-center gap-2">
+                    <code class="text-xs bg-white px-3 py-2 rounded border flex-1 break-all select-all">{{ webhookUrl }}</code>
+                    <Button icon="pi pi-copy" text size="small" @click="copyWebhookUrl" v-tooltip="'Copiar'" />
+                  </div>
+                </div>
+              </div>
+            </template>
+
             <Divider />
 
             <div>
@@ -197,6 +212,15 @@ const formData = reactive({
 const { isDirty, reset: resetDirty } = useDirtyForm(() => formData)
 
 const isConfigured = computed(() => store.currentConfig?.gateway?.configured || false)
+
+const webhookUrl = computed(() => (store.currentConfig as any)?.webhook_url || null)
+
+function copyWebhookUrl() {
+  if (webhookUrl.value) {
+    navigator.clipboard.writeText(webhookUrl.value)
+    toast.add({ severity: 'success', summary: 'Copiado', detail: 'URL del webhook copiada', life: 2000 })
+  }
+}
 
 watch(() => store.currentConfig, (config) => {
   if (config?.credentials) {
