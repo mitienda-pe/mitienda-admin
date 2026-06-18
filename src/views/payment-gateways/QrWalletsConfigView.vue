@@ -304,8 +304,14 @@ function removePlinQr() {
 
 // --- Submit ---
 async function handleSubmit() {
+  // Si el usuario apaga ambas billeteras, no hay nada que configurar:
+  // interpretamos el guardado como eliminar el método de pago.
   if (!formData.yape_enabled && !formData.plin_enabled) {
-    toast.add({ severity: 'warn', summary: 'Habilita al menos una billetera', life: 3000 })
+    if (isConfigured.value) {
+      handleDelete()
+    } else {
+      toast.add({ severity: 'info', summary: 'No hay billeteras habilitadas', detail: 'Activa Yape o Plin para guardar', life: 3000 })
+    }
     return
   }
 
