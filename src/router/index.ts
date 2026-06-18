@@ -928,6 +928,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/store/StoreTiktokView.vue')
       },
       {
+        path: 'doppler',
+        name: 'store-doppler',
+        meta: { title: 'Doppler' },
+        component: () => import('@/views/store/StoreDopplerView.vue')
+      },
+      {
         path: 'domain',
         name: 'store-domain',
         meta: { title: 'Dominio propio' },
