@@ -47,6 +47,18 @@
         </template>
       </Column>
 
+      <!-- Barcode (código de barras propio de la variación, opcional) -->
+      <Column header="Código de barras" style="min-width: 170px">
+        <template #body="{ data }">
+          <InputText
+            v-model="data.barcode"
+            class="w-full p-inputtext-sm"
+            placeholder="Ej: 7501234567890"
+            @change="emitUpdate"
+          />
+        </template>
+      </Column>
+
       <!-- Price -->
       <Column header="Precio" style="min-width: 130px">
         <template #body="{ data }">

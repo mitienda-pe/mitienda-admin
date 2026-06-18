@@ -327,6 +327,7 @@ export interface VariantDetail {
 export interface ProductVariant {
   id: number | null
   sku: string
+  barcode?: string | null
   names: string
   price: number
   offer_price: number | null
@@ -362,6 +363,7 @@ export interface SaveVariantsPayload {
   variants: {
     id: number | null
     sku: string
+    barcode?: string | null
     price: number
     offer_price: number | null
     stock: number

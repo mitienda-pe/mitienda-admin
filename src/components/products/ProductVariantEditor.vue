@@ -241,6 +241,7 @@ async function handleSave() {
     variants: variants.value.map(v => ({
       id: v.id,
       sku: v.sku,
+      barcode: v.barcode ?? null,
       price: v.price,
       offer_price: v.offer_price,
       stock: v.stock,
