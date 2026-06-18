@@ -175,9 +175,9 @@
             </div>
             <span
               class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
-              :class="rc.tiendacodigoreferido_activo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'"
+              :class="Number(rc.tiendacodigoreferido_activo) === 1 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'"
             >
-              {{ rc.tiendacodigoreferido_activo ? 'Activo' : 'Inactivo' }}
+              {{ Number(rc.tiendacodigoreferido_activo) === 1 ? 'Activo' : 'Inactivo' }}
             </span>
           </label>
         </div>

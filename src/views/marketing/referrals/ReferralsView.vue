@@ -93,7 +93,7 @@
         <Column field="tiendacodigoreferido_activo" header="Estado" sortable style="width: 100px">
           <template #body="{ data }">
             <InputSwitch
-              :modelValue="data.tiendacodigoreferido_activo === 1"
+              :modelValue="Number(data.tiendacodigoreferido_activo) === 1"
               @update:modelValue="toggleStatus(data)"
             />
           </template>
@@ -319,7 +319,7 @@ const openEditDialog = (referralCode: ReferralCode) => {
     tiendacodigoreferido_nombre: referralCode.tiendacodigoreferido_nombre,
     tiendacodigoreferido_codigo: referralCode.tiendacodigoreferido_codigo
   }
-  formActive.value = referralCode.tiendacodigoreferido_activo === 1
+  formActive.value = Number(referralCode.tiendacodigoreferido_activo) === 1
   formErrors.value = {}
   showFormDialog.value = true
 }
@@ -411,8 +411,8 @@ const toggleStatus = async (referralCode: ReferralCode) => {
     const updated = await referralStore.toggleReferralCode(referralCode.tiendacodigoreferido_id)
     toast.add({
       severity: 'success',
-      summary: updated.tiendacodigoreferido_activo === 1 ? 'Activado' : 'Desactivado',
-      detail: `Código ${updated.tiendacodigoreferido_activo === 1 ? 'activado' : 'desactivado'} correctamente`,
+      summary: Number(updated.tiendacodigoreferido_activo) === 1 ? 'Activado' : 'Desactivado',
+      detail: `Código ${Number(updated.tiendacodigoreferido_activo) === 1 ? 'activado' : 'desactivado'} correctamente`,
       life: 3000
     })
   } catch {
