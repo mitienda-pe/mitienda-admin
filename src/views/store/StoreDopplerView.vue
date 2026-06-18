@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
 import { useDopplerStore } from '@/stores/doppler.store'
-import { AppButton, AppInput, UnsavedChangesBar } from '@/components/ui'
+import { AppInput, UnsavedChangesBar } from '@/components/ui'
 import ProgressSpinner from 'primevue/progressspinner'
 import { useToast } from 'primevue/usetoast'
 
