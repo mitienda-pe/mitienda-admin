@@ -65,6 +65,10 @@ export interface ProductSalesReportRow {
   product_subtotal: number
   product_discount: number
   product_total: number
+  product_unit_cost: number
+  product_cost_subtotal: number
+  product_profit: number
+  product_margin_pct: number
   promotion_name: string | null
   promotion_type: string | null
   payment_status: string

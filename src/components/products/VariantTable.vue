@@ -89,6 +89,22 @@
         </template>
       </Column>
 
+      <!-- Costo de compra (para calcular ganancia; no visible al cliente) -->
+      <Column header="Costo" style="min-width: 130px">
+        <template #body="{ data }">
+          <InputNumber
+            v-model="data.cost"
+            mode="decimal"
+            :min="0"
+            :minFractionDigits="2"
+            :maxFractionDigits="4"
+            prefix="S/ "
+            class="w-full p-inputtext-sm"
+            @input="emitUpdate"
+          />
+        </template>
+      </Column>
+
       <!-- Stock -->
       <Column header="Stock" style="min-width: 100px">
         <template #body="{ data }">

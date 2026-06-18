@@ -243,6 +243,7 @@ async function handleSave() {
       sku: v.sku,
       barcode: v.barcode ?? null,
       price: v.price,
+      cost: v.cost ?? null,
       offer_price: v.offer_price,
       stock: v.stock,
       unlimited_stock: v.unlimited_stock,

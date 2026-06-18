@@ -595,6 +595,26 @@
                     />
                     <small class="text-gray-400">Hasta 8 decimales</small>
                   </div>
+                  <div>
+                    <label for="edit-cost" class="block text-xs font-medium text-secondary-600 mb-1">
+                      Costo de compra (S/)
+                    </label>
+                    <InputNumber
+                      id="edit-cost"
+                      v-model="form.cost"
+                      mode="currency"
+                      currency="PEN"
+                      locale="es-PE"
+                      :min="0"
+                      :minFractionDigits="2"
+                      :maxFractionDigits="4"
+                      class="w-full"
+                    />
+                    <small class="text-gray-400">
+                      Para calcular tu ganancia. No se muestra al cliente.
+                      <span v-if="estimatedMargin !== null">Margen estimado: <span class="font-semibold text-primary">{{ estimatedMargin }}%</span></span>
+                    </small>
+                  </div>
                 </div>
 
                 <p v-if="product.price_range?.has_range" class="text-xs text-secondary-400 mt-2">
@@ -603,9 +623,6 @@
                 <div class="flex gap-3 mt-2 text-xs text-secondary-500">
                   <span v-if="product.compare_price">
                     Comparacion: {{ formatCurrency(product.compare_price) }}
-                  </span>
-                  <span v-if="product.cost">
-                    Costo: {{ formatCurrency(product.cost) }}
                   </span>
                 </div>
               </div>
@@ -1029,6 +1046,7 @@ const form = ref<FormState>({
   description_short: '',
   price: undefined,
   price_without_tax: undefined,
+  cost: null,
   tax_affectation: 1,
   igv_percent: 18,
   stock: undefined,
@@ -1159,6 +1177,7 @@ const populateForm = async () => {
     description_short: p.description_short || '',
     price: p.price ?? undefined,
     price_without_tax: p.price_without_tax ?? undefined,
+    cost: p.cost ?? null,
     tax_affectation: p.tax_affectation || 1,
     igv_percent: p.igv_percent || 18,
     stock: p.stock ?? undefined,
@@ -1313,6 +1332,14 @@ const resetForm = () => {
 
 // ── Computed helpers ──
 const hasVideo = computed(() => !!(product.value?.video?.cloudflare_uid))
+
+// Margen estimado = (precio de venta - costo de compra) / precio de venta
+const estimatedMargin = computed(() => {
+  const price = Number(form.value.price ?? 0)
+  const cost = Number(form.value.cost ?? 0)
+  if (!price || !cost || cost <= 0) return null
+  return Math.round(((price - cost) / price) * 100)
+})
 
 // Per-product shipping is enabled when envioporProducto is 1 (highest) or 2 (sum)
 const showProductShipping = computed(() => {

@@ -261,7 +261,7 @@ export const productsApi = {
 
     // Map all defined fields to payload
     const directFields = [
-      'name', 'sku', 'barcode', 'price', 'price_without_tax', 'stock',
+      'name', 'sku', 'barcode', 'price', 'price_without_tax', 'cost', 'stock',
       'description', 'description_html', 'description_short',
       'brand_id', 'gamma_id', 'order', 'igv_percent', 'tax_affectation',
       'meta_title', 'meta_description', 'meta_image', 'slug',

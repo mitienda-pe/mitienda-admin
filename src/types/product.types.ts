@@ -268,6 +268,7 @@ export interface ProductCreatePayload {
   barcode?: string
   price?: number
   price_without_tax?: number
+  cost?: number | null
   stock?: number
   unlimited_stock?: boolean
   description?: string
@@ -330,6 +331,7 @@ export interface ProductVariant {
   barcode?: string | null
   names: string
   price: number
+  cost?: number | null
   offer_price: number | null
   stock: number
   unlimited_stock: boolean
@@ -365,6 +367,7 @@ export interface SaveVariantsPayload {
     sku: string
     barcode?: string | null
     price: number
+    cost?: number | null
     offer_price: number | null
     stock: number
     unlimited_stock: boolean

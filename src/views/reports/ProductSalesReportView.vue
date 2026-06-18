@@ -74,6 +74,25 @@
                 <span class="font-medium">{{ data.currency }} {{ formatNumber(data.product_total) }}</span>
               </template>
             </Column>
+            <Column field="product_cost_subtotal" header="Costo" style="min-width: 110px">
+              <template #body="{ data }">
+                {{ data.currency }} {{ formatNumber(data.product_cost_subtotal) }}
+              </template>
+            </Column>
+            <Column field="product_profit" header="Ganancia" style="min-width: 110px">
+              <template #body="{ data }">
+                <span class="font-medium" :class="data.product_profit >= 0 ? 'text-primary' : 'text-red-600'">
+                  {{ data.currency }} {{ formatNumber(data.product_profit) }}
+                </span>
+              </template>
+            </Column>
+            <Column field="product_margin_pct" header="Margen %" style="min-width: 100px">
+              <template #body="{ data }">
+                <span :class="data.product_profit >= 0 ? 'text-secondary-700' : 'text-red-600'">
+                  {{ formatNumber(data.product_margin_pct) }}%
+                </span>
+              </template>
+            </Column>
             <Column field="promotion_name" header="Promoción" style="min-width: 150px">
               <template #body="{ data }">
                 <span v-if="data.promotion_name" class="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">

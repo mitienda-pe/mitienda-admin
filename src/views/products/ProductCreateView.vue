@@ -38,6 +38,7 @@ const form = ref<ProductCreatePayload>({
   barcode: '',
   price: undefined,
   price_without_tax: undefined,
+  cost: null,
   tax_affectation: 1,
   igv_percent: 18,
   stock: undefined,
@@ -52,6 +53,14 @@ const form = ref<ProductCreatePayload>({
 })
 
 const errors = ref<Record<string, string>>({})
+
+// Margen estimado = (precio de venta - costo de compra) / precio de venta
+const estimatedMargin = computed(() => {
+  const price = Number(form.value.price ?? 0)
+  const cost = Number(form.value.cost ?? 0)
+  if (!price || !cost || cost <= 0) return null
+  return Math.round(((price - cost) / price) * 100)
+})
 
 const taxAffectationOptions = [
   { label: 'Gravado (con IGV)', value: 1 },
@@ -422,6 +431,34 @@ const handleSave = async () => {
               class="w-full"
             />
             <small class="text-gray-400">Hasta 8 decimales</small>
+          </div>
+        </div>
+
+        <!-- Costo de compra (para calcular ganancia) -->
+        <div class="grid grid-cols-2 gap-4 mt-4">
+          <div>
+            <label for="cost" class="block text-sm font-medium text-gray-700 mb-1">
+              Costo de compra (S/)
+            </label>
+            <InputNumber
+              id="cost"
+              v-model="form.cost"
+              mode="currency"
+              currency="PEN"
+              locale="es-PE"
+              :min="0"
+              :minFractionDigits="2"
+              :maxFractionDigits="4"
+              class="w-full"
+            />
+            <small class="text-gray-400">
+              Lo que te cuesta el producto. Se usa para calcular tu ganancia (no se muestra al cliente).
+            </small>
+          </div>
+          <div v-if="estimatedMargin !== null" class="flex items-end pb-6">
+            <span class="text-sm text-gray-600">
+              Margen estimado: <span class="font-semibold text-primary">{{ estimatedMargin }}%</span>
+            </span>
           </div>
         </div>
       </div>
