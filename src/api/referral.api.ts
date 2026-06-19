@@ -5,7 +5,9 @@ import type {
   ReferralCodeUpdateRequest,
   ReferralCodeListResponse,
   ReferralCodeResponse,
-  GenerateCodeResponse
+  GenerateCodeResponse,
+  ReferralImportPreviewResponse,
+  ReferralImportResultResponse
 } from '@/types/referral.types'
 
 interface ListParams {
@@ -72,5 +74,33 @@ export const referralApi = {
   async toggle(id: number): Promise<ReferralCode> {
     const response = await axios.patch<ReferralCodeResponse>(`/referral-codes/${id}/toggle`)
     return response.data.data
+  },
+
+  /**
+   * Preview de importación CSV (no escribe). Columnas: nombre, codigo, activo.
+   */
+  async importPreview(file: File): Promise<ReferralImportPreviewResponse> {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await axios.post('/referral-codes/import', formData)
+    return response.data
+  },
+
+  /**
+   * Confirma la importación: inserta las filas válidas (acción "crear").
+   */
+  async importConfirm(file: File): Promise<ReferralImportResultResponse> {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await axios.post('/referral-codes/import?confirm=1', formData)
+    return response.data
+  },
+
+  /**
+   * Exporta los códigos de la tienda a CSV (Blob descargable).
+   */
+  async exportCsv(): Promise<Blob> {
+    const response = await axios.get('/referral-codes/export', { responseType: 'blob' })
+    return response.data
   }
 }

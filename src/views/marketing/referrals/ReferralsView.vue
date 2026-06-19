@@ -16,12 +16,31 @@
           Crea códigos para atribuir ventas a tus referidores
         </p>
       </div>
-      <Button
-        label="Nuevo Código"
-        icon="pi pi-plus"
-        @click="openCreateDialog"
-      />
+      <div class="flex items-center gap-2">
+        <Button
+          label="Exportar"
+          icon="pi pi-download"
+          severity="secondary"
+          outlined
+          :loading="isExporting"
+          @click="handleExport"
+        />
+        <Button
+          label="Importar"
+          icon="pi pi-upload"
+          severity="secondary"
+          outlined
+          @click="showImportDialog = true"
+        />
+        <Button
+          label="Nuevo Código"
+          icon="pi pi-plus"
+          @click="openCreateDialog"
+        />
+      </div>
     </div>
+
+    <ReferralImportDialog v-model:visible="showImportDialog" @imported="onImported" />
 
     <!-- Search -->
     <div class="bg-white rounded-lg shadow p-4 mb-6">
@@ -260,6 +279,9 @@ import Dialog from 'primevue/dialog'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import Tag from 'primevue/tag'
+import ReferralImportDialog from '@/components/marketing/ReferralImportDialog.vue'
+import { referralApi } from '@/api/referral.api'
+import { downloadBlob } from '@/utils/csv-helpers'
 import type { ReferralCode } from '@/types/referral.types'
 
 const referralStore = useReferralStore()
@@ -269,6 +291,27 @@ const { formatDate } = useFormatters()
 
 // Search
 const searchQuery = ref('')
+
+// Import / Export
+const showImportDialog = ref(false)
+const isExporting = ref(false)
+
+const handleExport = async () => {
+  isExporting.value = true
+  try {
+    const blob = await referralApi.exportCsv()
+    const date = new Date().toISOString().slice(0, 10)
+    downloadBlob(blob, `codigos_referidos_${date}.csv`)
+  } catch {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo exportar el CSV', life: 4000 })
+  } finally {
+    isExporting.value = false
+  }
+}
+
+const onImported = () => {
+  referralStore.fetchReferralCodes({ search: searchQuery.value, page: 1 })
+}
 
 // Form dialog
 const showFormDialog = ref(false)
