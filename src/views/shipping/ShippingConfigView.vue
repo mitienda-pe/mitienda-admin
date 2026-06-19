@@ -88,6 +88,16 @@ watch(() => draftConfig.value.swServiciosEnvio, (enabled) => {
   }
 })
 
+// Al apagar "Reparto gratis", limpiar el monto mínimo para no dejar un valor
+// huérfano que el storefront podría leer ignorando el switch (mostraba "Te
+// faltan S/ X para envío gratis" pese a estar desactivado). El backend también
+// lo normaliza, pero esto mantiene el draft consistente con lo que se guardará.
+watch(() => draftConfig.value.swRepartoGratis, (enabled) => {
+  if (!enabled) {
+    draftConfig.value.montoRepartoGratis = 0
+  }
+})
+
 const daysOptions = Array.from({ length: 11 }, (_, i) => ({
   label: i === 0 ? 'Mismo día (hoy)' : i === 1 ? '1 día' : `${i} días`,
   value: i
