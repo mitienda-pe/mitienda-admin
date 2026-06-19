@@ -106,6 +106,16 @@
           @variants-toggle="handleVariantsToggle"
         />
 
+        <!-- Control por lotes y vencimiento (perecibles) -->
+        <ProductLotManager
+          v-if="product"
+          :product-id="product.id"
+          :managed="productLotsManaged"
+          :store-enabled="lotsStoreEnabled"
+          :has-variants="product.has_variation_attributes || false"
+          @update:managed="onLotsManagedChange"
+        />
+
         <!-- Descripcion -->
         <Card>
           <template #title>
@@ -636,7 +646,7 @@
                     v-model="form.stock"
                     :min="0"
                     :useGrouping="false"
-                    :disabled="form.unlimited_stock"
+                    :disabled="form.unlimited_stock || productLotsManaged"
                     class="w-24"
                   />
                   <div class="flex items-center gap-2">
@@ -644,6 +654,7 @@
                       id="edit-unlimited"
                       v-model="form.unlimited_stock"
                       :binary="true"
+                      :disabled="productLotsManaged"
                     />
                     <label for="edit-unlimited" class="text-sm text-secondary-700 cursor-pointer">
                       Ilimitado
@@ -659,6 +670,9 @@
                     }"
                   ></i>
                 </div>
+                <p v-if="productLotsManaged" class="text-xs text-amber-600 mt-2">
+                  Este producto se gestiona por lotes: el stock se ajusta registrando o dando de baja lotes (panel "Control por lotes").
+                </p>
 
                 <!-- NetSuite sync (solo si la tienda tiene ERP) -->
                 <div v-if="hasErpIntegration" class="flex flex-wrap items-center gap-2 mt-3">
@@ -964,6 +978,7 @@ import ProductDocumentUploader from '@/components/products/ProductDocumentUpload
 import ProductDocumentList from '@/components/products/ProductDocumentList.vue'
 import ProductDescriptionEditor from '@/components/products/ProductDescriptionEditor.vue'
 import ProductVariantEditor from '@/components/products/ProductVariantEditor.vue'
+import ProductLotManager from '@/components/products/ProductLotManager.vue'
 import { AiFieldGenerator, UnsavedChangesBar } from '@/components/ui'
 import { AI_BUTTON_IDS } from '@/config/ai-buttons.config'
 import ProductTagAssignment from '@/components/ProductTagAssignment.vue'
@@ -971,6 +986,7 @@ import ProductReviewsCard from '@/components/reviews/ProductReviewsCard.vue'
 import type { ProductUpdatePayload, ExternalCategoryOption } from '@/types/product.types'
 import { useShippingConfigStore } from '@/stores/shipping-config.store'
 import { useProductCardStore } from '@/stores/product-card.store'
+import { useStoreConfigStore } from '@/stores/store-config.store'
 import { productsApi } from '@/api/products.api'
 
 const route = useRoute()
@@ -982,6 +998,22 @@ const authStore = useAuthStore()
 const toast = useToast()
 const shippingConfigStore = useShippingConfigStore()
 const productCardStore = useProductCardStore()
+const storeConfigStore = useStoreConfigStore()
+
+// Control por lotes: necesitamos saber si la tienda lo tiene activo y el estado
+// del producto. Carga perezosa de la config si aún no está en memoria.
+if (!storeConfigStore.isLoaded) {
+  storeConfigStore.fetchConfig()
+}
+const lotsStoreEnabled = computed(() => storeConfigStore.draftConfig.tiendageneral_sw_lotes === 1)
+const productLotsManaged = ref(false)
+
+// El manager guarda el flag por su cuenta; aquí reflejamos el cambio para
+// deshabilitar la edición directa de stock y refrescar el producto.
+function onLotsManagedChange(val: boolean) {
+  productLotsManaged.value = val
+  if (val) reloadProduct()
+}
 
 // Load product card config for aspect ratio (if not already loaded)
 if (!productCardStore.isLoaded) {
@@ -1207,6 +1239,9 @@ const populateForm = async () => {
     shipping_conversion_factor: p.shipping_conversion_factor ?? 1,
     shipping_per_unit: p.shipping_per_unit ?? false,
   }
+
+  // Estado del control por lotes del producto.
+  productLotsManaged.value = p.lots_managed === true
 
   // Load gammas for current brand
   if (p.brand?.id) {

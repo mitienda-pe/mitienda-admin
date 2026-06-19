@@ -28,6 +28,8 @@ const DEFAULT_CONFIG: StoreConfig = {
   tiendageneral_edad_minima: 18,
   tiendageneral_texto_verificacion_edad: null,
   sw_notif_incluir_email_tienda: 1,
+  tiendageneral_sw_lotes: 0,
+  tiendageneral_lote_estrategia: 'fefo',
   has_legacy_webhooks: false
 }
 
@@ -101,7 +103,9 @@ export const useStoreConfigStore = defineStore('store-config', () => {
         tiendageneral_sw_verificacion_edad: draftConfig.value.tiendageneral_sw_verificacion_edad,
         tiendageneral_edad_minima: draftConfig.value.tiendageneral_edad_minima,
         tiendageneral_texto_verificacion_edad: draftConfig.value.tiendageneral_texto_verificacion_edad,
-        sw_notif_incluir_email_tienda: draftConfig.value.sw_notif_incluir_email_tienda
+        sw_notif_incluir_email_tienda: draftConfig.value.sw_notif_incluir_email_tienda,
+        tiendageneral_sw_lotes: draftConfig.value.tiendageneral_sw_lotes,
+        tiendageneral_lote_estrategia: draftConfig.value.tiendageneral_lote_estrategia
       }
       const response = await storeApi.updateConfig(update)
       if (response.success && response.data) {

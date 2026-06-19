@@ -7,6 +7,9 @@ import type {
   VariantsData,
   GenerateVariantsPayload,
   SaveVariantsPayload,
+  ProductLot,
+  ProductLotCreate,
+  ProductLotMovement,
 } from '@/types/product.types'
 
 export interface ProductsFilters {
@@ -503,5 +506,33 @@ export const productsApi = {
       success: response.data?.success ?? (response.status >= 200 && response.status < 300),
       message: response.data?.message,
     }
+  },
+
+  // ─── Lotes con vencimiento (perecibles) ────────────────────────
+  async getLots(productId: number, variantId?: number): Promise<ApiResponse<{ items: ProductLot[] }>> {
+    const qs = variantId ? `?productoatributo_id=${variantId}` : ''
+    const response = await apiClient.get(`/products/${productId}/lots${qs}`)
+    return response.data
+  },
+
+  async createLot(productId: number, payload: ProductLotCreate): Promise<ApiResponse<{ lote_id: number }>> {
+    const response = await apiClient.post(`/products/${productId}/lots`, payload)
+    return response.data
+  },
+
+  async bajaLot(loteId: number, motivo?: string): Promise<ApiResponse<{ lote_id: number }>> {
+    const response = await apiClient.post(`/lots/${loteId}/baja`, motivo ? { motivo } : {})
+    return response.data
+  },
+
+  async getLotKardex(
+    productId: number,
+    params: { lote_id?: number; page?: number } = {}
+  ): Promise<ApiResponse<{ items: ProductLotMovement[]; pagination: unknown }>> {
+    const qs = new URLSearchParams()
+    if (params.lote_id) qs.append('lote_id', String(params.lote_id))
+    if (params.page) qs.append('page', String(params.page))
+    const response = await apiClient.get(`/products/${productId}/lots/kardex?${qs.toString()}`)
+    return response.data
   },
 }

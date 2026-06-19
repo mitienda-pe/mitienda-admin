@@ -110,6 +110,9 @@ export interface StoreConfig {
   tiendageneral_texto_verificacion_edad: string | null
   // Notificaciones de venta: incluir copia al correo de la tienda
   sw_notif_incluir_email_tienda: number
+  // Control de inventario por lotes con vencimiento (opt-in, Large/PDV)
+  tiendageneral_sw_lotes: number
+  tiendageneral_lote_estrategia: string | null
   // Derivado (solo lectura): la tienda tiene webhooks legacy configurados.
   // El sidebar muestra "Webhooks (legacy)" solo cuando es true.
   has_legacy_webhooks?: boolean
@@ -129,6 +132,8 @@ export interface StoreConfigUpdate {
   tiendageneral_edad_minima?: number
   tiendageneral_texto_verificacion_edad?: string | null
   sw_notif_incluir_email_tienda?: number
+  tiendageneral_sw_lotes?: number
+  tiendageneral_lote_estrategia?: string | null
 }
 
 export interface Currency {

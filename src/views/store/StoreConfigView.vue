@@ -76,6 +76,21 @@ const isAgeVerificationEnabled = computed({
   set: (val: boolean) => store.updateField('tiendageneral_sw_verificacion_edad', val ? 1 : 0)
 })
 
+const isLotsEnabled = computed({
+  get: () => store.draftConfig.tiendageneral_sw_lotes === 1,
+  set: (val: boolean) => store.updateField('tiendageneral_sw_lotes', val ? 1 : 0)
+})
+
+const lotsStrategy = computed({
+  get: () => store.draftConfig.tiendageneral_lote_estrategia || 'fefo',
+  set: (val: string) => store.updateField('tiendageneral_lote_estrategia', val)
+})
+
+const LOTS_STRATEGY_OPTIONS = [
+  { value: 'fefo', label: 'FEFO — vence primero, sale primero', description: 'Descuenta primero el lote que vence antes. Ideal para perecibles.' },
+  { value: 'fifo', label: 'FIFO — primero en entrar, primero en salir', description: 'Descuenta primero el lote más antiguo (por fecha de producción o ingreso).' }
+]
+
 const STORE_TYPE_OPTIONS = [
   {
     value: 0,
@@ -472,6 +487,44 @@ watch(
             <p v-if="!storeInfoStore.info?.tienda_whatsapp" class="text-xs text-amber-600 mt-1">
               Configura primero un número de WhatsApp en <em>Información de tienda</em> para poder activar esta opción.
             </p>
+          </div>
+
+          <hr class="border-gray-100" />
+
+          <!-- Control de inventario por lotes / vencimiento -->
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <label class="text-sm font-medium text-secondary-700">Control por lotes y vencimiento</label>
+                <p class="text-xs text-gray-400 mt-0.5">
+                  Para productos perecibles: registra lotes con fecha de caducidad y agota primero los que vencen antes.
+                  Actívalo aquí y luego marca cada producto en su ficha.
+                </p>
+              </div>
+              <InputSwitch v-model="isLotsEnabled" />
+            </div>
+            <div v-if="isLotsEnabled" class="space-y-3 mt-3 pl-1">
+              <div>
+                <label class="block text-sm font-medium text-secondary-700 mb-1">Estrategia de consumo</label>
+                <Dropdown
+                  v-model="lotsStrategy"
+                  :options="LOTS_STRATEGY_OPTIONS"
+                  option-label="label"
+                  option-value="value"
+                  class="w-full"
+                >
+                  <template #option="{ option }">
+                    <div>
+                      <div class="text-sm font-medium">{{ option.label }}</div>
+                      <div class="text-xs text-gray-400">{{ option.description }}</div>
+                    </div>
+                  </template>
+                </Dropdown>
+                <p class="text-xs text-gray-400 mt-1">
+                  En ambos modos se bloquea la venta de lotes vencidos. La estrategia solo decide el orden de consumo.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

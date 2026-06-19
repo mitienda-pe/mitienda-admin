@@ -50,6 +50,9 @@ export interface Product {
   stock: number
   unlimited_stock: boolean
   min_stock?: number
+  // Control por lotes con vencimiento (perecibles)
+  lots_managed?: boolean
+  producto_sw_lotes?: number
   weight?: number
   weight_unit?: string
   height?: number
@@ -234,6 +237,43 @@ export interface BatchStockUpdate {
   stock?: number
   unlimited_stock?: boolean
   variants?: { id: number; stock?: number; unlimited_stock?: boolean }[]
+}
+
+// ─── Lotes con vencimiento (perecibles) ──────────────────────────
+export interface ProductLot {
+  lote_id: number
+  productoatributo_id: number
+  codigo: string | null
+  fecha_ingreso: string | null
+  fecha_produccion: string | null
+  fecha_vencimiento: string | null
+  cantidad_inicial: number
+  cantidad: number
+  costo: number | null
+  estado: number // 1 activo, 0 agotado, 2 baja
+  origen: string
+  vencido: boolean
+}
+
+export interface ProductLotCreate {
+  productoatributo_id?: number
+  cantidad: number
+  fecha_vencimiento?: string | null
+  fecha_produccion?: string | null
+  codigo?: string | null
+  costo?: number | null
+}
+
+export interface ProductLotMovement {
+  id: number
+  lote_id: number
+  productoatributo_id: number
+  tipo: 'ingreso' | 'salida' | 'merma' | 'ajuste' | 'devolucion'
+  cantidad: number
+  cantidad_resultante: number
+  referencia: string | null
+  tiendaventa_id: number | null
+  fecha: string
 }
 
 export interface BatchOrderUpdate {
