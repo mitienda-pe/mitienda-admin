@@ -35,8 +35,8 @@
       </div>
     </div>
 
-    <!-- Loading -->
-    <div v-if="referralStore.isLoading" class="flex justify-center py-20">
+    <!-- Loading (solo en la carga inicial, sin datos aún) -->
+    <div v-if="referralStore.isLoading && referralStore.referralCodes.length === 0" class="flex justify-center py-20">
       <ProgressSpinner />
     </div>
 
@@ -52,7 +52,9 @@
         :paginator="referralStore.pagination.totalPages > 1"
         :rows="referralStore.pagination.perPage"
         :totalRecords="referralStore.pagination.total"
+        :first="first"
         :lazy="true"
+        :loading="referralStore.isLoading"
         @page="onPageChange"
         responsiveLayout="scroll"
         stripedRows
@@ -287,6 +289,11 @@ const storefrontUrl = computed(() => {
   }
   return 'https://tutienda.mitienda.pe'
 })
+
+// Offset del primer registro para que el paginador lazy refleje la página actual
+const first = computed(
+  () => (referralStore.pagination.page - 1) * referralStore.pagination.perPage
+)
 
 // Methods
 const handleSearch = () => {
