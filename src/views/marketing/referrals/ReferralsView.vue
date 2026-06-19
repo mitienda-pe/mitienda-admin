@@ -3,7 +3,15 @@
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
       <div>
-        <h1 class="text-3xl font-bold text-secondary">Códigos de Referido</h1>
+        <div class="flex items-center gap-3">
+          <h1 class="text-3xl font-bold text-secondary">Códigos de Referido</h1>
+          <Tag
+            v-if="referralStore.pagination.total > 0"
+            :value="`${referralStore.pagination.total} ${referralStore.pagination.total === 1 ? 'código' : 'códigos'}`"
+            severity="secondary"
+            rounded
+          />
+        </div>
         <p class="text-sm text-secondary-500 mt-1">
           Crea códigos para atribuir ventas a tus referidores
         </p>
@@ -251,6 +259,7 @@ import Column from 'primevue/column'
 import Dialog from 'primevue/dialog'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
+import Tag from 'primevue/tag'
 import type { ReferralCode } from '@/types/referral.types'
 
 const referralStore = useReferralStore()
