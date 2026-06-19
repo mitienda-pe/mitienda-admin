@@ -45,11 +45,66 @@
 
             <!-- Formulario -->
             <form @submit.prevent="handleSubmit" class="space-y-6">
+              <!-- Modo de conexión -->
+              <div>
+                <h3 class="text-lg font-semibold text-secondary-800 mb-4">Modo de conexión</h3>
+                <div class="flex items-center gap-6">
+                  <div class="flex items-center gap-2">
+                    <RadioButton v-model="formData.mode" inputId="mode_proxy" value="proxy" />
+                    <label for="mode_proxy" class="cursor-pointer">Proxy (SOAP vía mtbilling)</label>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <RadioButton v-model="formData.mode" inputId="mode_direct" value="direct" />
+                    <label for="mode_direct" class="cursor-pointer">Directo (REST)</label>
+                  </div>
+                </div>
+                <small class="text-secondary-600 mt-2 block">
+                  Proxy: emite por el servicio mtbilling (SOAP). Directo: REST nativo contra el servidor Bizlinks.
+                </small>
+              </div>
+
+              <Divider />
+
               <!-- Conexión al servidor -->
               <div>
                 <h3 class="text-lg font-semibold text-secondary-800 mb-4">Conexión al servidor Bizlinks</h3>
 
-                <div class="space-y-4">
+                <!-- PROXY: usuario y contraseña -->
+                <div v-if="formData.mode === 'proxy'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label for="bizlinks_user" class="block text-sm font-medium text-secondary-700 mb-2">
+                      Usuario Bizlinks <span class="text-red-500">*</span>
+                    </label>
+                    <InputText
+                      id="bizlinks_user"
+                      v-model="formData.bizlinks_user"
+                      placeholder="usuario"
+                      class="w-full"
+                      :class="{ 'p-invalid': errors.bizlinks_user }"
+                    />
+                    <small v-if="errors.bizlinks_user" class="text-red-500">{{ errors.bizlinks_user }}</small>
+                  </div>
+                  <div>
+                    <label for="bizlinks_password" class="block text-sm font-medium text-secondary-700 mb-2">
+                      Contraseña Bizlinks <span class="text-red-500">*</span>
+                    </label>
+                    <InputText
+                      id="bizlinks_password"
+                      v-model="formData.bizlinks_password"
+                      type="password"
+                      placeholder="••••••••"
+                      class="w-full"
+                      :class="{ 'p-invalid': errors.bizlinks_password }"
+                    />
+                    <small v-if="errors.bizlinks_password" class="text-red-500">{{ errors.bizlinks_password }}</small>
+                    <small class="text-secondary-600 mt-1 block">
+                      Se guarda cifrada. Si la editas, vuelve a ingresarla completa.
+                    </small>
+                  </div>
+                </div>
+
+                <!-- DIRECT: URL y puerto -->
+                <div v-else class="space-y-4">
                   <div>
                     <label for="api_url" class="block text-sm font-medium text-secondary-700 mb-2">
                       URL del servidor <span class="text-red-500">*</span>
@@ -245,21 +300,24 @@
               <div>
                 <h3 class="text-lg font-semibold text-secondary-800 mb-4">Ambiente de facturación</h3>
 
-                <div class="flex items-center gap-4">
+                <!-- Proxy usa development/production; Directo usa produccion/prueba -->
+                <div v-if="formData.mode === 'proxy'" class="flex items-center gap-4">
                   <div class="flex items-center gap-2">
-                    <RadioButton
-                      v-model="formData.environment"
-                      inputId="env_prod"
-                      value="produccion"
-                    />
+                    <RadioButton v-model="formData.environment" inputId="env_prod_p" value="production" />
+                    <label for="env_prod_p" class="cursor-pointer">Producción</label>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <RadioButton v-model="formData.environment" inputId="env_dev_p" value="development" />
+                    <label for="env_dev_p" class="cursor-pointer">Desarrollo (prueba)</label>
+                  </div>
+                </div>
+                <div v-else class="flex items-center gap-4">
+                  <div class="flex items-center gap-2">
+                    <RadioButton v-model="formData.environment" inputId="env_prod" value="produccion" />
                     <label for="env_prod" class="cursor-pointer">Producción</label>
                   </div>
                   <div class="flex items-center gap-2">
-                    <RadioButton
-                      v-model="formData.environment"
-                      inputId="env_test"
-                      value="prueba"
-                    />
+                    <RadioButton v-model="formData.environment" inputId="env_test" value="prueba" />
                     <label for="env_test" class="cursor-pointer">Prueba</label>
                   </div>
                 </div>
@@ -324,7 +382,7 @@
                   size="large"
                 />
                 <Button
-                  v-if="config?.configured"
+                  v-if="config?.configured && formData.mode !== 'proxy'"
                   type="button"
                   label="Probar conexión"
                   icon="pi pi-bolt"
@@ -432,7 +490,11 @@ const billingStore = useBillingStore()
 const config = ref(billingStore.bizlinksConfig)
 
 const formData = reactive<SaveBizlinksCredentialsRequest>({
+  mode: 'proxy',
   api_url: '',
+  puerto: '',
+  bizlinks_user: '',
+  bizlinks_password: '',
   ruc_emisor: '',
   razon_social: '',
   serie_factura: '',
@@ -441,11 +503,10 @@ const formData = reactive<SaveBizlinksCredentialsRequest>({
   numero_boleta: null as any,
   direccion: '',
   ubigeo: '',
-  environment: 'prueba',
+  environment: 'development',
   email: '',
   nombre_comercial: '',
   pdf_format: 'A4',
-  puerto: '',
   blocked: true
 })
 
@@ -456,6 +517,8 @@ const autoEmissionEnabled = computed({
 
 const errors = reactive({
   api_url: '',
+  bizlinks_user: '',
+  bizlinks_password: '',
   ruc_emisor: '',
   razon_social: ''
 })
@@ -467,8 +530,16 @@ onMounted(async () => {
 
   if (config.value?.configured && config.value.credentials) {
     const creds = config.value.credentials
+    const mode = (config.value.mode || creds.mode || 'direct')
     Object.assign(formData, {
+      mode,
+      // Direct
       api_url: creds.api_url || '',
+      puerto: creds.puerto || '',
+      // Proxy (la contraseña va cifrada en el backend; no se precarga, se re-ingresa)
+      bizlinks_user: creds.bizlinks_user || '',
+      bizlinks_password: '',
+      // Comunes
       ruc_emisor: creds.ruc_emisor || '',
       razon_social: creds.razon_social || '',
       serie_factura: creds.serie_factura || '',
@@ -477,11 +548,10 @@ onMounted(async () => {
       numero_boleta: creds.numero_boleta ? parseInt(String(creds.numero_boleta)) : undefined,
       direccion: creds.direccion || '',
       ubigeo: creds.ubigeo || '',
-      environment: creds.environment || 'prueba',
+      environment: creds.environment || (mode === 'proxy' ? 'development' : 'prueba'),
       email: creds.email || '',
       nombre_comercial: creds.nombre_comercial || '',
       pdf_format: creds.pdf_format || 'A4',
-      puerto: creds.puerto || '',
       blocked: config.value.blocked ?? true
     })
   }
@@ -489,17 +559,30 @@ onMounted(async () => {
 
 function validateForm(): boolean {
   errors.api_url = ''
+  errors.bizlinks_user = ''
+  errors.bizlinks_password = ''
   errors.ruc_emisor = ''
   errors.razon_social = ''
 
   let valid = true
 
-  if (!formData.api_url?.trim()) {
-    errors.api_url = 'La URL del servidor es requerida'
-    valid = false
-  } else if (!formData.api_url.startsWith('http')) {
-    errors.api_url = 'La URL debe comenzar con http:// o https://'
-    valid = false
+  if (formData.mode === 'proxy') {
+    if (!formData.bizlinks_user?.trim()) {
+      errors.bizlinks_user = 'El usuario de Bizlinks es requerido'
+      valid = false
+    }
+    if (!formData.bizlinks_password?.trim()) {
+      errors.bizlinks_password = 'La contraseña de Bizlinks es requerida'
+      valid = false
+    }
+  } else {
+    if (!formData.api_url?.trim()) {
+      errors.api_url = 'La URL del servidor es requerida'
+      valid = false
+    } else if (!formData.api_url.startsWith('http')) {
+      errors.api_url = 'La URL debe comenzar con http:// o https://'
+      valid = false
+    }
   }
 
   if (!formData.ruc_emisor?.trim()) {
@@ -524,12 +607,20 @@ async function handleSubmit() {
   billingStore.clearMessages()
 
   const cleanedData: any = {
-    api_url: formData.api_url,
+    mode: formData.mode,
     ruc_emisor: formData.ruc_emisor,
     razon_social: formData.razon_social,
     environment: formData.environment,
     pdf_format: formData.pdf_format,
     blocked: formData.blocked
+  }
+
+  if (formData.mode === 'proxy') {
+    cleanedData.bizlinks_user = formData.bizlinks_user
+    cleanedData.bizlinks_password = formData.bizlinks_password
+  } else {
+    cleanedData.api_url = formData.api_url
+    if (formData.puerto) cleanedData.puerto = formData.puerto
   }
 
   if (formData.serie_factura) cleanedData.serie_factura = formData.serie_factura
@@ -540,7 +631,6 @@ async function handleSubmit() {
   if (formData.ubigeo) cleanedData.ubigeo = formData.ubigeo
   if (formData.email) cleanedData.email = formData.email
   if (formData.nombre_comercial) cleanedData.nombre_comercial = formData.nombre_comercial
-  if (formData.puerto) cleanedData.puerto = formData.puerto
 
   const result = config.value?.configured
     ? await billingStore.updateBizlinksCredentials(cleanedData)
@@ -604,7 +694,11 @@ function handleDelete() {
         })
         config.value = null
         Object.assign(formData, {
+          mode: 'proxy',
           api_url: '',
+          puerto: '',
+          bizlinks_user: '',
+          bizlinks_password: '',
           ruc_emisor: '',
           razon_social: '',
           serie_factura: '',
@@ -613,11 +707,10 @@ function handleDelete() {
           numero_boleta: undefined,
           direccion: '',
           ubigeo: '',
-          environment: 'prueba',
+          environment: 'development',
           email: '',
           nombre_comercial: '',
           pdf_format: 'A4',
-          puerto: '',
           blocked: true
         })
       } else {

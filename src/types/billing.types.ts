@@ -55,10 +55,21 @@ export interface TestConnectionResponse {
   message?: string
 }
 
-// Bizlinks Types (Peru - direct REST mode)
+// Bizlinks Types (Peru)
+// Soporta dos modos: 'direct' (REST nativo) y 'proxy' (SOAP via mtbilling)
+export type BizlinksMode = 'direct' | 'proxy'
+// En modo proxy el ambiente usa development/production; en direct usa produccion/prueba
+export type BizlinksEnvironment = BillingEnvironment | 'development' | 'production'
 
 export interface BizlinksCredentials {
-  api_url: string
+  mode?: BizlinksMode
+  // Direct (REST)
+  api_url?: string
+  puerto?: string
+  // Proxy (SOAP via mtbilling)
+  bizlinks_user?: string
+  bizlinks_password?: string
+  // Comunes
   ruc_emisor: string
   razon_social: string
   serie_factura?: string
@@ -67,22 +78,29 @@ export interface BizlinksCredentials {
   numero_boleta?: string | number
   direccion?: string
   ubigeo?: string
-  environment: BillingEnvironment
+  environment: BizlinksEnvironment
   email?: string
   nombre_comercial?: string
   pdf_format?: PdfFormat
-  puerto?: string
 }
 
 export interface BizlinksConfigResponse {
   provider: BillingProvider
   configured: boolean
   blocked?: boolean
+  mode?: BizlinksMode
   credentials: BizlinksCredentials | null
 }
 
 export interface SaveBizlinksCredentialsRequest {
-  api_url: string
+  mode?: BizlinksMode
+  // Direct (REST)
+  api_url?: string
+  puerto?: string
+  // Proxy (SOAP via mtbilling)
+  bizlinks_user?: string
+  bizlinks_password?: string
+  // Comunes
   ruc_emisor: string
   razon_social: string
   serie_factura?: string
@@ -91,11 +109,10 @@ export interface SaveBizlinksCredentialsRequest {
   numero_boleta?: string | number
   direccion?: string
   ubigeo?: string
-  environment?: BillingEnvironment
+  environment?: BizlinksEnvironment
   email?: string
   nombre_comercial?: string
   pdf_format?: PdfFormat
-  puerto?: string
   blocked?: boolean
 }
 
