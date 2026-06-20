@@ -56,9 +56,10 @@ export interface TestConnectionResponse {
 }
 
 // Bizlinks Types (Peru)
-// Soporta dos modos: 'direct' (REST nativo) y 'proxy' (SOAP via mtbilling)
-export type BizlinksMode = 'direct' | 'proxy'
-// En modo proxy el ambiente usa development/production; en direct usa produccion/prueba
+// Modos: 'rest' (PSE REST nativo, recomendado), 'proxy' (SOAP via mtbilling),
+// 'direct' (XML PUT legacy, deprecado). 'rest' y 'proxy' comparten layout user/password.
+export type BizlinksMode = 'rest' | 'proxy' | 'direct'
+// En modos rest/proxy el ambiente usa development/production; en direct usa produccion/prueba
 export type BizlinksEnvironment = BillingEnvironment | 'development' | 'production'
 
 export interface BizlinksCredentials {

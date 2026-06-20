@@ -50,16 +50,16 @@
                 <h3 class="text-lg font-semibold text-secondary-800 mb-4">Modo de conexión</h3>
                 <div class="flex items-center gap-6">
                   <div class="flex items-center gap-2">
+                    <RadioButton v-model="formData.mode" inputId="mode_rest" value="rest" />
+                    <label for="mode_rest" class="cursor-pointer">REST nativo (PSE) — recomendado</label>
+                  </div>
+                  <div class="flex items-center gap-2">
                     <RadioButton v-model="formData.mode" inputId="mode_proxy" value="proxy" />
                     <label for="mode_proxy" class="cursor-pointer">Proxy (SOAP vía mtbilling)</label>
                   </div>
-                  <div class="flex items-center gap-2">
-                    <RadioButton v-model="formData.mode" inputId="mode_direct" value="direct" />
-                    <label for="mode_direct" class="cursor-pointer">Directo (REST)</label>
-                  </div>
                 </div>
                 <small class="text-secondary-600 mt-2 block">
-                  Proxy: emite por el servicio mtbilling (SOAP). Directo: REST nativo contra el servidor Bizlinks.
+                  REST nativo: emite directo contra el PSE de Bizlinks (sin mtbilling). Proxy: emite por el servicio mtbilling (SOAP). Ambos usan usuario y contraseña.
                 </small>
               </div>
 
@@ -69,8 +69,8 @@
               <div>
                 <h3 class="text-lg font-semibold text-secondary-800 mb-4">Conexión al servidor Bizlinks</h3>
 
-                <!-- PROXY: usuario y contraseña -->
-                <div v-if="formData.mode === 'proxy'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- REST/PROXY: usuario y contraseña (mismo layout) -->
+                <div v-if="isProxyLayout" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label for="bizlinks_user" class="block text-sm font-medium text-secondary-700 mb-2">
                       Usuario Bizlinks <span class="text-red-500">*</span>
@@ -300,8 +300,8 @@
               <div>
                 <h3 class="text-lg font-semibold text-secondary-800 mb-4">Ambiente de facturación</h3>
 
-                <!-- Proxy usa development/production; Directo usa produccion/prueba -->
-                <div v-if="formData.mode === 'proxy'" class="flex items-center gap-4">
+                <!-- REST/Proxy usan development/production; Directo (legacy) usa produccion/prueba -->
+                <div v-if="isProxyLayout" class="flex items-center gap-4">
                   <div class="flex items-center gap-2">
                     <RadioButton v-model="formData.environment" inputId="env_prod_p" value="production" />
                     <label for="env_prod_p" class="cursor-pointer">Producción</label>
@@ -382,7 +382,7 @@
                   size="large"
                 />
                 <Button
-                  v-if="config?.configured && formData.mode !== 'proxy'"
+                  v-if="config?.configured && !isProxyLayout"
                   type="button"
                   label="Probar conexión"
                   icon="pi pi-bolt"
@@ -490,7 +490,7 @@ const billingStore = useBillingStore()
 const config = ref(billingStore.bizlinksConfig)
 
 const formData = reactive<SaveBizlinksCredentialsRequest>({
-  mode: 'proxy',
+  mode: 'rest',
   api_url: '',
   puerto: '',
   bizlinks_user: '',
@@ -515,6 +515,9 @@ const autoEmissionEnabled = computed({
   set: (val: boolean) => { formData.blocked = !val }
 })
 
+// 'rest' (PSE nativo) y 'proxy' (mtbilling) comparten el mismo layout: usuario/contraseña + emisor.
+const isProxyLayout = computed(() => formData.mode === 'rest' || formData.mode === 'proxy')
+
 const errors = reactive({
   api_url: '',
   bizlinks_user: '',
@@ -530,7 +533,7 @@ onMounted(async () => {
 
   if (config.value?.configured && config.value.credentials) {
     const creds = config.value.credentials
-    const mode = (config.value.mode || creds.mode || 'direct')
+    const mode = (config.value.mode || creds.mode || 'rest')
     Object.assign(formData, {
       mode,
       // Direct
@@ -548,7 +551,7 @@ onMounted(async () => {
       numero_boleta: creds.numero_boleta ? parseInt(String(creds.numero_boleta)) : undefined,
       direccion: creds.direccion || '',
       ubigeo: creds.ubigeo || '',
-      environment: creds.environment || (mode === 'proxy' ? 'development' : 'prueba'),
+      environment: creds.environment || ((mode === 'proxy' || mode === 'rest') ? 'development' : 'prueba'),
       email: creds.email || '',
       nombre_comercial: creds.nombre_comercial || '',
       pdf_format: creds.pdf_format || 'A4',
@@ -566,7 +569,7 @@ function validateForm(): boolean {
 
   let valid = true
 
-  if (formData.mode === 'proxy') {
+  if (isProxyLayout.value) {
     if (!formData.bizlinks_user?.trim()) {
       errors.bizlinks_user = 'El usuario de Bizlinks es requerido'
       valid = false
@@ -616,7 +619,7 @@ async function handleSubmit() {
     blocked: formData.blocked
   }
 
-  if (formData.mode === 'proxy') {
+  if (isProxyLayout.value) {
     cleanedData.bizlinks_user = formData.bizlinks_user
     // Solo enviar la password si se ingresó una nueva (al editar puede ir vacía)
     if (formData.bizlinks_password) cleanedData.bizlinks_password = formData.bizlinks_password
@@ -696,7 +699,7 @@ function handleDelete() {
         })
         config.value = null
         Object.assign(formData, {
-          mode: 'proxy',
+          mode: 'rest',
           api_url: '',
           puerto: '',
           bizlinks_user: '',
