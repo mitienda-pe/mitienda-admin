@@ -86,7 +86,7 @@
                   </div>
                   <div>
                     <label for="bizlinks_password" class="block text-sm font-medium text-secondary-700 mb-2">
-                      Contraseña Bizlinks <span class="text-red-500">*</span>
+                      Contraseña Bizlinks <span v-if="!config?.configured" class="text-red-500">*</span>
                     </label>
                     <InputText
                       id="bizlinks_password"
@@ -98,7 +98,7 @@
                     />
                     <small v-if="errors.bizlinks_password" class="text-red-500">{{ errors.bizlinks_password }}</small>
                     <small class="text-secondary-600 mt-1 block">
-                      Se guarda cifrada. Si la editas, vuelve a ingresarla completa.
+                      Se guarda cifrada. Al editar, déjala vacía para conservar la guardada.
                     </small>
                   </div>
                 </div>
@@ -571,7 +571,8 @@ function validateForm(): boolean {
       errors.bizlinks_user = 'El usuario de Bizlinks es requerido'
       valid = false
     }
-    if (!formData.bizlinks_password?.trim()) {
+    // Password requerida solo al crear; al editar, si va vacía se conserva la guardada
+    if (!formData.bizlinks_password?.trim() && !config.value?.configured) {
       errors.bizlinks_password = 'La contraseña de Bizlinks es requerida'
       valid = false
     }
@@ -617,7 +618,8 @@ async function handleSubmit() {
 
   if (formData.mode === 'proxy') {
     cleanedData.bizlinks_user = formData.bizlinks_user
-    cleanedData.bizlinks_password = formData.bizlinks_password
+    // Solo enviar la password si se ingresó una nueva (al editar puede ir vacía)
+    if (formData.bizlinks_password) cleanedData.bizlinks_password = formData.bizlinks_password
   } else {
     cleanedData.api_url = formData.api_url
     if (formData.puerto) cleanedData.puerto = formData.puerto
