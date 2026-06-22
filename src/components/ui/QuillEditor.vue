@@ -285,7 +285,9 @@ onBeforeUnmount(() => {
   cursor: pointer;
 }
 
-.quill-editor-wrapper :deep(.ql-video) {
+/* Solo el iframe embebido en el contenido; NO el botón del toolbar
+   (Quill también marca el botón con la clase .ql-video). */
+.quill-editor-wrapper :deep(.ql-editor iframe.ql-video) {
   display: block;
   width: 100%;
   max-width: 100%;
