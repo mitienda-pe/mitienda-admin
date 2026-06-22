@@ -228,6 +228,7 @@ export interface Customer {
   name: string
   email: string
   phone?: string
+  doc_id?: number // tipo de doc del receptor: 1=DNI, 2=RUC, 3=CIM, 4=Pasaporte, 5=CE (2=RUC => Factura)
   document_type?: string
   document_number?: string
   business_name?: string

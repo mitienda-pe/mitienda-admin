@@ -19,6 +19,18 @@
         </p>
       </div>
 
+      <!-- Comprobante solicitado por el cliente (del checkout) -->
+      <div v-if="requestedLabel" class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+        <p class="text-xs text-gray-500 mb-0.5">El cliente solicitó</p>
+        <p class="text-sm font-semibold text-gray-900">
+          {{ requestedLabel }}
+          <span v-if="requestedDocNumber" class="font-normal text-gray-600">
+            · {{ requestedDocType || 'Doc' }} {{ requestedDocNumber }}
+          </span>
+        </p>
+        <p v-if="requestedBusinessName" class="text-sm text-gray-600">{{ requestedBusinessName }}</p>
+      </div>
+
       <!-- Document Type Selection -->
       <div class="space-y-2">
         <label class="block text-sm font-semibold text-gray-700">
@@ -63,13 +75,25 @@
         </div>
       </div>
 
-      <!-- Customer Info Warning (for Factura) -->
-      <div v-if="selectedDocumentType === 1" class="bg-primary/5 border border-primary/20 rounded-lg p-3">
+      <!-- Mismatch: el operador eligió un tipo distinto al solicitado -->
+      <div v-if="isMismatch" class="bg-amber-50 border border-amber-200 rounded-lg p-3">
         <div class="flex gap-2">
-          <i class="pi pi-info-circle text-primary mt-0.5"></i>
-          <div class="text-sm text-primary">
-            <p class="font-medium mb-1">Requisitos para Factura</p>
-            <p>Asegúrese de que el cliente tenga RUC registrado y los datos fiscales completos.</p>
+          <i class="pi pi-exclamation-triangle text-amber-600 mt-0.5"></i>
+          <div class="text-sm text-amber-800">
+            <p class="font-medium">Estás emitiendo un tipo distinto al solicitado</p>
+            <p>El cliente pidió <span class="font-semibold">{{ requestedLabel }}</span> y vas a emitir
+              <span class="font-semibold">{{ selectedDocumentType === 1 ? 'Factura' : 'Boleta' }}</span>.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Factura sin RUC válido del receptor -->
+      <div v-if="facturaMissingRuc" class="bg-red-50 border border-red-200 rounded-lg p-3">
+        <div class="flex gap-2">
+          <i class="pi pi-times-circle text-red-600 mt-0.5"></i>
+          <div class="text-sm text-red-800">
+            <p class="font-medium">Falta RUC válido para Factura</p>
+            <p>El receptor no tiene un RUC de 11 dígitos. Una factura requiere RUC; corrige los datos del cliente o emite Boleta.</p>
           </div>
         </div>
       </div>
@@ -92,7 +116,7 @@
           label="Emitir Comprobante"
           icon="pi pi-file-pdf"
           :loading="isEmitting"
-          :disabled="!selectedDocumentType"
+          :disabled="!selectedDocumentType || facturaMissingRuc"
           @click="handleEmit"
         />
       </div>
@@ -101,7 +125,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBillingDocumentsStore } from '@/stores/billingDocuments.store'
 import { useFormatters } from '@/composables/useFormatters'
@@ -115,6 +139,11 @@ interface Props {
   orderId: number
   orderNumber: string
   orderTotal: number
+  // Lo que el cliente pidió en el checkout (deriva de documento_id_facturacion):
+  requestedType?: DocumentType | null // 1=Factura, 2=Boleta
+  requestedDocType?: string // 'DNI' | 'RUC' | ...
+  requestedDocNumber?: string
+  requestedBusinessName?: string
 }
 
 interface Emits {
@@ -129,9 +158,17 @@ const router = useRouter()
 const billingStore = useBillingDocumentsStore()
 const { formatCurrency } = useFormatters()
 
-const selectedDocumentType = ref<DocumentType | null>(null)
+const selectedDocumentType = ref<DocumentType | null>(props.requestedType ?? null)
 const isEmitting = ref(false)
 const errorMessage = ref<string | null>(null)
+
+// Al abrir el diálogo, pre-seleccionar lo que el cliente pidió.
+watch(() => props.visible, (open) => {
+  if (open) {
+    selectedDocumentType.value = props.requestedType ?? null
+    errorMessage.value = null
+  }
+})
 
 const isVisible = computed({
   get: () => props.visible,
@@ -141,6 +178,21 @@ const isVisible = computed({
 const title = computed(() => {
   return isEmitting.value ? 'Emitiendo comprobante...' : 'Emitir Comprobante de Pago'
 })
+
+const requestedLabel = computed(() => {
+  if (props.requestedType === 1) return 'Factura'
+  if (props.requestedType === 2) return 'Boleta'
+  return null
+})
+
+// El operador eligió un tipo distinto al solicitado por el cliente.
+const isMismatch = computed(() =>
+  !!props.requestedType && !!selectedDocumentType.value && selectedDocumentType.value !== props.requestedType
+)
+
+// Para Factura el receptor debe tener RUC válido (11 dígitos).
+const hasValidRuc = computed(() => /^\d{11}$/.test((props.requestedDocNumber || '').trim()))
+const facturaMissingRuc = computed(() => selectedDocumentType.value === 1 && !hasValidRuc.value)
 
 const handleCancel = () => {
   if (!isEmitting.value) {

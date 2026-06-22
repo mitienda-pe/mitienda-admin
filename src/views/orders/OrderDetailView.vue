@@ -770,6 +770,16 @@ const canEmitDocument = computed(() => {
          !hasEmittedDocument.value
 })
 
+// Tipo de comprobante solicitado por el cliente (deriva de documento_id_facturacion):
+// doc_id=2 (RUC) => Factura (1); cualquier otro => Boleta (2). Misma lógica que el API.
+const requestedDocumentType = computed<1 | 2>(() => {
+  const docId = order.value?.customer?.doc_id ?? 0
+  const docType = (order.value?.customer?.document_type || '').toUpperCase()
+  return (docId === 2 || docType === 'RUC') ? 1 : 2
+})
+const requestedDocumentLabel = computed(() => requestedDocumentType.value === 1 ? 'Factura' : 'Boleta')
+const requestedHasValidRuc = computed(() => /^\d{11}$/.test((order.value?.customer?.document_number || '').trim()))
+
 // El botón se deshabilita cuando la facturación está delegada al ERP (NetSuite
 // emite por su sync) o no hay proveedor configurado. En modo auto o manual con
 // proveedor queda habilitado (la emisión manual sirve también de override).
@@ -2134,6 +2144,39 @@ const handleDebugPayments = async () => {
             <!-- Análisis de Riesgo de Fraude -->
             <FraudRiskCard :order-id="orderId" />
 
+            <!-- Comprobante solicitado por el cliente (antes de emitir) -->
+            <Card v-if="!hasEmittedDocument && order">
+              <template #title>
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-receipt text-primary"></i>
+                  Comprobante solicitado
+                </div>
+              </template>
+              <template #content>
+                <div class="space-y-2">
+                  <div>
+                    <p class="text-sm text-gray-500">Tipo</p>
+                    <p class="font-semibold text-gray-900">{{ requestedDocumentLabel }}</p>
+                  </div>
+                  <div v-if="order.customer?.document_number">
+                    <p class="text-sm text-gray-500">Receptor</p>
+                    <p class="text-gray-900">{{ order.customer.document_type || 'Doc' }} {{ order.customer.document_number }}</p>
+                  </div>
+                  <div v-if="order.customer?.business_name">
+                    <p class="text-sm text-gray-500">Razón social</p>
+                    <p class="text-gray-900">{{ order.customer.business_name }}</p>
+                  </div>
+                  <div
+                    v-if="requestedDocumentType === 1 && !requestedHasValidRuc"
+                    class="flex gap-2 bg-red-50 border border-red-200 rounded-lg p-2 mt-1"
+                  >
+                    <i class="pi pi-times-circle text-red-600 mt-0.5"></i>
+                    <p class="text-sm text-red-800">Se solicitó Factura pero el receptor no tiene RUC de 11 dígitos.</p>
+                  </div>
+                </div>
+              </template>
+            </Card>
+
             <!-- Comprobante Emitido -->
             <Card v-if="hasEmittedDocument">
               <template #title>
@@ -2217,6 +2260,10 @@ const handleDebugPayments = async () => {
       :order-id="order.id"
       :order-number="order.order_number"
       :order-total="order.total"
+      :requested-type="requestedDocumentType"
+      :requested-doc-type="order.customer?.document_type"
+      :requested-doc-number="order.customer?.document_number"
+      :requested-business-name="order.customer?.business_name"
       @success="handleEmitSuccess"
     />
   </div>
