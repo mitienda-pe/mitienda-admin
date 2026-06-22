@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import Quill from 'quill'
 import 'quill/dist/quill.snow.css'
 
@@ -219,6 +219,36 @@ onMounted(() => {
     emit('update:modelValue', normalized)
   })
 })
+
+/**
+ * Inserta texto plano en la posición del cursor. Funciona tanto en modo visual
+ * (Quill) como en modo source (textarea). Usado para insertar shortcodes desde
+ * un botón externo en el editor de páginas CMS.
+ */
+function insertText(text: string) {
+  if (mode.value === 'source') {
+    const ta = textareaRef.value
+    const start = ta?.selectionStart ?? rawHtml.value.length
+    const end = ta?.selectionEnd ?? start
+    rawHtml.value = rawHtml.value.slice(0, start) + text + rawHtml.value.slice(end)
+    emit('update:modelValue', rawHtml.value)
+    nextTick(() => {
+      if (!ta) return
+      ta.focus()
+      const pos = start + text.length
+      ta.setSelectionRange(pos, pos)
+    })
+    return
+  }
+
+  if (!quill) return
+  const range = quill.getSelection(true)
+  const index = range ? range.index : quill.getLength()
+  quill.insertText(index, text, Quill.sources.USER)
+  quill.setSelection(index + text.length, Quill.sources.SILENT)
+}
+
+defineExpose({ insertText })
 
 watch(
   () => props.modelValue,

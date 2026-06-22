@@ -45,6 +45,14 @@
 
         <div class="flex items-center gap-2">
           <Button
+            v-if="supportsShortcodes"
+            label="Insertar shortcode"
+            icon="pi pi-bolt"
+            text
+            severity="secondary"
+            @click="openShortcodeDialog"
+          />
+          <Button
             label="Vista Previa"
             icon="pi pi-eye"
             text
@@ -70,6 +78,7 @@
       <!-- Editor Area -->
       <div class="flex-1 bg-white rounded-lg shadow overflow-hidden" style="min-height: 500px;">
         <PageContentEditor
+          ref="editorRef"
           v-model="content"
           :editor-type="page.editor_type"
           :page-id="String(page.id)"
@@ -152,6 +161,65 @@
         />
       </template>
     </Dialog>
+
+    <!-- Insertar Shortcode Dialog -->
+    <Dialog
+      v-model:visible="showShortcode"
+      header="Insertar shortcode"
+      :modal="true"
+      :style="{ width: '480px' }"
+    >
+      <div class="space-y-4">
+        <p class="text-sm text-secondary-500">
+          Los shortcodes permiten insertar widgets de terceros (como mapas de
+          tiendas) que de otro modo el editor bloquearía por seguridad. Se
+          reemplazan por el widget al ver la página en la tienda.
+        </p>
+
+        <!-- Tipo de shortcode -->
+        <div>
+          <label class="block text-sm font-medium text-secondary-700 mb-1">Widget</label>
+          <Dropdown
+            v-model="shortcodeType"
+            :options="SHORTCODE_TYPES"
+            option-label="label"
+            option-value="value"
+            class="w-full"
+          />
+        </div>
+
+        <!-- ID -->
+        <div>
+          <label class="block text-sm font-medium text-secondary-700 mb-1">
+            {{ selectedShortcode?.idLabel }}
+          </label>
+          <InputText
+            v-model="shortcodeId"
+            class="w-full"
+            :placeholder="selectedShortcode?.placeholder"
+          />
+          <p class="text-xs text-secondary-400 mt-1">{{ selectedShortcode?.help }}</p>
+        </div>
+
+        <!-- Preview -->
+        <div v-if="shortcodeId.trim()">
+          <label class="block text-sm font-medium text-secondary-700 mb-1">Se insertará</label>
+          <code class="block text-sm bg-gray-100 text-secondary-700 rounded px-3 py-2 font-mono break-all">
+            {{ generatedShortcode }}
+          </code>
+        </div>
+      </div>
+
+      <template #footer>
+        <Button label="Cancelar" text @click="showShortcode = false" />
+        <Button
+          label="Insertar"
+          icon="pi pi-bolt"
+          :disabled="!shortcodeId.trim()"
+          @click="handleInsertShortcode"
+        />
+      </template>
+    </Dialog>
   </div>
 </template>
 
@@ -165,10 +233,30 @@ import Dialog from 'primevue/dialog'
 import Divider from 'primevue/divider'
 import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
+import Dropdown from 'primevue/dropdown'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import PageContentEditor from '@/components/pages/PageContentEditor.vue'
 import type { Page, PageEditorType } from '@/types/page.types'
+
+// Catálogo de shortcodes disponibles. Cada entrada debe tener un widget
+// equivalente registrado en el storefront (PageContentRenderer.vue).
+const SHORTCODE_TYPES = [
+  {
+    value: 'storemapper',
+    label: 'Storemapper (mapa de tiendas)',
+    idLabel: 'ID de Storemapper',
+    placeholder: '29720-Bfq2LEYgpPsVNnZ9',
+    help: 'Lo encuentras en tu panel de Storemapper.',
+  },
+  {
+    value: 'storepoint',
+    label: 'Storepoint (mapa de tiendas)',
+    idLabel: 'Widget ID de Storepoint',
+    placeholder: '1690e3dbcdc582',
+    help: "Está en el código embed de Storepoint: new StorepointWidget('ESTE_ID', ...).",
+  },
+]
 
 const route = useRoute()
 const router = useRouter()
@@ -182,6 +270,36 @@ const loadError = ref<string | null>(null)
 const isSaving = ref(false)
 const showSettings = ref(false)
 const isSavingSettings = ref(false)
+const editorRef = ref<{ insertShortcode: (text: string) => void } | null>(null)
+
+// Shortcode insertion
+const showShortcode = ref(false)
+const shortcodeType = ref<string>(SHORTCODE_TYPES[0].value)
+const shortcodeId = ref('')
+
+const supportsShortcodes = computed(
+  () => page.value?.editor_type === 'wysiwyg' || page.value?.editor_type === 'code'
+)
+
+const selectedShortcode = computed(() =>
+  SHORTCODE_TYPES.find((s) => s.value === shortcodeType.value)
+)
+
+const generatedShortcode = computed(
+  () => `[${shortcodeType.value} id="${shortcodeId.value.trim()}"]`
+)
+
+const openShortcodeDialog = () => {
+  shortcodeId.value = ''
+  shortcodeType.value = SHORTCODE_TYPES[0].value
+  showShortcode.value = true
+}
+
+const handleInsertShortcode = () => {
+  if (!shortcodeId.value.trim()) return
+  editorRef.value?.insertShortcode(generatedShortcode.value)
+  showShortcode.value = false
+}
 
 const settingsForm = reactive({
   title: '',

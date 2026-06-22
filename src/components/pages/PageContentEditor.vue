@@ -3,6 +3,7 @@
     <!-- Quill WYSIWYG Editor -->
     <QuillEditor
       v-if="editorType === 'wysiwyg'"
+      ref="quillRef"
       v-model="localContent"
       height="100%"
       toolbar="full"
@@ -51,7 +52,26 @@ const emit = defineEmits<{
 
 const localContent = ref(props.modelValue)
 const monacoContainer = ref<HTMLElement | null>(null)
+const quillRef = ref<{ insertText: (text: string) => void } | null>(null)
 let monacoEditor: MonacoTypes.editor.IStandaloneCodeEditor | null = null
+
+/**
+ * Inserta texto (p. ej. un shortcode) en la posición del cursor del editor
+ * activo. Soportado en WYSIWYG (Quill) y Código (Monaco); el Visual Builder
+ * trabaja con bloques JSON, no con shortcodes de texto.
+ */
+function insertShortcode(text: string) {
+  if (props.editorType === 'wysiwyg') {
+    quillRef.value?.insertText(text)
+    return
+  }
+  if (props.editorType === 'code' && monacoEditor) {
+    monacoEditor.focus()
+    monacoEditor.trigger('shortcode', 'type', { text })
+  }
+}
+
+defineExpose({ insertShortcode })
 
 // Visual Builder refs and state
 const pageBuilderRef = ref<HTMLElement | null>(null)
