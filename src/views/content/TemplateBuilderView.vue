@@ -276,12 +276,17 @@
       <div class="grid grid-cols-2 gap-3">
         <button
           v-for="layout in COLUMN_LAYOUTS"
-          :key="layout.cols"
+          :key="layout.key"
           class="flex flex-col items-center gap-3 p-5 border-2 rounded-xl transition-all text-center hover:border-primary hover:bg-primary-50 border-gray-200"
-          @click="confirmAddSection(layout.cols)"
+          @click="confirmAddSection(layout.colBs)"
         >
           <div class="flex gap-1.5 w-full h-8">
-            <div v-for="c in layout.cols" :key="c" class="flex-1 bg-gray-200 rounded-md"></div>
+            <div
+              v-for="(bs, i) in layout.colBs"
+              :key="i"
+              class="bg-gray-200 rounded-md"
+              :style="{ flexGrow: bs, flexBasis: 0 }"
+            ></div>
           </div>
           <span class="text-sm font-medium text-secondary">{{ layout.label }}</span>
         </button>
@@ -551,8 +556,8 @@ function openAddSection(ubicacion: 'header' | 'footer') {
   addSectionVisible.value = true
 }
 
-function confirmAddSection(numCols: number) {
-  sectionsStore.addSection(activePage.value, pendingUbicacion.value, numCols)
+function confirmAddSection(colBs: number[]) {
+  sectionsStore.addSection(activePage.value, pendingUbicacion.value, colBs)
   addSectionVisible.value = false
 }
 

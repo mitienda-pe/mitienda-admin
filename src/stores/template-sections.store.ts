@@ -66,9 +66,10 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
 
   // ── Section mutations ──────────────────────────────────────────────────────
 
-  function addSection(page: number, ubicacion: 'header' | 'footer', numCols: number) {
-    const colBs = numCols === 1 ? 12 : numCols === 2 ? 6 : numCols === 3 ? 4 : 3
-    const columnas: SectionColumn[] = Array.from({ length: numCols }, (_, i) =>
+  // colBsList = ancho bootstrap (base 12) de cada columna; su longitud define el
+  // número de columnas y soporta proporciones asimétricas (ej. [8, 4] = 2:1).
+  function addSection(page: number, ubicacion: 'header' | 'footer', colBsList: number[]) {
+    const columnas: SectionColumn[] = colBsList.map((colBs, i) =>
       emptyColumn(i + 1, colBs),
     )
     const all = [...(pagesData.value.get(page) ?? [])]

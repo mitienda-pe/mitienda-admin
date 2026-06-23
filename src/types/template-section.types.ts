@@ -59,11 +59,24 @@ export const PAGE_DEFINITIONS: PageDefinition[] = [
   { id: 6, label: 'Pago Confirmado', zones: ['header', 'footer'] },
 ]
 
-export const COLUMN_LAYOUTS = [
-  { cols: 1, label: '1 columna', colBs: 12 },
-  { cols: 2, label: '2 columnas', colBs: 6 },
-  { cols: 3, label: '3 columnas', colBs: 4 },
-  { cols: 4, label: '4 columnas', colBs: 3 },
+export interface ColumnLayout {
+  key: string
+  label: string
+  colBs: number[] // ancho bootstrap (base 12) por columna; la suma debe ser 12
+}
+
+// `colBs` define el ancho de cada columna (sistema bootstrap base 12). El
+// storefront usa estos valores para construir el grid-template-columns, así que
+// soporta proporciones asimétricas además de las divisiones iguales.
+export const COLUMN_LAYOUTS: ColumnLayout[] = [
+  { key: '1', label: '1 columna', colBs: [12] },
+  { key: '2', label: '2 columnas', colBs: [6, 6] },
+  { key: '2-1', label: '2 : 1', colBs: [8, 4] },
+  { key: '1-2', label: '1 : 2', colBs: [4, 8] },
+  { key: '3-1', label: '3 : 1', colBs: [9, 3] },
+  { key: '1-3', label: '1 : 3', colBs: [3, 9] },
+  { key: '3', label: '3 columnas', colBs: [4, 4, 4] },
+  { key: '4', label: '4 columnas', colBs: [3, 3, 3] },
 ]
 
 export const ZONE_LABELS: Record<'header' | 'footer', string> = {
