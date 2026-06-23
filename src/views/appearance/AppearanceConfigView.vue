@@ -12,6 +12,7 @@ const toast = useToast()
 const store = useAppearanceConfigStore()
 
 const logoRules = IMAGE_VALIDATION_RULES.logo
+const logoMobileRules = IMAGE_VALIDATION_RULES.logoMobile
 const logoEmailRules = IMAGE_VALIDATION_RULES.logoEmail
 const faviconRules = IMAGE_VALIDATION_RULES.favicon
 
@@ -30,6 +31,37 @@ async function onUploadLogo(file: File) {
       summary: 'Error',
       detail: store.error || 'No se pudo subir el logotipo',
       life: 5000,
+    })
+  }
+}
+
+async function onUploadLogoMobile(file: File) {
+  const success = await store.uploadLogoMobile(file)
+  if (success) {
+    toast.add({
+      severity: 'success',
+      summary: 'Logotipo móvil actualizado',
+      detail: 'El logotipo para móvil se subió correctamente',
+      life: 3000,
+    })
+  } else {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: store.error || 'No se pudo subir el logotipo para móvil',
+      life: 5000,
+    })
+  }
+}
+
+async function onDeleteLogoMobile() {
+  const success = await store.deleteLogoMobile()
+  if (success) {
+    toast.add({
+      severity: 'info',
+      summary: 'Logotipo móvil eliminado',
+      detail: 'En pantallas pequeñas se usará el logotipo principal',
+      life: 3000,
     })
   }
 }
@@ -188,6 +220,20 @@ onMounted(() => {
             hint="Recomendado: SVG o PNG con fondo transparente, mínimo 200px de ancho"
             @upload="onUploadLogo"
             @delete="onDeleteLogo"
+          />
+
+          <!-- Divider -->
+          <hr class="border-gray-100" />
+
+          <!-- Logo móvil uploader -->
+          <BrandingUploader
+            label="Logotipo (móvil)"
+            :currentUrl="store.logoMobileUrl"
+            :isUploading="store.isUploadingLogoMobile"
+            :rules="logoMobileRules"
+            hint="Versión opcional para pantallas pequeñas (≤768px). Si no la subes, se usará el logotipo principal."
+            @upload="onUploadLogoMobile"
+            @delete="onDeleteLogoMobile"
           />
 
           <!-- Divider -->

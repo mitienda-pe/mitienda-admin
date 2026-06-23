@@ -11,10 +11,12 @@ function deepClone<T>(obj: T): T {
 export const useAppearanceConfigStore = defineStore('appearance-config', () => {
   // ── Branding state ──
   const logoUrl = ref<string | null>(null)
+  const logoMobileUrl = ref<string | null>(null)
   const logoEmailUrl = ref<string | null>(null)
   const faviconUrl = ref<string | null>(null)
   const isLoading = ref(false)
   const isUploadingLogo = ref(false)
+  const isUploadingLogoMobile = ref(false)
   const isUploadingLogoEmail = ref(false)
   const isUploadingFavicon = ref(false)
   const error = ref<string | null>(null)
@@ -41,6 +43,7 @@ export const useAppearanceConfigStore = defineStore('appearance-config', () => {
       const response = await appearanceApi.getConfig()
       if (response.success && response.data) {
         logoUrl.value = response.data.logo_url
+        logoMobileUrl.value = response.data.logo_mobile_url ?? null
         logoEmailUrl.value = response.data.logo_email_url ?? null
         faviconUrl.value = response.data.favicon_url
       }
@@ -60,6 +63,7 @@ export const useAppearanceConfigStore = defineStore('appearance-config', () => {
       const response = await appearanceApi.uploadLogo(file)
       if (response.success && response.data) {
         logoUrl.value = response.data.logo_url
+        logoMobileUrl.value = response.data.logo_mobile_url ?? null
         logoEmailUrl.value = response.data.logo_email_url ?? null
         faviconUrl.value = response.data.favicon_url
       }
@@ -73,6 +77,45 @@ export const useAppearanceConfigStore = defineStore('appearance-config', () => {
     }
   }
 
+  async function uploadLogoMobile(file: File): Promise<boolean> {
+    isUploadingLogoMobile.value = true
+    error.value = null
+    try {
+      const response = await appearanceApi.uploadLogoMobile(file)
+      if (response.success && response.data) {
+        logoUrl.value = response.data.logo_url
+        logoMobileUrl.value = response.data.logo_mobile_url ?? null
+        logoEmailUrl.value = response.data.logo_email_url ?? null
+        faviconUrl.value = response.data.favicon_url
+      }
+      return true
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error al subir el logo para móvil'
+      error.value = message
+      return false
+    } finally {
+      isUploadingLogoMobile.value = false
+    }
+  }
+
+  async function deleteLogoMobile(): Promise<boolean> {
+    error.value = null
+    try {
+      const response = await appearanceApi.deleteLogoMobile()
+      if (response.success && response.data) {
+        logoUrl.value = response.data.logo_url
+        logoMobileUrl.value = response.data.logo_mobile_url ?? null
+        logoEmailUrl.value = response.data.logo_email_url ?? null
+        faviconUrl.value = response.data.favicon_url
+      }
+      return true
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error al eliminar el logo para móvil'
+      error.value = message
+      return false
+    }
+  }
+
   async function uploadFavicon(file: File): Promise<boolean> {
     isUploadingFavicon.value = true
     error.value = null
@@ -80,6 +123,7 @@ export const useAppearanceConfigStore = defineStore('appearance-config', () => {
       const response = await appearanceApi.uploadFavicon(file)
       if (response.success && response.data) {
         logoUrl.value = response.data.logo_url
+        logoMobileUrl.value = response.data.logo_mobile_url ?? null
         logoEmailUrl.value = response.data.logo_email_url ?? null
         faviconUrl.value = response.data.favicon_url
       }
@@ -99,6 +143,7 @@ export const useAppearanceConfigStore = defineStore('appearance-config', () => {
       const response = await appearanceApi.deleteLogo()
       if (response.success && response.data) {
         logoUrl.value = response.data.logo_url
+        logoMobileUrl.value = response.data.logo_mobile_url ?? null
         logoEmailUrl.value = response.data.logo_email_url ?? null
         faviconUrl.value = response.data.favicon_url
       }
@@ -116,6 +161,7 @@ export const useAppearanceConfigStore = defineStore('appearance-config', () => {
       const response = await appearanceApi.deleteFavicon()
       if (response.success && response.data) {
         logoUrl.value = response.data.logo_url
+        logoMobileUrl.value = response.data.logo_mobile_url ?? null
         logoEmailUrl.value = response.data.logo_email_url ?? null
         faviconUrl.value = response.data.favicon_url
       }
@@ -134,6 +180,7 @@ export const useAppearanceConfigStore = defineStore('appearance-config', () => {
       const response = await appearanceApi.uploadLogoEmail(file)
       if (response.success && response.data) {
         logoUrl.value = response.data.logo_url
+        logoMobileUrl.value = response.data.logo_mobile_url ?? null
         logoEmailUrl.value = response.data.logo_email_url ?? null
         faviconUrl.value = response.data.favicon_url
       }
@@ -153,6 +200,7 @@ export const useAppearanceConfigStore = defineStore('appearance-config', () => {
       const response = await appearanceApi.deleteLogoEmail()
       if (response.success && response.data) {
         logoUrl.value = response.data.logo_url
+        logoMobileUrl.value = response.data.logo_mobile_url ?? null
         logoEmailUrl.value = response.data.logo_email_url ?? null
         faviconUrl.value = response.data.favicon_url
       }
@@ -223,19 +271,23 @@ export const useAppearanceConfigStore = defineStore('appearance-config', () => {
   return {
     // Branding
     logoUrl,
+    logoMobileUrl,
     logoEmailUrl,
     faviconUrl,
     isLoading,
     isUploadingLogo,
+    isUploadingLogoMobile,
     isUploadingLogoEmail,
     isUploadingFavicon,
     error,
     isLoaded,
     fetchConfig,
     uploadLogo,
+    uploadLogoMobile,
     uploadLogoEmail,
     uploadFavicon,
     deleteLogo,
+    deleteLogoMobile,
     deleteLogoEmail,
     deleteFavicon,
     // Catalog

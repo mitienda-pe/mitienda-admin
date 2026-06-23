@@ -50,6 +50,13 @@ const appearanceApi = {
     return response.data
   },
 
+  async uploadLogoMobile(file: File): Promise<ApiResponse<BrandingConfig>> {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await apiClient.post('/appearance/config/logo-mobile', formData)
+    return response.data
+  },
+
   async uploadFavicon(file: File): Promise<ApiResponse<BrandingConfig>> {
     const formData = new FormData()
     formData.append('file', file)
@@ -66,6 +73,11 @@ const appearanceApi = {
 
   async deleteLogo(): Promise<ApiResponse<BrandingConfig>> {
     const response = await apiClient.delete('/appearance/config/logo')
+    return response.data
+  },
+
+  async deleteLogoMobile(): Promise<ApiResponse<BrandingConfig>> {
+    const response = await apiClient.delete('/appearance/config/logo-mobile')
     return response.data
   },
 
