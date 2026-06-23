@@ -45,21 +45,21 @@
 
             <!-- Formulario -->
             <form @submit.prevent="handleSubmit" class="space-y-6">
-              <!-- Modo de conexión -->
+              <!-- Modo de facturación -->
               <div>
-                <h3 class="text-lg font-semibold text-secondary-800 mb-4">Modo de conexión</h3>
-                <div class="flex items-center gap-6">
+                <h3 class="text-lg font-semibold text-secondary-800 mb-4">Facturación electrónica</h3>
+                <div class="flex flex-col gap-3">
                   <div class="flex items-center gap-2">
-                    <RadioButton v-model="formData.mode" inputId="mode_rest" value="rest" />
-                    <label for="mode_rest" class="cursor-pointer">REST nativo (PSE) — recomendado</label>
+                    <RadioButton v-model="formData.mode" inputId="mode_shared" value="shared" />
+                    <label for="mode_shared" class="cursor-pointer">Incluida en el plan — recomendado</label>
                   </div>
                   <div class="flex items-center gap-2">
-                    <RadioButton v-model="formData.mode" inputId="mode_proxy" value="proxy" />
-                    <label for="mode_proxy" class="cursor-pointer">Proxy (SOAP vía mtbilling)</label>
+                    <RadioButton v-model="formData.mode" inputId="mode_rest" value="rest" />
+                    <label for="mode_rest" class="cursor-pointer">Usar mis propias credenciales Bizlinks</label>
                   </div>
                 </div>
                 <small class="text-secondary-600 mt-2 block">
-                  REST nativo: emite directo contra el PSE de Bizlinks (sin mtbilling). Proxy: emite por el servicio mtbilling (SOAP). Ambos usan usuario y contraseña.
+                  Incluida en el plan: emites con el bundle de Bizlinks de MiTienda, sin costo y sin ingresar credenciales. Credenciales propias: usas tu propia cuenta Bizlinks.
                 </small>
               </div>
 
@@ -67,10 +67,21 @@
 
               <!-- Conexión al servidor -->
               <div>
-                <h3 class="text-lg font-semibold text-secondary-800 mb-4">Conexión al servidor Bizlinks</h3>
+                <h3 v-if="!isShared" class="text-lg font-semibold text-secondary-800 mb-4">Conexión al servidor Bizlinks</h3>
 
-                <!-- REST/PROXY: usuario y contraseña (mismo layout) -->
-                <div v-if="isProxyLayout" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Incluida en el plan: sin credenciales -->
+                <div v-if="isShared" class="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                  <div class="flex gap-3">
+                    <i class="pi pi-info-circle text-primary mt-0.5"></i>
+                    <div class="text-sm text-secondary-700">
+                      <p class="font-medium text-secondary-800 mb-1">Facturación incluida en el plan</p>
+                      <p>Emites con el bundle de Bizlinks de MiTienda — no necesitas usuario ni contraseña. Completa tus datos fiscales abajo (RUC, razón social y series). MiTienda registra tu RUC en Bizlinks para activarlo; una vez activo podrás emitir.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Credenciales propias: usuario y contraseña -->
+                <div v-else-if="isOwnCredentials" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label for="bizlinks_user" class="block text-sm font-medium text-secondary-700 mb-2">
                       Usuario Bizlinks <span class="text-red-500">*</span>
@@ -103,8 +114,8 @@
                   </div>
                 </div>
 
-                <!-- DIRECT: URL y puerto -->
-                <div v-else class="space-y-4">
+                <!-- DIRECT (legacy, no seleccionable): URL y puerto -->
+                <div v-else-if="!isShared" class="space-y-4">
                   <div>
                     <label for="api_url" class="block text-sm font-medium text-secondary-700 mb-2">
                       URL del servidor <span class="text-red-500">*</span>
@@ -296,8 +307,8 @@
 
               <Divider />
 
-              <!-- Ambiente -->
-              <div>
+              <!-- Ambiente (no aplica en 'incluida en el plan': lo fija MiTienda) -->
+              <div v-if="!isShared">
                 <h3 class="text-lg font-semibold text-secondary-800 mb-4">Ambiente de facturación</h3>
 
                 <!-- REST/Proxy usan development/production; Directo (legacy) usa produccion/prueba -->
@@ -490,7 +501,7 @@ const billingStore = useBillingStore()
 const config = ref(billingStore.bizlinksConfig)
 
 const formData = reactive<SaveBizlinksCredentialsRequest>({
-  mode: 'rest',
+  mode: 'shared',
   api_url: '',
   puerto: '',
   bizlinks_user: '',
@@ -515,8 +526,12 @@ const autoEmissionEnabled = computed({
   set: (val: boolean) => { formData.blocked = !val }
 })
 
-// 'rest' (PSE nativo) y 'proxy' (mtbilling) comparten el mismo layout: usuario/contraseña + emisor.
-const isProxyLayout = computed(() => formData.mode === 'rest' || formData.mode === 'proxy')
+// 'shared' (incluida), 'rest' (propias) y 'proxy' (mtbilling) comparten el layout de emisor.
+const isProxyLayout = computed(() => ['shared', 'rest', 'proxy'].includes(formData.mode as string))
+// 'incluida en el plan': usa credenciales compartidas de MiTienda (sin usuario/password).
+const isShared = computed(() => formData.mode === 'shared')
+// 'credenciales propias': REST nativo con usuario/password del tenant.
+const isOwnCredentials = computed(() => formData.mode === 'rest')
 
 const errors = reactive({
   api_url: '',
@@ -533,7 +548,7 @@ onMounted(async () => {
 
   if (config.value?.configured && config.value.credentials) {
     const creds = config.value.credentials
-    const mode = (config.value.mode || creds.mode || 'rest')
+    const mode = (config.value.mode || creds.mode || 'shared')
     Object.assign(formData, {
       mode,
       // Direct
@@ -569,7 +584,7 @@ function validateForm(): boolean {
 
   let valid = true
 
-  if (isProxyLayout.value) {
+  if (isOwnCredentials.value) {
     if (!formData.bizlinks_user?.trim()) {
       errors.bizlinks_user = 'El usuario de Bizlinks es requerido'
       valid = false
@@ -579,7 +594,8 @@ function validateForm(): boolean {
       errors.bizlinks_password = 'La contraseña de Bizlinks es requerida'
       valid = false
     }
-  } else {
+  } else if (!isShared.value) {
+    // Modo direct (legacy): requiere URL. 'shared' no pide credenciales.
     if (!formData.api_url?.trim()) {
       errors.api_url = 'La URL del servidor es requerida'
       valid = false
@@ -619,14 +635,15 @@ async function handleSubmit() {
     blocked: formData.blocked
   }
 
-  if (isProxyLayout.value) {
+  if (isOwnCredentials.value) {
     cleanedData.bizlinks_user = formData.bizlinks_user
     // Solo enviar la password si se ingresó una nueva (al editar puede ir vacía)
     if (formData.bizlinks_password) cleanedData.bizlinks_password = formData.bizlinks_password
-  } else {
+  } else if (!isShared.value) {
     cleanedData.api_url = formData.api_url
     if (formData.puerto) cleanedData.puerto = formData.puerto
   }
+  // 'shared': no se envían credenciales (las pone MiTienda desde el env).
 
   if (formData.serie_factura) cleanedData.serie_factura = formData.serie_factura
   if (formData.numero_factura) cleanedData.numero_factura = formData.numero_factura
@@ -699,7 +716,7 @@ function handleDelete() {
         })
         config.value = null
         Object.assign(formData, {
-          mode: 'rest',
+          mode: 'shared',
           api_url: '',
           puerto: '',
           bizlinks_user: '',

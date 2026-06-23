@@ -56,9 +56,10 @@ export interface TestConnectionResponse {
 }
 
 // Bizlinks Types (Peru)
-// Modos: 'rest' (PSE REST nativo, recomendado), 'proxy' (SOAP via mtbilling),
-// 'direct' (XML PUT legacy, deprecado). 'rest' y 'proxy' comparten layout user/password.
-export type BizlinksMode = 'rest' | 'proxy' | 'direct'
+// Modos: 'shared' (facturación incluida en el plan, credenciales compartidas de MiTienda),
+// 'rest' (PSE REST nativo con credenciales propias), 'proxy' (SOAP via mtbilling, legacy),
+// 'direct' (XML PUT legacy, deprecado). shared/rest/proxy comparten el layout de emisor.
+export type BizlinksMode = 'shared' | 'rest' | 'proxy' | 'direct'
 // En modos rest/proxy el ambiente usa development/production; en direct usa produccion/prueba
 export type BizlinksEnvironment = BillingEnvironment | 'development' | 'production'
 
