@@ -365,7 +365,9 @@
             class="w-full"
             :placeholder="getPredefinedBlock(blockConfigCode)?.label ?? 'Título por defecto'"
           />
-          <p class="text-xs text-secondary-400 mt-1">Dejar vacío para usar el título por defecto</p>
+          <p class="text-xs text-secondary-400 mt-1">
+            {{ blockConfigCode === 'listas' ? 'Dejar vacío para no mostrar título' : 'Dejar vacío para usar el título por defecto' }}
+          </p>
         </div>
 
         <!-- Bg Color -->
