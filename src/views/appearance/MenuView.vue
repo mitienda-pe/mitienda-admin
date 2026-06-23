@@ -34,9 +34,24 @@ const selectedOption = ref<LinkOption | null>(null)
 const selectedSubcatParent = ref<LinkOptionGroup | null>(null)
 const selectedSubcatChild = ref<LinkOption | null>(null)
 
-// Inline editing
-const editingItemId = ref<number | null>(null)
-const editingLabel = ref('')
+// ─── Edit Dialog ───
+const showEditDialog = ref(false)
+const editingItem = ref<MenuItem | null>(null)
+const editLabel = ref('')
+const editType = ref<MenuLinkType>('categoria')
+const editUrl = ref('')
+const editTargetBlank = ref(false)
+
+const editLinkOptions = ref<LinkOption[]>([])
+const editSubcategoryGroups = ref<LinkOptionGroup[]>([])
+const editSelectedOption = ref<LinkOption | null>(null)
+const editSelectedSubcatParent = ref<LinkOptionGroup | null>(null)
+const editSelectedSubcatChild = ref<LinkOption | null>(null)
+
+// True while pre-filling the dialog so type/option watchers don't wipe the current value
+const editPopulating = ref(false)
+
+const editSubcatChildren = computed(() => editSelectedSubcatParent.value?.children ?? [])
 
 // Delete confirmation
 const showDeleteDialog = ref(false)
@@ -135,26 +150,103 @@ function resetForm() {
   selectedSubcatChild.value = null
 }
 
-// ─── Inline Edit ───
-function startEditing(item: MenuItem) {
-  editingItemId.value = item.id
-  editingLabel.value = item.label
+// ─── Edit Dialog ───
+/** Loads the entity options for a given type into the edit-dialog selectors. */
+async function populateEditOptions(type: MenuLinkType) {
+  if (type === 'url') {
+    editLinkOptions.value = []
+    editSubcategoryGroups.value = []
+    return
+  }
+  const options = await menuStore.fetchLinkOptions(type)
+  if (type === 'subcategoria') {
+    editSubcategoryGroups.value = options as LinkOptionGroup[]
+    editLinkOptions.value = []
+  } else {
+    editLinkOptions.value = options as LinkOption[]
+    editSubcategoryGroups.value = []
+  }
 }
 
-function cancelEditing() {
-  editingItemId.value = null
-  editingLabel.value = ''
+async function startEditing(item: MenuItem) {
+  editPopulating.value = true
+  editingItem.value = item
+  editLabel.value = item.label
+  editType.value = item.type
+  editUrl.value = item.url
+  editTargetBlank.value = item.targetBlank
+  editSelectedOption.value = null
+  editSelectedSubcatParent.value = null
+  editSelectedSubcatChild.value = null
+  editLinkOptions.value = []
+  editSubcategoryGroups.value = []
+  showEditDialog.value = true
+
+  try {
+    await populateEditOptions(item.type)
+    // Pre-select the option matching the current value
+    if (item.type === 'subcategoria') {
+      const [parentSlug, childSlug] = (item.url ?? '').split('$$$')
+      const group = editSubcategoryGroups.value.find(g => g.parent.slug === parentSlug)
+      if (group) {
+        editSelectedSubcatParent.value = group
+        editSelectedSubcatChild.value = group.children.find(c => c.slug === childSlug) ?? null
+      }
+    } else if (item.type !== 'url') {
+      editSelectedOption.value =
+        editLinkOptions.value.find(o => (o.slug ?? String(o.id)) === item.url) ?? null
+    }
+  } finally {
+    editPopulating.value = false
+  }
 }
+
+// Reset selection + value when the user switches the link type in the edit dialog
+watch(editType, async newType => {
+  if (editPopulating.value) return
+  editSelectedOption.value = null
+  editSelectedSubcatParent.value = null
+  editSelectedSubcatChild.value = null
+  editUrl.value = ''
+  await populateEditOptions(newType)
+})
+
+watch(editSelectedOption, option => {
+  if (!option || editPopulating.value) return
+  editUrl.value = option.slug ?? String(option.id)
+})
+
+watch(editSelectedSubcatChild, child => {
+  if (!child || !editSelectedSubcatParent.value || editPopulating.value) return
+  editUrl.value = `${child.parentSlug}$$$${child.slug}`
+})
 
 async function saveEditing() {
-  if (!editingItemId.value || !editingLabel.value.trim()) return
+  if (!editingItem.value) return
+  if (!editLabel.value.trim()) {
+    toast.add({ severity: 'warn', summary: 'Ingresa una etiqueta', life: 3000 })
+    return
+  }
+  if (!editUrl.value.trim()) {
+    toast.add({
+      severity: 'warn',
+      summary: editType.value === 'url' ? 'Ingresa una URL' : 'Selecciona un elemento',
+      life: 3000
+    })
+    return
+  }
   try {
-    await menuStore.updateItem(editingItemId.value, { label: editingLabel.value.trim() })
-    toast.add({ severity: 'success', summary: 'Etiqueta actualizada', life: 3000 })
+    await menuStore.updateItem(editingItem.value.id, {
+      label: editLabel.value.trim(),
+      type: editType.value,
+      url: editUrl.value.trim(),
+      targetBlank: editTargetBlank.value
+    })
+    toast.add({ severity: 'success', summary: 'Enlace actualizado', life: 3000 })
+    showEditDialog.value = false
+    editingItem.value = null
   } catch {
     toast.add({ severity: 'error', summary: 'Error al actualizar', life: 3000 })
-  } finally {
-    cancelEditing()
   }
 }
 
@@ -411,79 +503,52 @@ onMounted(() => {
               <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg group">
                 <i class="pi pi-grip-vertical text-gray-300" />
 
-                <!-- Inline editing -->
-                <template v-if="editingItemId === item.id">
-                  <InputText
-                    v-model="editingLabel"
-                    class="flex-1 p-inputtext-sm"
-                    autofocus
-                    @keyup.enter="saveEditing"
-                    @keyup.escape="cancelEditing"
-                  />
+                <span class="flex-1 font-medium text-secondary-700">{{ item.label }}</span>
+                <Tag
+                  :value="MENU_LINK_TYPE_LABELS[item.type]"
+                  :severity="getTypeSeverity(item.type)"
+                  class="text-xs"
+                />
+                <span v-if="item.targetBlank" title="Abre en nueva pestaña" class="text-gray-400">
+                  <i class="pi pi-external-link text-xs" />
+                </span>
+                <span v-if="hasChildren(item)" class="text-xs text-secondary-400">
+                  ({{ item.children!.length }})
+                </span>
+
+                <!-- Actions -->
+                <div class="flex items-center gap-1">
                   <button
-                    class="text-green-600 hover:text-green-800"
-                    title="Guardar"
-                    @click="saveEditing"
+                    class="p-1 text-secondary-300 hover:text-primary transition-colors"
+                    :class="{ invisible: index === 0 }"
+                    title="Mover arriba"
+                    @click="moveItem(item, menuStore.menuItems, 'up')"
                   >
-                    <i class="pi pi-check" />
+                    <i class="pi pi-arrow-up text-xs" />
                   </button>
                   <button
-                    class="text-gray-400 hover:text-gray-600"
-                    title="Cancelar"
-                    @click="cancelEditing"
+                    class="p-1 text-secondary-300 hover:text-primary transition-colors"
+                    :class="{ invisible: index >= menuStore.menuItems.length - 1 }"
+                    title="Mover abajo"
+                    @click="moveItem(item, menuStore.menuItems, 'down')"
                   >
-                    <i class="pi pi-times" />
+                    <i class="pi pi-arrow-down text-xs" />
                   </button>
-                </template>
-
-                <template v-else>
-                  <span class="flex-1 font-medium text-secondary-700">{{ item.label }}</span>
-                  <Tag
-                    :value="MENU_LINK_TYPE_LABELS[item.type]"
-                    :severity="getTypeSeverity(item.type)"
-                    class="text-xs"
-                  />
-                  <span v-if="item.targetBlank" title="Abre en nueva pestaña" class="text-gray-400">
-                    <i class="pi pi-external-link text-xs" />
-                  </span>
-                  <span v-if="hasChildren(item)" class="text-xs text-secondary-400">
-                    ({{ item.children!.length }})
-                  </span>
-
-                  <!-- Actions -->
-                  <div class="flex items-center gap-1">
-                    <button
-                      class="p-1 text-secondary-300 hover:text-primary transition-colors"
-                      :class="{ invisible: index === 0 }"
-                      title="Mover arriba"
-                      @click="moveItem(item, menuStore.menuItems, 'up')"
-                    >
-                      <i class="pi pi-arrow-up text-xs" />
-                    </button>
-                    <button
-                      class="p-1 text-secondary-300 hover:text-primary transition-colors"
-                      :class="{ invisible: index >= menuStore.menuItems.length - 1 }"
-                      title="Mover abajo"
-                      @click="moveItem(item, menuStore.menuItems, 'down')"
-                    >
-                      <i class="pi pi-arrow-down text-xs" />
-                    </button>
-                    <button
-                      class="p-1 text-secondary-300 hover:text-primary transition-colors"
-                      title="Editar"
-                      @click="startEditing(item)"
-                    >
-                      <i class="pi pi-pencil text-xs" />
-                    </button>
-                    <button
-                      class="p-1 text-secondary-300 hover:text-red-500 transition-colors"
-                      title="Eliminar"
-                      @click="confirmDelete(item)"
-                    >
-                      <i class="pi pi-trash text-xs" />
-                    </button>
-                  </div>
-                </template>
+                  <button
+                    class="p-1 text-secondary-300 hover:text-primary transition-colors"
+                    title="Editar"
+                    @click="startEditing(item)"
+                  >
+                    <i class="pi pi-pencil text-xs" />
+                  </button>
+                  <button
+                    class="p-1 text-secondary-300 hover:text-red-500 transition-colors"
+                    title="Eliminar"
+                    @click="confirmDelete(item)"
+                  >
+                    <i class="pi pi-trash text-xs" />
+                  </button>
+                </div>
               </div>
 
               <!-- Level 1 children -->
@@ -492,65 +557,47 @@ onMounted(() => {
                   <div class="flex items-center gap-2 px-3 py-2 rounded-lg group hover:bg-gray-50">
                     <i class="pi pi-grip-vertical text-gray-200" />
 
-                    <template v-if="editingItemId === child.id">
-                      <InputText
-                        v-model="editingLabel"
-                        class="flex-1 p-inputtext-sm"
-                        autofocus
-                        @keyup.enter="saveEditing"
-                        @keyup.escape="cancelEditing"
-                      />
-                      <button class="text-green-600 hover:text-green-800" @click="saveEditing">
-                        <i class="pi pi-check" />
-                      </button>
-                      <button class="text-gray-400 hover:text-gray-600" @click="cancelEditing">
-                        <i class="pi pi-times" />
-                      </button>
-                    </template>
+                    <span class="flex-1 text-secondary-600">{{ child.label }}</span>
+                    <Tag
+                      :value="MENU_LINK_TYPE_LABELS[child.type]"
+                      :severity="getTypeSeverity(child.type)"
+                      class="text-xs"
+                    />
+                    <span v-if="child.targetBlank" class="text-gray-400">
+                      <i class="pi pi-external-link text-xs" />
+                    </span>
+                    <span v-if="hasChildren(child)" class="text-xs text-secondary-400">
+                      ({{ child.children!.length }})
+                    </span>
 
-                    <template v-else>
-                      <span class="flex-1 text-secondary-600">{{ child.label }}</span>
-                      <Tag
-                        :value="MENU_LINK_TYPE_LABELS[child.type]"
-                        :severity="getTypeSeverity(child.type)"
-                        class="text-xs"
-                      />
-                      <span v-if="child.targetBlank" class="text-gray-400">
-                        <i class="pi pi-external-link text-xs" />
-                      </span>
-                      <span v-if="hasChildren(child)" class="text-xs text-secondary-400">
-                        ({{ child.children!.length }})
-                      </span>
-
-                      <div class="flex items-center gap-1">
-                        <button
-                          class="p-1 text-secondary-300 hover:text-primary transition-colors"
-                          :class="{ invisible: ci === 0 }"
-                          @click="moveItem(child, item.children!, 'up')"
-                        >
-                          <i class="pi pi-arrow-up text-xs" />
-                        </button>
-                        <button
-                          class="p-1 text-secondary-300 hover:text-primary transition-colors"
-                          :class="{ invisible: ci >= item.children!.length - 1 }"
-                          @click="moveItem(child, item.children!, 'down')"
-                        >
-                          <i class="pi pi-arrow-down text-xs" />
-                        </button>
-                        <button
-                          class="p-1 text-secondary-300 hover:text-primary transition-colors"
-                          @click="startEditing(child)"
-                        >
-                          <i class="pi pi-pencil text-xs" />
-                        </button>
-                        <button
-                          class="p-1 text-secondary-300 hover:text-red-500 transition-colors"
-                          @click="confirmDelete(child)"
-                        >
-                          <i class="pi pi-trash text-xs" />
-                        </button>
-                      </div>
-                    </template>
+                    <div class="flex items-center gap-1">
+                      <button
+                        class="p-1 text-secondary-300 hover:text-primary transition-colors"
+                        :class="{ invisible: ci === 0 }"
+                        @click="moveItem(child, item.children!, 'up')"
+                      >
+                        <i class="pi pi-arrow-up text-xs" />
+                      </button>
+                      <button
+                        class="p-1 text-secondary-300 hover:text-primary transition-colors"
+                        :class="{ invisible: ci >= item.children!.length - 1 }"
+                        @click="moveItem(child, item.children!, 'down')"
+                      >
+                        <i class="pi pi-arrow-down text-xs" />
+                      </button>
+                      <button
+                        class="p-1 text-secondary-300 hover:text-primary transition-colors"
+                        @click="startEditing(child)"
+                      >
+                        <i class="pi pi-pencil text-xs" />
+                      </button>
+                      <button
+                        class="p-1 text-secondary-300 hover:text-red-500 transition-colors"
+                        @click="confirmDelete(child)"
+                      >
+                        <i class="pi pi-trash text-xs" />
+                      </button>
+                    </div>
                   </div>
 
                   <!-- Level 2 grandchildren -->
@@ -561,64 +608,44 @@ onMounted(() => {
                       >
                         <i class="pi pi-grip-vertical text-gray-200" />
 
-                        <template v-if="editingItemId === grandchild.id">
-                          <InputText
-                            v-model="editingLabel"
-                            class="flex-1 p-inputtext-sm"
-                            autofocus
-                            @keyup.enter="saveEditing"
-                            @keyup.escape="cancelEditing"
-                          />
-                          <button class="text-green-600 hover:text-green-800" @click="saveEditing">
-                            <i class="pi pi-check" />
-                          </button>
-                          <button class="text-gray-400 hover:text-gray-600" @click="cancelEditing">
-                            <i class="pi pi-times" />
-                          </button>
-                        </template>
+                        <span class="flex-1 text-sm text-secondary-500">{{ grandchild.label }}</span>
+                        <Tag
+                          :value="MENU_LINK_TYPE_LABELS[grandchild.type]"
+                          :severity="getTypeSeverity(grandchild.type)"
+                          class="text-xs"
+                        />
+                        <span v-if="grandchild.targetBlank" class="text-gray-400">
+                          <i class="pi pi-external-link text-xs" />
+                        </span>
 
-                        <template v-else>
-                          <span class="flex-1 text-sm text-secondary-500">{{
-                            grandchild.label
-                          }}</span>
-                          <Tag
-                            :value="MENU_LINK_TYPE_LABELS[grandchild.type]"
-                            :severity="getTypeSeverity(grandchild.type)"
-                            class="text-xs"
-                          />
-                          <span v-if="grandchild.targetBlank" class="text-gray-400">
-                            <i class="pi pi-external-link text-xs" />
-                          </span>
-
-                          <div class="flex items-center gap-1">
-                            <button
-                              class="p-1 text-secondary-300 hover:text-primary transition-colors"
-                              :class="{ invisible: gi === 0 }"
-                              @click="moveItem(grandchild, child.children!, 'up')"
-                            >
-                              <i class="pi pi-arrow-up text-xs" />
-                            </button>
-                            <button
-                              class="p-1 text-secondary-300 hover:text-primary transition-colors"
-                              :class="{ invisible: gi >= child.children!.length - 1 }"
-                              @click="moveItem(grandchild, child.children!, 'down')"
-                            >
-                              <i class="pi pi-arrow-down text-xs" />
-                            </button>
-                            <button
-                              class="p-1 text-secondary-300 hover:text-primary transition-colors"
-                              @click="startEditing(grandchild)"
-                            >
-                              <i class="pi pi-pencil text-xs" />
-                            </button>
-                            <button
-                              class="p-1 text-secondary-300 hover:text-red-500 transition-colors"
-                              @click="confirmDelete(grandchild)"
-                            >
-                              <i class="pi pi-trash text-xs" />
-                            </button>
-                          </div>
-                        </template>
+                        <div class="flex items-center gap-1">
+                          <button
+                            class="p-1 text-secondary-300 hover:text-primary transition-colors"
+                            :class="{ invisible: gi === 0 }"
+                            @click="moveItem(grandchild, child.children!, 'up')"
+                          >
+                            <i class="pi pi-arrow-up text-xs" />
+                          </button>
+                          <button
+                            class="p-1 text-secondary-300 hover:text-primary transition-colors"
+                            :class="{ invisible: gi >= child.children!.length - 1 }"
+                            @click="moveItem(grandchild, child.children!, 'down')"
+                          >
+                            <i class="pi pi-arrow-down text-xs" />
+                          </button>
+                          <button
+                            class="p-1 text-secondary-300 hover:text-primary transition-colors"
+                            @click="startEditing(grandchild)"
+                          >
+                            <i class="pi pi-pencil text-xs" />
+                          </button>
+                          <button
+                            class="p-1 text-secondary-300 hover:text-red-500 transition-colors"
+                            @click="confirmDelete(grandchild)"
+                          >
+                            <i class="pi pi-trash text-xs" />
+                          </button>
+                        </div>
                       </div>
                     </li>
                   </ul>
@@ -639,6 +666,104 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
+    <!-- Edit Item Dialog -->
+    <Dialog
+      v-model:visible="showEditDialog"
+      header="Editar enlace"
+      :modal="true"
+      :style="{ width: '450px' }"
+    >
+      <!-- Label -->
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-secondary-700 mb-1">Etiqueta</label>
+        <InputText v-model="editLabel" placeholder="Texto del enlace" class="w-full" />
+      </div>
+
+      <!-- Link Type -->
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-secondary-700 mb-1">Tipo de enlace</label>
+        <Dropdown
+          v-model="editType"
+          :options="MENU_LINK_TYPE_OPTIONS"
+          option-label="label"
+          option-value="value"
+          class="w-full"
+        />
+      </div>
+
+      <!-- Dynamic selector based on type -->
+      <div class="mb-4">
+        <!-- URL libre -->
+        <template v-if="editType === 'url'">
+          <label class="block text-sm font-medium text-secondary-700 mb-1">URL</label>
+          <InputText v-model="editUrl" placeholder="https://ejemplo.com" class="w-full" />
+        </template>
+
+        <!-- Subcategoría: two dropdowns -->
+        <template v-else-if="editType === 'subcategoria'">
+          <label class="block text-sm font-medium text-secondary-700 mb-1">Categoría padre</label>
+          <Dropdown
+            v-model="editSelectedSubcatParent"
+            :options="editSubcategoryGroups"
+            :option-label="(g: LinkOptionGroup) => g.parent.label"
+            placeholder="Seleccionar categoría"
+            class="w-full mb-2"
+            :loading="menuStore.isLoadingOptions"
+          />
+          <label
+            v-if="editSelectedSubcatParent"
+            class="block text-sm font-medium text-secondary-700 mb-1"
+          >
+            Subcategoría
+          </label>
+          <Dropdown
+            v-if="editSelectedSubcatParent"
+            v-model="editSelectedSubcatChild"
+            :options="editSubcatChildren"
+            option-label="label"
+            placeholder="Seleccionar subcategoría"
+            class="w-full"
+            filter
+          />
+        </template>
+
+        <!-- Generic entity selector -->
+        <template v-else>
+          <label class="block text-sm font-medium text-secondary-700 mb-1">
+            {{ MENU_LINK_TYPE_LABELS[editType] }}
+          </label>
+          <Dropdown
+            v-model="editSelectedOption"
+            :options="editLinkOptions"
+            option-label="label"
+            :placeholder="`Seleccionar ${MENU_LINK_TYPE_LABELS[editType].toLowerCase()}`"
+            class="w-full"
+            filter
+            :loading="menuStore.isLoadingOptions"
+          />
+        </template>
+      </div>
+
+      <!-- Target blank -->
+      <div class="flex items-center gap-2">
+        <Checkbox v-model="editTargetBlank" :binary="true" input-id="editTargetBlank" />
+        <label for="editTargetBlank" class="text-sm text-secondary-700 cursor-pointer">
+          Abrir en nueva pestaña
+        </label>
+      </div>
+
+      <template #footer>
+        <AppButton label="Cancelar" variant="outlined" @click="showEditDialog = false" />
+        <AppButton
+          label="Guardar"
+          variant="primary"
+          icon="pi pi-check"
+          :loading="menuStore.isSaving"
+          @click="saveEditing"
+        />
+      </template>
+    </Dialog>
 
     <!-- Delete Item Dialog -->
     <Dialog
