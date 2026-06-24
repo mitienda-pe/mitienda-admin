@@ -339,31 +339,8 @@
 
               <Divider />
 
-              <!-- Formato PDF -->
-              <div>
-                <h3 class="text-lg font-semibold text-secondary-800 mb-4">Formato de impresión</h3>
-
-                <div class="flex items-center gap-4">
-                  <div class="flex items-center gap-2">
-                    <RadioButton
-                      v-model="formData.pdf_format"
-                      inputId="format_a4"
-                      value="A4"
-                    />
-                    <label for="format_a4" class="cursor-pointer">A4 (Estándar)</label>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <RadioButton
-                      v-model="formData.pdf_format"
-                      inputId="format_ticket"
-                      value="TICKET"
-                    />
-                    <label for="format_ticket" class="cursor-pointer">Ticket (80mm)</label>
-                  </div>
-                </div>
-              </div>
-
-              <Divider />
+              <!-- Formato PDF: Bizlinks no acepta ancho/formato por parámetro (genera el PDF
+                   con su plantilla A4). El selector A4/Ticket no tiene efecto, por eso se omite. -->
 
               <!-- Auto-emisión -->
               <div>
