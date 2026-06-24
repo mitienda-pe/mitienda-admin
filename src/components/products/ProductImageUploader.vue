@@ -209,6 +209,8 @@ const handleClose = () => {
     modal
     header="Añadir imagen al producto"
     :style="{ width: '600px' }"
+    :breakpoints="{ '768px': '95vw' }"
+    :draggable="false"
     :closable="!isUploading"
     @hide="handleClose"
   >

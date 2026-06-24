@@ -149,9 +149,16 @@ const stencilProps = computed(() => ({
 .cropper-container {
   width: 100%;
   height: 400px;
+  max-height: 50vh;
   background: #f5f5f5;
   border-radius: 8px;
   overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .cropper-container {
+    height: 300px;
+  }
 }
 
 .cropper {
