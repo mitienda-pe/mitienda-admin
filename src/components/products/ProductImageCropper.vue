@@ -192,8 +192,20 @@ const stencilProps = computed(() => ({
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.5rem;
   padding-top: 0.5rem;
+}
+
+@media (max-width: 768px) {
+  .actions {
+    flex-direction: column;
+  }
+
+  .actions :deep(.p-button) {
+    width: 100%;
+    justify-content: center;
+  }
 }
 </style>

@@ -1,9 +1,9 @@
 <template>
   <div>
     <!-- Breadcrumb -->
-    <div class="mb-4 flex items-center justify-between">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
       <Button label="Volver a productos" icon="pi pi-arrow-left" text @click="router.push('/products')" />
-      <div v-if="product" class="flex gap-2">
+      <div v-if="product" class="flex flex-wrap gap-2">
         <Button v-if="storeUrl && product.seo?.slug" label="Ver en tienda" icon="pi pi-external-link"
           severity="secondary" outlined @click="openProductInStore" />
         <Button label="Eliminar" icon="pi pi-trash" severity="danger" outlined
