@@ -572,7 +572,13 @@
                   />
                 </div>
 
-                <div class="space-y-3">
+                <!-- Precio/costo manual: solo sin variaciones. Con variantes el
+                     precio y costo se definen por variante (panel "Variantes");
+                     la afectación IGV de arriba sí es del producto y se mantiene. -->
+                <p v-if="product.has_variation_attributes" class="text-xs text-gray-500">
+                  Este producto usa variantes: el precio y el costo se definen en cada variante (panel "Variantes").
+                </p>
+                <div v-else class="space-y-3">
                   <div>
                     <label for="edit-price" class="block text-xs font-medium text-secondary-600 mb-1">
                       Precio con IGV (S/)
