@@ -287,6 +287,8 @@ export const productsApi = {
     if (data.unlimited_stock !== undefined) payload.unlimited_stock = data.unlimited_stock ? 1 : 0
     if (data.shipping_per_unit !== undefined) payload.shipping_per_unit = data.shipping_per_unit ? 1 : 0
     if (data.sold_by_weight !== undefined) payload.sold_by_weight = data.sold_by_weight ? 1 : 0
+    // Control por lotes: el backend lee `lots_managed` y setea producto_sw_lotes.
+    if (data.lots_managed !== undefined) payload.lots_managed = data.lots_managed ? 1 : 0
 
     // Array fields
     if (data.categories !== undefined) payload.categories = data.categories
