@@ -197,6 +197,10 @@ export const productsApi = {
         cost: rawData.cost ? parseFloat(rawData.cost) : undefined,
         igv_percent: rawData.igv_percent !== undefined ? parseInt(rawData.igv_percent) : 18,
         tax_affectation: rawData.tax_affectation !== undefined ? parseInt(rawData.tax_affectation) : 1,
+        // Indica si el producto usa variantes (precio/stock por variante). La
+        // normalización debe copiarlo explícitamente o se pierde: de él dependen
+        // el editor de variantes y el ocultado del precio/stock general.
+        has_variation_attributes: rawData.has_variation_attributes === true || rawData.has_variation_attributes === 1,
         stock: rawData.stock || 0,
         unlimited_stock: rawData.unlimited_stock === 1 || rawData.unlimited_stock === true,
         min_stock: rawData.min_stock || undefined,
@@ -306,6 +310,10 @@ export const productsApi = {
         cost: rawData.cost ? parseFloat(rawData.cost) : undefined,
         igv_percent: rawData.igv_percent !== undefined ? parseInt(rawData.igv_percent) : 18,
         tax_affectation: rawData.tax_affectation !== undefined ? parseInt(rawData.tax_affectation) : 1,
+        // Indica si el producto usa variantes (precio/stock por variante). La
+        // normalización debe copiarlo explícitamente o se pierde: de él dependen
+        // el editor de variantes y el ocultado del precio/stock general.
+        has_variation_attributes: rawData.has_variation_attributes === true || rawData.has_variation_attributes === 1,
         stock: rawData.stock || 0,
         unlimited_stock: rawData.unlimited_stock === 1 || rawData.unlimited_stock === true,
         min_stock: rawData.min_stock || undefined,
