@@ -637,8 +637,18 @@
                 </div>
               </div>
 
+              <!-- Stock general: solo aplica sin variaciones. Con variantes el
+                   stock vive en cada variante (panel "Variantes"); el stock del
+                   producto padre queda residual y mostrarlo confunde. -->
+              <div v-if="product.has_variation_attributes" class="border-t border-gray-200 pt-4">
+                <h4 class="text-sm font-semibold text-secondary-700 mb-3">Stock</h4>
+                <p class="text-xs text-gray-500">
+                  Este producto usa variantes: el stock se gestiona en cada variante (panel "Variantes").
+                </p>
+              </div>
+
               <!-- Stock -->
-              <div class="border-t border-gray-200 pt-4">
+              <div v-else class="border-t border-gray-200 pt-4">
                 <h4 class="text-sm font-semibold text-secondary-700 mb-3">Stock</h4>
                 <div class="flex items-center gap-3">
                   <InputNumber
