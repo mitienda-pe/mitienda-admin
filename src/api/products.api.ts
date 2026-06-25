@@ -203,6 +203,7 @@ export const productsApi = {
         has_variation_attributes: rawData.has_variation_attributes === true || rawData.has_variation_attributes === 1,
         stock: rawData.stock || 0,
         unlimited_stock: rawData.unlimited_stock === 1 || rawData.unlimited_stock === true,
+        sold_by_weight: rawData.sold_by_weight === true || rawData.sold_by_weight === 1,
         min_stock: rawData.min_stock || undefined,
         weight: rawData.weight !== undefined && rawData.weight !== null ? parseFloat(rawData.weight.toString()) : undefined,
         weight_unit: rawData.weight_unit || undefined,
@@ -285,6 +286,7 @@ export const productsApi = {
     if (data.featured !== undefined) payload.featured = data.featured ? 1 : 0
     if (data.unlimited_stock !== undefined) payload.unlimited_stock = data.unlimited_stock ? 1 : 0
     if (data.shipping_per_unit !== undefined) payload.shipping_per_unit = data.shipping_per_unit ? 1 : 0
+    if (data.sold_by_weight !== undefined) payload.sold_by_weight = data.sold_by_weight ? 1 : 0
 
     // Array fields
     if (data.categories !== undefined) payload.categories = data.categories
@@ -316,6 +318,7 @@ export const productsApi = {
         has_variation_attributes: rawData.has_variation_attributes === true || rawData.has_variation_attributes === 1,
         stock: rawData.stock || 0,
         unlimited_stock: rawData.unlimited_stock === 1 || rawData.unlimited_stock === true,
+        sold_by_weight: rawData.sold_by_weight === true || rawData.sold_by_weight === 1,
         min_stock: rawData.min_stock || undefined,
         weight: rawData.weight ? parseFloat(rawData.weight) : undefined,
         published: rawData.published || false,
