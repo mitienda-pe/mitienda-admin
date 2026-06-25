@@ -674,6 +674,32 @@
                   Este producto se gestiona por lotes: el stock se ajusta registrando o dando de baja lotes (panel "Control por lotes").
                 </p>
 
+                <!-- Venta al peso -->
+                <div class="mt-4">
+                  <div class="flex items-center gap-2">
+                    <Checkbox
+                      id="edit-sold-by-weight"
+                      v-model="form.sold_by_weight"
+                      :binary="true"
+                    />
+                    <label for="edit-sold-by-weight" class="text-sm text-secondary-700 cursor-pointer">
+                      Vender al peso
+                    </label>
+                    <Dropdown
+                      v-if="form.sold_by_weight"
+                      id="edit-sale-unit"
+                      v-model="form.weight_unit"
+                      :options="weightUnitOptions"
+                      optionLabel="label"
+                      optionValue="value"
+                      class="w-44"
+                    />
+                  </div>
+                  <p v-if="form.sold_by_weight" class="text-xs text-gray-500 mt-2">
+                    En el POS se ingresa el peso (ej. 0.250) y el precio se calcula como peso × precio. El precio del producto se interpreta como precio por {{ saleUnitShortLabel }}. Recomendado con stock ilimitado.
+                  </p>
+                </div>
+
                 <!-- NetSuite sync (solo si la tienda tiene ERP) -->
                 <div v-if="hasErpIntegration" class="flex flex-wrap items-center gap-2 mt-3">
                   <Button
@@ -1083,6 +1109,7 @@ const form = ref<FormState>({
   igv_percent: 18,
   stock: undefined,
   unlimited_stock: false,
+  sold_by_weight: false,
   published: true,
   featured: false,
   order: undefined,
@@ -1140,6 +1167,15 @@ const weightUnitOptions = [
   { label: 'Gramos (g)', value: 'gramos' },
   { label: 'Libras (lb)', value: 'libras' },
 ]
+
+// Etiqueta corta de la unidad de venta al peso para los textos de ayuda.
+const saleUnitShortLabel = computed(() => {
+  switch (form.value.weight_unit) {
+    case 'gramos': return 'g'
+    case 'libras': return 'lb'
+    default: return 'kg'
+  }
+})
 
 // ── Category tree for TreeSelect ──
 interface TreeNode {
@@ -1214,6 +1250,7 @@ const populateForm = async () => {
     igv_percent: p.igv_percent || 18,
     stock: p.stock ?? undefined,
     unlimited_stock: p.unlimited_stock || false,
+    sold_by_weight: p.sold_by_weight === true,
     published: p.published,
     featured: p.featured || false,
     order: p.order ?? undefined,

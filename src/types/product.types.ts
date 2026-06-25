@@ -53,6 +53,8 @@ export interface Product {
   // Control por lotes con vencimiento (perecibles)
   lots_managed?: boolean
   producto_sw_lotes?: number
+  // Venta al peso: la cantidad vendida es el peso (kg) y el precio es por unidad de peso
+  sold_by_weight?: boolean
   weight?: number
   weight_unit?: string
   height?: number
@@ -326,6 +328,8 @@ export interface ProductCreatePayload {
   meta_description?: string
   meta_image?: string | null
   slug?: string
+  // Venta al peso: la cantidad vendida es el peso (kg) y el precio es por unidad de peso
+  sold_by_weight?: boolean
   // Dimensiones y peso
   height?: number | null
   width?: number | null
