@@ -16,6 +16,7 @@ export type ConditionType =
   | 'bin_bank'
   | 'location'
   | 'first_purchase'
+  | 'customer_registered'
 
 export type EffectType =
   | 'percentage_discount_product'
@@ -204,6 +205,7 @@ export const CONDITION_TYPE_LABELS: Record<ConditionType, string> = {
   bin_bank: 'BIN banco emisor',
   location: 'Ubicación',
   first_purchase: 'Primera compra',
+  customer_registered: 'Comprador registrado',
 }
 
 export const EFFECT_TYPE_LABELS: Record<EffectType, string> = {

@@ -81,6 +81,7 @@ const activationSchemas: Record<string, ConfigFieldSchema[]> = {
 
 const conditionSchemas: Record<string, ConfigFieldSchema[]> = {
   none: [],
+  customer_registered: [],
   cart_contains_product: [
     {
       key: 'product_id',
@@ -581,6 +582,8 @@ function getEmptyConfigLabel(_category: RuleCategory, type: string): string {
       return 'Requiere cupón (ver sección cupones)'
     case 'first_purchase':
       return 'Solo primera compra'
+    case 'customer_registered':
+      return 'Solo compradores registrados'
     case 'none':
       return 'Sin condiciones — apto para todos'
     case 'free_shipping':
