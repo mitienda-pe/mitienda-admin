@@ -20,6 +20,8 @@ interface LlmMessagesRequest {
   messages: ChatMessage[]
   buttonId?: string
   temperature?: number
+  /** Eleva el tope de tokens de salida (default del proxy: 2000). */
+  maxTokens?: number
 }
 
 export function useLlmProxy() {
@@ -136,17 +138,18 @@ export function useLlmProxy() {
     request: LlmMessagesRequest,
     onChunk?: (accumulated: string) => void
   ): Promise<string> {
-    return streamRequest(
-      {
-        messages: request.messages,
-        temperature: request.temperature ?? 0.7,
-        stream: true,
-        tenantId,
-        userId: userId.value,
-        buttonId: request.buttonId || 'btn-69962669-e3fc2337'
-      },
-      onChunk
-    )
+    const payload: Record<string, unknown> = {
+      messages: request.messages,
+      temperature: request.temperature ?? 0.7,
+      stream: true,
+      tenantId,
+      userId: userId.value,
+      buttonId: request.buttonId || 'btn-69962669-e3fc2337'
+    }
+    if (request.maxTokens) {
+      payload.max_tokens = request.maxTokens
+    }
+    return streamRequest(payload, onChunk)
   }
 
   return { generate, generateFromMessages, loading, error }
