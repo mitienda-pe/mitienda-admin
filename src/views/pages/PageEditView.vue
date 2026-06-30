@@ -235,7 +235,7 @@
       :model-value="content"
       :button-id="AI_BUTTON_IDS.html.page"
       :context="page.title"
-      @apply="content = $event"
+      @apply="handleAiApply"
     />
   </div>
 </template>
@@ -465,6 +465,13 @@ const handleSaveSettings = async () => {
   } finally {
     isSavingSettings.value = false
   }
+}
+
+// Aplica el HTML generado por IA y lo guarda de inmediato, para que no se pierda
+// al navegar a la vista previa (que carga la versión guardada del servidor).
+const handleAiApply = async (html: string) => {
+  content.value = html
+  await handleSave()
 }
 
 const handleBack = () => {

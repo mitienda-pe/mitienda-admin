@@ -82,7 +82,7 @@
         :model-value="htmlContent"
         :button-id="AI_BUTTON_IDS.html.page"
         :context="component.name"
-        @apply="htmlContent = $event"
+        @apply="handleAiApply"
       />
     </template>
   </div>
@@ -221,6 +221,13 @@ const handleToggleActive = async () => {
       life: 5000,
     })
   }
+}
+
+// Aplica el HTML generado por IA y lo guarda de inmediato, para que no se pierda
+// al navegar fuera del editor.
+const handleAiApply = async (html: string) => {
+  htmlContent.value = html
+  await handleSave()
 }
 
 const handleBack = () => {
