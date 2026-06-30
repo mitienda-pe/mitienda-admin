@@ -251,9 +251,9 @@ async function send() {
 
   try {
     const result = await generateFromMessages(
-      // temperatura baja → HTML más determinista; max_tokens alto → la página
-      // completa no se trunca (el default del proxy es 2000).
-      { messages: messages.value, buttonId: props.buttonId, temperature: 0.4, maxTokens: 8000 },
+      // temperatura baja → HTML/CSS más determinista y con menos errores de
+      // sintaxis; max_tokens alto → la página completa no se trunca.
+      { messages: messages.value, buttonId: props.buttonId, temperature: 0.2, maxTokens: 8000 },
       (accumulated) => {
         currentHtml.value = stripFences(accumulated)
       }
