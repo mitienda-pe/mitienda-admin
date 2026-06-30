@@ -56,9 +56,17 @@
             <span class="w-3 h-3 rounded-full bg-yellow-400"></span>
             <span class="w-3 h-3 rounded-full bg-green-400"></span>
           </div>
-          <div class="flex-1 bg-white rounded px-3 py-1 text-sm text-secondary-500 font-mono">
-            /pagina/{{ page.slug }}
-          </div>
+          <a
+            :href="fullUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex-1 bg-white rounded px-3 py-1 text-sm font-mono truncate flex items-center gap-2 hover:text-primary transition-colors"
+            :class="page.published ? 'text-secondary-600' : 'text-secondary-400'"
+            :title="page.published ? 'Abrir en la tienda' : 'Aún no publicada: el enlace puede no estar disponible hasta publicar'"
+          >
+            <span class="truncate">{{ fullUrl }}</span>
+            <i class="pi pi-external-link text-xs shrink-0"></i>
+          </a>
         </div>
 
         <!-- Content -->
@@ -89,6 +97,7 @@ import { ref, computed, onMounted } from 'vue'
 import { sanitizeHtml as sanitize } from '@/utils/sanitize'
 import { useRoute } from 'vue-router'
 import { usePagesStore } from '@/stores/pages.store'
+import { useAuthStore } from '@/stores/auth.store'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
@@ -96,8 +105,23 @@ import type { Page } from '@/types/page.types'
 
 const route = useRoute()
 const pagesStore = usePagesStore()
+const authStore = useAuthStore()
 
 const page = ref<Page | null>(null)
+
+// URL pública de la tienda: dominio propio si existe, si no el subdominio
+// {slug}.mitienda.pe (misma lógica que ReferralsView/MyStoresView).
+const storeBaseUrl = computed(() => {
+  const store = authStore.selectedStore
+  if (store?.url) return store.url.startsWith('http') ? store.url : `https://${store.url}`
+  if (store?.slug) return `https://${store.slug}.mitienda.pe`
+  return ''
+})
+
+// URL real de la página en el storefront.
+const fullUrl = computed(() =>
+  page.value ? `${storeBaseUrl.value}/pagina/${page.value.slug}` : ''
+)
 
 // Get renderable content - handle visual_builder JSON+HTML format
 const renderableContent = computed(() => {
