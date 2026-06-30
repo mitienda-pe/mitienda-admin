@@ -29,10 +29,9 @@ export const AI_BUTTON_IDS = {
   },
   html: {
     // Generación de HTML para páginas y bloques de plantilla con el asistente IA.
-    // Debe apuntar a un modelo fuerte (Claude/GPT-4 class) con max-tokens amplio,
-    // ya que el HTML completo se reemite en cada turno de la conversación.
-    // TODO: reemplazar por el button_id real creado en el admin del LLM Proxy.
-    page: DEFAULT_BUTTON_ID, // BTN-HTML-PAGE (pendiente de crear en el LLM Proxy)
+    // Apunta a un modelo fuerte con max-tokens amplio, ya que el HTML completo
+    // se reemite en cada turno de la conversación.
+    page: 'btn-6a43bc5f-63512682', // BTN-HTML-PAGE
   },
 } as const
 
