@@ -1316,6 +1316,7 @@ const shippingMenuItems = [
   { label: 'Configuración', icon: 'pi pi-cog', to: '/shipping/config' },
   { label: 'Tarifas de Envío', icon: 'pi pi-money-bill', to: '/shipping/rates' },
   { label: 'Zonas de Reparto', icon: 'pi pi-map', to: '/shipping/zones' },
+  { label: 'Sucursal por Zona', icon: 'pi pi-building', to: '/shipping/branch-zones' },
   { label: 'Proveedores', icon: 'pi pi-truck', to: '/shipping/couriers' },
   { label: 'Reglas de Courier', icon: 'pi pi-directions', to: '/shipping/courier-routing' }
 ]
