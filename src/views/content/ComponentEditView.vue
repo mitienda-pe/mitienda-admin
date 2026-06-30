@@ -44,6 +44,13 @@
         </div>
 
         <div class="flex items-center gap-2">
+          <Button
+            v-if="supportsAi"
+            label="Asistente IA"
+            icon="pi pi-sparkles"
+            text
+            @click="showAiPanel = true"
+          />
           <div class="flex items-center gap-2 mr-4">
             <label class="text-sm text-secondary-600">Activo</label>
             <InputSwitch
@@ -68,12 +75,21 @@
         class="flex-1"
         style="min-height: 500px"
       />
+
+      <!-- Asistente de HTML con IA -->
+      <AiHtmlBuilderPanel
+        v-model:visible="showAiPanel"
+        :model-value="htmlContent"
+        :button-id="AI_BUTTON_IDS.html.page"
+        :context="component.name"
+        @apply="htmlContent = $event"
+      />
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useComponentsStore } from '@/stores/components.store'
 import { useToast } from 'primevue/usetoast'
@@ -82,6 +98,8 @@ import InputSwitch from 'primevue/inputswitch'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import PageContentEditor from '@/components/pages/PageContentEditor.vue'
+import AiHtmlBuilderPanel from '@/components/ai/AiHtmlBuilderPanel.vue'
+import { AI_BUTTON_IDS } from '@/config/ai-buttons.config'
 import type { StoreComponent, ComponentEditorType } from '@/types/component.types'
 
 const route = useRoute()
@@ -94,6 +112,10 @@ const htmlContent = ref('')
 const isLoading = ref(true)
 const loadError = ref<string | null>(null)
 const isSaving = ref(false)
+
+// Asistente de HTML con IA (solo editor de Código)
+const showAiPanel = ref(false)
+const supportsAi = computed(() => (component.value?.editor_type || 'code') === 'code')
 
 const editorIcon = (type: ComponentEditorType) => {
   if (type === 'wysiwyg') return 'pi pi-align-left'

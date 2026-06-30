@@ -70,19 +70,19 @@
             La página solo podrá ser editada con el editor que elijas ahora.
           </p>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- WYSIWYG -->
             <div
               class="border-2 rounded-lg p-5 cursor-pointer transition-all"
-              :class="form.editor_type === 'wysiwyg'
+              :class="selectedEditor === 'wysiwyg'
                 ? 'border-primary bg-primary/5'
                 : 'border-gray-200 hover:border-gray-300'"
-              @click="form.editor_type = 'wysiwyg'"
+              @click="selectedEditor = 'wysiwyg'"
             >
               <div class="flex items-center gap-3 mb-3">
                 <div
                   class="w-10 h-10 rounded-lg flex items-center justify-center"
-                  :class="form.editor_type === 'wysiwyg' ? 'bg-primary text-white' : 'bg-gray-100 text-secondary-500'"
+                  :class="selectedEditor === 'wysiwyg' ? 'bg-primary text-white' : 'bg-gray-100 text-secondary-500'"
                 >
                   <i class="pi pi-align-left text-lg"></i>
                 </div>
@@ -96,15 +96,15 @@
             <!-- Code -->
             <div
               class="border-2 rounded-lg p-5 cursor-pointer transition-all"
-              :class="form.editor_type === 'code'
+              :class="selectedEditor === 'code'
                 ? 'border-primary bg-primary/5'
                 : 'border-gray-200 hover:border-gray-300'"
-              @click="form.editor_type = 'code'"
+              @click="selectedEditor = 'code'"
             >
               <div class="flex items-center gap-3 mb-3">
                 <div
                   class="w-10 h-10 rounded-lg flex items-center justify-center"
-                  :class="form.editor_type === 'code' ? 'bg-primary text-white' : 'bg-gray-100 text-secondary-500'"
+                  :class="selectedEditor === 'code' ? 'bg-primary text-white' : 'bg-gray-100 text-secondary-500'"
                 >
                   <i class="pi pi-code text-lg"></i>
                 </div>
@@ -118,15 +118,15 @@
             <!-- Visual Builder -->
             <div
               class="border-2 rounded-lg p-5 cursor-pointer transition-all"
-              :class="form.editor_type === 'visual_builder'
+              :class="selectedEditor === 'visual_builder'
                 ? 'border-primary bg-primary/5'
                 : 'border-gray-200 hover:border-gray-300'"
-              @click="form.editor_type = 'visual_builder'"
+              @click="selectedEditor = 'visual_builder'"
             >
               <div class="flex items-center gap-3 mb-3">
                 <div
                   class="w-10 h-10 rounded-lg flex items-center justify-center"
-                  :class="form.editor_type === 'visual_builder' ? 'bg-primary text-white' : 'bg-gray-100 text-secondary-500'"
+                  :class="selectedEditor === 'visual_builder' ? 'bg-primary text-white' : 'bg-gray-100 text-secondary-500'"
                 >
                   <i class="pi pi-th-large text-lg"></i>
                 </div>
@@ -134,6 +134,28 @@
               </div>
               <p class="text-sm text-secondary-500">
                 Arrastra y suelta bloques para diseñar tu página visualmente.
+              </p>
+            </div>
+
+            <!-- Generar con IA -->
+            <div
+              class="border-2 rounded-lg p-5 cursor-pointer transition-all"
+              :class="selectedEditor === 'ai'
+                ? 'border-primary bg-primary/5'
+                : 'border-gray-200 hover:border-gray-300'"
+              @click="selectedEditor = 'ai'"
+            >
+              <div class="flex items-center gap-3 mb-3">
+                <div
+                  class="w-10 h-10 rounded-lg flex items-center justify-center"
+                  :class="selectedEditor === 'ai' ? 'bg-primary text-white' : 'bg-gray-100 text-secondary-500'"
+                >
+                  <i class="pi pi-sparkles text-lg"></i>
+                </div>
+                <h3 class="font-semibold text-secondary">Generar con IA</h3>
+              </div>
+              <p class="text-sm text-secondary-500">
+                Describe lo que quieres y la IA construye el HTML. Luego lo editas en el editor de Código.
               </p>
             </div>
           </div>
@@ -181,8 +203,11 @@ const form = reactive({
   slug: '',
   meta_title: '',
   meta_description: '',
-  editor_type: 'wysiwyg' as PageEditorType,
 })
+
+// Selección de modo. 'ai' es un alias de 'code' que además abre el asistente IA.
+type EditorChoice = PageEditorType | 'ai'
+const selectedEditor = ref<EditorChoice>('wysiwyg')
 
 const errors = reactive<Record<string, string>>({})
 const isSubmitting = ref(false)
@@ -200,10 +225,13 @@ const handleCreate = async () => {
   try {
     isSubmitting.value = true
 
+    const useAi = selectedEditor.value === 'ai'
+    const editorType: PageEditorType = selectedEditor.value === 'ai' ? 'code' : selectedEditor.value
+
     const page = await pagesStore.createPage({
       title: form.title,
       slug: form.slug || undefined,
-      editor_type: form.editor_type,
+      editor_type: editorType,
       meta_title: form.meta_title || undefined,
       meta_description: form.meta_description || undefined,
       content: '',
@@ -216,8 +244,12 @@ const handleCreate = async () => {
       life: 3000,
     })
 
-    // Navigate to edit page to add content
-    router.push({ name: 'page-edit', params: { id: page.id } })
+    // Navigate to edit page to add content (autoabre el asistente IA si aplica)
+    router.push({
+      name: 'page-edit',
+      params: { id: page.id },
+      query: useAi ? { ai: '1' } : undefined,
+    })
   } catch (error: any) {
     const message = error.response?.data?.message
       || error.response?.data?.messages?.error

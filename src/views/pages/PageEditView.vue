@@ -45,6 +45,13 @@
 
         <div class="flex items-center gap-2">
           <Button
+            v-if="supportsAi"
+            label="Asistente IA"
+            icon="pi pi-sparkles"
+            text
+            @click="showAiPanel = true"
+          />
+          <Button
             v-if="supportsShortcodes"
             label="Insertar shortcode"
             icon="pi pi-bolt"
@@ -220,6 +227,16 @@
         />
       </template>
     </Dialog>
+
+    <!-- Asistente de HTML con IA -->
+    <AiHtmlBuilderPanel
+      v-if="page"
+      v-model:visible="showAiPanel"
+      :model-value="content"
+      :button-id="AI_BUTTON_IDS.html.page"
+      :context="page.title"
+      @apply="content = $event"
+    />
   </div>
 </template>
 
@@ -237,6 +254,8 @@ import Dropdown from 'primevue/dropdown'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import PageContentEditor from '@/components/pages/PageContentEditor.vue'
+import AiHtmlBuilderPanel from '@/components/ai/AiHtmlBuilderPanel.vue'
+import { AI_BUTTON_IDS } from '@/config/ai-buttons.config'
 import type { Page, PageEditorType } from '@/types/page.types'
 
 // Catálogo de shortcodes disponibles. Cada entrada debe tener un widget
@@ -277,9 +296,14 @@ const showShortcode = ref(false)
 const shortcodeType = ref<string>(SHORTCODE_TYPES[0].value)
 const shortcodeId = ref('')
 
+// Asistente de HTML con IA (solo editor de Código)
+const showAiPanel = ref(false)
+
 const supportsShortcodes = computed(
   () => page.value?.editor_type === 'wysiwyg' || page.value?.editor_type === 'code'
 )
+
+const supportsAi = computed(() => page.value?.editor_type === 'code')
 
 const selectedShortcode = computed(() =>
   SHORTCODE_TYPES.find((s) => s.value === shortcodeType.value)
@@ -356,6 +380,11 @@ const loadPage = async () => {
       settingsForm.published = result.published
       settingsForm.meta_title = result.meta_title || ''
       settingsForm.meta_description = result.meta_description || ''
+
+      // Autoabrir el asistente IA cuando se viene de la tarjeta "Generar con IA".
+      if (route.query.ai === '1' && result.editor_type === 'code') {
+        showAiPanel.value = true
+      }
     } else {
       loadError.value = 'Página no encontrada'
     }

@@ -27,6 +27,13 @@ export const AI_BUTTON_IDS = {
     envios: 'btn-69962d94-4300f762', // BTN-LEGAL-ENVIOS
     promociones: 'btn-69962db2-3a447427', // BTN-LEGAL-PROMOCIONES
   },
+  html: {
+    // Generación de HTML para páginas y bloques de plantilla con el asistente IA.
+    // Debe apuntar a un modelo fuerte (Claude/GPT-4 class) con max-tokens amplio,
+    // ya que el HTML completo se reemite en cada turno de la conversación.
+    // TODO: reemplazar por el button_id real creado en el admin del LLM Proxy.
+    page: DEFAULT_BUTTON_ID, // BTN-HTML-PAGE (pendiente de crear en el LLM Proxy)
+  },
 } as const
 
 /** Lookup para obtener el buttonId de una página legal por su slug */

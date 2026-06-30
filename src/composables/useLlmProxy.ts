@@ -1,10 +1,23 @@
 import { ref, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 
+type ChatRole = 'system' | 'user' | 'assistant'
+
+interface ChatMessage {
+  role: ChatRole
+  content: string
+}
+
 interface LlmRequest {
   systemPrompt: string
   userPrompt: string
   context?: string
+  buttonId?: string
+  temperature?: number
+}
+
+interface LlmMessagesRequest {
+  messages: ChatMessage[]
   buttonId?: string
   temperature?: number
 }
@@ -23,8 +36,12 @@ export function useLlmProxy() {
   const tenantId = 'ten-67d88d1d-111ae225'
   const userId = computed(() => String(authStore.selectedStore?.id || ''))
 
-  async function generate(
-    request: LlmRequest,
+  /**
+   * Envía un payload al proxy y acumula la respuesta SSE. Loop compartido por
+   * `generate` (single-turn) y `generateFromMessages` (multi-turno).
+   */
+  async function streamRequest(
+    payload: Record<string, unknown>,
     onChunk?: (accumulated: string) => void
   ): Promise<string> {
     loading.value = true
@@ -32,22 +49,6 @@ export function useLlmProxy() {
     let completeText = ''
 
     try {
-      const userContent = request.context
-        ? `${request.userPrompt}\n\nContexto:\n${request.context}`
-        : request.userPrompt
-
-      const payload = {
-        messages: [
-          { role: 'system', content: request.systemPrompt },
-          { role: 'user', content: userContent }
-        ],
-        temperature: request.temperature ?? 0.7,
-        stream: true,
-        tenantId,
-        userId: userId.value,
-        buttonId: request.buttonId || 'btn-69962669-e3fc2337'
-      }
-
       const response = await fetch(proxyEndpoint.value, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -102,5 +103,51 @@ export function useLlmProxy() {
     }
   }
 
-  return { generate, loading, error }
+  /** Single-turn: un par system + user (usado por AiFieldGenerator). */
+  async function generate(
+    request: LlmRequest,
+    onChunk?: (accumulated: string) => void
+  ): Promise<string> {
+    const userContent = request.context
+      ? `${request.userPrompt}\n\nContexto:\n${request.context}`
+      : request.userPrompt
+
+    return streamRequest(
+      {
+        messages: [
+          { role: 'system', content: request.systemPrompt },
+          { role: 'user', content: userContent }
+        ],
+        temperature: request.temperature ?? 0.7,
+        stream: true,
+        tenantId,
+        userId: userId.value,
+        buttonId: request.buttonId || 'btn-69962669-e3fc2337'
+      },
+      onChunk
+    )
+  }
+
+  /**
+   * Multi-turno: envía el historial completo de la conversación. Útil para
+   * iterar sobre un resultado (p. ej. el Asistente de HTML con IA).
+   */
+  async function generateFromMessages(
+    request: LlmMessagesRequest,
+    onChunk?: (accumulated: string) => void
+  ): Promise<string> {
+    return streamRequest(
+      {
+        messages: request.messages,
+        temperature: request.temperature ?? 0.7,
+        stream: true,
+        tenantId,
+        userId: userId.value,
+        buttonId: request.buttonId || 'btn-69962669-e3fc2337'
+      },
+      onChunk
+    )
+  }
+
+  return { generate, generateFromMessages, loading, error }
 }
