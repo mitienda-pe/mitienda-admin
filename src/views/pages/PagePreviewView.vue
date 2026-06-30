@@ -32,7 +32,7 @@
                 {{ page.published ? 'Publicada' : 'Borrador' }}
               </span>
             </div>
-            <p class="text-sm text-secondary-400 mt-1">{{ page.title }} &mdash; /{{ page.slug }}</p>
+            <p class="text-sm text-secondary-400 mt-1">{{ page.title }} &mdash; /pagina/{{ page.slug }}</p>
           </div>
         </div>
 
@@ -57,7 +57,7 @@
             <span class="w-3 h-3 rounded-full bg-green-400"></span>
           </div>
           <div class="flex-1 bg-white rounded px-3 py-1 text-sm text-secondary-500 font-mono">
-            /{{ page.slug }}
+            /pagina/{{ page.slug }}
           </div>
         </div>
 

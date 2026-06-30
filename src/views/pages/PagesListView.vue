@@ -61,7 +61,7 @@
                 {{ editorTypeLabel(page.editor_type) }}
               </span>
             </div>
-            <p class="text-sm text-secondary-400 mt-1">/{{ page.slug }}</p>
+            <p class="text-sm text-secondary-400 mt-1">/pagina/{{ page.slug }}</p>
           </div>
 
           <div class="flex items-center gap-3 ml-4">

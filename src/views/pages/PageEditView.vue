@@ -25,7 +25,7 @@
           <div>
             <h1 class="text-2xl font-bold text-secondary">{{ page.title }}</h1>
             <div class="flex items-center gap-2 mt-1">
-              <span class="text-sm text-secondary-400">/{{ page.slug }}</span>
+              <span class="text-sm text-secondary-400">/pagina/{{ page.slug }}</span>
               <span
                 class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
                 :class="editorTypeBadgeClass"
