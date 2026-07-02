@@ -554,11 +554,11 @@ const filteredRates = computed(() => {
 })
 
 const canSaveAdd = computed(() => {
-  return addForm.value.level1 && addForm.value.price > 0 && addForm.value.deliveryTime > 0
+  return addForm.value.level1 && addForm.value.price >= 0 && addForm.value.deliveryTime > 0
 })
 
 const canSaveEdit = computed(() => {
-  return editIsDirty.value && editForm.value.price > 0 && editForm.value.deliveryTime > 0
+  return editIsDirty.value && editForm.value.price >= 0 && editForm.value.deliveryTime > 0
 })
 
 // Methods
@@ -632,8 +632,8 @@ async function saveRate() {
   const node = editingNode.value
   const isNew = !node.data.hasRate
 
-  if (editForm.value.price <= 0) {
-    toast.add({ severity: 'warn', summary: 'Precio requerido', life: 3000 })
+  if (editForm.value.price < 0) {
+    toast.add({ severity: 'warn', summary: 'Precio inválido', life: 3000 })
     return
   }
 
