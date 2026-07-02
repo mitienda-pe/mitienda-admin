@@ -7,6 +7,20 @@ import type {
   UpdateAttributePayload,
 } from '@/types/attribute.types'
 
+// Extrae el mensaje de error real de la API. CI4 devuelve
+// { status, error, messages: { error: "..." } } en respuestas fail(); algunos
+// endpoints usan { message } o messages como string. Cubre todas las formas.
+function extractApiError(err: any, fallback: string): string {
+  const data = err?.response?.data
+  const msgs = data?.messages
+  return (
+    (typeof msgs?.error === 'string' && msgs.error) ||
+    (typeof msgs === 'string' && msgs) ||
+    (typeof data?.message === 'string' && data.message) ||
+    fallback
+  )
+}
+
 export const useAttributesStore = defineStore('attributes', () => {
   // State
   const attributes = ref<StoreAttribute[]>([])
@@ -121,7 +135,7 @@ export const useAttributesStore = defineStore('attributes', () => {
       }
       return false
     } catch (err: any) {
-      error.value = err.response?.data?.messages?.error || 'Error al agregar la opción'
+      error.value = extractApiError(err, 'Error al agregar la opción')
       console.error('Error adding option:', err)
       return false
     }
@@ -146,7 +160,7 @@ export const useAttributesStore = defineStore('attributes', () => {
       }
       return false
     } catch (err: any) {
-      error.value = err.response?.data?.messages?.error || 'Error al actualizar la opción'
+      error.value = extractApiError(err, 'Error al actualizar la opción')
       console.error('Error updating option:', err)
       return false
     }
@@ -167,7 +181,7 @@ export const useAttributesStore = defineStore('attributes', () => {
       }
       return false
     } catch (err: any) {
-      error.value = err.response?.data?.messages?.error || 'Error al eliminar la opción'
+      error.value = extractApiError(err, 'Error al eliminar la opción')
       console.error('Error removing option:', err)
       return false
     }

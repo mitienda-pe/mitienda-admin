@@ -479,18 +479,20 @@ async function handleUpdateOption(optionId: number) {
 
 async function handleDeleteOption(optionId: number) {
   if (!store.currentAttribute) return
-  if (!window.confirm('¿Estás seguro de eliminar esta opción? Los productos que la usen perderán este valor.')) return
+  if (!window.confirm('¿Eliminar esta opción? Solo se puede eliminar si ningún producto la usa como variante.')) return
 
   const success = await store.removeOption(store.currentAttribute.id, optionId)
 
   if (success) {
     toast.add({ severity: 'success', summary: 'Opción eliminada', life: 2000 })
   } else {
+    // El backend bloquea el borrado si la opción está en uso por variantes de
+    // producto y devuelve el motivo exacto en store.error.
     toast.add({
-      severity: 'error',
-      summary: 'Error',
+      severity: 'warn',
+      summary: 'No se pudo eliminar',
       detail: store.error || 'No se pudo eliminar la opción',
-      life: 5000,
+      life: 6000,
     })
   }
 }
