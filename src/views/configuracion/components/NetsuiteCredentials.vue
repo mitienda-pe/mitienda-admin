@@ -535,6 +535,53 @@
             />
           </div>
 
+          <!-- Modo de sincronización -->
+          <div class="p-4 bg-secondary-50 rounded-lg">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <label for="sync_mode" class="font-medium text-secondary-800">
+                  Modo de sincronización
+                </label>
+                <p class="text-sm text-secondary-600 mt-1">
+                  Cómo se sincroniza cada orden con NetSuite.
+                </p>
+              </div>
+              <Dropdown
+                id="sync_mode"
+                v-model="formData.sync_mode"
+                :options="syncModeOptions"
+                option-label="label"
+                option-value="value"
+                class="w-64 shrink-0"
+              />
+            </div>
+            <ul class="text-xs text-secondary-500 mt-3 ml-1 list-disc list-inside space-y-1">
+              <li><strong>Factura directa (POS)</strong>: crea Invoice + pago. Sin guía de remisión.</li>
+              <li><strong>Sales Order (web)</strong>: crea solo la Orden de Venta; NetSuite genera el despacho, la guía de remisión y la factura.</li>
+            </ul>
+
+            <!-- Custom Form del Sales Order (solo en modo sales_order) -->
+            <div
+              v-if="formData.sync_mode === 'sales_order'"
+              class="mt-4 pt-4 border-t border-secondary-200"
+            >
+              <label for="so_custom_form_id" class="block text-sm font-medium text-secondary-700 mb-2">
+                Custom Form ID del Sales Order
+                <span class="text-secondary-400 text-xs">(opcional)</span>
+              </label>
+              <InputText
+                id="so_custom_form_id"
+                v-model="formData.so_custom_form_id"
+                class="w-full md:w-64"
+                placeholder="ej: 225"
+              />
+              <small class="text-secondary-600 mt-1 block">
+                Custom Form de NetSuite para la Orden de Venta (ej: <code>225</code> = "PE Orden de Venta").
+                Vacío = form por defecto de la cuenta.
+              </small>
+            </div>
+          </div>
+
           <div class="flex items-center justify-between p-4 bg-secondary-50 rounded-lg">
             <div>
               <label for="stock_validation" class="font-medium text-secondary-800 cursor-pointer">
@@ -733,6 +780,7 @@ import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import Password from 'primevue/password'
 import InputSwitch from 'primevue/inputswitch'
+import Dropdown from 'primevue/dropdown'
 import Divider from 'primevue/divider'
 import Message from 'primevue/message'
 import Dialog from 'primevue/dialog'
@@ -796,8 +844,16 @@ const formData = reactive<Partial<SaveNetsuiteCredentialsRequest>>({
   default_salesrep_id: '',
   autosync_enabled: false,
   delegate_billing: false,
+  sync_mode: 'invoice_direct',
+  so_custom_form_id: '',
   estado: 1
 })
+
+// Opciones del modo de sincronización con NetSuite.
+const syncModeOptions = [
+  { label: 'Factura directa (POS)', value: 'invoice_direct' },
+  { label: 'Sales Order (web / guía de remisión)', value: 'sales_order' }
+]
 
 // Configuration validation report from /netsuite-config/validate.
 const validationIssues = ref<NetsuiteConfigIssue[]>([])
@@ -939,6 +995,8 @@ watch(() => props.tiendaId, async (tiendaId) => {
       default_salesrep_id: creds.tiendacredencialerp_default_salesrep_id || '',
       autosync_enabled: Number(creds.tiendacredencialerp_autosync_enabled) === 1,
       delegate_billing: Number(creds.tiendacredencialerp_delegate_billing) === 1,
+      sync_mode: creds.tiendacredencialerp_sync_mode || 'invoice_direct',
+      so_custom_form_id: creds.tiendacredencialerp_so_custom_form_id || '',
       estado: Number(creds.tiendacredencialerp_estado)
     })
 
@@ -976,6 +1034,8 @@ watch(() => props.tiendaId, async (tiendaId) => {
       default_salesrep_id: '',
       autosync_enabled: false,
       delegate_billing: false,
+      sync_mode: 'invoice_direct',
+      so_custom_form_id: '',
       estado: 1
     })
   }
@@ -1229,6 +1289,8 @@ async function handleSubmit() {
     default_salesrep_id: stringOrNull(formData.default_salesrep_id),
     autosync_enabled: formData.autosync_enabled || false,
     delegate_billing: formData.delegate_billing || false,
+    sync_mode: formData.sync_mode || 'invoice_direct',
+    so_custom_form_id: stringOrNull(formData.so_custom_form_id) ?? null,
     estado: formData.estado || 1,
     locations: locations.value.length > 0 ? locations.value : undefined
   }

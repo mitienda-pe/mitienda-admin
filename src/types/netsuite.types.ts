@@ -44,6 +44,10 @@ export interface NetsuiteCredential {
   tiendacredencialerp_estado: number
   tiendacredencialerp_autosync_enabled: number
   tiendacredencialerp_delegate_billing?: number
+  // Modo de sincronización: 'invoice_direct' (POS) | 'sales_order' (web con guía de remisión)
+  tiendacredencialerp_sync_mode?: string
+  // Custom Form ID del Sales Order en NetSuite (solo modo sales_order). null = form por defecto de la cuenta.
+  tiendacredencialerp_so_custom_form_id?: string | null
   tiendacredencialerp_fecha_creacion?: string
   tiendacredencialerp_fecha_actualizacion?: string
   locations?: NetsuiteLocation[]
@@ -79,6 +83,8 @@ export interface SaveNetsuiteCredentialsRequest {
   default_salesrep_id?: string
   autosync_enabled: boolean
   delegate_billing?: boolean
+  sync_mode?: string
+  so_custom_form_id?: string | null
   estado: number
   locations?: NetsuiteLocation[]
 }
