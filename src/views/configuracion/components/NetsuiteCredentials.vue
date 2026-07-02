@@ -703,11 +703,16 @@
           <InputText
             id="dialog_serie_boleta"
             v-model="locationForm.serie_boleta_netsuite_id"
-            :placeholder="branchesDefaults.serie_boleta_netsuite_id ? `Default: ${branchesDefaults.serie_boleta_netsuite_id}` : 'Sin default de tienda'"
+            :placeholder="branchesDefaults.serie_boleta_netsuite_id ? `Hereda: ${branchesDefaults.serie_boleta_netsuite_id}` : 'Sin valor de tienda'"
             class="w-full"
           />
           <small class="text-secondary-600 mt-1 block">
-            Override de la serie boleta para esta sucursal. Vacío = usa la de la tienda.
+            <template v-if="locationForm.serie_boleta_netsuite_id">
+              Override activo para esta sucursal. Deja vacío para volver a heredar la de la tienda<template v-if="branchesDefaults.serie_boleta_netsuite_id"> ({{ branchesDefaults.serie_boleta_netsuite_id }})</template>.
+            </template>
+            <template v-else>
+              Hereda de la tienda<template v-if="branchesDefaults.serie_boleta_netsuite_id">: <span class="font-mono font-medium text-secondary-700">{{ branchesDefaults.serie_boleta_netsuite_id }}</span></template>. Escribe un valor solo si esta sucursal debe usar otra serie.
+            </template>
           </small>
         </div>
 
@@ -719,11 +724,16 @@
           <InputText
             id="dialog_serie_factura"
             v-model="locationForm.serie_factura_netsuite_id"
-            :placeholder="branchesDefaults.serie_factura_netsuite_id ? `Default: ${branchesDefaults.serie_factura_netsuite_id}` : 'Sin default de tienda'"
+            :placeholder="branchesDefaults.serie_factura_netsuite_id ? `Hereda: ${branchesDefaults.serie_factura_netsuite_id}` : 'Sin valor de tienda'"
             class="w-full"
           />
           <small class="text-secondary-600 mt-1 block">
-            Override de la serie factura para esta sucursal. Vacío = usa la de la tienda.
+            <template v-if="locationForm.serie_factura_netsuite_id">
+              Override activo para esta sucursal. Deja vacío para volver a heredar la de la tienda<template v-if="branchesDefaults.serie_factura_netsuite_id"> ({{ branchesDefaults.serie_factura_netsuite_id }})</template>.
+            </template>
+            <template v-else>
+              Hereda de la tienda<template v-if="branchesDefaults.serie_factura_netsuite_id">: <span class="font-mono font-medium text-secondary-700">{{ branchesDefaults.serie_factura_netsuite_id }}</span></template>. Escribe un valor solo si esta sucursal debe usar otra serie.
+            </template>
           </small>
         </div>
 
@@ -735,11 +745,17 @@
           <InputText
             id="dialog_generic_customer"
             v-model="locationForm.generic_customer_id"
-            :placeholder="branchesDefaults.generic_customer_id ? `Default: ${branchesDefaults.generic_customer_id}` : 'Sin default de tienda'"
+            :placeholder="branchesDefaults.generic_customer_id ? `Hereda: ${branchesDefaults.generic_customer_id}` : 'Sin valor de tienda'"
             class="w-full"
           />
           <small class="text-secondary-600 mt-1 block">
-            Cliente genérico para ventas &lt; 700 sin DNI. Vacío = usa el de la tienda.
+            Cliente genérico para ventas &lt; 700 sin DNI.
+            <template v-if="locationForm.generic_customer_id">
+              Override activo. Deja vacío para volver a heredar el de la tienda<template v-if="branchesDefaults.generic_customer_id"> ({{ branchesDefaults.generic_customer_id }})</template>.
+            </template>
+            <template v-else>
+              Hereda de la tienda<template v-if="branchesDefaults.generic_customer_id">: <span class="font-mono font-medium text-secondary-700">{{ branchesDefaults.generic_customer_id }}</span></template>. Escribe un valor solo si esta sucursal debe usar otro.
+            </template>
           </small>
         </div>
       </div>
