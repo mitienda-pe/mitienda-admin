@@ -698,42 +698,48 @@
         <!-- Serie Boleta override -->
         <div>
           <label for="dialog_serie_boleta" class="block text-sm font-medium text-secondary-700 mb-2">
-            Serie Boleta (NetSuite ID)
+            Serie Boleta
           </label>
-          <InputText
+          <Dropdown
             id="dialog_serie_boleta"
             v-model="locationForm.serie_boleta_netsuite_id"
-            :placeholder="branchesDefaults.serie_boleta_netsuite_id ? `Hereda: ${branchesDefaults.serie_boleta_netsuite_id}` : 'Sin valor de tienda'"
+            :options="boletaSerieOptions"
+            option-label="label"
+            option-value="value"
             class="w-full"
           />
           <small class="text-secondary-600 mt-1 block">
             <template v-if="locationForm.serie_boleta_netsuite_id">
-              Override activo para esta sucursal. Deja vacío para volver a heredar la de la tienda<template v-if="branchesDefaults.serie_boleta_netsuite_id"> ({{ branchesDefaults.serie_boleta_netsuite_id }})</template>.
+              Esta sucursal usa una serie propia. Elige "Heredar de la tienda" para volver al default.
             </template>
             <template v-else>
-              Hereda de la tienda<template v-if="branchesDefaults.serie_boleta_netsuite_id">: <span class="font-mono font-medium text-secondary-700">{{ branchesDefaults.serie_boleta_netsuite_id }}</span></template>. Escribe un valor solo si esta sucursal debe usar otra serie.
+              Hereda la serie boleta de la tienda. Elige otra solo si esta sucursal debe usar una distinta.
             </template>
+            Se configuran en la pestaña <strong>Series</strong>.
           </small>
         </div>
 
         <!-- Serie Factura override -->
         <div>
           <label for="dialog_serie_factura" class="block text-sm font-medium text-secondary-700 mb-2">
-            Serie Factura (NetSuite ID)
+            Serie Factura
           </label>
-          <InputText
+          <Dropdown
             id="dialog_serie_factura"
             v-model="locationForm.serie_factura_netsuite_id"
-            :placeholder="branchesDefaults.serie_factura_netsuite_id ? `Hereda: ${branchesDefaults.serie_factura_netsuite_id}` : 'Sin valor de tienda'"
+            :options="facturaSerieOptions"
+            option-label="label"
+            option-value="value"
             class="w-full"
           />
           <small class="text-secondary-600 mt-1 block">
             <template v-if="locationForm.serie_factura_netsuite_id">
-              Override activo para esta sucursal. Deja vacío para volver a heredar la de la tienda<template v-if="branchesDefaults.serie_factura_netsuite_id"> ({{ branchesDefaults.serie_factura_netsuite_id }})</template>.
+              Esta sucursal usa una serie propia. Elige "Heredar de la tienda" para volver al default.
             </template>
             <template v-else>
-              Hereda de la tienda<template v-if="branchesDefaults.serie_factura_netsuite_id">: <span class="font-mono font-medium text-secondary-700">{{ branchesDefaults.serie_factura_netsuite_id }}</span></template>. Escribe un valor solo si esta sucursal debe usar otra serie.
+              Hereda la serie factura de la tienda. Elige otra solo si esta sucursal debe usar una distinta.
             </template>
+            Se configuran en la pestaña <strong>Series</strong>.
           </small>
         </div>
 
@@ -789,6 +795,7 @@ import type {
   SaveNetsuiteCredentialsRequest,
   NetsuiteLocation,
   NetsuiteConfigIssue,
+  NetsuiteSerie,
 } from '@/types/netsuite.types'
 
 import Button from 'primevue/button'
@@ -929,6 +936,51 @@ function getBranchConfig(branchId: number | string): BranchConfig | undefined {
   return branchesConfig.value.find(b => Number(b.tiendadireccion_id) === id)
 }
 
+// Series configuradas de la tienda (pestaña Series) — sirven para el override
+// por sucursal como opciones de un select en vez de teclear el ID de NetSuite.
+const storeSeries = ref<NetsuiteSerie[]>([])
+
+async function loadStoreSeries(tiendaId: number) {
+  if (!tiendaId) { storeSeries.value = []; return }
+  try {
+    const response = await netsuiteApi.getSeries(tiendaId)
+    storeSeries.value = response.data || []
+  } catch (e) {
+    storeSeries.value = []
+  }
+}
+
+// Opciones del select de override de serie por sucursal. El primer item hereda
+// de la tienda (value ''); luego las series mapeadas del tipo. Si el override
+// actual apunta a un ID que ya no está en la lista, se agrega para no perderlo.
+function serieOptions(tipo: 'BOLETA' | 'FACTURA', currentValue: string) {
+  const heredaId = tipo === 'BOLETA'
+    ? branchesDefaults.serie_boleta_netsuite_id
+    : branchesDefaults.serie_factura_netsuite_id
+  const options: Array<{ label: string; value: string }> = [
+    { label: heredaId ? `Heredar de la tienda (${heredaId})` : 'Heredar de la tienda', value: '' },
+  ]
+  for (const s of storeSeries.value) {
+    if (s.tiendaserieerp_tipo_documento === tipo && s.tiendaserieerp_netsuite_id) {
+      options.push({
+        label: `${s.tiendaserieerp_codigo} → ${s.tiendaserieerp_netsuite_id}`,
+        value: String(s.tiendaserieerp_netsuite_id),
+      })
+    }
+  }
+  if (currentValue && !options.some(o => o.value === currentValue)) {
+    options.push({ label: `${currentValue} (actual)`, value: currentValue })
+  }
+  return options
+}
+
+const boletaSerieOptions = computed(() =>
+  serieOptions('BOLETA', locationForm.serie_boleta_netsuite_id)
+)
+const facturaSerieOptions = computed(() =>
+  serieOptions('FACTURA', locationForm.serie_factura_netsuite_id)
+)
+
 const locationForm = reactive({
   tiendadireccion_id: 0,
   branch_name: '',
@@ -1059,6 +1111,7 @@ watch(() => props.tiendaId, async (tiendaId) => {
   // Load locations and validation report
   await loadLocations(tiendaId)
   await loadBranchesConfig(tiendaId)
+  await loadStoreSeries(tiendaId)
   await loadValidation(tiendaId)
 }, { immediate: true })
 
