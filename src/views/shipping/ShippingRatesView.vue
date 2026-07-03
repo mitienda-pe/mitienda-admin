@@ -614,16 +614,35 @@ function openEditDialog(node: RateTreeNode) {
   editDialogVisible.value = true
 }
 
-function openAddDialogForLocation(node: RateTreeNode) {
-  editingNode.value = node
-  editForm.value = {
+async function openAddDialogForLocation(node: RateTreeNode) {
+  // Los nodos de departamento/provincia del árbol son agrupadores sintéticos
+  // (locationId = 0), así que no se puede crear una tarifa directa sobre ellos.
+  // En su lugar abrimos el diálogo cascada con el padre preseleccionado para
+  // agregar una ubicación por debajo.
+  addForm.value = {
+    level1: null,
+    level2: null,
+    level3: null,
     price: 0,
     deliveryTime: 1,
-    deliveryTimeUnit: 'days',
-    enabled: true
+    deliveryTimeUnit: 'days'
   }
-  resetEditDirty()
-  editDialogVisible.value = true
+  level2Options.value = []
+  level3Options.value = []
+
+  level1Options.value = await store.fetchLocations(currentCountry.value.code)
+
+  // code: departamento = "15", provincia = "15-1"
+  const parts = node.data.code.split('-')
+  addForm.value.level1 = String(parts[0])
+  level2Options.value = await store.fetchLocations(currentCountry.value.code, addForm.value.level1)
+
+  if (node.data.level >= 2 && parts.length >= 2) {
+    addForm.value.level2 = `${parts[0]}-${parts[1]}`
+    level3Options.value = await store.fetchLocations(currentCountry.value.code, addForm.value.level2)
+  }
+
+  addDialogVisible.value = true
 }
 
 async function saveRate() {
