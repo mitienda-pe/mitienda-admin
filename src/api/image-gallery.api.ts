@@ -71,4 +71,37 @@ export const imageGalleryApi = {
   async deleteR2Image(id: number): Promise<void> {
     await apiClient.delete(`/image-gallery/r2/${id}`)
   },
+
+  async uploadZip(file: File): Promise<{ batch_id: number }> {
+    const formData = new FormData()
+    formData.append('zip', file)
+
+    const response = await apiClient.post('/image-gallery/zip-upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return response.data.data
+  },
+
+  async getZipStatus(batchId: number): Promise<ZipBatchStatus> {
+    const response = await apiClient.get(`/image-gallery/zip-upload/${batchId}/status`)
+    return response.data.data
+  },
+}
+
+export interface ZipBatchStatus {
+  batch_id: number
+  status: 'pending' | 'processing' | 'completed' | 'failed'
+  total_images: number
+  processed: number
+  linked: number
+  unmatched: number
+  skipped_quota: number
+  details: {
+    unmatched_skus?: string[]
+    quota_skus?: string[]
+    failed?: string[]
+    message?: string | null
+  } | null
+  created_at: string | null
+  finished_at: string | null
 }

@@ -8,6 +8,11 @@
           {{ galleryStore.pagination.total }} imágenes
         </p>
       </div>
+      <AppButton
+        label="Subir imágenes"
+        icon="pi pi-upload"
+        @click="showUpload = true"
+      />
     </div>
 
     <!-- Filters -->
@@ -118,6 +123,9 @@
       :imageSource="selectedImageSource"
       @metadata-updated="galleryStore.fetchImages(galleryStore.pagination.page)"
     />
+
+    <!-- Upload Dialog -->
+    <ImageUploadDialog v-model:visible="showUpload" />
   </div>
 </template>
 
@@ -132,6 +140,8 @@ import Paginator from 'primevue/paginator'
 import ProgressSpinner from 'primevue/progressspinner'
 import Dropdown from 'primevue/dropdown'
 import ImageDetailDialog from '@/components/images/ImageDetailDialog.vue'
+import ImageUploadDialog from '@/components/images/ImageUploadDialog.vue'
+import { AppButton } from '@/components/ui'
 import type { GalleryImage, ImageSource } from '@/types/gallery-image.types'
 
 const galleryStore = useImageGalleryStore()
@@ -139,6 +149,7 @@ const galleryStore = useImageGalleryStore()
 const searchQuery = ref('')
 const sourceFilter = ref<'all' | ImageSource>('all')
 const showDetail = ref(false)
+const showUpload = ref(false)
 const selectedImageId = ref<number | null>(null)
 const selectedImageSource = ref<ImageSource | null>(null)
 

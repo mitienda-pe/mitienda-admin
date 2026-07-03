@@ -1,6 +1,6 @@
 import { ref, reactive } from 'vue'
 import { defineStore } from 'pinia'
-import { imageGalleryApi } from '@/api/image-gallery.api'
+import { imageGalleryApi, type ZipBatchStatus } from '@/api/image-gallery.api'
 import type {
   GalleryImage,
   GalleryImageDetail,
@@ -79,6 +79,60 @@ export const useImageGalleryStore = defineStore('image-gallery', () => {
     }
   }
 
+  // ── Upload (individual) ──────────────────────────────────
+  const isUploading = ref(false)
+
+  async function uploadImage(file: File, title?: string) {
+    try {
+      isUploading.value = true
+      await imageGalleryApi.uploadImage(file, title)
+      await fetchImages(1)
+    } finally {
+      isUploading.value = false
+    }
+  }
+
+  // ── Upload (bulk ZIP, async) ─────────────────────────────
+  const zipStatus = ref<ZipBatchStatus | null>(null)
+  const isUploadingZip = ref(false)
+
+  async function uploadZip(file: File): Promise<number> {
+    isUploadingZip.value = true
+    zipStatus.value = null
+    try {
+      const { batch_id } = await imageGalleryApi.uploadZip(file)
+      return batch_id
+    } finally {
+      isUploadingZip.value = false
+    }
+  }
+
+  let zipPollTimer: ReturnType<typeof setTimeout> | null = null
+
+  function pollZipStatus(batchId: number) {
+    const tick = async () => {
+      try {
+        const status = await imageGalleryApi.getZipStatus(batchId)
+        zipStatus.value = status
+        if (status.status === 'completed' || status.status === 'failed') {
+          if (status.status === 'completed') await fetchImages(1)
+          return
+        }
+      } catch {
+        // keep polling; transient errors shouldn't abort the batch view
+      }
+      zipPollTimer = setTimeout(tick, 2000)
+    }
+    tick()
+  }
+
+  function stopZipPolling() {
+    if (zipPollTimer) {
+      clearTimeout(zipPollTimer)
+      zipPollTimer = null
+    }
+  }
+
   function setSearch(query: string) {
     filters.search = query
   }
@@ -99,9 +153,16 @@ export const useImageGalleryStore = defineStore('image-gallery', () => {
     error,
     pagination,
     filters,
+    isUploading,
+    isUploadingZip,
+    zipStatus,
     fetchImages,
     fetchImageDetail,
     updateMetadata,
+    uploadImage,
+    uploadZip,
+    pollZipStatus,
+    stopZipPolling,
     setSearch,
     setSourceFilter,
     clearSelectedImage,
