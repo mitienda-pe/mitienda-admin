@@ -13,7 +13,9 @@ import type {
   NetsuiteInventoryNumber,
   SaveInventoryNumberRequest,
   CsvUploadResponse,
-  NetsuiteConfigValidationResponse
+  NetsuiteConfigValidationResponse,
+  NetsuiteCashierAccount,
+  SaveNetsuiteCashierAccountRequest
 } from '@/types/netsuite.types'
 
 export const netsuiteApi = {
@@ -442,6 +444,42 @@ export const netsuiteApi = {
    */
   async deleteBranchSerie(tiendaId: number, branchId: number, tipo: 'BOLETA' | 'FACTURA'): Promise<ApiResponse<{ success: boolean }>> {
     const response = await apiClient.delete(`/netsuite-credentials/${tiendaId}/branches/${branchId}/series/${tipo}`)
+    return response.data
+  },
+
+  // ========== Cashier / Bank Accounts API ==========
+
+  /**
+   * Lista las cuentas bancarias/caja de NetSuite por método de pago.
+   * @param branchId Filtra por sucursal (opcional). Sin filtro devuelve todas las de la tienda.
+   */
+  async getCashierAccounts(branchId?: number | null): Promise<ApiResponse<NetsuiteCashierAccount[]>> {
+    const params = branchId ? { branch_id: branchId } : {}
+    const response = await apiClient.get('/netsuite-cashier-accounts', { params })
+    return response.data
+  },
+
+  /**
+   * Crea una cuenta bancaria/caja de NetSuite.
+   */
+  async createCashierAccount(data: SaveNetsuiteCashierAccountRequest): Promise<ApiResponse<NetsuiteCashierAccount>> {
+    const response = await apiClient.post('/netsuite-cashier-accounts', data)
+    return response.data
+  },
+
+  /**
+   * Actualiza una cuenta bancaria/caja de NetSuite.
+   */
+  async updateCashierAccount(id: number, data: Partial<SaveNetsuiteCashierAccountRequest>): Promise<ApiResponse<NetsuiteCashierAccount>> {
+    const response = await apiClient.put(`/netsuite-cashier-accounts/${id}`, data)
+    return response.data
+  },
+
+  /**
+   * Desactiva (soft delete) una cuenta bancaria/caja de NetSuite.
+   */
+  async deleteCashierAccount(id: number): Promise<ApiResponse<any>> {
+    const response = await apiClient.delete(`/netsuite-cashier-accounts/${id}`)
     return response.data
   },
 

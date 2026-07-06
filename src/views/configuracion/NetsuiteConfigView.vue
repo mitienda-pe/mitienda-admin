@@ -47,6 +47,18 @@
 
               <TabPanel>
                 <template #header>
+                  <i class="pi pi-wallet mr-2"></i>
+                  <span>Cuentas</span>
+                </template>
+                <div class="pt-4">
+                  <NetsuiteCashierAccounts
+                    :tienda-id="currentTiendaId"
+                  />
+                </div>
+              </TabPanel>
+
+              <TabPanel>
+                <template #header>
                   <i class="pi pi-dollar mr-2"></i>
                   <span>Precios</span>
                 </template>
@@ -201,6 +213,7 @@ import Divider from 'primevue/divider'
 
 import NetsuiteCredentials from './components/NetsuiteCredentials.vue'
 import NetsuiteSeriesMap from './components/NetsuiteSeriesMap.vue'
+import NetsuiteCashierAccounts from './components/NetsuiteCashierAccounts.vue'
 import NetsuitePriceSync from './components/NetsuitePriceSync.vue'
 import NetsuiteTest from './components/NetsuiteTest.vue'
 

@@ -151,6 +151,49 @@ export interface SaveNetsuiteSerieRequest {
   estado?: number
 }
 
+// NetSuite Cashier / Bank Account Types
+
+export type NetsuitePaymentMethod =
+  | 'efectivo'
+  | 'tarjeta'
+  | 'banco'
+  | 'yape'
+  | 'plin'
+  | 'transferencia'
+  | 'qr'
+  | 'nota_credito'
+  | 'redondeo_favor'
+  | 'redondeo_contra'
+
+/**
+ * Cuenta bancaria/caja de NetSuite mapeada por método de pago.
+ * Resolución en cascada: caja → sucursal → tienda.
+ *   - tiendadireccion_id null + caja_numero null → default de toda la tienda
+ *   - tiendadireccion_id set + caja_numero null  → default de una sucursal
+ *   - tiendadireccion_id set + caja_numero set    → una caja específica
+ */
+export interface NetsuiteCashierAccount {
+  id: number
+  tienda_id: number
+  tiendadireccion_id: number | null
+  caja_numero: number | null
+  caja_nombre: string | null
+  payment_method: NetsuitePaymentMethod
+  netsuite_account_id: string
+  is_active: number
+  created_at?: string
+  updated_at?: string
+}
+
+export interface SaveNetsuiteCashierAccountRequest {
+  tiendadireccion_id: number | null
+  caja_numero: number | null
+  caja_nombre?: string | null
+  payment_method: NetsuitePaymentMethod | ''
+  netsuite_account_id: string
+  is_active: number
+}
+
 // NetSuite Inventory Mapping Types
 
 export interface NetsuiteInventoryNumber {
