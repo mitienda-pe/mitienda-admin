@@ -15,7 +15,10 @@ import type {
   CsvUploadResponse,
   NetsuiteConfigValidationResponse,
   NetsuiteCashierAccount,
-  SaveNetsuiteCashierAccountRequest
+  SaveNetsuiteCashierAccountRequest,
+  NetsuiteGatewayAccount,
+  SaveNetsuiteGatewayAccountRequest,
+  AvailableGateway
 } from '@/types/netsuite.types'
 
 export const netsuiteApi = {
@@ -480,6 +483,38 @@ export const netsuiteApi = {
    */
   async deleteCashierAccount(id: number): Promise<ApiResponse<any>> {
     const response = await apiClient.delete(`/netsuite-cashier-accounts/${id}`)
+    return response.data
+  },
+
+  // ========== Gateway Accounts API (cuenta NetSuite por pasarela del storefront) ==========
+
+  /** Lista los mapeos pasarela → cuenta NetSuite de la tienda. */
+  async getGatewayAccounts(): Promise<ApiResponse<NetsuiteGatewayAccount[]>> {
+    const response = await apiClient.get('/netsuite-gateway-accounts')
+    return response.data
+  },
+
+  /** Pasarelas activas de la tienda (para el dropdown). */
+  async getAvailableGateways(): Promise<ApiResponse<AvailableGateway[]>> {
+    const response = await apiClient.get('/netsuite-gateway-accounts/available-gateways')
+    return response.data
+  },
+
+  /** Crea un mapeo pasarela → cuenta NetSuite. */
+  async createGatewayAccount(data: SaveNetsuiteGatewayAccountRequest): Promise<ApiResponse<NetsuiteGatewayAccount>> {
+    const response = await apiClient.post('/netsuite-gateway-accounts', data)
+    return response.data
+  },
+
+  /** Actualiza la cuenta NetSuite de un mapeo. */
+  async updateGatewayAccount(id: number, data: Partial<SaveNetsuiteGatewayAccountRequest>): Promise<ApiResponse<NetsuiteGatewayAccount>> {
+    const response = await apiClient.put(`/netsuite-gateway-accounts/${id}`, data)
+    return response.data
+  },
+
+  /** Desactiva (soft delete) un mapeo. */
+  async deleteGatewayAccount(id: number): Promise<ApiResponse<any>> {
+    const response = await apiClient.delete(`/netsuite-gateway-accounts/${id}`)
     return response.data
   },
 

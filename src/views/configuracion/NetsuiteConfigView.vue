@@ -50,10 +50,20 @@
                   <i class="pi pi-wallet mr-2"></i>
                   <span>Cuentas</span>
                 </template>
-                <div class="pt-4">
-                  <NetsuiteCashierAccounts
-                    :tienda-id="currentTiendaId"
-                  />
+                <div class="pt-4 space-y-6">
+                  <div>
+                    <h3 class="text-base font-semibold text-secondary-800 mb-3">Por método de pago (POS)</h3>
+                    <NetsuiteCashierAccounts
+                      :tienda-id="currentTiendaId"
+                    />
+                  </div>
+                  <Divider />
+                  <div>
+                    <h3 class="text-base font-semibold text-secondary-800 mb-3">Por pasarela (web / storefront)</h3>
+                    <NetsuiteGatewayAccounts
+                      :tienda-id="currentTiendaId"
+                    />
+                  </div>
                 </div>
               </TabPanel>
 
@@ -214,6 +224,7 @@ import Divider from 'primevue/divider'
 import NetsuiteCredentials from './components/NetsuiteCredentials.vue'
 import NetsuiteSeriesMap from './components/NetsuiteSeriesMap.vue'
 import NetsuiteCashierAccounts from './components/NetsuiteCashierAccounts.vue'
+import NetsuiteGatewayAccounts from './components/NetsuiteGatewayAccounts.vue'
 import NetsuitePriceSync from './components/NetsuitePriceSync.vue'
 import NetsuiteTest from './components/NetsuiteTest.vue'
 

@@ -194,6 +194,34 @@ export interface SaveNetsuiteCashierAccountRequest {
   is_active: number
 }
 
+// NetSuite Gateway Accounts (cuenta NetSuite por pasarela del storefront)
+
+/**
+ * Cuenta NetSuite donde entran los pagos de una pasarela del storefront.
+ * Se usa para registrar el prepago (Customer Deposit) sobre el Sales Order.
+ * Llave: (tienda_id, pasarela_id).
+ */
+export interface NetsuiteGatewayAccount {
+  id: number
+  tienda_id: number
+  pasarela_id: number
+  pasarela_nombre?: string
+  netsuite_account_id: string
+  netsuite_payment_method_id?: string | null
+  estado: number
+}
+
+export interface SaveNetsuiteGatewayAccountRequest {
+  pasarela_id: number
+  netsuite_account_id: string
+}
+
+/** Pasarela activa de la tienda, para el dropdown. */
+export interface AvailableGateway {
+  pasarela_id: number
+  pasarela_nombre: string
+}
+
 // NetSuite Inventory Mapping Types
 
 export interface NetsuiteInventoryNumber {
