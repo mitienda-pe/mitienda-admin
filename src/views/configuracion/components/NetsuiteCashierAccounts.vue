@@ -443,5 +443,3 @@ watch(() => props.tiendaId, async (tiendaId) => {
   font-weight: 600;
 }
 </style>
-</content>
-</invoke>
