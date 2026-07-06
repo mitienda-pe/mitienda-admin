@@ -924,6 +924,9 @@ const billingDocumentNumber = computed(() => {
 
 const nsInvoice = computed(() => debugPaymentData.value?.netsuite?.invoice ?? null)
 const nsPayments = computed(() => debugPaymentData.value?.netsuite?.payments ?? [])
+// Modo sales_order: Orden de Venta + Customer Deposit (prepago) en vez de invoice.
+const nsSalesOrder = computed(() => debugPaymentData.value?.netsuite?.salesorder ?? null)
+const nsDeposit = computed(() => debugPaymentData.value?.netsuite?.deposit ?? null)
 const nsFullyPaid = computed(
   () => nsInvoice.value !== null && Number(nsInvoice.value.foreignamountunpaid) === 0
 )
@@ -1989,6 +1992,48 @@ const handleDebugPayments = async () => {
                       </div>
                       <div v-else-if="debugPaymentData.netsuite?.error" class="p-3 bg-red-50 border border-red-200 rounded-lg">
                         <p class="text-sm text-red-800">Error consultando NetSuite: {{ debugPaymentData.netsuite.error }}</p>
+                      </div>
+                      <!-- Modo sales_order: Orden de Venta + prepago (no hay invoice) -->
+                      <div v-else-if="nsSalesOrder" class="space-y-3">
+                        <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div class="flex items-center gap-2 mb-2">
+                            <i class="pi pi-file text-blue-600"></i>
+                            <span class="font-semibold text-sm">Orden de Venta (Sales Order)</span>
+                            <span class="text-xs text-gray-500">{{ nsSalesOrder.tranid }} · {{ nsSalesOrder.status }}</span>
+                          </div>
+                          <div class="text-sm">
+                            <p class="text-gray-500 text-xs">Total</p>
+                            <p class="font-mono font-semibold">{{ formatCurrency(Number(nsSalesOrder.foreigntotal) || 0) }}</p>
+                          </div>
+                          <p class="text-xs text-gray-500 mt-2">
+                            La factura y la guía de remisión las emite el ERP del cliente a partir de esta Orden de Venta.
+                          </p>
+                        </div>
+
+                        <div v-if="nsDeposit" class="p-3 bg-green-50 border border-green-200 rounded-lg">
+                          <div class="flex items-center gap-2 mb-2">
+                            <i class="pi pi-check-circle text-green-600"></i>
+                            <span class="font-semibold text-sm">Prepago registrado (Customer Deposit)</span>
+                            <span class="text-xs text-gray-500">{{ nsDeposit.tranid }}</span>
+                          </div>
+                          <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <p class="text-gray-500 text-xs">Monto</p>
+                              <p class="font-mono font-semibold text-green-700">{{ formatCurrency(Number(nsDeposit.foreigntotal) || 0) }}</p>
+                            </div>
+                            <div>
+                              <p class="text-gray-500 text-xs">Cuenta contable</p>
+                              <p class="text-xs">
+                                <span v-for="acc in nsDeposit.accounts || []" :key="acc.account" class="block">{{ acc.account_name }}</span>
+                                <span v-if="!(nsDeposit.accounts || []).length">—</span>
+                              </p>
+                            </div>
+                          </div>
+                          <p v-if="nsDeposit.memo" class="text-xs text-gray-500 mt-2">{{ nsDeposit.memo }}</p>
+                        </div>
+                        <div v-else class="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <p class="text-sm text-yellow-800">Orden de Venta creada, pero sin prepago registrado (Customer Deposit).</p>
+                        </div>
                       </div>
                       <div v-else class="p-3 bg-gray-50 border border-gray-200 rounded-lg">
                         <p class="text-sm text-gray-600">La orden no tiene invoice en NetSuite (sin sync ERP).</p>
