@@ -86,7 +86,7 @@
           <label class="block text-sm font-medium text-secondary-700 mb-1">Pasarela *</label>
           <Dropdown
             v-model="form.pasarela_id"
-            :options="editingId ? allGatewayOptions : availableForCreate"
+            :options="dialogGatewayOptions"
             optionLabel="pasarela_nombre"
             optionValue="pasarela_id"
             placeholder="Seleccione una pasarela"
@@ -143,14 +143,12 @@ const gateways = ref<AvailableGateway[]>([])
 
 const dialogVisible = ref(false)
 const editingId = ref<number | null>(null)
+const editingRow = ref<NetsuiteGatewayAccount | null>(null)
 
 const form = ref<{ pasarela_id: number | null; netsuite_account_id: string }>({
   pasarela_id: null,
   netsuite_account_id: ''
 })
-
-// Todas las pasarelas de la tienda (para mostrar la actual al editar).
-const allGatewayOptions = computed(() => gateways.value)
 
 // Al crear: solo pasarelas que aún no tienen mapeo activo.
 const availableForCreate = computed(() => {
@@ -158,11 +156,29 @@ const availableForCreate = computed(() => {
   return gateways.value.filter(g => !mapped.has(Number(g.pasarela_id)))
 })
 
+// Opciones del dropdown del diálogo. Al editar (pasarela no cambiable), se muestra
+// solo la pasarela de la fila; al crear, las disponibles.
+const dialogGatewayOptions = computed<AvailableGateway[]>(() => {
+  if (editingId.value && editingRow.value) {
+    return [{
+      pasarela_id: Number(editingRow.value.pasarela_id),
+      pasarela_nombre: editingRow.value.pasarela_nombre || `Pasarela #${editingRow.value.pasarela_id}`
+    }]
+  }
+  return availableForCreate.value
+})
+
 async function loadGateways() {
   if (!props.tiendaId) return
   try {
     const response = await netsuiteApi.getAvailableGateways()
-    gateways.value = response.success && response.data ? response.data : []
+    const rows = response.success && response.data ? response.data : []
+    // El backend devuelve pasarela_id como string; normalizar a number para que
+    // el v-model del Dropdown (number) haga match con optionValue.
+    gateways.value = rows.map((g: any) => ({
+      pasarela_id: Number(g.pasarela_id),
+      pasarela_nombre: g.pasarela_nombre
+    }))
   } catch (err: any) {
     console.error('[NetsuiteGatewayAccounts] loadGateways:', err)
     gateways.value = []
@@ -186,12 +202,14 @@ async function loadAccounts() {
 
 function openCreate() {
   editingId.value = null
+  editingRow.value = null
   form.value = { pasarela_id: null, netsuite_account_id: '' }
   dialogVisible.value = true
 }
 
 function openEdit(a: NetsuiteGatewayAccount) {
   editingId.value = a.id
+  editingRow.value = a
   form.value = { pasarela_id: Number(a.pasarela_id), netsuite_account_id: a.netsuite_account_id }
   dialogVisible.value = true
 }
