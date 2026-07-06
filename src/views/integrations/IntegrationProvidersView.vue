@@ -37,6 +37,7 @@ const CATEGORY_MIN_PLAN: Record<string, string> = {
   lead_capture: 'Medium',
   chat: 'Medium',
   fulfillment: 'Large',
+  erp: 'Large',
 }
 
 const PLAN_RANK: Record<string, number> = {
@@ -85,12 +86,13 @@ const categoryConfig: Record<string, { label: string; icon: string; iconColor: s
   analytics:          { label: 'Análisis y comportamiento',     icon: 'pi pi-chart-bar',   iconColor: 'text-purple-600', bgColor: 'bg-purple-50' },
   email_marketing:    { label: 'Email Marketing',               icon: 'pi pi-envelope',    iconColor: 'text-primary',    bgColor: 'bg-teal-50' },
   fulfillment:        { label: 'Fulfillment y Logística 3PL',   icon: 'pi pi-box',         iconColor: 'text-primary', bgColor: 'bg-primary/5' },
+  erp:                { label: 'ERP y Contabilidad',             icon: 'pi pi-server',      iconColor: 'text-slate-600',  bgColor: 'bg-slate-50' },
   lead_capture:       { label: 'Captura de leads y popups',     icon: 'pi pi-megaphone',   iconColor: 'text-pink-600',   bgColor: 'bg-pink-50' },
   chat:               { label: 'Chat en vivo',                  icon: 'pi pi-comments',    iconColor: 'text-primary',   bgColor: 'bg-primary/5' },
   push_notifications: { label: 'Notificaciones push',           icon: 'pi pi-bell',        iconColor: 'text-orange-600', bgColor: 'bg-orange-50' },
 }
 
-const categoryOrder = ['payments', 'shipping', 'ads', 'analytics', 'email_marketing', 'fulfillment', 'lead_capture', 'chat', 'push_notifications']
+const categoryOrder = ['payments', 'shipping', 'ads', 'analytics', 'email_marketing', 'fulfillment', 'erp', 'lead_capture', 'chat', 'push_notifications']
 
 // Map payment gateways to IntegrationProvider shape
 const paymentProviders = computed<IntegrationProvider[]>(() =>
@@ -193,6 +195,9 @@ const providerIcons: Record<string, string> = {
   crazyegg: 'pi pi-chart-bar',
   // Fulfillment
   mintsoft: 'pi pi-box',
+  // ERP
+  niux: 'pi pi-server',
+  contanet: 'pi pi-server',
   // Payment Gateways
   pg_izipay: 'pi pi-credit-card',
   pg_niubiz: 'pi pi-credit-card',
