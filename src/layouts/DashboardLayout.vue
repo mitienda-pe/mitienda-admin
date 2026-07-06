@@ -1049,6 +1049,7 @@ import HelpFab from '@/components/help/HelpFab.vue'
 import HelpDrawer from '@/components/help/HelpDrawer.vue'
 import { useOnboardingStore } from '@/stores/onboarding.store'
 import { useStoreConfigStore } from '@/stores/store-config.store'
+import { pluginsApi } from '@/api/plugins.api'
 
 const appVersion = __APP_VERSION__
 
@@ -1076,7 +1077,24 @@ onMounted(() => {
   if (!storeConfigStore.isLoaded) {
     storeConfigStore.fetchConfig()
   }
+  // Decide si mostrar el ítem "Plugins": solo para tiendas con al menos un
+  // plugin asignado y activo (activación manual por tienda vía superadmin,
+  // store_plugin_assignments). Oculto por defecto para todos los planes.
+  loadPluginVisibility()
 })
+
+// Visibilidad del ítem de menú "Plugins".
+const hasActivePlugins = ref(false)
+
+async function loadPluginVisibility() {
+  try {
+    const plugins = await pluginsApi.list()
+    hasActivePlugins.value = Array.isArray(plugins) && plugins.length > 0
+  } catch {
+    // Si falla la carga, mantener el ítem oculto (comportamiento por defecto).
+    hasActivePlugins.value = false
+  }
+}
 
 onUnmounted(() => {
   badgeCountsStore.stopPolling()
@@ -1201,13 +1219,16 @@ const posExpanded = computed({
   set: (val) => { posExpandedRef.value = val }
 })
 
-// Items simples del menú
-const simpleMenuItems = [
+// Items simples del menú. "Plugins" solo se muestra si la tienda tiene plugins
+// activos asignados (hasActivePlugins); oculto por defecto para todos los planes.
+const simpleMenuItems = computed(() => [
   { label: 'Dashboard', icon: 'pi pi-home', to: '/dashboard' },
   { label: 'Analítica Web', icon: 'pi pi-chart-line', to: '/reports/web-analytics' },
   { label: 'Clientes', icon: 'pi pi-users', to: '/customers' },
-  { label: 'Plugins', icon: 'pi pi-microchip', to: '/plugins' }
-]
+  ...(hasActivePlugins.value
+    ? [{ label: 'Plugins', icon: 'pi pi-microchip', to: '/plugins' }]
+    : [])
+])
 
 // Items del grupo Tu Tienda
 const storeMenuItems = [
