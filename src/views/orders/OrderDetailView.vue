@@ -1147,6 +1147,15 @@ const handleDebugPayments = async () => {
                 <p class="text-sm text-gray-500">Teléfono</p>
                 <p class="font-semibold text-gray-900">{{ order.shipping_details.recipient_phone }}</p>
               </div>
+              <!-- Documento del destinatario: cuando se pidió Factura (a nombre de un
+                   RUC), aquí se muestra el DNI real del comprador, preservado por el
+                   backend para no perderlo (venta 871467). -->
+              <div v-if="order.shipping_details?.doc_number">
+                <p class="text-sm text-gray-500">Documento del destinatario</p>
+                <p class="font-semibold text-gray-900">
+                  {{ order.shipping_details.doc_type ? order.shipping_details.doc_type + ': ' : '' }}{{ order.shipping_details.doc_number }}
+                </p>
+              </div>
               <div v-if="order.shipping_details?.address">
                 <p class="text-sm text-gray-500">Dirección</p>
                 <div class="space-y-1">

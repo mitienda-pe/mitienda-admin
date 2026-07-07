@@ -186,6 +186,11 @@ export interface ShippingDetails {
   delivery_proof_url?: string | null
   recipient_name?: string
   recipient_phone?: string
+  // Documento del receptor del envío. Cuando el comprador pidió Factura (a nombre
+  // de un RUC), aquí queda su DNI real preservado, para no perderlo (venta 871467).
+  doc_id?: number
+  doc_type?: string
+  doc_number?: string
   date_delivered?: string | null
 }
 

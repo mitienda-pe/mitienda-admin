@@ -319,6 +319,9 @@ export const ordersApi = {
           delivery_proof_url: shipping.delivery_proof_url ?? null,
           recipient_name: shipping.recipient_name || undefined,
           recipient_phone: shipping.recipient_phone || undefined,
+          doc_id: shipping.doc_id || undefined,
+          doc_type: shipping.doc_type || undefined,
+          doc_number: shipping.doc_number || undefined,
           date_delivered: shipping.date_delivered || undefined,
         },
         shipping_history: Array.isArray(rawData.shipping_history)
