@@ -156,6 +156,7 @@ export interface BillingDocument {
   pdf_url?: string
   xml_url?: string
   netsuite_invoice_id?: string | null // ID interno del invoice en NetSuite (solo si source = netsuite)
+  sunat_pending?: boolean // emitido pero aún no aceptado por SUNAT (estado 2, resumen diario boletas)
 }
 
 export interface ErpSync {

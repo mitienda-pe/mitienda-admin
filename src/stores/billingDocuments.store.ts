@@ -86,11 +86,18 @@ export const useBillingDocumentsStore = defineStore('billingDocuments', () => {
       console.error('Error al emitir comprobante:', err)
       console.error('Response data:', err.response?.data)
 
-      // Try to extract more detailed error message
-      const errorMsg = err.response?.data?.message
-        || (typeof err.response?.data === 'string' ? err.response.data : null)
-        || JSON.stringify(err.response?.data)
-        || 'Error al emitir comprobante'
+      // Extraer el mensaje legible. El backend CI4 responde los fail() como
+      // { status, error, messages: { error } }, así que ese es el primer lugar
+      // a mirar; luego { message } y los errores de validación. NUNCA volcar el
+      // JSON crudo al usuario (antes mostraba el envelope completo del 409).
+      const data = err.response?.data
+      const errorMsg = data?.messages?.error
+        || data?.message
+        || (data?.errors && typeof data.errors === 'object'
+              ? Object.values(data.errors).join(' ')
+              : null)
+        || (typeof data === 'string' ? data : null)
+        || 'Error al emitir el comprobante'
 
       error.value = errorMsg
       return { success: false, error: errorMsg }

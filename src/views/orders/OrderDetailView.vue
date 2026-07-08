@@ -2245,6 +2245,25 @@ const handleDebugPayments = async () => {
                     <p class="text-sm text-gray-500">Número de comprobante</p>
                     <p class="font-semibold text-gray-900 font-mono">{{ billingDocumentNumber }}</p>
                   </div>
+                  <!-- Estado SUNAT: pendiente (resumen diario boletas) vs aceptado -->
+                  <div v-if="order.billing_document?.source === 'nubefact'">
+                    <p class="text-sm text-gray-500">Estado SUNAT</p>
+                    <span
+                      v-if="order.billing_document?.sunat_pending"
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800"
+                      v-tooltip.top="'El comprobante ya está emitido; SUNAT lo acepta vía el resumen diario (normalmente al día siguiente). Se actualizará automáticamente.'"
+                    >
+                      <i class="pi pi-clock text-[10px]"></i>
+                      Pendiente SUNAT
+                    </span>
+                    <span
+                      v-else
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                    >
+                      <i class="pi pi-check-circle text-[10px]"></i>
+                      Aceptado por SUNAT
+                    </span>
+                  </div>
                   <div v-if="order.billing_document?.source" class="flex items-center gap-1.5">
                     <p class="text-sm text-gray-500">Emitido por</p>
                     <span

@@ -161,7 +161,8 @@ export const ordersApi = {
                 correlative: eBilling.correlative || '',
                 pdf_url: eBilling.url_pdf || undefined,
                 xml_url: eBilling.url_xml || undefined,
-                netsuite_invoice_id: eBilling.netsuite_invoice_id || undefined
+                netsuite_invoice_id: eBilling.netsuite_invoice_id || undefined,
+                sunat_pending: eBilling.sunat_pending || false
               } : undefined
             }
           } else {
@@ -371,7 +372,8 @@ export const ordersApi = {
           correlative: billingInfo['e-billing'].correlative || '',
           pdf_url: billingInfo['e-billing'].url_pdf || undefined,
           xml_url: billingInfo['e-billing'].url_xml || undefined,
-          netsuite_invoice_id: billingInfo['e-billing'].netsuite_invoice_id || undefined
+          netsuite_invoice_id: billingInfo['e-billing'].netsuite_invoice_id || undefined,
+          sunat_pending: billingInfo['e-billing'].sunat_pending || false
         } : undefined
       }
 
