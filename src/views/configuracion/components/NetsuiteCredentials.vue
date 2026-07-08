@@ -540,10 +540,10 @@
             <div class="flex items-center justify-between gap-4">
               <div>
                 <label for="sync_mode" class="font-medium text-secondary-800">
-                  Modo de sincronización
+                  Modo de sincronización (default)
                 </label>
                 <p class="text-sm text-secondary-600 mt-1">
-                  Cómo se sincroniza cada orden con NetSuite.
+                  Cómo se sincroniza cada orden con NetSuite, salvo que un canal tenga override abajo.
                 </p>
               </div>
               <Dropdown
@@ -560,9 +560,46 @@
               <li><strong>Sales Order (web)</strong>: crea solo la Orden de Venta; NetSuite genera el despacho, la guía de remisión y la factura.</li>
             </ul>
 
-            <!-- Custom Form del Sales Order (solo en modo sales_order) -->
+            <!-- Overrides por canal de venta -->
+            <div class="mt-4 pt-4 border-t border-secondary-200">
+              <p class="text-sm font-medium text-secondary-800 mb-1">Por canal de venta</p>
+              <p class="text-xs text-secondary-500 mb-3">
+                Permite que el storefront y el POS usen modos distintos (ej: web crea Sales Order y
+                POS emite factura directa). <strong>Heredar</strong> usa el modo default de arriba.
+              </p>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="flex items-center justify-between gap-3">
+                  <label for="sync_mode_web" class="text-sm text-secondary-700">
+                    <i class="pi pi-globe text-secondary-400 mr-1"></i> Storefront (web)
+                  </label>
+                  <Dropdown
+                    id="sync_mode_web"
+                    v-model="formData.sync_mode_web"
+                    :options="syncModeChannelOptions"
+                    option-label="label"
+                    option-value="value"
+                    class="w-56 shrink-0"
+                  />
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <label for="sync_mode_pos" class="text-sm text-secondary-700">
+                    <i class="pi pi-desktop text-secondary-400 mr-1"></i> POS
+                  </label>
+                  <Dropdown
+                    id="sync_mode_pos"
+                    v-model="formData.sync_mode_pos"
+                    :options="syncModeChannelOptions"
+                    option-label="label"
+                    option-value="value"
+                    class="w-56 shrink-0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Custom Form del Sales Order (si algún modo efectivo es sales_order) -->
             <div
-              v-if="formData.sync_mode === 'sales_order'"
+              v-if="anySalesOrderMode"
               class="mt-4 pt-4 border-t border-secondary-200"
             >
               <label for="so_custom_form_id" class="block text-sm font-medium text-secondary-700 mb-2">
@@ -868,6 +905,8 @@ const formData = reactive<Partial<SaveNetsuiteCredentialsRequest>>({
   autosync_enabled: false,
   delegate_billing: false,
   sync_mode: 'invoice_direct',
+  sync_mode_web: null as string | null,
+  sync_mode_pos: null as string | null,
   so_custom_form_id: '',
   estado: 1
 })
@@ -877,6 +916,19 @@ const syncModeOptions = [
   { label: 'Factura directa (POS)', value: 'invoice_direct' },
   { label: 'Sales Order (web / guía de remisión)', value: 'sales_order' }
 ]
+
+// Opciones por canal: incluyen 'Heredar' (null) para usar el modo default.
+const syncModeChannelOptions = [
+  { label: 'Heredar (usar default)', value: null },
+  { label: 'Factura directa (POS)', value: 'invoice_direct' },
+  { label: 'Sales Order (web / guía de remisión)', value: 'sales_order' }
+]
+
+// El Custom Form del Sales Order aplica si el modo default o algún override por
+// canal es 'sales_order'.
+const anySalesOrderMode = computed(() =>
+  [formData.sync_mode, formData.sync_mode_web, formData.sync_mode_pos].includes('sales_order')
+)
 
 // Configuration validation report from /netsuite-config/validate.
 const validationIssues = ref<NetsuiteConfigIssue[]>([])
@@ -1064,6 +1116,8 @@ watch(() => props.tiendaId, async (tiendaId) => {
       autosync_enabled: Number(creds.tiendacredencialerp_autosync_enabled) === 1,
       delegate_billing: Number(creds.tiendacredencialerp_delegate_billing) === 1,
       sync_mode: creds.tiendacredencialerp_sync_mode || 'invoice_direct',
+      sync_mode_web: creds.tiendacredencialerp_sync_mode_web || null,
+      sync_mode_pos: creds.tiendacredencialerp_sync_mode_pos || null,
       so_custom_form_id: creds.tiendacredencialerp_so_custom_form_id || '',
       estado: Number(creds.tiendacredencialerp_estado)
     })
@@ -1103,6 +1157,8 @@ watch(() => props.tiendaId, async (tiendaId) => {
       autosync_enabled: false,
       delegate_billing: false,
       sync_mode: 'invoice_direct',
+      sync_mode_web: null,
+      sync_mode_pos: null,
       so_custom_form_id: '',
       estado: 1
     })
@@ -1359,6 +1415,8 @@ async function handleSubmit() {
     autosync_enabled: formData.autosync_enabled || false,
     delegate_billing: formData.delegate_billing || false,
     sync_mode: formData.sync_mode || 'invoice_direct',
+    sync_mode_web: formData.sync_mode_web || null,
+    sync_mode_pos: formData.sync_mode_pos || null,
     so_custom_form_id: stringOrNull(formData.so_custom_form_id) ?? null,
     estado: formData.estado || 1,
     locations: locations.value.length > 0 ? locations.value : undefined
