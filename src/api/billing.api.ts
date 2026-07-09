@@ -8,6 +8,7 @@ import type {
   SaveBizlinksCredentialsRequest,
   BillingDocument,
   BillingDocumentDetail,
+  BillingDocumentFilters,
   EmitDocumentRequest,
   EmitDocumentResponse,
   ManualEmitRequest,
@@ -158,14 +159,35 @@ export const billingApi = {
   /**
    * Get list of emitted billing documents
    */
-  async getDocuments(limit?: number, offset?: number): Promise<ApiResponse<BillingDocument[]> & {
+  async getDocuments(limit?: number, offset?: number, filters?: BillingDocumentFilters): Promise<ApiResponse<BillingDocument[]> & {
     pagination?: { total: number; limit: number; offset: number }
   }> {
     const params = new URLSearchParams()
     if (limit) params.append('limit', limit.toString())
     if (offset) params.append('offset', offset.toString())
+    if (filters?.date_from) params.append('date_from', filters.date_from)
+    if (filters?.date_to) params.append('date_to', filters.date_to)
+    if (filters?.document_type) params.append('document_type', filters.document_type)
+    if (filters?.search) params.append('search', filters.search)
 
     const response = await apiClient.get(`/billing/documents?${params.toString()}`)
+    return response.data
+  },
+
+  /**
+   * Export emitted billing documents as CSV (respects the active filters).
+   * Returns the raw CSV Blob so the caller can trigger a download.
+   */
+  async exportDocuments(filters?: BillingDocumentFilters): Promise<Blob> {
+    const params = new URLSearchParams()
+    if (filters?.date_from) params.append('date_from', filters.date_from)
+    if (filters?.date_to) params.append('date_to', filters.date_to)
+    if (filters?.document_type) params.append('document_type', filters.document_type)
+    if (filters?.search) params.append('search', filters.search)
+
+    const response = await apiClient.get(`/billing/documents/export?${params.toString()}`, {
+      responseType: 'blob'
+    })
     return response.data
   },
 

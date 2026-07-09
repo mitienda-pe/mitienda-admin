@@ -143,6 +143,14 @@ export interface BillingDocumentFiles {
   qr?: string
 }
 
+// Filtros opcionales de la lista de comprobantes (GET /billing/documents).
+export interface BillingDocumentFilters {
+  date_from?: string       // YYYY-MM-DD
+  date_to?: string         // YYYY-MM-DD
+  document_type?: 'factura' | 'boleta' | ''
+  search?: string
+}
+
 export interface BillingDocumentDetail extends BillingDocument {
   customer_document_type: number
   hash: string | null

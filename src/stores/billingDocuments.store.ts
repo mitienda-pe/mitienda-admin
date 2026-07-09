@@ -4,6 +4,7 @@ import { billingApi } from '@/api/billing.api'
 import type {
   BillingDocument,
   BillingDocumentDetail,
+  BillingDocumentFilters,
   EmitDocumentRequest
 } from '@/types/billing.types'
 
@@ -15,6 +16,13 @@ export const useBillingDocumentsStore = defineStore('billingDocuments', () => {
   const isEmitting = ref(false)
   const error = ref<string | null>(null)
   const successMessage = ref<string | null>(null)
+  const isExporting = ref(false)
+  const filters = ref<BillingDocumentFilters>({
+    date_from: '',
+    date_to: '',
+    document_type: '',
+    search: ''
+  })
   const pagination = ref({
     total: 0,
     limit: 20,
@@ -27,7 +35,7 @@ export const useBillingDocumentsStore = defineStore('billingDocuments', () => {
       isLoading.value = true
       error.value = null
 
-      const response = await billingApi.getDocuments(limit, offset)
+      const response = await billingApi.getDocuments(limit, offset, filters.value)
 
       if (response.success && response.data) {
         documents.value = response.data
@@ -42,6 +50,47 @@ export const useBillingDocumentsStore = defineStore('billingDocuments', () => {
       console.error('Error al cargar documentos:', err)
     } finally {
       isLoading.value = false
+    }
+  }
+
+  /**
+   * Aplica los filtros actuales y recarga desde la primera página.
+   */
+  async function applyFilters(newFilters: Partial<BillingDocumentFilters>) {
+    filters.value = { ...filters.value, ...newFilters }
+    pagination.value.offset = 0
+    await fetchDocuments(pagination.value.limit, 0)
+  }
+
+  async function clearFilters() {
+    filters.value = { date_from: '', date_to: '', document_type: '', search: '' }
+    pagination.value.offset = 0
+    await fetchDocuments(pagination.value.limit, 0)
+  }
+
+  /**
+   * Descarga el CSV de comprobantes respetando los filtros activos.
+   */
+  async function exportDocuments() {
+    try {
+      isExporting.value = true
+      error.value = null
+
+      const blob = await billingApi.exportDocuments(filters.value)
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      const stamp = new Date().toISOString().slice(0, 10)
+      link.download = `comprobantes_${stamp}.csv`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'No se pudo exportar el CSV'
+      console.error('Error al exportar comprobantes:', err)
+    } finally {
+      isExporting.value = false
     }
   }
 
@@ -121,13 +170,18 @@ export const useBillingDocumentsStore = defineStore('billingDocuments', () => {
     currentDocument,
     isLoading,
     isEmitting,
+    isExporting,
     error,
     successMessage,
+    filters,
     pagination,
     // Actions
     fetchDocuments,
     fetchDocumentDetail,
     emitDocument,
+    applyFilters,
+    clearFilters,
+    exportDocuments,
     clearMessages,
     clearCurrentDocument
   }

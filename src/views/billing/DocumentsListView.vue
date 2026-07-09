@@ -2,11 +2,77 @@
   <div class="space-y-4">
     <div class="flex justify-between items-center">
       <h1 class="text-2xl font-bold text-gray-900">Documentos de Facturación</h1>
-      <Button
-        label="Emitir Comprobante"
-        icon="pi pi-plus"
-        @click="$router.push('/billing/manual/emit')"
-      />
+      <div class="flex gap-2">
+        <Button
+          label="Exportar CSV"
+          icon="pi pi-download"
+          outlined
+          :loading="documentsStore.isExporting"
+          :disabled="documentsStore.pagination.total === 0"
+          @click="exportCsv"
+        />
+        <Button
+          label="Emitir Comprobante"
+          icon="pi pi-plus"
+          @click="$router.push('/billing/manual/emit')"
+        />
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white border border-gray-200 rounded-lg p-4">
+      <div class="flex flex-col md:flex-row md:items-end gap-3">
+        <div class="flex-1">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Buscar</label>
+          <InputText
+            v-model="localFilters.search"
+            placeholder="Orden, serie, correlativo, cliente o documento"
+            class="w-full"
+            @keyup.enter="applyFilters"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+          <Dropdown
+            v-model="localFilters.document_type"
+            :options="documentTypeOptions"
+            option-label="label"
+            option-value="value"
+            placeholder="Todos"
+            class="w-full md:w-40"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Desde</label>
+          <input
+            v-model="localFilters.date_from"
+            type="date"
+            class="p-inputtext p-component w-full md:w-auto"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Hasta</label>
+          <input
+            v-model="localFilters.date_to"
+            type="date"
+            class="p-inputtext p-component w-full md:w-auto"
+          />
+        </div>
+
+        <div class="flex gap-2">
+          <Button label="Filtrar" icon="pi pi-search" @click="applyFilters" />
+          <Button
+            label="Limpiar"
+            icon="pi pi-filter-slash"
+            outlined
+            :disabled="!hasActiveFilters"
+            @click="clearFilters"
+          />
+        </div>
+      </div>
     </div>
 
     <!-- Messages -->
@@ -65,9 +131,15 @@
           </template>
         </Column>
 
-        <Column field="serie" header="Serie-Correlativo" :sortable="true">
+        <Column field="serie" header="Serie" :sortable="true">
           <template #body="{ data }">
-            <span class="font-mono font-medium">{{ data.serie }}-{{ data.correlative }}</span>
+            <span class="font-mono font-medium">{{ data.serie }}</span>
+          </template>
+        </Column>
+
+        <Column field="correlative" header="Correlativo" :sortable="true">
+          <template #body="{ data }">
+            <span class="font-mono font-medium">{{ data.correlative }}</span>
           </template>
         </Column>
 
@@ -93,7 +165,7 @@
 
         <Column header="Archivos">
           <template #body="{ data }">
-            <div class="flex gap-2">
+            <div class="flex gap-2 items-center">
               <Button
                 v-if="data.files?.pdf"
                 icon="pi pi-file-pdf"
@@ -114,20 +186,33 @@
                 v-tooltip.top="'Descargar XML'"
                 @click="downloadFile(data.files.xml)"
               />
-              <Button
-                v-if="data.files?.cdr"
-                icon="pi pi-check-circle"
-                severity="success"
-                text
-                rounded
-                size="small"
-                v-tooltip.top="'Descargar CDR'"
-                @click="downloadFile(data.files.cdr)"
-              />
-              <span v-if="!data.files?.pdf && !data.files?.xml && !data.files?.cdr" class="text-gray-400 text-sm">
-                Sin archivos
-              </span>
+              <template v-if="!data.files?.pdf && !data.files?.xml">
+                <Tag
+                  v-if="data.provider_id === 1"
+                  value="Sistema anterior"
+                  severity="secondary"
+                  class="text-xs"
+                  v-tooltip.top="'Emitido en el sistema de facturación anterior: los archivos PDF/XML no quedaron almacenados'"
+                />
+                <span v-else class="text-gray-400 text-sm">Sin archivos</span>
+              </template>
             </div>
+          </template>
+        </Column>
+
+        <Column header="CDR" :sortable="false">
+          <template #body="{ data }">
+            <Button
+              v-if="data.files?.cdr"
+              icon="pi pi-check-circle"
+              severity="success"
+              text
+              rounded
+              size="small"
+              v-tooltip.top="'Descargar CDR (constancia SUNAT)'"
+              @click="downloadFile(data.files.cdr)"
+            />
+            <span v-else class="text-gray-400 text-sm">—</span>
           </template>
         </Column>
 
@@ -161,7 +246,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBillingDocumentsStore } from '@/stores/billingDocuments.store'
 import { useOrdersStore } from '@/stores/orders.store'
@@ -171,6 +256,9 @@ import Column from 'primevue/column'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
 import Tag from 'primevue/tag'
+import InputText from 'primevue/inputtext'
+import Dropdown from 'primevue/dropdown'
+import type { BillingDocumentFilters } from '@/types/billing.types'
 
 const router = useRouter()
 const documentsStore = useBillingDocumentsStore()
@@ -178,9 +266,53 @@ const ordersStore = useOrdersStore()
 const toast = useToast()
 const sendingEmailForOrder = ref<number | null>(null)
 
+const localFilters = ref<BillingDocumentFilters>({
+  search: '',
+  document_type: '',
+  date_from: '',
+  date_to: ''
+})
+
+const documentTypeOptions = [
+  { label: 'Todos', value: '' },
+  { label: 'Factura', value: 'factura' },
+  { label: 'Boleta', value: 'boleta' }
+]
+
+const hasActiveFilters = computed(() =>
+  !!(localFilters.value.search || localFilters.value.document_type ||
+     localFilters.value.date_from || localFilters.value.date_to)
+)
+
 onMounted(() => {
   documentsStore.fetchDocuments()
 })
+
+const applyFilters = () => {
+  documentsStore.applyFilters({
+    search: localFilters.value.search?.trim() || '',
+    document_type: localFilters.value.document_type || '',
+    date_from: localFilters.value.date_from || '',
+    date_to: localFilters.value.date_to || ''
+  })
+}
+
+const clearFilters = () => {
+  localFilters.value = { search: '', document_type: '', date_from: '', date_to: '' }
+  documentsStore.clearFilters()
+}
+
+const exportCsv = async () => {
+  await documentsStore.exportDocuments()
+  if (documentsStore.error) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error al exportar',
+      detail: documentsStore.error,
+      life: 5000
+    })
+  }
+}
 
 const onPage = (event: any) => {
   const offset = event.first
