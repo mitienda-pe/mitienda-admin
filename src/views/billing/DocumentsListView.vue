@@ -187,13 +187,28 @@
                 @click="downloadFile(data.files.xml)"
               />
               <template v-if="!data.files?.pdf && !data.files?.xml">
-                <Tag
-                  v-if="data.provider_id === 1"
-                  value="Sistema anterior"
-                  severity="secondary"
-                  class="text-xs"
-                  v-tooltip.top="'Emitido en el sistema de facturación anterior: los archivos PDF/XML no quedaron almacenados'"
-                />
+                <template v-if="data.provider_id === 1">
+                  <Button
+                    icon="pi pi-file-pdf"
+                    severity="danger"
+                    text
+                    rounded
+                    size="small"
+                    :loading="legacyLoadingKey === `${data.id}-pdf`"
+                    v-tooltip.top="'Recuperar PDF (sistema anterior)'"
+                    @click="handleLegacyDownload(data, 'pdf')"
+                  />
+                  <Button
+                    icon="pi pi-file"
+                    severity="info"
+                    text
+                    rounded
+                    size="small"
+                    :loading="legacyLoadingKey === `${data.id}-xml`"
+                    v-tooltip.top="'Recuperar XML (sistema anterior)'"
+                    @click="handleLegacyDownload(data, 'xml')"
+                  />
+                </template>
                 <span v-else class="text-gray-400 text-sm">Sin archivos</span>
               </template>
             </div>
@@ -265,6 +280,7 @@ const documentsStore = useBillingDocumentsStore()
 const ordersStore = useOrdersStore()
 const toast = useToast()
 const sendingEmailForOrder = ref<number | null>(null)
+const legacyLoadingKey = ref<string | null>(null)
 
 const localFilters = ref<BillingDocumentFilters>({
   search: '',
@@ -346,6 +362,23 @@ const formatDate = (dateString: string) => {
 
 const downloadFile = (url: string) => {
   window.open(url, '_blank')
+}
+
+const handleLegacyDownload = async (doc: any, type: 'pdf' | 'xml') => {
+  const key = `${doc.id}-${type}`
+  try {
+    legacyLoadingKey.value = key
+    await documentsStore.downloadLegacyDocument(doc.id, type, `${doc.serie}-${doc.correlative}`)
+  } catch {
+    toast.add({
+      severity: 'error',
+      summary: 'No se pudo recuperar',
+      detail: 'El comprobante no pudo recuperarse del proveedor anterior. Intenta más tarde.',
+      life: 5000
+    })
+  } finally {
+    legacyLoadingKey.value = null
+  }
 }
 
 const viewDetail = (id: number) => {

@@ -155,6 +155,22 @@ export const useBillingDocumentsStore = defineStore('billingDocuments', () => {
     }
   }
 
+  /**
+   * Descarga on-demand el PDF/XML de un comprobante legacy FacturaenUna (id=1).
+   * Lanza excepción si el proveedor falla (la vista muestra el toast).
+   */
+  async function downloadLegacyDocument(id: number, type: 'pdf' | 'xml', filename: string) {
+    const blob = await billingApi.downloadLegacyFile(id, type)
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${filename}.${type}`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  }
+
   function clearMessages() {
     error.value = null
     successMessage.value = null
@@ -182,6 +198,7 @@ export const useBillingDocumentsStore = defineStore('billingDocuments', () => {
     applyFilters,
     clearFilters,
     exportDocuments,
+    downloadLegacyDocument,
     clearMessages,
     clearCurrentDocument
   }

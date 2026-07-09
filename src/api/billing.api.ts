@@ -192,6 +192,17 @@ export const billingApi = {
   },
 
   /**
+   * Descarga on-demand el PDF/XML de un comprobante legacy FacturaenUna (id=1),
+   * que no tiene los archivos guardados. Devuelve el Blob para disparar la descarga.
+   */
+  async downloadLegacyFile(id: number, type: 'pdf' | 'xml'): Promise<Blob> {
+    const response = await apiClient.get(`/billing/documents/${id}/legacy-file?type=${type}`, {
+      responseType: 'blob'
+    })
+    return response.data
+  },
+
+  /**
    * Get billing document detail
    */
   async getDocumentDetail(id: number): Promise<ApiResponse<BillingDocumentDetail>> {
