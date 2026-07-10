@@ -4,12 +4,20 @@
       <h1 class="text-2xl font-bold text-gray-900">Documentos de Facturación</h1>
       <div class="flex gap-2">
         <Button
-          label="Exportar CSV"
+          label="Excel"
+          icon="pi pi-file-excel"
+          outlined
+          :loading="documentsStore.isExporting"
+          :disabled="documentsStore.pagination.total === 0"
+          @click="exportDocs('xlsx')"
+        />
+        <Button
+          label="CSV"
           icon="pi pi-download"
           outlined
           :loading="documentsStore.isExporting"
           :disabled="documentsStore.pagination.total === 0"
-          @click="exportCsv"
+          @click="exportDocs('csv')"
         />
         <Button
           label="Emitir Comprobante"
@@ -318,8 +326,8 @@ const clearFilters = () => {
   documentsStore.clearFilters()
 }
 
-const exportCsv = async () => {
-  await documentsStore.exportDocuments()
+const exportDocs = async (format: 'csv' | 'xlsx') => {
+  await documentsStore.exportDocuments(format)
   if (documentsStore.error) {
     toast.add({
       severity: 'error',

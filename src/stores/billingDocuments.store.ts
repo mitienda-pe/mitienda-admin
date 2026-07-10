@@ -68,26 +68,34 @@ export const useBillingDocumentsStore = defineStore('billingDocuments', () => {
     await fetchDocuments(pagination.value.limit, 0)
   }
 
+  /** Dispara la descarga de un blob con el nombre indicado. */
+  function triggerDownload(blob: Blob, filename: string) {
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  }
+
   /**
-   * Descarga el CSV de comprobantes respetando los filtros activos.
+   * Exporta los comprobantes (CSV o Excel) respetando los filtros activos.
    */
-  async function exportDocuments() {
+  async function exportDocuments(format: 'csv' | 'xlsx' = 'csv') {
     try {
       isExporting.value = true
       error.value = null
 
-      const blob = await billingApi.exportDocuments(filters.value)
-      const url = window.URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
+      const blob = format === 'xlsx'
+        ? await billingApi.exportDocumentsXlsx(filters.value)
+        : await billingApi.exportDocuments(filters.value)
+
       const stamp = new Date().toISOString().slice(0, 10)
-      link.download = `comprobantes_${stamp}.csv`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
+      triggerDownload(blob, `comprobantes_${stamp}.${format}`)
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'No se pudo exportar el CSV'
+      error.value = err.response?.data?.message || `No se pudo exportar el ${format.toUpperCase()}`
       console.error('Error al exportar comprobantes:', err)
     } finally {
       isExporting.value = false

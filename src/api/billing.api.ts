@@ -192,6 +192,22 @@ export const billingApi = {
   },
 
   /**
+   * Export emitted billing documents as Excel (xlsx), respetando los filtros activos.
+   */
+  async exportDocumentsXlsx(filters?: BillingDocumentFilters): Promise<Blob> {
+    const params = new URLSearchParams()
+    if (filters?.date_from) params.append('date_from', filters.date_from)
+    if (filters?.date_to) params.append('date_to', filters.date_to)
+    if (filters?.document_type) params.append('document_type', filters.document_type)
+    if (filters?.search) params.append('search', filters.search)
+
+    const response = await apiClient.get(`/billing/documents/export-xlsx?${params.toString()}`, {
+      responseType: 'blob'
+    })
+    return response.data
+  },
+
+  /**
    * Descarga on-demand el PDF/XML de un comprobante legacy FacturaenUna (id=1),
    * que no tiene los archivos guardados. Devuelve el Blob para disparar la descarga.
    */
