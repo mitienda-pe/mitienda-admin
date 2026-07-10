@@ -73,7 +73,7 @@
             <Column field="name" header="Ubicación" :expander="true" style="min-width: 300px">
               <template #body="{ node }">
                 <div class="flex items-center gap-2">
-                  <span :class="{ 'font-semibold': node.data.level === 1, 'text-gray-600': !node.data.hasRate }">
+                  <span :class="{ 'font-semibold': node.data.level <= 1, 'text-gray-600': !node.data.hasRate }">
                     {{ node.data.name }}
                   </span>
                   <Tag v-if="!node.data.hasRate" value="Sin tarifa" severity="secondary" class="text-xs" />
@@ -319,6 +319,18 @@
           />
         </div>
 
+        <!-- Ayuda: cobertura por nivel -->
+        <Message v-if="addForm.level1" severity="info" :closable="false" class="text-sm">
+          Deja <strong>{{ currentCountry?.levels[1] || 'Provincia' }}</strong>
+          <template v-if="addForm.level2"> y <strong>{{ currentCountry?.levels[2] || 'Distrito' }}</strong></template>
+          <template v-else> (y {{ currentCountry?.levels[2] || 'Distrito' }})</template>
+          sin seleccionar para que la tarifa aplique a
+          <strong>
+            <template v-if="!addForm.level2">todo el {{ (currentCountry?.levels[0] || 'Departamento').toLowerCase() }}</template>
+            <template v-else>toda la {{ (currentCountry?.levels[1] || 'Provincia').toLowerCase() }}</template>
+          </strong>.
+        </Message>
+
         <Divider />
 
         <div>
@@ -492,6 +504,7 @@ import Tag from 'primevue/tag'
 import Card from 'primevue/card'
 import Dialog from 'primevue/dialog'
 import Divider from 'primevue/divider'
+import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import ConfirmDialog from 'primevue/confirmdialog'
 

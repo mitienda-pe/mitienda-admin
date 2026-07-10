@@ -83,7 +83,7 @@ export interface RateTreeNodeData {
   code: string
   name: string
   fullName?: string         // Nombre completo con padres
-  level: 1 | 2 | 3
+  level: 0 | 1 | 2 | 3      // 0=País, 1=Depto, 2=Provincia, 3=Distrito
   price?: number
   deliveryTime?: number
   deliveryTimeUnit?: DeliveryTimeUnit
