@@ -332,7 +332,7 @@ const hasCouponActivation = computed(() =>
   (promotion.value?.activations || []).some((a: any) => a.type === 'coupon')
 )
 
-const PRODUCT_EFFECT_TYPES = ['percentage_discount_product', 'override_price', 'gift_product']
+const PRODUCT_EFFECT_TYPES = ['percentage_discount_product', 'fixed_discount_product', 'override_price', 'gift_product']
 
 const productEffects = computed(() =>
   (promotion.value?.effects || []).filter((e: any) => PRODUCT_EFFECT_TYPES.includes(e.type))

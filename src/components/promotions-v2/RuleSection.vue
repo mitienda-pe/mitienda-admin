@@ -190,7 +190,7 @@ const advancedMode = ref(false)
 
 // Efectos a nivel de producto: requieren productos vinculados (product_ids) para
 // surtir efecto. Se vinculan en EffectProductsSection, no en este diálogo.
-const PRODUCT_EFFECT_TYPES = ['percentage_discount_product', 'override_price', 'gift_product']
+const PRODUCT_EFFECT_TYPES = ['percentage_discount_product', 'fixed_discount_product', 'override_price', 'gift_product']
 
 function isIncompleteEffect(rule: any): boolean {
   if (props.ruleCategory !== 'effects') return false

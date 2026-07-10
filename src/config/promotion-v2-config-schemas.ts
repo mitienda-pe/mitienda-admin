@@ -341,6 +341,22 @@ const effectSchemas: Record<string, ConfigFieldSchema[]> = {
       helpText: 'Monto fijo en soles a descontar del carrito',
     },
   ],
+  fixed_discount_product: [
+    {
+      key: 'amount',
+      label: 'Monto de descuento por unidad',
+      type: 'currency',
+      required: true,
+      min: 0.01,
+      helpText: 'Monto fijo en soles a descontar por cada unidad. Los productos se vinculan abajo.',
+    },
+    {
+      key: 'max_discount',
+      label: 'Descuento máximo',
+      type: 'currency',
+      helpText: 'Opcional. Límite total del descuento en soles por producto',
+    },
+  ],
   free_shipping: [
     {
       key: 'max_shipping_discount',
@@ -526,6 +542,10 @@ export function formatConfigHuman(
       return `${config.percentage}% desc. gamma${config.max_discount ? ` (máx ${sym} ${formatSoles(config.max_discount)})` : ''}`
     case 'fixed_discount_cart':
       return `${sym} ${formatSoles(config.amount)} desc. al carrito`
+    case 'fixed_discount_product': {
+      const fpCount = (config.product_ids || []).length
+      return `${sym} ${formatSoles(config.amount)} desc. x unidad (${fpCount} producto(s))${config.max_discount ? ` (máx ${sym} ${formatSoles(config.max_discount)})` : ''}`
+    }
     case 'free_shipping':
       return config.max_shipping_discount
         ? `Envío gratis (máx ${sym} ${formatSoles(config.max_shipping_discount)})`

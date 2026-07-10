@@ -270,9 +270,14 @@ const effectLabel = computed(() => {
   if (props.effect.type === 'percentage_discount_product') {
     return `${config.percentage || 0}% descuento`
   }
+  if (props.effect.type === 'fixed_discount_product') {
+    const amount = Number(config.amount || 0)
+    return amount ? `S/ ${amount.toFixed(2)} desc. x unidad` : 'Descuento fijo por producto'
+  }
   if (props.effect.type === 'override_price') {
-    const price = config.new_price
-    return price ? `Precio especial: S/ ${(price / 100).toFixed(2)}` : 'Precio especial'
+    // El config guarda soles (campo currency), no centavos.
+    const price = Number(config.new_price || 0)
+    return price ? `Precio especial: S/ ${price.toFixed(2)}` : 'Precio especial'
   }
   if (props.effect.type === 'gift_product') {
     return `${config.gift_quantity || 1} unidad(es) gratis`

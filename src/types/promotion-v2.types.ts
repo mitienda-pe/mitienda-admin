@@ -26,6 +26,7 @@ export type EffectType =
   | 'percentage_discount_brand'
   | 'percentage_discount_gamma'
   | 'fixed_discount_cart'
+  | 'fixed_discount_product'
   | 'free_shipping'
   | 'gift_product'
   | 'override_price'
@@ -216,6 +217,7 @@ export const EFFECT_TYPE_LABELS: Record<EffectType, string> = {
   percentage_discount_brand: '% descuento por marca',
   percentage_discount_gamma: '% descuento por gamma',
   fixed_discount_cart: 'Descuento fijo al carrito',
+  fixed_discount_product: 'Descuento fijo por producto',
   free_shipping: 'Envío gratis',
   gift_product: 'Producto gratis',
   override_price: 'Precio especial',
