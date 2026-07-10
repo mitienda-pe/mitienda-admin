@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCatalogStore } from '@/stores/catalog.store'
 import { useGammaStore } from '@/stores/gamma.store'
+import { useProductTypeStore } from '@/stores/product-type.store'
 import { productManagementApi } from '@/api/product-management.api'
 import { usePlanStore } from '@/stores/plan.store'
 import { useOnboarding } from '@/composables/useOnboarding'
@@ -11,6 +12,7 @@ import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import Textarea from 'primevue/textarea'
 import Dropdown from 'primevue/dropdown'
+import SelectButton from 'primevue/selectbutton'
 import Tree from 'primevue/tree'
 import Checkbox from 'primevue/checkbox'
 import Button from 'primevue/button'
@@ -20,6 +22,7 @@ import type { ProductCreatePayload } from '@/types/product.types'
 const router = useRouter()
 const catalogStore = useCatalogStore()
 const gammaStore = useGammaStore()
+const productTypeStore = useProductTypeStore()
 const planStore = usePlanStore()
 const { resumeTourIfPending } = useOnboarding()
 const toast = useToast()
@@ -34,6 +37,7 @@ let skuCheckSeq = 0
 
 const form = ref<ProductCreatePayload>({
   name: '',
+  product_type_id: 1, // 1 = físico (por defecto)
   sku: '',
   barcode: '',
   price: undefined,
@@ -53,6 +57,18 @@ const form = ref<ProductCreatePayload>({
 })
 
 const errors = ref<Record<string, string>>({})
+
+// Tipo seleccionado y su capacidad de envío. Un servicio (requires_shipping=false)
+// no necesita stock ni envío; ocultamos esos campos y lo marcamos ilimitado.
+const selectedType = computed(() => productTypeStore.getById(form.value.product_type_id))
+const requiresShipping = computed(() => selectedType.value?.requires_shipping ?? true)
+
+watch(requiresShipping, (needsShipping) => {
+  if (!needsShipping) {
+    // Servicio: sin control de stock. Lo dejamos ilimitado por defecto.
+    form.value.unlimited_stock = true
+  }
+})
 
 // Margen estimado = (precio de venta - costo de compra) / precio de venta
 const estimatedMargin = computed(() => {
@@ -170,6 +186,7 @@ onMounted(async () => {
   if (catalogStore.categories.length === 0 || catalogStore.brands.length === 0) {
     await catalogStore.fetchAll()
   }
+  productTypeStore.fetchTypes()
   resumeTourIfPending()
 })
 
@@ -310,6 +327,24 @@ const handleSave = async () => {
           :class="{ 'p-invalid': errors.name }"
         />
         <small v-if="errors.name" class="text-red-500">{{ errors.name }}</small>
+      </div>
+
+      <!-- Tipo de producto (físico / servicio) -->
+      <div v-if="productTypeStore.publicTypes.length > 1">
+        <label class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+        <SelectButton
+          v-model="form.product_type_id"
+          :options="productTypeStore.publicTypes"
+          optionLabel="name"
+          optionValue="id"
+          :allowEmpty="false"
+          aria-labelledby="product-type"
+        />
+        <small class="block text-gray-500 mt-1">
+          {{ requiresShipping
+            ? 'Producto físico: requiere stock y envío.'
+            : 'Servicio: sin stock ni envío. El cliente recibe un código/QR de canje.' }}
+        </small>
       </div>
 
       <!-- SKU + Barcode -->
@@ -463,8 +498,8 @@ const handleSave = async () => {
         </div>
       </div>
 
-      <!-- Stock -->
-      <div data-tour="product-stock" class="border-t border-gray-100 pt-4">
+      <!-- Stock (no aplica a servicios: stock ilimitado) -->
+      <div v-if="requiresShipping" data-tour="product-stock" class="border-t border-gray-100 pt-4">
         <h3 class="text-sm font-semibold text-gray-700 mb-3">Stock</h3>
         <div class="flex items-center gap-4">
           <div class="flex-1 max-w-[200px]">

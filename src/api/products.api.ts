@@ -18,6 +18,7 @@ export interface ProductsFilters {
   search?: string
   category_id?: number | null
   brand_id?: number | null
+  product_type_id?: number | null
   published?: boolean | null
   stock_status?: 'all' | 'in_stock' | 'limited' | 'out_of_stock'
 }
@@ -32,6 +33,7 @@ export const productsApi = {
     if (filters.search) params.append('search', filters.search)
     if (filters.category_id) params.append('category_id', filters.category_id.toString())
     if (filters.brand_id) params.append('brand_id', filters.brand_id.toString())
+    if (filters.product_type_id) params.append('product_type_id', filters.product_type_id.toString())
     if (filters.published !== null && filters.published !== undefined) {
       params.append('published', filters.published ? '1' : '0')
     }
@@ -88,6 +90,8 @@ export const productsApi = {
             id: product.id,
             sku: product.sku,
             name: product.name,
+            product_type_id: product.product_type_id ?? product.productotipo_id ?? undefined,
+            product_type: product.product_type ?? null,
             description: product.description || '',
             description_html: product.description_html || '',
             price: parseFloat(product.price || '0'),
@@ -188,6 +192,8 @@ export const productsApi = {
         id: rawData.id,
         sku: rawData.sku,
         name: rawData.name,
+        product_type_id: rawData.product_type_id ?? rawData.productotipo_id ?? undefined,
+        product_type: rawData.product_type ?? null,
         description: rawData.description || '',
         description_html: rawData.description_html || '',
         description_short: rawData.description_short || '',
@@ -275,7 +281,7 @@ export const productsApi = {
       'meta_title', 'meta_description', 'meta_image', 'slug',
       'height', 'width', 'length', 'dimensions_unit', 'weight', 'weight_unit',
       'facebook_category_id', 'google_category_id',
-      'shipping_conversion_factor'
+      'shipping_conversion_factor', 'product_type_id'
     ] as const
     for (const key of directFields) {
       if ((data as any)[key] !== undefined) payload[key] = (data as any)[key]
@@ -305,6 +311,8 @@ export const productsApi = {
         sku: rawData.sku,
         barcode: rawData.barcode || undefined,
         name: rawData.name,
+        product_type_id: rawData.product_type_id ?? rawData.productotipo_id ?? undefined,
+        product_type: rawData.product_type ?? null,
         description: rawData.description || '',
         description_html: rawData.description_html || '',
         description_short: rawData.description_short || '',

@@ -46,6 +46,23 @@
                 <small v-if="validationErrors.name" class="text-red-500">{{ validationErrors.name }}</small>
               </div>
 
+              <!-- Tipo de producto (físico / servicio) -->
+              <div v-if="productTypeStore.publicTypes.length > 1">
+                <label class="block text-sm font-medium text-secondary-700 mb-1">Tipo</label>
+                <SelectButton
+                  v-model="form.product_type_id"
+                  :options="productTypeStore.publicTypes"
+                  optionLabel="name"
+                  optionValue="id"
+                  :allowEmpty="false"
+                />
+                <small class="block text-gray-500 mt-1">
+                  {{ requiresShipping
+                    ? 'Producto físico: requiere stock y envío.'
+                    : 'Servicio: sin stock ni envío. El cliente recibe un código/QR de canje.' }}
+                </small>
+              </div>
+
               <!-- SKU + Barcode -->
               <div class="grid grid-cols-2 gap-4">
                 <div>
@@ -360,8 +377,8 @@
           </template>
         </Card>
 
-        <!-- Dimensiones y Peso -->
-        <Card>
+        <!-- Dimensiones y Peso (no aplica a servicios) -->
+        <Card v-if="requiresShipping">
           <template #title>
             <span class="text-lg">Dimensiones y Peso</span>
           </template>
@@ -458,8 +475,8 @@
           </template>
         </Card>
 
-        <!-- Opciones de Envio por Producto -->
-        <Card v-if="showProductShipping">
+        <!-- Opciones de Envio por Producto (no aplica a servicios) -->
+        <Card v-if="showProductShipping && requiresShipping">
           <template #title>
             <span class="text-lg">Opciones de Envío</span>
           </template>
@@ -1008,6 +1025,7 @@ import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import Textarea from 'primevue/textarea'
 import Dropdown from 'primevue/dropdown'
+import SelectButton from 'primevue/selectbutton'
 import Tree from 'primevue/tree'
 import Checkbox from 'primevue/checkbox'
 import InputSwitch from 'primevue/inputswitch'
@@ -1029,6 +1047,7 @@ import type { ProductUpdatePayload, ExternalCategoryOption } from '@/types/produ
 import { useShippingConfigStore } from '@/stores/shipping-config.store'
 import { useProductCardStore } from '@/stores/product-card.store'
 import { useStoreConfigStore } from '@/stores/store-config.store'
+import { useProductTypeStore } from '@/stores/product-type.store'
 import { productsApi } from '@/api/products.api'
 
 const route = useRoute()
@@ -1036,6 +1055,7 @@ const router = useRouter()
 const productsStore = useProductsStore()
 const catalogStore = useCatalogStore()
 const gammaStore = useGammaStore()
+const productTypeStore = useProductTypeStore()
 const authStore = useAuthStore()
 const toast = useToast()
 const shippingConfigStore = useShippingConfigStore()
@@ -1047,6 +1067,9 @@ const storeConfigStore = useStoreConfigStore()
 if (!storeConfigStore.isLoaded) {
   storeConfigStore.fetchConfig()
 }
+
+// Tipos de producto (físico/servicio). Cache global; carga perezosa.
+productTypeStore.fetchTypes()
 const lotsStoreEnabled = computed(() => storeConfigStore.draftConfig.tiendageneral_sw_lotes === 1)
 const productLotsManaged = ref(false)
 
@@ -1115,6 +1138,10 @@ interface FormState extends ProductUpdatePayload {
 
 const form = ref<FormState>({
   name: '',
+  // Tipo de producto. Se siembra en populateForm desde el producto cargado.
+  // NO poner default aquí: si quedara undefined, updateProduct lo omite y el
+  // backend conserva el productotipo_id existente (evita revertir un servicio).
+  product_type_id: undefined,
   sku: '',
   barcode: '',
   description_short: '',
@@ -1165,6 +1192,12 @@ const aiContext = computed(() => {
   if (f.description_short) parts.push(`Descripción corta: ${f.description_short}`)
   return parts.join('\n')
 })
+
+// Tipo de producto y capacidad de envío. Un servicio (requires_shipping=false)
+// no usa peso/dimensiones/envío: ocultamos esos paneles. El fallback `?? true`
+// mantiene los paneles visibles para físicos y tipos desconocidos (legacy).
+const selectedType = computed(() => productTypeStore.getById(form.value.product_type_id))
+const requiresShipping = computed(() => selectedType.value?.requires_shipping ?? true)
 
 const taxAffectationOptions = [
   { label: 'Gravado (con IGV)', value: 1 },
@@ -1256,6 +1289,10 @@ const populateForm = async () => {
 
   form.value = {
     name: p.name || '',
+    // Sembrar el tipo desde el producto. Si el producto no lo trae (raro),
+    // queda undefined y updateProduct lo omite → el backend conserva el
+    // productotipo_id actual (no revierte servicios legacy a físico).
+    product_type_id: p.product_type_id ?? p.product_type?.id ?? undefined,
     sku: p.sku || '',
     barcode: p.barcode || '',
     description_short: p.description_short || '',

@@ -8,6 +8,11 @@
           class="w-full h-full object-cover"
         />
 
+        <!-- Badge de tipo (solo servicios; los físicos son la norma) -->
+        <div v-if="isService" class="absolute top-2 left-2">
+          <Tag value="Servicio" class="!bg-primary !text-white" />
+        </div>
+
         <!-- Badges -->
         <div class="absolute top-2 right-2 flex flex-col gap-2">
           <Tag v-if="!product.published" value="No publicado" severity="secondary" />
@@ -68,6 +73,14 @@ const { formatCurrency } = useFormatters()
 
 const mainImage = computed(() => {
   return props.product.images?.find(img => img.is_main) || props.product.images?.[0]
+})
+
+// Servicio = tipo con requires_shipping=false. Fallback al id 2 si la API no
+// adjuntó las flags de capacidad. Los productos físicos no llevan badge.
+const isService = computed(() => {
+  const t = props.product.product_type
+  if (t) return !t.requires_shipping
+  return props.product.product_type_id === 2
 })
 
 const stockBadge = computed(() => {

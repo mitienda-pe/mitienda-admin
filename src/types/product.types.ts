@@ -33,11 +33,30 @@ export interface PriceRange {
   has_range: boolean
 }
 
+// Tipo de producto (físico / servicio / digital). Tabla maestra `productostipos`.
+// Las flags de capacidad rigen el comportamiento (envío, dirección, canje).
+export interface ProductType {
+  id: number
+  code: 'physical' | 'service' | 'digital' | string
+  name: string
+  requires_shipping: boolean
+  requires_address: boolean
+  is_redeemable: boolean
+  is_digital: boolean
+  publico: boolean
+  orden?: number
+  activo?: boolean
+}
+
 export interface Product {
   id: number
   sku: string
   barcode?: string
   name: string
+  // Tipo de producto. `product_type_id` es el discriminador (1=físico, 2=servicio,
+  // 3=digital); `product_type` trae las flags de capacidad cuando la API las incluye.
+  product_type_id?: number
+  product_type?: ProductType | null
   description?: string
   description_html?: string
   description_short?: string
@@ -153,6 +172,7 @@ export interface ProductFilters {
   search: string
   categoryId: number | null
   brandId: number | null
+  productTypeId: number | null
   published: boolean | null
   stockStatus: 'all' | 'in_stock' | 'limited' | 'out_of_stock'
 }
@@ -306,6 +326,7 @@ export interface CsvPreviewRow {
 
 export interface ProductCreatePayload {
   name: string
+  product_type_id?: number
   sku?: string
   barcode?: string
   price?: number

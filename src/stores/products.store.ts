@@ -21,6 +21,7 @@ export const useProductsStore = defineStore('products', () => {
     search: '',
     categoryId: null,
     brandId: null,
+    productTypeId: null,
     published: null,
     stockStatus: 'all'
   })
@@ -45,6 +46,7 @@ export const useProductsStore = defineStore('products', () => {
         search: filters.value.search || undefined,
         category_id: filters.value.categoryId || undefined,
         brand_id: filters.value.brandId || undefined,
+        product_type_id: filters.value.productTypeId || undefined,
         published: filters.value.published,
         stock_status: filters.value.stockStatus
       }
@@ -141,6 +143,7 @@ export const useProductsStore = defineStore('products', () => {
       search: '',
       categoryId: null,
       brandId: null,
+      productTypeId: null,
       published: null,
       stockStatus: 'all'
     }

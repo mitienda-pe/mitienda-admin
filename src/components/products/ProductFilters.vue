@@ -60,6 +60,21 @@
         />
       </div>
 
+      <!-- Tipo (producto / servicio) -->
+      <div v-if="productTypeStore.publicTypes.length > 1" class="flex-1">
+        <label class="block text-sm font-medium text-secondary-700 mb-2">Tipo</label>
+        <Dropdown
+          v-model="localFilters.productTypeId"
+          :options="productTypeStore.publicTypes"
+          option-label="name"
+          option-value="id"
+          placeholder="Todos"
+          class="w-full"
+          show-clear
+          @change="applyFilters"
+        />
+      </div>
+
       <!-- Botón limpiar -->
       <div>
         <Button label="Limpiar" icon="pi pi-filter-slash" outlined @click="clearFilters" />
@@ -69,10 +84,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import Dropdown from 'primevue/dropdown'
 import Button from 'primevue/button'
 import { useCatalogStore } from '@/stores/catalog.store'
+import { useProductTypeStore } from '@/stores/product-type.store'
 import type { ProductFilters } from '@/types/product.types'
 
 interface Props {
@@ -87,6 +103,11 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 const catalogStore = useCatalogStore()
+const productTypeStore = useProductTypeStore()
+
+onMounted(() => {
+  productTypeStore.fetchTypes()
+})
 
 const localFilters = ref<ProductFilters>({ ...props.filters })
 
@@ -116,6 +137,7 @@ const clearFilters = () => {
     search: '',
     categoryId: null,
     brandId: null,
+    productTypeId: null,
     published: null,
     stockStatus: 'all'
   }
