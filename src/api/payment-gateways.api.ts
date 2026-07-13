@@ -344,5 +344,20 @@ export const paymentGatewaysApi = {
 
     const response = await apiClient.put(`/payment-gateways/${code}/toggle`, { enabled })
     return response.data
+  },
+
+  /**
+   * Ligo QR: credenciales pesadas del modo "propio" (no caben en valor*).
+   * Se guardan en la tabla `ligo_qr_credenciales`. Los campos sensibles
+   * (password, private_key) nunca se devuelven en claro.
+   */
+  async getLigoCredentials(): Promise<ApiResponse<any>> {
+    const response = await apiClient.get('/payment-gateways/ligo-qr/credentials')
+    return response.data
+  },
+
+  async saveLigoCredentials(payload: Record<string, any>): Promise<ApiResponse<void>> {
+    const response = await apiClient.post('/payment-gateways/ligo-qr/credentials', payload)
+    return response.data
   }
 }
