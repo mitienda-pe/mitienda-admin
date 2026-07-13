@@ -136,7 +136,7 @@ const courierLogos: Record<string, string> = {
   olva: olvaLogo,
 }
 
-const betaCouriers = ['chazki', 'nirex', 'urbano', 'yango', 'hop', 'olva']
+const betaCouriers = ['chazki', 'nirex', 'urbano', 'yango', 'hop', 'olva', 'cabify', 'home_delivery']
 
 function stripHtml(text: string): string {
   if (!text) return ''
@@ -152,6 +152,8 @@ const courierGradients: Record<string, string> = {
   yango: 'bg-[#ff0000]',
   hop: 'bg-[#ee4424]',
   olva: 'bg-[#FFC107]',
+  cabify: 'bg-gradient-to-br from-purple-100 to-purple-200',
+  home_delivery: 'bg-gradient-to-br from-green-50 to-green-100',
 }
 
 function getDefaultDescription(code: string): string {

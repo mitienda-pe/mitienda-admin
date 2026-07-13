@@ -54,6 +54,8 @@ const componentMap: Record<string, ReturnType<typeof defineAsyncComponent>> = {
   yango: defineAsyncComponent(() => import('./couriers/YangoConfigView.vue')),
   hop: defineAsyncComponent(() => import('./couriers/HopConfigView.vue')),
   olva: defineAsyncComponent(() => import('./couriers/OlvaConfigView.vue')),
+  cabify: defineAsyncComponent(() => import('./couriers/CabifyConfigView.vue')),
+  home_delivery: defineAsyncComponent(() => import('./couriers/HomeDeliveryConfigView.vue')),
 }
 
 const configComponent = computed(() => {
