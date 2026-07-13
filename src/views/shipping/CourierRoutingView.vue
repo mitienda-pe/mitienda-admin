@@ -94,11 +94,12 @@ async function loadData() {
         configured: !!c.configured,
       }))
 
-    // Parse zones
+    // Parse zones — el endpoint /shipping-zones devuelve { id, name },
+    // pero aceptamos tambien tiendazona_id/tiendazona_nombre por compatibilidad.
     const zonesData = zonesRes.data?.data || zonesRes.data || []
     zones.value = (Array.isArray(zonesData) ? zonesData : []).map((z: any) => ({
-      tiendazona_id: Number(z.tiendazona_id),
-      tiendazona_nombre: z.tiendazona_nombre,
+      tiendazona_id: Number(z.id ?? z.tiendazona_id),
+      tiendazona_nombre: z.name ?? z.tiendazona_nombre,
     }))
   } catch (e) {
     console.error('Error loading data:', e)
