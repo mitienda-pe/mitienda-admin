@@ -126,6 +126,9 @@
         <!-- Referrers -->
         <MetricsCard title="Fuentes de tráfico" :items="referrers" :format-label="formatReferrer" />
 
+        <!-- UTM Campaigns -->
+        <MetricsCard title="Campañas UTM" :items="campaigns" :format-label="formatCampaign" empty-text="Sin campañas registradas" />
+
         <!-- Browsers -->
         <MetricsCard title="Navegadores" :items="browsers" />
 
@@ -162,6 +165,7 @@ const browsers = ref<MetricItem[]>([])
 const devices = ref<MetricItem[]>([])
 const countries = ref<MetricItem[]>([])
 const events = ref<MetricItem[]>([])
+const campaigns = ref<MetricItem[]>([])
 const funnel = ref<FunnelStep[]>([])
 const pageviewsChartData = ref<any[]>([])
 const sessionsChartData = ref<any[]>([])
@@ -304,6 +308,11 @@ function formatReferrer(ref: string): string {
   return ref.replace(/^https?:\/\//, '').replace(/\/$/, '')
 }
 
+function formatCampaign(campaign: string): string {
+  if (!campaign) return '(sin campaña)'
+  return campaign
+}
+
 function formatDevice(device: string): string {
   const map: Record<string, string> = { desktop: 'Escritorio', mobile: 'Móvil', tablet: 'Tablet' }
   return map[device] || device
@@ -341,7 +350,7 @@ async function fetchData() {
   const { startAt, endAt, unit } = getDateRange(selectedPeriod.value)
 
   try {
-    const [statsRes, pageviewsRes, pagesRes, refsRes, browsersRes, devicesRes, countriesRes, eventsRes, funnelRes] =
+    const [statsRes, pageviewsRes, pagesRes, refsRes, browsersRes, devicesRes, countriesRes, eventsRes, campaignsRes, funnelRes] =
       await Promise.all([
         webAnalyticsApi.getStats(startAt, endAt),
         webAnalyticsApi.getPageviews(startAt, endAt, unit),
@@ -351,6 +360,7 @@ async function fetchData() {
         webAnalyticsApi.getMetrics(startAt, endAt, 'device'),
         webAnalyticsApi.getMetrics(startAt, endAt, 'country'),
         webAnalyticsApi.getMetrics(startAt, endAt, 'event'),
+        webAnalyticsApi.getMetrics(startAt, endAt, 'utm_campaign'),
         webAnalyticsApi.getFunnel(startAt, endAt)
       ])
 
@@ -367,6 +377,7 @@ async function fetchData() {
     devices.value = devicesRes.data || []
     countries.value = countriesRes.data || []
     events.value = eventsRes.data || []
+    campaigns.value = campaignsRes.data || []
     funnel.value = funnelRes.data || []
 
     if (pageviewsRes.data?.pageviews) {
