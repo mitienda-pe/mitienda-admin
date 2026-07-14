@@ -98,5 +98,18 @@ export const dispatchApi = {
   }>> {
     const response = await apiClient.post(`/orders/${orderId}/cabify-redispatch`)
     return response.data
+  },
+
+  /**
+   * Crea/reintenta el pedido en Home Delivery (nuevo-pedido).
+   * Devuelve el lpn / tracking_code.
+   */
+  async redispatchHomeDelivery(orderId: number): Promise<ApiResponse<{
+    success: boolean
+    lpn: string | null
+    tracking_code: string | null
+  }>> {
+    const response = await apiClient.post(`/orders/${orderId}/home-delivery-redispatch`)
+    return response.data
   }
 }

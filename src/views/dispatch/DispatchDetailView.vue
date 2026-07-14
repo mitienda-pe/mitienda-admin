@@ -50,6 +50,13 @@ const isCabifyOrder = computed(() => order.value?.courier_id === CABIFY_COURIER_
 const cabifyHasTracking = computed(() => !!order.value?.tracking.code)
 const cabifyTrackingUrl = computed(() => order.value?.tracking.url || null)
 
+// Home Delivery manual dispatch
+const isRedispatchingHD = ref(false)
+const HOME_DELIVERY_COURIER_ID = 11
+
+const isHomeDeliveryOrder = computed(() => order.value?.courier_id === HOME_DELIVERY_COURIER_ID)
+const hdHasTracking = computed(() => !!order.value?.tracking.code)
+
 // ─── Computed ─────────────────────────────────────────────────
 
 const availableStates = computed(() => {
@@ -241,6 +248,74 @@ function openCabifyTracking() {
   }
 }
 
+async function redispatchHomeDelivery() {
+  if (!confirm('¿Crear/reintentar el pedido en Home Delivery para esta orden?')) return
+
+  isRedispatchingHD.value = true
+  try {
+    const response = await dispatchApi.redispatchHomeDelivery(orderId)
+    if (response.success && response.data?.tracking_code) {
+      toast.add({
+        severity: 'success',
+        summary: 'Pedido creado en Home Delivery',
+        detail: `Tracking: ${response.data.tracking_code}`,
+        life: 4000
+      })
+      await loadOrder()
+    } else {
+      toast.add({
+        severity: 'warn',
+        summary: 'Home Delivery respondió sin tracking',
+        detail: response.message || 'Revisá el log',
+        life: 4000
+      })
+    }
+  } catch (err: unknown) {
+    const data = (err as { response?: { data?: { message?: string; data?: { error?: string } } } })
+      ?.response?.data
+    const detail = data?.data?.error || data?.message || 'No se pudo crear el pedido en Home Delivery'
+    toast.add({ severity: 'error', summary: 'Error', detail, life: 5000 })
+  } finally {
+    isRedispatchingHD.value = false
+  }
+}
+
+async function openHomeDeliveryLabel() {
+  try {
+    const response = await apiClient.get(`/orders/${orderId}/home-delivery-label`, {
+      responseType: 'blob',
+    })
+    const blob = new Blob([response.data], { type: 'application/pdf' })
+    const url = URL.createObjectURL(blob)
+    const header = (response.headers as any)?.['content-disposition'] as string | undefined
+    const match = header?.match(/filename="?([^"]+)"?/i)
+    const filename = match?.[1] || `etiqueta-homedelivery-${orderId}.pdf`
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    setTimeout(() => URL.revokeObjectURL(url), 60_000)
+  } catch (err: any) {
+    let detail = 'No se pudo abrir la etiqueta de Home Delivery'
+    if (err.response?.data instanceof Blob) {
+      try {
+        const text = await err.response.data.text()
+        const parsed = JSON.parse(text)
+        detail = parsed.messages?.error || parsed.message || detail
+      } catch {
+        // not JSON, keep default
+      }
+    } else {
+      detail = err.response?.data?.messages?.error
+        || err.response?.data?.message
+        || detail
+    }
+    toast.add({ severity: 'error', summary: 'Error', detail, life: 5000 })
+  }
+}
+
 async function openOlvaLabel() {
   try {
     const response = await apiClient.get(`/orders/${orderId}/olva-label`, {
@@ -405,6 +480,37 @@ onMounted(() => {
             severity="secondary"
             size="small"
             @click="openCabifyTracking"
+          />
+
+          <!-- Home Delivery: crear/reintentar pedido -->
+          <Button
+            v-if="isHomeDeliveryOrder && !hdHasTracking"
+            label="Crear envío en Home Delivery"
+            icon="pi pi-send"
+            severity="primary"
+            size="small"
+            :loading="isRedispatchingHD"
+            @click="redispatchHomeDelivery"
+          />
+          <Button
+            v-else-if="isHomeDeliveryOrder"
+            label="Reintentar envío"
+            icon="pi pi-refresh"
+            severity="secondary"
+            outlined
+            size="small"
+            :loading="isRedispatchingHD"
+            @click="redispatchHomeDelivery"
+          />
+
+          <!-- Home Delivery: imprimir etiqueta (cuando ya hay tracking) -->
+          <Button
+            v-if="isHomeDeliveryOrder && hdHasTracking"
+            label="Imprimir etiqueta"
+            icon="pi pi-print"
+            severity="secondary"
+            size="small"
+            @click="openHomeDeliveryLabel"
           />
 
           <Button
