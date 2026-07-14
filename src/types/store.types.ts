@@ -105,6 +105,8 @@ export interface StoreConfig {
   tiendageneral_sw_horarioActivo: number
   tiendageneral_json_horarioActivo: string | null
   sw_logincliente: number
+  // Solo Boleta de Venta: oculta la opción de factura en el checkout
+  tiendageneral_sw_solo_boleta: number
   tiendageneral_sw_verificacion_edad: number
   tiendageneral_edad_minima: number
   tiendageneral_texto_verificacion_edad: string | null
@@ -128,6 +130,7 @@ export interface StoreConfigUpdate {
   tiendageneral_sw_horarioActivo?: number
   tiendageneral_json_horarioActivo?: string | null
   sw_logincliente?: number
+  tiendageneral_sw_solo_boleta?: number
   tiendageneral_sw_verificacion_edad?: number
   tiendageneral_edad_minima?: number
   tiendageneral_texto_verificacion_edad?: string | null

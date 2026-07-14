@@ -71,6 +71,11 @@ const isScheduleEnabled = computed({
   }
 })
 
+const isSoloBoletaEnabled = computed({
+  get: () => store.draftConfig.tiendageneral_sw_solo_boleta === 1,
+  set: (val: boolean) => store.updateField('tiendageneral_sw_solo_boleta', val ? 1 : 0)
+})
+
 const isAgeVerificationEnabled = computed({
   get: () => store.draftConfig.tiendageneral_sw_verificacion_edad === 1,
   set: (val: boolean) => store.updateField('tiendageneral_sw_verificacion_edad', val ? 1 : 0)
@@ -324,6 +329,19 @@ watch(
               class="w-full"
               @update:modelValue="store.updateField('tiendageneral_montomaximo', $event)"
             />
+          </div>
+        </div>
+
+        <!-- Solo Boleta de Venta -->
+        <div class="mt-6 pt-6 border-t border-gray-100">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="text-sm font-medium text-secondary-700">Solo emito Boleta de Venta</label>
+              <p class="text-xs text-gray-400 mt-0.5">
+                Oculta la opción de factura (RUC) en el checkout. Actívalo si tu negocio no emite facturas electrónicas.
+              </p>
+            </div>
+            <InputSwitch v-model="isSoloBoletaEnabled" />
           </div>
         </div>
       </div>
