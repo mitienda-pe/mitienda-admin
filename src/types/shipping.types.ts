@@ -110,6 +110,16 @@ export interface UpdateShippingRateRequest {
   enabled?: boolean
 }
 
+// Request para fijar la cobertura base de una provincia a un conjunto de
+// distritos (misma tarifa). Permite atender casi toda una provincia menos
+// los distritos desmarcados.
+export interface SaveProvinceRatesRequest {
+  districtUbigeoIds: number[]
+  price: number
+  deliveryTime: number
+  deliveryTimeUnit: DeliveryTimeUnit
+}
+
 // Catálogo de países soportados
 export const SUPPORTED_COUNTRIES: Country[] = [
   {

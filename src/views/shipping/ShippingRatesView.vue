@@ -303,7 +303,15 @@
           />
         </div>
 
-        <div v-if="addForm.level2 && level3Options.length > 0">
+        <!-- Modo: atender por distritos con exclusiones -->
+        <div v-if="addForm.level2 && level3Options.length > 0" class="flex items-center gap-2">
+          <Checkbox v-model="provinceMode" inputId="provinceMode" :binary="true" @change="onProvinceModeChange" />
+          <label for="provinceMode" class="text-sm text-gray-700 cursor-pointer">
+            Atender solo algunos distritos de la {{ (currentCountry?.levels[1] || 'Provincia').toLowerCase() }}
+          </label>
+        </div>
+
+        <div v-if="addForm.level2 && level3Options.length > 0 && !provinceMode">
           <label class="block text-sm font-medium text-gray-700 mb-2">
             {{ currentCountry?.levels[2] || 'Distrito' }} (opcional)
           </label>
@@ -319,8 +327,36 @@
           />
         </div>
 
+        <!-- Checklist de distritos (modo por distritos) -->
+        <div v-if="provinceMode && addForm.level2 && level3Options.length > 0" class="border border-gray-200 rounded-lg">
+          <div class="flex items-center justify-between px-3 py-2 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+            <span class="text-sm font-medium text-gray-700">
+              Distritos a atender ({{ checkedDistrictIds.length }}/{{ level3Options.length }})
+            </span>
+            <div class="flex gap-3">
+              <button type="button" class="text-xs text-primary hover:underline" @click="selectAllDistricts">Todos</button>
+              <button type="button" class="text-xs text-gray-500 hover:underline" @click="selectNoneDistricts">Ninguno</button>
+            </div>
+          </div>
+          <div class="max-h-56 overflow-y-auto p-2 space-y-0.5">
+            <label
+              v-for="d in level3Options"
+              :key="d.id"
+              class="flex items-center gap-2 px-2 py-1 rounded hover:bg-gray-50 cursor-pointer"
+            >
+              <Checkbox v-model="checkedDistrictIds" :value="d.id" />
+              <span class="text-sm text-gray-700">{{ d.name }}</span>
+            </label>
+          </div>
+        </div>
+
+        <Message v-if="provinceMode && addForm.level2" severity="info" :closable="false" class="text-sm">
+          Se creará una tarifa por cada distrito marcado (con el mismo precio y tiempo).
+          Los distritos <strong>desmarcados</strong> quedarán sin cobertura.
+        </Message>
+
         <!-- Ayuda: cobertura por nivel -->
-        <Message v-if="addForm.level1" severity="info" :closable="false" class="text-sm">
+        <Message v-if="addForm.level1 && !provinceMode" severity="info" :closable="false" class="text-sm">
           Deja <strong>{{ currentCountry?.levels[1] || 'Provincia' }}</strong>
           <template v-if="addForm.level2"> y <strong>{{ currentCountry?.levels[2] || 'Distrito' }}</strong></template>
           <template v-else> (y {{ currentCountry?.levels[2] || 'Distrito' }})</template>
@@ -378,7 +414,7 @@
           icon="pi pi-check"
           :loading="store.isSaving"
           :disabled="!canSaveAdd"
-          @click="addRate"
+          @click="handleAdd"
         />
       </template>
     </Dialog>
@@ -546,6 +582,9 @@ const addForm = ref({
 const level1Options = ref<Location[]>([])
 const level2Options = ref<Location[]>([])
 const level3Options = ref<Location[]>([])
+// Modo "atender solo algunos distritos de la provincia"
+const provinceMode = ref(false)
+const checkedDistrictIds = ref<number[]>([])
 
 // Options
 const timeUnitOptions = [
@@ -567,7 +606,10 @@ const filteredRates = computed(() => {
 })
 
 const canSaveAdd = computed(() => {
-  return addForm.value.level1 && addForm.value.price >= 0 && addForm.value.deliveryTime > 0
+  const base = addForm.value.level1 && addForm.value.price >= 0 && addForm.value.deliveryTime > 0
+  if (!base) return false
+  if (provinceMode.value) return checkedDistrictIds.value.length > 0
+  return true
 })
 
 const canSaveEdit = computed(() => {
@@ -642,6 +684,8 @@ async function openAddDialogForLocation(node: RateTreeNode) {
   }
   level2Options.value = []
   level3Options.value = []
+  provinceMode.value = false
+  checkedDistrictIds.value = []
 
   level1Options.value = await store.fetchLocations(currentCountry.value.code)
 
@@ -723,6 +767,8 @@ async function openAddDialog() {
   }
   level2Options.value = []
   level3Options.value = []
+  provinceMode.value = false
+  checkedDistrictIds.value = []
 
   // Load level 1 options
   level1Options.value = await store.fetchLocations(currentCountry.value.code)
@@ -733,6 +779,9 @@ async function onLevel1Change() {
   addForm.value.level2 = null
   addForm.value.level3 = null
   level3Options.value = []
+  // El modo por distritos depende de una provincia; al cambiar de dpto se resetea.
+  provinceMode.value = false
+  checkedDistrictIds.value = []
 
   if (addForm.value.level1) {
     level2Options.value = await store.fetchLocations(currentCountry.value.code, addForm.value.level1)
@@ -746,8 +795,82 @@ async function onLevel2Change() {
 
   if (addForm.value.level2) {
     level3Options.value = await store.fetchLocations(currentCountry.value.code, addForm.value.level2)
+    if (provinceMode.value) initProvinceChecks()
   } else {
     level3Options.value = []
+    provinceMode.value = false
+    checkedDistrictIds.value = []
+  }
+}
+
+// Al activar/desactivar el modo por distritos
+function onProvinceModeChange() {
+  if (provinceMode.value && addForm.value.level2 && level3Options.value.length > 0) {
+    initProvinceChecks()
+  }
+}
+
+// Ubica el nodo de provincia en el árbol de tarifas por su code ("15-1")
+function findProvinceNode(provinceCode: string): RateTreeNode | null {
+  for (const dept of store.currentRates) {
+    const prov = dept.children?.find(c => c.key === provinceCode)
+    if (prov) return prov
+  }
+  return null
+}
+
+// Pre-marca los distritos ya atendidos (para poder ajustar exclusiones al re-editar).
+// Si la provincia no está configurada, o lleva tarifa por herencia, marca todos.
+function initProvinceChecks() {
+  const allIds = level3Options.value.map(d => d.id)
+  const prov = findProvinceNode(addForm.value.level2 || '')
+
+  if (!prov || prov.data.hasRate) {
+    checkedDistrictIds.value = [...allIds]
+    return
+  }
+
+  const servedNodes = (prov.children || []).filter(c => c.data.hasRate)
+  const served = servedNodes.map(c => c.data.locationId)
+  checkedDistrictIds.value = served.length ? served : [...allIds]
+
+  // Prefill precio/tiempo desde un distrito ya atendido
+  const sample = servedNodes[0]?.data
+  if (sample) {
+    if (sample.price !== undefined) addForm.value.price = sample.price
+    if (sample.deliveryTime !== undefined) addForm.value.deliveryTime = sample.deliveryTime
+    if (sample.deliveryTimeUnit) addForm.value.deliveryTimeUnit = sample.deliveryTimeUnit
+  }
+}
+
+function selectAllDistricts() {
+  checkedDistrictIds.value = level3Options.value.map(d => d.id)
+}
+
+function selectNoneDistricts() {
+  checkedDistrictIds.value = []
+}
+
+// Despacha el guardado según el modo activo
+function handleAdd() {
+  return provinceMode.value ? addProvinceDistricts() : addRate()
+}
+
+async function addProvinceDistricts() {
+  if (!checkedDistrictIds.value.length) return
+
+  const result = await store.createProvinceRates({
+    districtUbigeoIds: checkedDistrictIds.value,
+    price: addForm.value.price,
+    deliveryTime: addForm.value.deliveryTime,
+    deliveryTimeUnit: addForm.value.deliveryTimeUnit
+  }, currentCountry.value.code)
+
+  if (result.success) {
+    toast.add({ severity: 'success', summary: 'Cobertura actualizada', life: 3000 })
+    addDialogVisible.value = false
+  } else {
+    toast.add({ severity: 'error', summary: 'Error', detail: result.error, life: 3000 })
   }
 }
 

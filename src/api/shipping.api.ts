@@ -6,6 +6,7 @@ import type {
   ShippingRate,
   RateTreeNode,
   SaveShippingRateRequest,
+  SaveProvinceRatesRequest,
   UpdateShippingRateRequest,
   Country,
   ShippingConfig,
@@ -573,6 +574,22 @@ export const shippingApi = {
     return response.data?.success
       ? { success: true, data: response.data.data, message: response.data.data?.mensaje }
       : { success: false, message: response.data?.message || 'Error al crear tarifa' }
+  },
+
+  /**
+   * Fija la cobertura base de una provincia a un conjunto de distritos
+   * (misma tarifa). Idempotente: los distritos no incluidos quedan sin cobertura.
+   */
+  async createProvinceDistrictRates(data: SaveProvinceRatesRequest): Promise<ApiResponse<void>> {
+    if (USE_MOCKS) {
+      await delay(500)
+      return { success: true, message: 'Cobertura de provincia actualizada' }
+    }
+
+    const response = await apiClient.post('/shipping-rates/base/province', data)
+    return response.data?.success
+      ? { success: true, data: response.data.data, message: response.data.data?.mensaje }
+      : { success: false, message: response.data?.message || 'Error al guardar cobertura de la provincia' }
   },
 
   /**

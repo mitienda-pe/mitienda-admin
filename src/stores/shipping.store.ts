@@ -7,6 +7,7 @@ import type {
   Location,
   RateTreeNode,
   SaveShippingRateRequest,
+  SaveProvinceRatesRequest,
   UpdateShippingRateRequest
 } from '@/types/shipping.types'
 
@@ -138,6 +139,30 @@ export const useShippingStore = defineStore('shipping', () => {
     }
   }
 
+  async function createProvinceRates(data: SaveProvinceRatesRequest, countryCode?: CountryCode) {
+    isSaving.value = true
+    error.value = null
+    successMessage.value = null
+
+    try {
+      const result = await shippingApi.createProvinceDistrictRates(data)
+      if (result.success) {
+        successMessage.value = result.message || 'Cobertura de provincia actualizada'
+        await fetchRates(countryCode || currentCountry.value)
+        return { success: true }
+      } else {
+        error.value = result.message || 'Error al guardar cobertura de la provincia'
+        return { success: false, error: error.value }
+      }
+    } catch (err) {
+      error.value = 'Error de conexión al guardar cobertura de la provincia'
+      console.error('Error saving province coverage:', err)
+      return { success: false, error: error.value }
+    } finally {
+      isSaving.value = false
+    }
+  }
+
   async function updateRate(id: number, data: UpdateShippingRateRequest, countryCode?: CountryCode) {
     isSaving.value = true
     error.value = null
@@ -255,6 +280,7 @@ export const useShippingStore = defineStore('shipping', () => {
     fetchRates,
     fetchLocations,
     createRate,
+    createProvinceRates,
     updateRate,
     deleteRate,
     toggleRate,
