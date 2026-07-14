@@ -42,6 +42,14 @@ const OLVA_COURIER_ID = 9
 const isOlvaOrder = computed(() => order.value?.courier_id === OLVA_COURIER_ID)
 const olvaHasTracking = computed(() => !!order.value?.tracking.code)
 
+// Cabify manual dispatch
+const isRedispatchingCabify = ref(false)
+const CABIFY_COURIER_ID = 10
+
+const isCabifyOrder = computed(() => order.value?.courier_id === CABIFY_COURIER_ID)
+const cabifyHasTracking = computed(() => !!order.value?.tracking.code)
+const cabifyTrackingUrl = computed(() => order.value?.tracking.url || null)
+
 // ─── Computed ─────────────────────────────────────────────────
 
 const availableStates = computed(() => {
@@ -195,6 +203,44 @@ async function redispatchOlva() {
   }
 }
 
+async function redispatchCabify() {
+  if (!confirm('¿Crear/reintentar el envío en Cabify para esta orden?')) return
+
+  isRedispatchingCabify.value = true
+  try {
+    const response = await dispatchApi.redispatchCabify(orderId)
+    if (response.success && response.data?.tracking_code) {
+      toast.add({
+        severity: 'success',
+        summary: 'Envío creado en Cabify',
+        detail: `Tracking: ${response.data.tracking_code}`,
+        life: 4000
+      })
+      await loadOrder()
+    } else {
+      toast.add({
+        severity: 'warn',
+        summary: 'Cabify respondió sin tracking',
+        detail: response.message || 'Revisá el log',
+        life: 4000
+      })
+    }
+  } catch (err: unknown) {
+    const data = (err as { response?: { data?: { message?: string; data?: { error?: string } } } })
+      ?.response?.data
+    const detail = data?.data?.error || data?.message || 'No se pudo crear el envío en Cabify'
+    toast.add({ severity: 'error', summary: 'Error', detail, life: 5000 })
+  } finally {
+    isRedispatchingCabify.value = false
+  }
+}
+
+function openCabifyTracking() {
+  if (cabifyTrackingUrl.value) {
+    window.open(cabifyTrackingUrl.value, '_blank', 'noopener')
+  }
+}
+
 async function openOlvaLabel() {
   try {
     const response = await apiClient.get(`/orders/${orderId}/olva-label`, {
@@ -328,6 +374,37 @@ onMounted(() => {
             severity="secondary"
             size="small"
             @click="openOlvaLabel"
+          />
+
+          <!-- Cabify: crear/reintentar envío -->
+          <Button
+            v-if="isCabifyOrder && !cabifyHasTracking"
+            label="Crear envío en Cabify"
+            icon="pi pi-send"
+            severity="primary"
+            size="small"
+            :loading="isRedispatchingCabify"
+            @click="redispatchCabify"
+          />
+          <Button
+            v-else-if="isCabifyOrder"
+            label="Reintentar envío"
+            icon="pi pi-refresh"
+            severity="secondary"
+            outlined
+            size="small"
+            :loading="isRedispatchingCabify"
+            @click="redispatchCabify"
+          />
+
+          <!-- Cabify: ver seguimiento (cuando ya hay tracking url) -->
+          <Button
+            v-if="isCabifyOrder && cabifyHasTracking && cabifyTrackingUrl"
+            label="Ver seguimiento"
+            icon="pi pi-map-marker"
+            severity="secondary"
+            size="small"
+            @click="openCabifyTracking"
           />
 
           <Button

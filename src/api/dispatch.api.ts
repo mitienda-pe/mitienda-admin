@@ -84,5 +84,19 @@ export const dispatchApi = {
   /** URL al HTML imprimible (A6) con barcode para pegar al paquete */
   olvaLabelUrl(orderId: number): string {
     return `${apiClient.defaults.baseURL}/orders/${orderId}/olva-label`
+  },
+
+  /**
+   * Crea/reintenta el envío en Cabify (createParcels + shipParcels).
+   * Devuelve el tracking_code (parcel id) y la tracking_url de Cabify.
+   */
+  async redispatchCabify(orderId: number): Promise<ApiResponse<{
+    success: boolean
+    parcel_id: string | null
+    tracking_url: string | null
+    tracking_code: string | null
+  }>> {
+    const response = await apiClient.post(`/orders/${orderId}/cabify-redispatch`)
+    return response.data
   }
 }
