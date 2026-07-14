@@ -121,6 +121,8 @@ import urbanoLogo from '@/assets/images/logo-urbano.png'
 import yangoLogo from '@/assets/images/logo-yango.svg'
 import hopLogo from '@/assets/images/logo-hop.svg'
 import olvaLogo from '@/assets/images/logo-olva.svg'
+import cabifyLogo from '@/assets/images/logo-cabify-logistics.svg'
+import homeDeliveryLogo from '@/assets/images/logo-home-delivery.png'
 
 const router = useRouter()
 const store = useCourierProvidersStore()
@@ -134,6 +136,8 @@ const courierLogos: Record<string, string> = {
   yango: yangoLogo,
   hop: hopLogo,
   olva: olvaLogo,
+  cabify: cabifyLogo,
+  home_delivery: homeDeliveryLogo,
 }
 
 const betaCouriers = ['chazki', 'nirex', 'urbano', 'yango', 'hop', 'olva', 'cabify', 'home_delivery']

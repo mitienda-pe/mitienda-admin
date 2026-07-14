@@ -9,7 +9,7 @@
         severity="secondary"
         @click="router.push('/shipping/couriers')"
       />
-      <i class="pi pi-truck text-3xl text-primary"></i>
+      <img :src="homeDeliveryLogo" alt="Home Delivery" class="w-10 h-10 object-contain" />
       <div>
         <h1 class="text-2xl font-bold text-secondary">Home Delivery</h1>
         <p class="text-sm text-secondary-400 mt-1">Configuración de credenciales y origen (Grupo Falabella)</p>
@@ -163,6 +163,7 @@ import { useRouter } from 'vue-router'
 import { useCourierProvidersStore } from '@/stores/courier-providers.store'
 import { useDirtyForm } from '@/composables/useDirtyForm'
 import { useToast } from 'primevue/usetoast'
+import homeDeliveryLogo from '@/assets/images/logo-home-delivery.png'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
