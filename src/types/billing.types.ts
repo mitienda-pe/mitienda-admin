@@ -22,6 +22,7 @@ export interface BranchSerie {
   tiendaseriefact_serie: string
   tiendaseriefact_correlativo: number // último correlativo emitido
   tiendaseriefact_estado: number
+  sucursal_nombre?: string | null // resuelto por JOIN en el backend
 }
 
 export interface BranchSerieSucursal {

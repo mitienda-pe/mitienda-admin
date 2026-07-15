@@ -60,9 +60,9 @@
           <template #body="{ data }">
             <div class="flex items-center gap-2">
               <i
-                :class="data.tiendadireccion_id ? 'pi pi-map-marker text-primary' : 'pi pi-globe text-secondary-500'"
+                :class="data.tiendadireccion_id !== null ? 'pi pi-map-marker text-primary' : 'pi pi-globe text-secondary-500'"
               ></i>
-              <span>{{ sucursalNombre(data.tiendadireccion_id) }}</span>
+              <span>{{ rowSucursalNombre(data) }}</span>
             </div>
           </template>
         </Column>
@@ -219,13 +219,21 @@ const tipoDocumentoOptions = [
 
 const sucursalOptions = computed(() => [
   { label: 'Todas (default de tienda)', value: null as number | null },
-  ...sucursales.value.map(s => ({ label: s.nombre, value: s.tiendadireccion_id }))
+  ...sucursales.value.map(s => ({ label: s.nombre, value: Number(s.tiendadireccion_id) }))
 ])
 
 function sucursalNombre(tiendadireccionId: number | null): string {
   if (tiendadireccionId === null) return 'Todas (default de tienda)'
-  const s = sucursales.value.find(x => x.tiendadireccion_id === tiendadireccionId)
+  const s = sucursales.value.find(x => Number(x.tiendadireccion_id) === Number(tiendadireccionId))
   return s ? s.nombre : `Sucursal #${tiendadireccionId}`
+}
+
+// Nombre para la fila de la tabla: prioriza el nombre resuelto por el backend (JOIN),
+// cae al catálogo de sucursales y por último al id.
+function rowSucursalNombre(row: BranchSerie): string {
+  if (row.tiendadireccion_id === null) return 'Todas (default de tienda)'
+  if (row.sucursal_nombre) return row.sucursal_nombre
+  return sucursalNombre(row.tiendadireccion_id)
 }
 
 // --- Form ---
@@ -265,8 +273,21 @@ async function loadSeries() {
   try {
     const res = await billingApi.getBranchSeries()
     if (res.success && res.data) {
-      series.value = res.data.series ?? []
-      sucursales.value = res.data.sucursales ?? []
+      // Los IDs pueden llegar como string desde la API; se normalizan a number
+      // para que las comparaciones y el v-model del <select> funcionen.
+      series.value = (res.data.series ?? []).map(s => ({
+        ...s,
+        tiendaseriefact_id: Number(s.tiendaseriefact_id),
+        tiendadireccion_id: s.tiendadireccion_id === null || s.tiendadireccion_id === undefined
+          ? null
+          : Number(s.tiendadireccion_id),
+        tiendaseriefact_correlativo: Number(s.tiendaseriefact_correlativo)
+      }))
+      sucursales.value = (res.data.sucursales ?? []).map(s => ({
+        ...s,
+        tiendadireccion_id: Number(s.tiendadireccion_id),
+        numero_cajas: Number(s.numero_cajas)
+      }))
       featureApplicable.value = res.data.feature_applicable ?? false
     }
   } catch (e: any) {
