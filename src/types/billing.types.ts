@@ -10,6 +10,39 @@ export interface BillingProvider {
 export type BillingEnvironment = 'produccion' | 'prueba'
 export type PdfFormat = 'A4' | 'TICKET' | '80MM'
 
+// Series por sucursal (emisión SUNAT, fuera de NetSuite)
+
+export type SerieTipoDocumento = 'BOLETA' | 'FACTURA'
+
+export interface BranchSerie {
+  tiendaseriefact_id: number
+  tienda_id: number
+  tiendadireccion_id: number | null // null = serie default de la tienda
+  tiendaseriefact_tipo_documento: SerieTipoDocumento
+  tiendaseriefact_serie: string
+  tiendaseriefact_correlativo: number // último correlativo emitido
+  tiendaseriefact_estado: number
+}
+
+export interface BranchSerieSucursal {
+  tiendadireccion_id: number
+  nombre: string
+  numero_cajas: number
+}
+
+export interface BranchSeriesResponse {
+  series: BranchSerie[]
+  sucursales: BranchSerieSucursal[]
+  feature_applicable: boolean // true si la tienda tiene ≥2 sucursales con POS
+}
+
+export interface SaveBranchSerieRequest {
+  tiendadireccion_id: number | null
+  tipo_documento: SerieTipoDocumento
+  serie: string
+  correlativo_inicial?: number
+}
+
 // Nubefact Types
 
 export interface NubefactCredentials {

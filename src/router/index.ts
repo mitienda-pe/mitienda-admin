@@ -769,6 +769,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/billing/ProviderConfigView.vue')
       },
       {
+        path: 'series',
+        name: 'BillingBranchSeries',
+        meta: { title: 'Series por sucursal' },
+        component: () => import('@/views/billing/BranchSeriesView.vue')
+      },
+      {
         path: 'documents',
         name: 'BillingDocuments',
         meta: { title: 'Documentos de facturación' },

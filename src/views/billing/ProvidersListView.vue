@@ -151,6 +151,27 @@
       </Card>
     </div>
 
+    <!-- Series por sucursal (multi-sucursal POS) -->
+    <Card
+      class="cursor-pointer hover:shadow-lg transition-shadow border border-primary/20"
+      @click="goToBranchSeries"
+    >
+      <template #content>
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex gap-4">
+            <i class="pi pi-sitemap text-primary text-2xl"></i>
+            <div>
+              <h3 class="font-semibold text-secondary-700 mb-1">Series por sucursal</h3>
+              <p class="text-sm text-gray-600">
+                ¿Tu comercio emite con series distintas por sucursal (POS multi-local)? Configúralas aquí.
+              </p>
+            </div>
+          </div>
+          <i class="pi pi-arrow-right text-primary"></i>
+        </div>
+      </template>
+    </Card>
+
     <!-- Information Box -->
     <Card class="bg-primary/5 border border-primary/20">
       <template #content>
@@ -226,5 +247,9 @@ function goToProviderConfig(providerId: number) {
   if (availableProviders.includes(providerId)) {
     router.push(`/billing/providers/${providerId}`)
   }
+}
+
+function goToBranchSeries() {
+  router.push('/billing/series')
 }
 </script>

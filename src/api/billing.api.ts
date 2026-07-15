@@ -15,7 +15,10 @@ import type {
   ManualEmitResponse,
   ManualDocument,
   DocumentLookupResult,
-  BillingStatus
+  BillingStatus,
+  BranchSeriesResponse,
+  SaveBranchSerieRequest,
+  BranchSerie
 } from '@/types/billing.types'
 
 export const billingApi = {
@@ -142,6 +145,32 @@ export const billingApi = {
    */
   async testDatilConnection(): Promise<ApiResponse<any>> {
     const response = await apiClient.post('/billing/datil/test')
+    return response.data
+  },
+
+  // ========== Series por sucursal API (SUNAT, fuera de NetSuite) ==========
+
+  /**
+   * Obtener las series por sucursal configuradas + sucursales con POS disponibles.
+   */
+  async getBranchSeries(): Promise<ApiResponse<BranchSeriesResponse>> {
+    const response = await apiClient.get('/billing/series')
+    return response.data
+  },
+
+  /**
+   * Crear o actualizar una serie por (sucursal, tipo de documento).
+   */
+  async saveBranchSerie(data: SaveBranchSerieRequest): Promise<ApiResponse<BranchSerie>> {
+    const response = await apiClient.put('/billing/series', data)
+    return response.data
+  },
+
+  /**
+   * Eliminar una serie por sucursal.
+   */
+  async deleteBranchSerie(id: number): Promise<ApiResponse<any>> {
+    const response = await apiClient.delete(`/billing/series/${id}`)
     return response.data
   },
 
