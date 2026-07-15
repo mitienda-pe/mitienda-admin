@@ -42,6 +42,7 @@
             <option value="small">Small</option>
             <option value="medium">Medium</option>
             <option value="large">Large</option>
+            <option value="pos">POS</option>
             <option value="enterprise">Enterprise</option>
           </select>
         </div>
