@@ -1329,6 +1329,7 @@ const marketingMenuItems = [
 // Items del grupo Facturación
 const billingMenuItems = [
   { label: 'Proveedores', icon: 'pi pi-building', to: '/billing/providers' },
+  { label: 'Series por sucursal', icon: 'pi pi-sitemap', to: '/billing/series' },
   { label: 'Documentos', icon: 'pi pi-file', to: '/billing/documents' }
 ]
 
