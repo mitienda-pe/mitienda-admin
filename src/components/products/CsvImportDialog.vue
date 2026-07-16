@@ -12,7 +12,7 @@ import type { CsvImportPreview } from '@/types/product.types'
 
 interface Props {
   visible: boolean
-  mode: 'prices' | 'stock'
+  mode: 'prices' | 'stock' | 'order'
 }
 
 const props = defineProps<Props>()
@@ -31,9 +31,11 @@ const selectedFile = ref<File | null>(null)
 const previewData = ref<CsvImportPreview | null>(null)
 const importResult = ref<{ processed: number; updated: number } | null>(null)
 
-const title = computed(() =>
-  props.mode === 'prices' ? 'Importar Precios' : 'Importar Stock',
-)
+const title = computed(() => {
+  if (props.mode === 'prices') return 'Importar Precios'
+  if (props.mode === 'order') return 'Importar Orden'
+  return 'Importar Stock'
+})
 
 const changesCount = computed(() => {
   if (!previewData.value) return 0
@@ -70,7 +72,9 @@ const handleUpload = async () => {
     const previewFn =
       props.mode === 'prices'
         ? productManagementApi.importPricesPreview
-        : productManagementApi.importStockPreview
+        : props.mode === 'order'
+          ? productManagementApi.importOrderPreview
+          : productManagementApi.importStockPreview
     const response = await previewFn(selectedFile.value)
 
     if (response.success && response.data) {
@@ -106,7 +110,9 @@ const handleConfirm = async () => {
     const confirmFn =
       props.mode === 'prices'
         ? productManagementApi.importPricesConfirm
-        : productManagementApi.importStockConfirm
+        : props.mode === 'order'
+          ? productManagementApi.importOrderConfirm
+          : productManagementApi.importStockConfirm
     const response = await confirmFn(selectedFile.value)
 
     if (response.success && response.data) {
@@ -160,7 +166,8 @@ const handleClose = () => {
     <div v-if="step === 1" class="space-y-4">
       <p class="text-sm text-gray-600">
         Sube un archivo CSV con las columnas requeridas. Puedes descargar una plantilla
-        usando el boton "Exportar CSV" en la vista de {{ mode === 'prices' ? 'precios' : 'stock' }}.
+        usando el boton "Exportar CSV" en la vista de
+        {{ mode === 'prices' ? 'precios' : mode === 'order' ? 'orden del catalogo' : 'stock' }}.
       </p>
 
       <div class="text-xs text-gray-500 bg-gray-50 rounded p-3">
@@ -170,6 +177,13 @@ const handleClose = () => {
           <p class="mt-1">Para variantes: <code>variante_id, variante_precio</code></p>
           <p class="mt-1">Si solo incluyes una columna de precio, el otro se calculara automaticamente.</p>
           <p class="mt-1"><code>afectacion</code> (opcional): 1=Afecto, 2=Exonerado, 3=Inafecto. Si se omite, no cambia.</p>
+        </template>
+        <template v-else-if="mode === 'order'">
+          <code>producto_id, sku, orden</code>
+          <p class="mt-1">
+            <code>orden</code> se usa como prioridad: el catalogo se ordena por ese valor y se
+            renumera de 1 a N. Los productos que no incluyas quedan al final conservando su orden actual.
+          </p>
         </template>
         <template v-else>
           <code>producto_id, sku, stock</code>

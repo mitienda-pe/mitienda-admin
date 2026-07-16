@@ -161,6 +161,23 @@ export const productManagementApi = {
     return response.data
   },
 
+  async importOrderPreview(file: File): Promise<ApiResponse<CsvImportPreview>> {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await apiClient.post('/products/import-order', formData)
+    return response.data
+  },
+
+  async importOrderConfirm(
+    file: File
+  ): Promise<ApiResponse<{ processed: number; updated: number }>> {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('confirm', '1')
+    const response = await apiClient.post('/products/import-order', formData)
+    return response.data
+  },
+
   // ── Calculate missing prices ──
 
   async calculateMissingPrices(): Promise<

@@ -9,6 +9,7 @@ import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import { useToast } from 'primevue/usetoast'
 import SearchBar from '@/components/common/SearchBar.vue'
+import CsvImportDialog from '@/components/products/CsvImportDialog.vue'
 import { AppBadge } from '@/components/ui'
 import type { ProductOrderItem } from '@/types/product.types'
 
@@ -16,6 +17,7 @@ const store = useProductManagementStore()
 const toast = useToast()
 
 const searchQuery = ref('')
+const importDialogVisible = ref(false)
 
 // The whole catalog is loaded once; search filters the loaded list in-memory.
 const isFiltered = computed(() => searchQuery.value.trim().length > 0)
@@ -99,6 +101,17 @@ const handleExport = async () => {
   }
 }
 
+const onImported = async () => {
+  importDialogVisible.value = false
+  await store.fetchAllOrder()
+  toast.add({
+    severity: 'success',
+    summary: 'Orden importado',
+    detail: 'El orden del catalogo se actualizo correctamente',
+    life: 3000,
+  })
+}
+
 const hasDirtyChanges = computed(() => store.dirtyOrderCount > 0)
 </script>
 
@@ -129,6 +142,13 @@ const hasDirtyChanges = computed(() => store.dirtyOrderCount > 0)
         outlined
         size="small"
         @click="handleExport"
+      />
+      <Button
+        label="Importar CSV"
+        icon="pi pi-upload"
+        outlined
+        size="small"
+        @click="importDialogVisible = true"
       />
       <template v-if="hasDirtyChanges">
         <Button
@@ -309,6 +329,13 @@ const hasDirtyChanges = computed(() => store.dirtyOrderCount > 0)
       orden para mover un producto a esa posición. El orden es global: al guardar
       se reenumera de 1 a {{ store.orderPagination.total }}.
     </div>
+
+    <!-- Import CSV dialog -->
+    <CsvImportDialog
+      v-model:visible="importDialogVisible"
+      mode="order"
+      @imported="onImported"
+    />
   </div>
 </template>
 
