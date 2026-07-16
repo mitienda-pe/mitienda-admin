@@ -190,6 +190,7 @@ export function useBulkImport() {
         case 'sku': row1.push('CAM-BAS-001'); row2.push('PAN-JEA-001'); break
         case 'codigo_barras': row1.push('7501234567890'); row2.push('7501234567891'); break
         case 'precio': row1.push('49.90'); row2.push('129.90'); break
+        case 'afectacion': row1.push('1'); row2.push('1'); break
         case 'stock': row1.push('100'); row2.push('50'); break
         case 'stock_ilimitado': row1.push('0'); row2.push('0'); break
         case 'descripcion': row1.push('Camiseta de algodon 100%'); row2.push('Jean clasico corte recto'); break
@@ -289,6 +290,22 @@ export function useBulkImport() {
                   } else {
                     mapped.price = num
                   }
+                }
+              } else if (colDef.key === 'afectacion') {
+                // Afectacion IGV: texto (afecto/gravado/exonerado/inafecto) o numero (1/2/3, SUNAT 10/20/30)
+                const v = value.trim().toLowerCase()
+                let afect: number | null = null
+                // Ojo: "inafecto" contiene "afect"; evaluar inafecto/exonerado antes que afecto/gravado
+                if (v.includes('inafect')) afect = 3
+                else if (v.includes('exoner')) afect = 2
+                else if (v.includes('grav') || v.includes('afect')) afect = 1
+                else if (['1', '10'].includes(v)) afect = 1
+                else if (['2', '20'].includes(v)) afect = 2
+                else if (['3', '30'].includes(v)) afect = 3
+                if (afect === null) {
+                  errors.push(`"${colDef.label}" invalida: "${value}". Use 1=Afecto, 2=Exonerado, 3=Inafecto`)
+                } else {
+                  mapped.tax_affectation = afect
                 }
               } else if (colDef.key === 'categorias') {
                 const { ids, warnings: catWarnings } = resolveCategories(value)

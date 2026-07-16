@@ -19,6 +19,7 @@ export const CSV_COLUMNS: CsvColumnDef[] = [
   { key: 'codigo_barras', apiField: 'barcode', label: 'Codigo de Barras', required: false, type: 'string', group: 'Basico' },
   // Precios (dynamically mapped based on pricing_mode)
   { key: 'precio', apiField: 'price', label: 'Precio', required: true, type: 'number', group: 'Precios' },
+  { key: 'afectacion', apiField: 'tax_affectation', label: 'Afectacion IGV (1=Afecto,2=Exonerado,3=Inafecto)', required: false, type: 'number', group: 'Precios' },
   // Inventario
   { key: 'stock', apiField: 'stock', label: 'Stock', required: true, type: 'number', group: 'Inventario' },
   { key: 'stock_ilimitado', apiField: 'unlimited_stock', label: 'Stock Ilimitado (0/1)', required: false, type: 'boolean', group: 'Inventario' },

@@ -6,7 +6,7 @@ import DataTable, { type DataTableSortEvent } from 'primevue/datatable'
 import Column from 'primevue/column'
 import InputNumber from 'primevue/inputnumber'
 import Button from 'primevue/button'
-import Tag from 'primevue/tag'
+import Dropdown from 'primevue/dropdown'
 import { useToast } from 'primevue/usetoast'
 import SearchBar from '@/components/common/SearchBar.vue'
 import CsvImportDialog from '@/components/products/CsvImportDialog.vue'
@@ -177,26 +177,15 @@ watch(
 
 // ── Helpers ──
 
-const taxLabel = (affectation: number) => {
-  switch (affectation) {
-    case 2:
-      return 'Exonerado'
-    case 3:
-      return 'Inafecto'
-    default:
-      return 'Gravado'
-  }
-}
+const taxAffectationOptions = [
+  { label: 'Gravado (con IGV)', value: 1 },
+  { label: 'Exonerado', value: 2 },
+  { label: 'Inafecto', value: 3 },
+]
 
-const taxSeverity = (affectation: number): 'info' | 'success' | 'warning' => {
-  switch (affectation) {
-    case 2:
-      return 'warning'
-    case 3:
-      return 'info'
-    default:
-      return 'success'
-  }
+const onAffectationChange = (productId: number, value: number) => {
+  if (value == null) return
+  store.updateLocalAffectation(productId, value)
 }
 
 const onImported = () => {
@@ -420,12 +409,16 @@ const first = computed(
         </Column>
 
         <!-- Afectacion -->
-        <Column header="Afectacion" style="width: 110px">
+        <Column header="Afectacion IGV" style="min-width: 170px">
           <template #body="{ data }">
-            <Tag
-              :value="taxLabel(data.tax_affectation)"
-              :severity="taxSeverity(data.tax_affectation)"
-              class="text-xs"
+            <Dropdown
+              :modelValue="data.tax_affectation ?? 1"
+              @update:modelValue="val => onAffectationChange(data.id, val)"
+              :options="taxAffectationOptions"
+              optionLabel="label"
+              optionValue="value"
+              class="w-full"
+              size="small"
             />
           </template>
         </Column>

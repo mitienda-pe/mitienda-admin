@@ -40,6 +40,20 @@ const changesCount = computed(() => {
   return previewData.value.preview.filter(r => r.has_change).length
 })
 
+const showAffectation = computed(() =>
+  props.mode === 'prices' &&
+  !!previewData.value?.preview.some(r => r.new_affectation != null),
+)
+
+const affectationLabel = (v?: number | null) => {
+  switch (v) {
+    case 2: return 'Exonerado'
+    case 3: return 'Inafecto'
+    case 1: return 'Gravado'
+    default: return '-'
+  }
+}
+
 // ── File selection ──
 
 const onFileSelect = (event: { files: File[] }) => {
@@ -152,9 +166,10 @@ const handleClose = () => {
       <div class="text-xs text-gray-500 bg-gray-50 rounded p-3">
         <p class="font-semibold mb-1">Columnas esperadas:</p>
         <template v-if="mode === 'prices'">
-          <code>producto_id, sku, precio_sin_igv, precio_con_igv</code>
+          <code>producto_id, sku, precio_sin_igv, precio_con_igv, afectacion</code>
           <p class="mt-1">Para variantes: <code>variante_id, variante_precio</code></p>
           <p class="mt-1">Si solo incluyes una columna de precio, el otro se calculara automaticamente.</p>
+          <p class="mt-1"><code>afectacion</code> (opcional): 1=Afecto, 2=Exonerado, 3=Inafecto. Si se omite, no cambia.</p>
         </template>
         <template v-else>
           <code>producto_id, sku, stock</code>
@@ -247,6 +262,20 @@ const handleClose = () => {
             >
               {{ data.new_value ?? '-' }}
             </span>
+          </template>
+        </Column>
+        <Column
+          v-if="showAffectation"
+          header="Afectacion"
+          style="min-width: 150px"
+        >
+          <template #body="{ data }">
+            <span v-if="data.new_affectation != null && data.new_affectation !== data.current_affectation">
+              <span class="text-gray-400">{{ affectationLabel(data.current_affectation) }}</span>
+              <i class="pi pi-arrow-right text-gray-400 text-xs mx-1"></i>
+              <span class="text-green-700 font-semibold">{{ affectationLabel(data.new_affectation) }}</span>
+            </span>
+            <span v-else class="text-gray-500">{{ affectationLabel(data.current_affectation) }}</span>
           </template>
         </Column>
         <Column header="" style="width: 60px">

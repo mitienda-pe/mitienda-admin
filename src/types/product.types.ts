@@ -251,6 +251,7 @@ export interface BatchPriceUpdate {
   id: number
   price?: number
   price_without_tax?: number
+  tax_affectation?: number // 1=Gravado, 2=Exonerado, 3=Inafecto
   variants?: { id: number; price?: number; price_without_tax?: number }[]
 }
 
@@ -320,6 +321,8 @@ export interface CsvPreviewRow {
   variant_sku?: string
   variant_name?: string
   has_change: boolean
+  current_affectation?: number // 1=Gravado, 2=Exonerado, 3=Inafecto
+  new_affectation?: number | null
 }
 
 // ── Product creation ──

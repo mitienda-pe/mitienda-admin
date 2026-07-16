@@ -92,6 +92,28 @@ export const useProductManagementStore = defineStore('productManagement', () => 
     dirtyPriceItems.value.set(productId, dirty)
   }
 
+  function updateLocalAffectation(productId: number, value: number) {
+    const item = priceItems.value.find(p => p.id === productId)
+    if (!item) return
+
+    item.tax_affectation = value
+
+    // Re-sincronizar precios: exento (2/3) → ambos iguales; gravado (1) → sin IGV = con IGV / (1+igv)
+    const igvMultiplier = 1 + (item.igv_percent || 18) / 100
+    const isExempt = value === 2 || value === 3
+    if (isExempt) {
+      item.price_without_tax = item.price
+    } else if (item.price != null) {
+      item.price_without_tax = Math.round((item.price / igvMultiplier) * 100) / 100
+    }
+
+    const dirty = dirtyPriceItems.value.get(productId) || { id: productId }
+    dirty.tax_affectation = value
+    dirty.price = item.price
+    dirty.price_without_tax = item.price_without_tax ?? undefined
+    dirtyPriceItems.value.set(productId, dirty)
+  }
+
   function updateLocalVariantPrice(
     productId: number,
     variantId: number,
@@ -390,6 +412,7 @@ export const useProductManagementStore = defineStore('productManagement', () => 
     dirtyPriceCount,
     fetchPrices,
     updateLocalPrice,
+    updateLocalAffectation,
     updateLocalVariantPrice,
     savePriceChanges,
     resetPriceDirty,
