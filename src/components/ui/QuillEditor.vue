@@ -67,6 +67,28 @@ function toEmbedUrl(rawUrl: string): string | null {
   return null
 }
 
+/** Hosts permitidos para embeds vía <iframe>. Match exacto de hostname. */
+const ALLOWED_VIDEO_HOSTS = new Set([
+  'www.youtube.com',
+  'youtube.com',
+  'www.youtube-nocookie.com',
+  'youtube-nocookie.com',
+  'player.vimeo.com',
+  'iframe.cloudflarestream.com'
+])
+
+function isAllowedVideoSrc(src: string | undefined | null): boolean {
+  if (!src) return false
+  try {
+    const url = new URL(src, 'https://invalid.local')
+    if (url.protocol !== 'https:') return false
+    const host = url.hostname.toLowerCase()
+    return ALLOWED_VIDEO_HOSTS.has(host) || host.endsWith('.cloudflarestream.com')
+  } catch {
+    return false
+  }
+}
+
 type ToolbarPreset = 'full' | 'compact'
 
 interface Props {
@@ -204,6 +226,22 @@ onMounted(() => {
   })
 
   ;(window as any).quillInstance = quill
+
+  // Quill registra el blot `video` con la clase `ql-video`, así que un <iframe>
+  // pegado SIN esa clase (embed code crudo de YouTube/Vimeo) no se reconoce y se
+  // descarta al convertir. Este matcher convierte cualquier iframe de un host
+  // confiable en un embed de video válido; los demás iframes se eliminan.
+  const Delta = Quill.import('delta') as any
+  const clipboard = quill.getModule('clipboard') as any
+  clipboard.addMatcher('IFRAME', (node: HTMLElement) => {
+    const rawSrc = node.getAttribute('src') || ''
+    const embed = toEmbedUrl(rawSrc) || rawSrc
+    const delta = new Delta()
+    if (isAllowedVideoSrc(embed)) {
+      delta.insert({ video: embed })
+    }
+    return delta
+  })
 
   if (props.modelValue) {
     loadIntoQuill(props.modelValue)
