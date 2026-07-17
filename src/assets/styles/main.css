@@ -897,3 +897,18 @@ body {
   border-radius: 50% !important;
   display: block !important;
 }
+
+/* Embeds de video responsivos en previews de contenido de merchant
+   (páginas, blog, descripción de producto). El blot `video` de Quill genera
+   <iframe class="ql-video"> sin width/height, así que sin esto colapsa y no se
+   ve. Equivalente a PageContentRenderer.vue del storefront. */
+.prose iframe,
+iframe.ql-video {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  margin: 1em 0;
+  border: 0;
+}
