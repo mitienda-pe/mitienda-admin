@@ -316,6 +316,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, requiresStore: true },
     children: [
       {
+        path: 'pdf',
+        name: 'catalog-pdf',
+        meta: { title: 'Catálogos PDF' },
+        component: () => import('@/views/catalogs/CatalogGeneratorView.vue')
+      },
+      {
         path: 'categories',
         name: 'categories-list',
         meta: { title: 'Categorías' },

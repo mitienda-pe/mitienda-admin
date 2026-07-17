@@ -1306,6 +1306,7 @@ const catalogMenuItems = [
   { label: 'Listas', icon: 'pi pi-list', to: '/catalog/product-lists' },
   { label: 'Atributos', icon: 'pi pi-palette', to: '/catalog/attributes' },
   { label: 'Etiquetas', icon: 'pi pi-bookmark', to: '/catalog/product-tags' },
+  { label: 'Catálogos PDF', icon: 'pi pi-file-pdf', to: '/catalog/pdf' },
   { label: 'Configuración', icon: 'pi pi-cog', to: '/catalog/config' }
 ]
 
