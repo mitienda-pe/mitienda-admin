@@ -13,8 +13,8 @@
         <template #body="{ data }">
           <div class="relative" @click="openImagePicker(data, $event)">
             <img
-              v-if="getImageUrl(data.image_id)"
-              :src="getImageUrl(data.image_id)"
+              v-if="variantThumb(data)"
+              :src="variantThumb(data)"
               class="w-12 h-12 object-cover rounded border cursor-pointer hover:ring-2 hover:ring-primary"
               :alt="data.names"
             />
@@ -163,8 +163,8 @@
             v-for="img in images"
             :key="img.id"
             class="w-14 h-14 rounded border-2 overflow-hidden cursor-pointer hover:border-primary"
-            :class="editingVariant?.image_id === img.id ? 'border-primary ring-1 ring-primary' : 'border-secondary-200'"
-            @click="selectImage(img.id)"
+            :class="Number(editingVariant?.image_id) === Number(img.id) ? 'border-primary ring-1 ring-primary' : 'border-secondary-200'"
+            @click="selectImage(img)"
           >
             <img :src="img.url" class="w-full h-full object-cover" />
           </div>
@@ -210,16 +210,27 @@ const imagePickerRef = ref()
 const editingVariant = ref<ProductVariant | null>(null)
 
 const imageMap = computed(() => {
+  // Los ids pueden llegar como string desde la API (MySQL) o como number.
+  // Normalizamos a number para evitar misses por type mismatch (string vs number).
   const map = new Map<number, string>()
   for (const img of props.images) {
-    map.set(img.id, img.url)
+    const key = Number(img.id)
+    if (Number.isFinite(key)) map.set(key, img.url)
   }
   return map
 })
 
-function getImageUrl(imageId: number | null): string | undefined {
-  if (!imageId) return undefined
-  return imageMap.value.get(imageId)
+function getImageUrl(imageId: number | string | null): string | undefined {
+  const key = Number(imageId)
+  if (!Number.isFinite(key) || key <= 0) return undefined
+  return imageMap.value.get(key)
+}
+
+// Miniatura de la variante: preferimos el image_url que ya resuelve el backend
+// (robusto ante re-keying legacy→R2 y ante que product.images llegue vacío/desfasado
+// al editor); fallback al mapa local por image_id.
+function variantThumb(variant: ProductVariant): string | undefined {
+  return variant.image_url || getImageUrl(variant.image_id)
 }
 
 function openImagePicker(variant: ProductVariant, event: Event) {
@@ -227,9 +238,17 @@ function openImagePicker(variant: ProductVariant, event: Event) {
   imagePickerRef.value?.toggle(event)
 }
 
-function selectImage(imageId: number | null) {
+function selectImage(img: ProductImage | null) {
   if (editingVariant.value) {
-    editingVariant.value.image_id = imageId
+    if (img) {
+      const key = Number(img.id)
+      editingVariant.value.image_id = Number.isFinite(key) ? key : null
+      // Guardamos también la URL para pintar la miniatura sin depender del imageMap.
+      editingVariant.value.image_url = img.url ?? null
+    } else {
+      editingVariant.value.image_id = null
+      editingVariant.value.image_url = null
+    }
     emitUpdate()
   }
   imagePickerRef.value?.hide()
