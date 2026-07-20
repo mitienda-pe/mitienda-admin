@@ -1,13 +1,48 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue'
 import { useFacebookStore } from '@/stores/facebook.store'
-import { AppButton, UnsavedChangesBar } from '@/components/ui'
+import { AppButton, AppBadge, UnsavedChangesBar } from '@/components/ui'
 import IdPillsInput from '@/components/ui/IdPillsInput.vue'
 import ProgressSpinner from 'primevue/progressspinner'
 import { useToast } from 'primevue/usetoast'
 
 const store = useFacebookStore()
 const toast = useToast()
+
+// Estado activo/pausado: se lee del valor GUARDADO (el toggle persiste al instante)
+const isActive = computed(() => store.savedSettings.tienda_swintegracionfb === 1)
+const hasSavedPixel = computed(
+  () => !!(store.savedSettings.tienda_identificadorpixel || '').trim()
+)
+
+async function toggleIntegration() {
+  const target = !isActive.value
+  // No se puede activar sin un Pixel ID ya guardado
+  if (target && !hasSavedPixel.value) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Falta el Pixel ID',
+      detail: 'Configura y guarda un Pixel ID antes de activar la integración.',
+      life: 4000
+    })
+    return
+  }
+  const ok = await store.toggleIntegration(target)
+  if (ok) {
+    toast.add({
+      severity: 'success',
+      summary: target ? 'Integración activada' : 'Integración pausada',
+      life: 3000
+    })
+  } else {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: store.error || 'No se pudo cambiar el estado',
+      life: 5000
+    })
+  }
+}
 
 const pixelPattern = /^\d{10,20}$/
 const testEventPattern = /^TEST\d+$/i
@@ -102,11 +137,25 @@ onMounted(() => {
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
       <div>
-        <h1 class="text-3xl font-bold text-secondary">Facebook</h1>
+        <div class="flex items-center gap-3">
+          <h1 class="text-3xl font-bold text-secondary">Facebook</h1>
+          <AppBadge v-if="!store.isLoading" :variant="isActive ? 'success' : 'warning'">
+            {{ isActive ? 'Activo' : 'Pausado' }}
+          </AppBadge>
+        </div>
         <p class="text-sm text-secondary-500 mt-1">
           Configura el Pixel de Facebook, Conversions API y el catalogo de productos
         </p>
       </div>
+      <AppButton
+        v-if="!store.isLoading"
+        :variant="isActive ? 'secondary' : 'primary'"
+        :loading="store.isSaving"
+        @click="toggleIntegration"
+      >
+        <i :class="isActive ? 'pi pi-pause' : 'pi pi-play'" class="mr-2" />
+        {{ isActive ? 'Pausar integración' : 'Activar integración' }}
+      </AppButton>
     </div>
 
     <!-- Loading -->

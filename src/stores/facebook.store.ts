@@ -85,6 +85,32 @@ export const useFacebookStore = defineStore('facebook', () => {
     ;(draftSettings.value as Record<string, unknown>)[field] = value
   }
 
+  /**
+   * Activa o pausa la integración (tienda_swintegracionfb) de forma inmediata,
+   * sin depender de la barra de cambios. No toca las ediciones en curso del
+   * Pixel/token/test-event: sólo sincroniza el switch en saved y draft.
+   */
+  async function toggleIntegration(enabled: boolean): Promise<boolean> {
+    isSaving.value = true
+    error.value = null
+    try {
+      const response = await facebookApi.updateSettings({
+        tienda_swintegracionfb: enabled ? 1 : 0
+      })
+      const confirmed = response.success && response.data
+        ? response.data.tienda_swintegracionfb
+        : enabled ? 1 : 0
+      savedSettings.value.tienda_swintegracionfb = confirmed
+      draftSettings.value.tienda_swintegracionfb = confirmed
+      return true
+    } catch (e: unknown) {
+      error.value = e instanceof Error ? e.message : 'No se pudo cambiar el estado'
+      return false
+    } finally {
+      isSaving.value = false
+    }
+  }
+
   return {
     savedSettings,
     draftSettings,
@@ -94,6 +120,7 @@ export const useFacebookStore = defineStore('facebook', () => {
     hasChanges,
     fetchSettings,
     saveSettings,
-    updateField
+    updateField,
+    toggleIntegration
   }
 })

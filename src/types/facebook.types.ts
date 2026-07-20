@@ -14,4 +14,5 @@ export interface StoreFacebookUpdate {
   tienda_identificadorpixel?: string | null
   tienda_fb_capi_token?: string | null
   tienda_fb_test_event_code?: string | null
+  tienda_swintegracionfb?: number
 }
