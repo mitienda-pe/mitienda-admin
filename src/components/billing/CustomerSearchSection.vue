@@ -26,8 +26,18 @@ const lookupError = ref<string | null>(null)
 const documentTypeOptions = [
   { label: 'Sin documento', value: 0 as ClientDocumentType },
   { label: 'DNI', value: 1 as ClientDocumentType },
-  { label: 'RUC', value: 2 as ClientDocumentType }
+  { label: 'RUC', value: 2 as ClientDocumentType },
+  { label: 'Carné de Extranjería', value: 4 as ClientDocumentType },
+  { label: 'Pasaporte', value: 7 as ClientDocumentType }
 ]
+
+// Longitud máxima del número según tipo de documento
+const documentMaxLength = computed(() => {
+  const type = props.client.document_type
+  if (type === 2) return 11 // RUC
+  if (type === 4 || type === 7) return 12 // CE / Pasaporte (alfanumérico)
+  return 8 // DNI / Sin doc
+})
 
 // Filter options based on document type
 const filteredDocumentTypeOptions = computed(() => {
@@ -64,8 +74,12 @@ function onDocumentTypeChange(type: ClientDocumentType) {
 
 // Handle document number input
 function onDocumentNumberInput(value: string | undefined) {
-  // Only allow numbers
-  const cleaned = (value || '').replace(/\D/g, '')
+  const raw = value || ''
+  const type = props.client.document_type
+  // CE / Pasaporte son alfanuméricos; DNI / RUC solo dígitos.
+  const cleaned = (type === 4 || type === 7)
+    ? raw.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()
+    : raw.replace(/\D/g, '')
   emit('update:client', { document_number: cleaned })
 }
 
@@ -109,12 +123,14 @@ watch(() => props.documentType, (newType) => {
           Número de Documento
           <span v-if="client.document_type === 1" class="text-gray-400">(8 dígitos)</span>
           <span v-if="client.document_type === 2" class="text-gray-400">(11 dígitos)</span>
+          <span v-if="client.document_type === 4" class="text-gray-400">(9 a 12 caracteres)</span>
+          <span v-if="client.document_type === 7" class="text-gray-400">(6 a 12 caracteres)</span>
         </label>
         <div class="flex gap-2">
           <InputText
             :modelValue="client.document_number"
-            :maxlength="client.document_type === 2 ? 11 : 8"
-            :placeholder="client.document_type === 2 ? '20123456789' : '12345678'"
+            :maxlength="documentMaxLength"
+            :placeholder="client.document_type === 2 ? '20123456789' : (client.document_type === 4 || client.document_type === 7 ? 'AB1234567' : '12345678')"
             class="flex-1 font-mono"
             @update:modelValue="onDocumentNumberInput"
             @keyup.enter="canLookup && handleLookup()"

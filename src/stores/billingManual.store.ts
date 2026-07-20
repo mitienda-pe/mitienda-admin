@@ -98,6 +98,18 @@ export const useBillingManualStore = defineStore('billingManual', () => {
       if (client.value.document_number && client.value.document_number.length !== 8) return false
     }
 
+    // Carné de Extranjería: 9 a 12 caracteres (aplica en Boleta / Nota de Crédito)
+    if (client.value.document_type === 4) {
+      const len = (client.value.document_number || '').length
+      if (len < 9 || len > 12) return false
+    }
+
+    // Pasaporte: 6 a 12 caracteres
+    if (client.value.document_type === 7) {
+      const len = (client.value.document_number || '').length
+      if (len < 6 || len > 12) return false
+    }
+
     // Credit note requires reference
     if (documentType.value === 3) {
       if (!referenceDocument.value) return false

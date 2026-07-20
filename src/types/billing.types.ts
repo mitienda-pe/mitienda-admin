@@ -217,7 +217,10 @@ export interface BillingStatus {
 // Manual Billing Types
 
 export type ManualDocumentType = 1 | 2 | 3 // 1=Factura, 2=Boleta, 3=Nota de Crédito
-export type ClientDocumentType = 0 | 1 | 2 // 0=Sin doc, 1=DNI, 2=RUC
+// 0=Sin doc, 1=DNI, 2=RUC, 4=Carné de Extranjería, 7=Pasaporte.
+// 4 y 7 coinciden con el catálogo SUNAT 06; el backend los mapea directo.
+// CE y Pasaporte solo aplican a Boleta (nunca Factura).
+export type ClientDocumentType = 0 | 1 | 2 | 4 | 7
 
 export interface ManualDocumentClient {
   document_type: ClientDocumentType
