@@ -43,6 +43,14 @@ function onDocumentTypeChange(type: ManualDocumentType) {
   store.setDocumentType(type)
 }
 
+// Mapea la afectación interna del producto (1=Gravado, 2=Exonerado,
+// 3=Inafecto) al código SUNAT usado en emisión manual (10/20/30).
+const PRODUCT_AFFECTATION_TO_SUNAT: Record<number, number> = {
+  1: 10, // Gravado
+  2: 30, // Exonerado
+  3: 20 // Inafecto
+}
+
 // Handle add product from catalog
 function handleAddProduct(product: any) {
   const item: Omit<ManualDocumentItem, 'id'> = {
@@ -52,7 +60,7 @@ function handleAddProduct(product: any) {
     unit: 'NIU',
     quantity: 1,
     unit_price: product.price || 0,
-    affectation_type: 10 // Gravado
+    affectation_type: PRODUCT_AFFECTATION_TO_SUNAT[Number(product.tax_affectation)] || 10
   }
   store.addItem(item)
   showAddProductDialog.value = false
