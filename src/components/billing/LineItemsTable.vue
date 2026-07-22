@@ -24,22 +24,46 @@ const emit = defineEmits<Emits>()
 
 const { formatCurrency } = useFormatters()
 
+// Affectation type labels (10 = gravado, 20 = inafecto, 30 = exonerado)
+const AFFECTATION_LABELS: Record<number, string> = {
+  10: 'Gravado',
+  20: 'Inafecto',
+  30: 'Exonerado'
+}
+
+function affectationLabel(type: number): string {
+  return AFFECTATION_LABELS[type] || 'Gravado'
+}
+
 // Computed items with calculated totals
 const itemsWithTotals = computed(() => {
   return props.items.map(item => {
     const unitPrice = item.unit_price || 0
     const quantity = item.quantity || 0
-    const unitPriceWithoutIgv = unitPrice / (1 + IGV_RATE)
-    const subtotal = unitPriceWithoutIgv * quantity
-    const igv = subtotal * IGV_RATE
-    const total = subtotal + igv
+    const lineTotal = unitPrice * quantity
+
+    // IGV solo aplica a ítems gravados (affectation_type 10).
+    // Inafecto (20) y exonerado (30) no llevan IGV.
+    if (item.affectation_type === 10) {
+      const unitPriceWithoutIgv = unitPrice / (1 + IGV_RATE)
+      const subtotal = unitPriceWithoutIgv * quantity
+      const igv = subtotal * IGV_RATE
+
+      return {
+        ...item,
+        unit_price_without_igv: Math.round(unitPriceWithoutIgv * 100) / 100,
+        subtotal: Math.round(subtotal * 100) / 100,
+        igv: Math.round(igv * 100) / 100,
+        total: Math.round((subtotal + igv) * 100) / 100
+      }
+    }
 
     return {
       ...item,
-      unit_price_without_igv: Math.round(unitPriceWithoutIgv * 100) / 100,
-      subtotal: Math.round(subtotal * 100) / 100,
-      igv: Math.round(igv * 100) / 100,
-      total: Math.round(total * 100) / 100
+      unit_price_without_igv: Math.round(unitPrice * 100) / 100,
+      subtotal: Math.round(lineTotal * 100) / 100,
+      igv: 0,
+      total: Math.round(lineTotal * 100) / 100
     }
   })
 })
@@ -112,6 +136,19 @@ function onRemove(item: ManualDocumentItem) {
           inputClass="w-full text-right text-sm"
           @update:modelValue="onPriceChange(data, $event)"
         />
+      </template>
+    </Column>
+
+    <Column field="affectation_type" header="Afectación" style="width: 110px">
+      <template #body="{ data }">
+        <span
+          class="text-xs px-2 py-0.5 rounded-full"
+          :class="data.affectation_type === 10
+            ? 'bg-gray-100 text-gray-600'
+            : 'bg-primary/10 text-primary'"
+        >
+          {{ affectationLabel(data.affectation_type) }}
+        </span>
       </template>
     </Column>
 
