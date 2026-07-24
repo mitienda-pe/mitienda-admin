@@ -264,13 +264,17 @@ export const useBillingManualStore = defineStore('billingManual', () => {
         successMessage.value = 'Comprobante emitido exitosamente'
         return { success: true, data: response.data }
       } else {
-        const errorMsg = (response as any).message || 'Error al emitir comprobante'
+        const r = response as any
+        const errorMsg = r.message || r.messages?.error || 'Error al emitir comprobante'
         error.value = errorMsg
         return { success: false, error: errorMsg }
       }
     } catch (err: any) {
       console.error('Error al emitir comprobante manual:', err)
-      const errorMsg = err.response?.data?.message || 'Error al emitir comprobante'
+      const data = err.response?.data
+      // El backend puede responder { message } (nuevo) o { messages: { error } }
+      // (CI4 fail() legacy); leer ambos para no ocultar el error real de Nubefact.
+      const errorMsg = data?.message || data?.messages?.error || 'Error al emitir comprobante'
       error.value = errorMsg
       return { success: false, error: errorMsg }
     } finally {
