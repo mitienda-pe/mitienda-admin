@@ -25,6 +25,7 @@
       mode="external"
       @builder:ready="onBuilderReady"
       @builder:content-changed="onBuilderChange"
+      @builder:save="onBuilderChange"
     />
   </div>
 </template>
@@ -71,7 +72,29 @@ function insertShortcode(text: string) {
   }
 }
 
-defineExpose({ insertShortcode })
+/**
+ * Fuerza el volcado de los cambios pendientes del editor activo antes de
+ * guardar. Solo el Visual Builder lo necesita: sus ediciones de propiedades se
+ * emiten al host con un debounce de 300 ms, así que al pulsar «Guardar» justo
+ * después de editar, el último cambio aún no había llegado a `localContent` y
+ * se perdía. `save()` dispara `builder:save` de forma síncrona (lo escuchamos
+ * con `onBuilderChange`), y el `nextTick` deja que el watcher propague el valor
+ * al padre antes de que este lea el contenido.
+ */
+async function flushPendingChanges(): Promise<void> {
+  if (props.editorType !== 'visual_builder' || !builderInitialized || !pageBuilderRef.value) {
+    return
+  }
+  try {
+    (pageBuilderRef.value as any).save?.()
+  } catch {
+    // Si el componente no expone save(), el último content-changed ya está en
+    // localContent; guardar con eso es lo mejor disponible.
+  }
+  await nextTick()
+}
+
+defineExpose({ insertShortcode, flushPendingChanges })
 
 // Visual Builder refs and state
 const pageBuilderRef = ref<HTMLElement | null>(null)

@@ -289,7 +289,10 @@ const loadError = ref<string | null>(null)
 const isSaving = ref(false)
 const showSettings = ref(false)
 const isSavingSettings = ref(false)
-const editorRef = ref<{ insertShortcode: (text: string) => void } | null>(null)
+const editorRef = ref<{
+  insertShortcode: (text: string) => void
+  flushPendingChanges: () => Promise<void>
+} | null>(null)
 
 // Shortcode insertion
 const showShortcode = ref(false)
@@ -400,6 +403,10 @@ const handleSave = async () => {
 
   try {
     isSaving.value = true
+
+    // Fuerza el volcado de cambios pendientes del editor (el Visual Builder
+    // emite con debounce de 300 ms; sin esto se perdía el último cambio).
+    await editorRef.value?.flushPendingChanges?.()
 
     const updated = await pagesStore.updatePage(page.value.id, {
       content: content.value,

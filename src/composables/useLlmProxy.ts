@@ -64,34 +64,81 @@ export function useLlmProxy() {
       const reader = response.body!.getReader()
       const decoder = new TextDecoder()
       let buffer = ''
+      // Tipo del último frame `event:` del SSE. El proxy emite los errores del
+      // proveedor como `event: error\ndata: {"error":...}`.
+      let currentEvent = ''
 
-      while (true) {
+      /**
+       * Procesa una línea SSE ya completa. Devuelve true si es `[DONE]` (fin de
+       * stream). Lanza si el proveedor reportó un error o si un frame `data:`
+       * llegó ilegible: antes ambos casos se descartaban en silencio, dejando
+       * HTML truncado/corrupto que se guardaba como si estuviera completo.
+       */
+      const processLine = (rawLine: string): boolean => {
+        const line = rawLine.replace(/\r$/, '')
+        if (!line.trim()) {
+          currentEvent = '' // línea en blanco = separador de evento SSE
+          return false
+        }
+        if (line.startsWith(':')) return false // comentario / keep-alive
+        if (line.startsWith('event:')) {
+          currentEvent = line.slice(6).trim()
+          return false
+        }
+        if (!line.startsWith('data:')) return false
+
+        // Quita el prefijo `data:` y el único espacio opcional que permite el
+        // spec. NO usar trim(): el contenido puede empezar/terminar en espacio.
+        const data = line.slice(5).replace(/^ /, '')
+        if (!data || data === '[DONE]') return data === '[DONE]'
+
+        let json: any
+        try {
+          json = JSON.parse(data)
+        } catch {
+          throw new Error(
+            'La respuesta de la IA llegó corrupta (frame ilegible). Intenta de nuevo.'
+          )
+        }
+
+        if (currentEvent === 'error' || json?.error) {
+          const msg =
+            typeof json?.error === 'string'
+              ? json.error
+              : json?.error?.message || 'El proveedor de IA devolvió un error'
+          throw new Error(msg)
+        }
+
+        const content =
+          json.choices?.[0]?.delta?.content ??
+          json.delta?.text ??
+          json.text ??
+          json.content ??
+          ''
+        if (content) {
+          completeText += content
+          onChunk?.(completeText)
+        }
+        return false
+      }
+
+      let finished = false
+      while (!finished) {
         const { done, value } = await reader.read()
-        if (done) break
+        if (done) {
+          // Vacía la última línea si el stream cerró sin `\n` de cierre.
+          if (buffer) processLine(buffer)
+          break
+        }
 
         buffer += decoder.decode(value, { stream: true })
         const lines = buffer.split('\n')
         buffer = lines.pop() || ''
 
         for (const line of lines) {
-          if (!line.startsWith('data: ')) continue
-          const data = line.slice(6).trim()
-          if (data === '[DONE]') continue
-
-          try {
-            const json = JSON.parse(data)
-            const content =
-              json.choices?.[0]?.delta?.content ??
-              json.delta?.text ??
-              json.text ??
-              json.content ??
-              ''
-            if (content) {
-              completeText += content
-              onChunk?.(completeText)
-            }
-          } catch {
-            // skip non-JSON lines
+          if (processLine(line)) {
+            finished = true
+            break
           }
         }
       }

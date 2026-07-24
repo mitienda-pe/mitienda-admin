@@ -263,7 +263,11 @@ async function send() {
     messages.value.push({ role: 'assistant', content: clean })
     scrollLogToBottom()
   } catch {
-    // error ya queda registrado en el composable
+    // El error ya quedó registrado en el composable y se muestra en el panel.
+    // Restaura el último HTML válido (si lo hay) para no dejar en la vista
+    // previa un fragmento truncado/corrupto que el usuario pueda aplicar.
+    const lastGood = [...messages.value].reverse().find((m) => m.role === 'assistant')
+    currentHtml.value = lastGood ? lastGood.content : ''
   } finally {
     streaming.value = false
   }
