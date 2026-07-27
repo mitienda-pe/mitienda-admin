@@ -189,7 +189,7 @@ const document = computed(() => documentsStore.currentDocument)
 onMounted(() => {
   const id = parseInt(route.params.id as string)
   if (id) {
-    documentsStore.fetchDocumentDetail(id)
+    documentsStore.fetchDocumentDetail(id, route.query.source as string | undefined)
   }
 })
 

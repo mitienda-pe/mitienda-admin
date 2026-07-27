@@ -102,12 +102,12 @@ export const useBillingDocumentsStore = defineStore('billingDocuments', () => {
     }
   }
 
-  async function fetchDocumentDetail(id: number) {
+  async function fetchDocumentDetail(id: number, source?: string) {
     try {
       isLoading.value = true
       error.value = null
 
-      const response = await billingApi.getDocumentDetail(id)
+      const response = await billingApi.getDocumentDetail(id, source)
 
       if (response.success && response.data) {
         currentDocument.value = response.data

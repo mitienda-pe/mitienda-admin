@@ -258,7 +258,7 @@
                 text
                 rounded
                 v-tooltip.top="'Ver Detalle'"
-                @click="viewDetail(data.id)"
+                @click="viewDetail(data)"
               />
             </div>
           </template>
@@ -389,8 +389,11 @@ const handleLegacyDownload = async (doc: any, type: 'pdf' | 'xml') => {
   }
 }
 
-const viewDetail = (id: number) => {
-  router.push(`/billing/documents/${id}`)
+const viewDetail = (row: any) => {
+  // Los comprobantes manuales (source='manual') se resuelven en billing_documents;
+  // se pasa el source como query para que el detalle consulte la fuente correcta.
+  const query = row?.source === 'manual' ? { source: 'manual' } : undefined
+  router.push({ path: `/billing/documents/${row.id}`, query })
 }
 
 const handleSendEmail = async (document: any) => {

@@ -250,8 +250,11 @@ export const billingApi = {
   /**
    * Get billing document detail
    */
-  async getDocumentDetail(id: number): Promise<ApiResponse<BillingDocumentDetail>> {
-    const response = await apiClient.get(`/billing/documents/${id}`)
+  async getDocumentDetail(id: number, source?: string): Promise<ApiResponse<BillingDocumentDetail>> {
+    // Los comprobantes manuales viven en billing_documents; se piden con
+    // ?source=manual para que el backend no los busque en tiendasventas.
+    const query = source === 'manual' ? '?source=manual' : ''
+    const response = await apiClient.get(`/billing/documents/${id}${query}`)
     return response.data
   },
 
