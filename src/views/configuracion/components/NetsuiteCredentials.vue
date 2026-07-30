@@ -370,6 +370,15 @@
             <InputText id="discount_item_id" v-model="formData.discount_item_id" class="w-full" :class="{ 'p-invalid': isFieldMissing('tiendacredencialerp_discount_item_id') }" />
             <small class="text-secondary-600 mt-1 block">Item para líneas de descuento (ej: 537).</small>
           </div>
+          <div>
+            <label for="shipping_item_id" class="block text-sm font-medium text-secondary-700 mb-2">
+              Ítem de envío / Delivery <span class="text-secondary-400 text-xs">(opcional)</span>
+            </label>
+            <InputText id="shipping_item_id" v-model="formData.shipping_item_id" class="w-full" placeholder="ej: 16112 = DELIVERY" />
+            <small class="text-secondary-600 mt-1 block">
+              Item NetSuite (de venta) para la línea de costo de envío en el Sales Order. Vacío = no se agrega envío.
+            </small>
+          </div>
           <div class="md:col-span-2">
             <label for="default_salesrep_id" class="block text-sm font-medium text-secondary-700 mb-2">
               Default Sales Rep ID <span class="text-secondary-400 text-xs">(opcional)</span>
@@ -908,6 +917,7 @@ const formData = reactive<Partial<SaveNetsuiteCredentialsRequest>>({
   sync_mode_web: null as string | null,
   sync_mode_pos: null as string | null,
   so_custom_form_id: '',
+  shipping_item_id: '',
   estado: 1
 })
 
@@ -1119,6 +1129,7 @@ watch(() => props.tiendaId, async (tiendaId) => {
       sync_mode_web: creds.tiendacredencialerp_sync_mode_web || null,
       sync_mode_pos: creds.tiendacredencialerp_sync_mode_pos || null,
       so_custom_form_id: creds.tiendacredencialerp_so_custom_form_id || '',
+      shipping_item_id: creds.tiendacredencialerp_shipping_item_id || '',
       estado: Number(creds.tiendacredencialerp_estado)
     })
 
@@ -1160,6 +1171,7 @@ watch(() => props.tiendaId, async (tiendaId) => {
       sync_mode_web: null,
       sync_mode_pos: null,
       so_custom_form_id: '',
+      shipping_item_id: '',
       estado: 1
     })
   }
@@ -1418,6 +1430,7 @@ async function handleSubmit() {
     sync_mode_web: formData.sync_mode_web || null,
     sync_mode_pos: formData.sync_mode_pos || null,
     so_custom_form_id: stringOrNull(formData.so_custom_form_id) ?? null,
+    shipping_item_id: stringOrNull(formData.shipping_item_id) ?? null,
     estado: formData.estado || 1,
     locations: locations.value.length > 0 ? locations.value : undefined
   }
