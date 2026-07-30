@@ -86,6 +86,8 @@ export interface Product {
   igv_percent?: number
   tax_affectation?: number // 1=Gravado, 2=Exonerado, 3=Inafecto
   published: boolean
+  /** Visibilidad en el catálogo del POS. Independiente de `published` (storefront). */
+  published_pos?: boolean
   featured: boolean
   images: ProductImage[]
   video?: ProductVideo | null
@@ -343,6 +345,8 @@ export interface ProductCreatePayload {
   gamma_id?: number | null
   categories?: number[]
   published?: boolean
+  /** Visibilidad en el catálogo del POS. Independiente de `published` (storefront). */
+  published_pos?: boolean
   featured?: boolean
   order?: number
   igv_percent?: number

@@ -100,6 +100,7 @@ export const productsApi = {
             unlimited_stock: product.unlimited_stock === 1 || product.unlimited_stock === true,
             has_variation_attributes: product.has_variation_attributes === true,
             published: product.published || false,
+            published_pos: product.published_pos !== false,
             featured: product.featured || false,
             images,
             category: product.category || null,
@@ -219,6 +220,7 @@ export const productsApi = {
         dimensions_unit: rawData.dimensions_unit || undefined,
         volumetric_weight: rawData.volumetric_weight !== undefined && rawData.volumetric_weight !== null ? parseFloat(rawData.volumetric_weight.toString()) : undefined,
         published: rawData.published || false,
+        published_pos: rawData.published_pos !== false,
         featured: rawData.featured || false,
         images,
         video: rawData.video ? {
@@ -289,6 +291,10 @@ export const productsApi = {
 
     // Boolean fields: convert to 0/1
     if (data.published !== undefined) payload.published = data.published ? 1 : 0
+    // Publicación por canal: `published` es la tienda virtual, `published_pos` el
+    // catálogo del punto de venta. Solo se envía si el formulario lo tocó, para no
+    // pisar el valor que gestiona el POS.
+    if (data.published_pos !== undefined) payload.published_pos = data.published_pos ? 1 : 0
     if (data.featured !== undefined) payload.featured = data.featured ? 1 : 0
     if (data.unlimited_stock !== undefined) payload.unlimited_stock = data.unlimited_stock ? 1 : 0
     if (data.shipping_per_unit !== undefined) payload.shipping_per_unit = data.shipping_per_unit ? 1 : 0
@@ -332,6 +338,7 @@ export const productsApi = {
         min_stock: rawData.min_stock || undefined,
         weight: rawData.weight ? parseFloat(rawData.weight) : undefined,
         published: rawData.published || false,
+        published_pos: rawData.published_pos !== false,
         featured: rawData.featured || false,
         images: rawData.images || [],
         categories: rawData.categories,

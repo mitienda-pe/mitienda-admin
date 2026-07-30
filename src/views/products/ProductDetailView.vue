@@ -554,6 +554,22 @@
                 </div>
               </div>
 
+              <!-- Publicado en POS -->
+              <div class="flex items-start gap-3">
+                <InputSwitch
+                  id="edit-published-pos"
+                  v-model="form.published_pos"
+                />
+                <div>
+                  <label for="edit-published-pos" class="text-sm font-medium text-secondary-700 cursor-pointer">
+                    Publicado en POS
+                  </label>
+                  <p class="text-xs text-secondary-500 mt-0.5">
+                    Controla si aparece en el catálogo del punto de venta. Es independiente de "Publicado".
+                  </p>
+                </div>
+              </div>
+
               <!-- Destacado -->
               <div class="flex items-start gap-3">
                 <InputSwitch
@@ -1154,6 +1170,7 @@ const form = ref<FormState>({
   unlimited_stock: false,
   sold_by_weight: false,
   published: true,
+  published_pos: true,
   featured: false,
   order: undefined,
   brand_id: null,
@@ -1305,6 +1322,7 @@ const populateForm = async () => {
     unlimited_stock: p.unlimited_stock || false,
     sold_by_weight: p.sold_by_weight === true,
     published: p.published,
+    published_pos: p.published_pos !== false,
     featured: p.featured || false,
     order: p.order ?? undefined,
     brand_id: p.brand?.id || null,

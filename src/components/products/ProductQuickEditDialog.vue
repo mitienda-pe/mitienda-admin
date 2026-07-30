@@ -22,6 +22,7 @@ interface Emits {
 
 export interface ProductQuickEditData {
   published?: boolean
+  published_pos?: boolean
   barcode?: string
   brand_id?: number | null
   gamma_id?: number | null
@@ -36,6 +37,7 @@ const { formatCurrency } = useFormatters()
 
 const formData = ref<ProductQuickEditData>({
   published: false,
+  published_pos: true,
   barcode: undefined,
   brand_id: null,
   gamma_id: null
@@ -61,6 +63,7 @@ watch(() => props.product, async (newProduct) => {
   if (newProduct) {
     formData.value = {
       published: newProduct.published,
+      published_pos: newProduct.published_pos !== false,
       barcode: newProduct.barcode,
       brand_id: newProduct.brand?.id || null,
       gamma_id: newProduct.gamma?.id || null
@@ -216,6 +219,18 @@ const handleClose = () => {
         />
         <label for="published" class="text-sm font-medium text-gray-700 cursor-pointer">
           Publicado
+        </label>
+      </div>
+
+      <!-- Visibilidad en el POS (independiente del storefront) -->
+      <div class="flex items-center gap-2">
+        <Checkbox
+          id="published_pos"
+          v-model="formData.published_pos"
+          :binary="true"
+        />
+        <label for="published_pos" class="text-sm font-medium text-gray-700 cursor-pointer">
+          Publicado en POS
         </label>
       </div>
     </div>

@@ -53,6 +53,7 @@ const form = ref<ProductCreatePayload>({
   gamma_id: null,
   categories: [],
   published: true,
+  published_pos: true,
   order: undefined,
 })
 
@@ -615,6 +616,16 @@ const handleSave = async () => {
           />
           <label for="published" class="text-sm font-medium text-gray-700 cursor-pointer">
             Publicar inmediatamente
+          </label>
+        </div>
+        <div class="flex items-center gap-2">
+          <Checkbox
+            id="published_pos"
+            v-model="form.published_pos"
+            :binary="true"
+          />
+          <label for="published_pos" class="text-sm font-medium text-gray-700 cursor-pointer">
+            Publicar en POS
           </label>
         </div>
         <div class="flex items-center gap-2">
