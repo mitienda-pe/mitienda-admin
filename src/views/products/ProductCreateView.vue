@@ -615,7 +615,7 @@ const handleSave = async () => {
             :binary="true"
           />
           <label for="published" class="text-sm font-medium text-gray-700 cursor-pointer">
-            Publicar inmediatamente
+            Publicar en Web
           </label>
         </div>
         <div class="flex items-center gap-2">

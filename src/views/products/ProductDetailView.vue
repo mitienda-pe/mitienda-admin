@@ -539,7 +539,7 @@
                     v-model="form.published"
                   />
                   <label for="edit-published" class="text-sm font-medium text-secondary-700 cursor-pointer">
-                    Publicado
+                    Publicado en Web
                   </label>
                 </div>
                 <div class="flex items-center gap-2">
@@ -565,7 +565,7 @@
                     Publicado en POS
                   </label>
                   <p class="text-xs text-secondary-500 mt-0.5">
-                    Controla si aparece en el catálogo del punto de venta. Es independiente de "Publicado".
+                    Controla si aparece en el catálogo del punto de venta. Es independiente de "Publicado en Web".
                   </p>
                 </div>
               </div>

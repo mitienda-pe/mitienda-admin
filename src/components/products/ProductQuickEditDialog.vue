@@ -218,7 +218,7 @@ const handleClose = () => {
           :binary="true"
         />
         <label for="published" class="text-sm font-medium text-gray-700 cursor-pointer">
-          Publicado
+          Publicado en Web
         </label>
       </div>
 
