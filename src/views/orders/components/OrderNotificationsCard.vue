@@ -29,9 +29,20 @@ const webhook = computed(() => status.value?.webhook ?? null)
 const sellerEmail = computed(() => status.value?.seller_email ?? null)
 const hasSubscriptions = computed(() => (webhook.value?.active_subscriptions ?? 0) > 0)
 
+// Tener suscripciones activas no implica recibir la venta: hay que escuchar
+// `order.paid`. Si el API no devuelve el campo (versión anterior) no podemos
+// afirmar nada, así que lo tratamos como desconocido y no alertamos.
+const listensToOrderPaid = computed(() => {
+  const subscribed = webhook.value?.subscribed_to_order_paid
+  return subscribed === undefined ? null : subscribed > 0
+})
+
 const webhookBadge = computed(() => {
   if (!hasSubscriptions.value) {
     return { label: 'Sin suscripciones v2', cls: 'bg-gray-100 text-gray-600', icon: 'pi-minus-circle' }
+  }
+  if (listensToOrderPaid.value === false) {
+    return { label: 'No suscrito al evento', cls: 'bg-amber-100 text-amber-700', icon: 'pi-exclamation-triangle' }
   }
   switch (webhook.value?.last_status) {
     case 'success':
@@ -80,7 +91,16 @@ function summarizeResult(channel: ResendNotificationChannel, result: ResendNotif
     if (w.error === 'subscriptions_unavailable') {
       parts.push('Webhook: sin suscripciones v2')
     } else if ((w.subscriptions ?? 0) === 0) {
-      parts.push('Webhook: la tienda no tiene suscripciones v2 activas')
+      // No enviado. Distinguimos "no hay suscripciones" (estado normal para
+      // una tienda que no usa webhooks) de "las hay pero ninguna escucha
+      // order.paid", que es una mala configuración y sí merece alerta; se
+      // arregla editando la suscripción, no creando una nueva.
+      if ((w.subscriptions_total ?? 0) > 0) {
+        anyFail = true
+        parts.push('Webhook: no se envió — ninguna suscripción escucha order.paid')
+      } else {
+        parts.push('Webhook: la tienda no tiene suscripciones v2 activas')
+      }
     } else if (w.ok) {
       parts.push(`Webhook: ${w.delivered}/${w.subscriptions} entregado(s)`)
       anyOk = true
@@ -169,6 +189,11 @@ onMounted(() => {
             <p class="text-sm font-medium text-gray-800">Webhook al comercio (v2)</p>
             <p v-if="!hasSubscriptions" class="text-xs text-gray-500 mt-0.5">
               La tienda no tiene suscripciones v2 activas. El webhook legacy no se rastrea aquí.
+            </p>
+            <p v-else-if="listensToOrderPaid === false" class="text-xs text-amber-700 mt-0.5">
+              {{ webhook?.active_subscriptions }} suscripción(es) activa(s), pero ninguna escucha
+              <code class="font-mono">order.paid</code>: el comercio no recibe esta venta.
+              Agrega el evento en la configuración de webhooks.
             </p>
             <p
               v-else-if="webhook?.last_delivered_at"

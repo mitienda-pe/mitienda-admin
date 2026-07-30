@@ -98,6 +98,11 @@ export interface OrderNotificationsStatus {
   is_paid: boolean
   webhook: {
     active_subscriptions: number
+    // Suscripciones activas que además escuchan `order.paid`. Puede ser 0 con
+    // active_subscriptions > 0 (p.ej. una tienda suscrita solo a product.updated),
+    // y en ese caso el comercio NO recibe la venta. Opcional: las APIs previas
+    // a este campo no lo devuelven.
+    subscribed_to_order_paid?: number
     last_status: 'success' | 'failed' | 'pending' | null
     last_response_code: number | null
     last_delivered_at: string | null
@@ -114,7 +119,10 @@ export type ResendNotificationChannel = 'webhook' | 'email' | 'both'
 export interface ResendNotificationsResult {
   webhook?: {
     ok: boolean
+    /** Suscripciones que escuchan el evento (las que realmente reciben el reenvío). */
     subscriptions?: number
+    /** Todas las suscripciones activas de la tienda, escuchen o no el evento. */
+    subscriptions_total?: number
     delivered?: number
     failed?: number
     error?: string | null
