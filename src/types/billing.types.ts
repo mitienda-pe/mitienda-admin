@@ -53,6 +53,12 @@ export interface NubefactCredentials {
   numero_factura?: string | number
   serie_boleta?: string
   numero_boleta?: string | number
+  // Notas de crédito: serie y correlativo propios por tipo de comprobante
+  // referenciado (SUNAT exige el mismo prefijo F/B del documento que rectifica).
+  serie_nc_factura?: string
+  numero_nc_factura?: string | number
+  serie_nc_boleta?: string
+  numero_nc_boleta?: string | number
   environment: BillingEnvironment
   pdf_format?: PdfFormat
 }
@@ -78,6 +84,10 @@ export interface SaveNubefactCredentialsRequest {
   numero_factura?: string | number
   serie_boleta?: string
   numero_boleta?: string | number
+  serie_nc_factura?: string
+  numero_nc_factura?: string | number
+  serie_nc_boleta?: string
+  numero_nc_boleta?: string | number
   environment?: BillingEnvironment
   pdf_format?: PdfFormat
   blocked?: boolean

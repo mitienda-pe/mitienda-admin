@@ -143,6 +143,72 @@
 
               <Divider />
 
+              <!-- Series de notas de crédito -->
+              <div>
+                <h3 class="text-lg font-semibold text-secondary-800 mb-1">Series de notas de crédito</h3>
+                <p class="text-sm text-secondary-600 mb-4">
+                  SUNAT exige que la nota de crédito use una serie con el mismo prefijo del comprobante
+                  que rectifica (F para facturas, B para boletas) y un correlativo propio, independiente
+                  del de la factura o boleta. Sin esta configuración no podrás emitir notas de crédito.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label for="serie_nc_factura" class="block text-sm font-medium text-secondary-700 mb-2">
+                      Serie de nota de crédito (facturas)
+                    </label>
+                    <InputText
+                      id="serie_nc_factura"
+                      v-model="formData.serie_nc_factura"
+                      placeholder="F001"
+                      maxlength="4"
+                      class="w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <label for="numero_nc_factura" class="block text-sm font-medium text-secondary-700 mb-2">
+                      Número inicial
+                    </label>
+                    <InputNumber
+                      id="numero_nc_factura"
+                      v-model="formData.numero_nc_factura as number | null"
+                      placeholder="1"
+                      :min="1"
+                      class="w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <label for="serie_nc_boleta" class="block text-sm font-medium text-secondary-700 mb-2">
+                      Serie de nota de crédito (boletas)
+                    </label>
+                    <InputText
+                      id="serie_nc_boleta"
+                      v-model="formData.serie_nc_boleta"
+                      placeholder="B001"
+                      maxlength="4"
+                      class="w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <label for="numero_nc_boleta" class="block text-sm font-medium text-secondary-700 mb-2">
+                      Número inicial
+                    </label>
+                    <InputNumber
+                      id="numero_nc_boleta"
+                      v-model="formData.numero_nc_boleta as number | null"
+                      placeholder="1"
+                      :min="1"
+                      class="w-full"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <Divider />
+
               <!-- Ambiente -->
               <div>
                 <h3 class="text-lg font-semibold text-secondary-800 mb-4">Ambiente de facturación</h3>
@@ -356,6 +422,10 @@ const formData = reactive<SaveNubefactCredentialsRequest>({
   numero_factura: null as any,
   serie_boleta: '',
   numero_boleta: null as any,
+  serie_nc_factura: '',
+  numero_nc_factura: null as any,
+  serie_nc_boleta: '',
+  numero_nc_boleta: null as any,
   environment: 'prueba',
   pdf_format: 'A4',
   blocked: true
@@ -385,6 +455,10 @@ onMounted(async () => {
       numero_factura: config.value.credentials.numero_factura ? parseInt(String(config.value.credentials.numero_factura)) : undefined,
       serie_boleta: config.value.credentials.serie_boleta || '',
       numero_boleta: config.value.credentials.numero_boleta ? parseInt(String(config.value.credentials.numero_boleta)) : undefined,
+      serie_nc_factura: config.value.credentials.serie_nc_factura || '',
+      numero_nc_factura: config.value.credentials.numero_nc_factura ? parseInt(String(config.value.credentials.numero_nc_factura)) : undefined,
+      serie_nc_boleta: config.value.credentials.serie_nc_boleta || '',
+      numero_nc_boleta: config.value.credentials.numero_nc_boleta ? parseInt(String(config.value.credentials.numero_nc_boleta)) : undefined,
       environment: config.value.credentials.environment || 'prueba',
       pdf_format: config.value.credentials.pdf_format || 'A4',
       blocked: config.value.blocked ?? true
@@ -440,6 +514,18 @@ async function handleSubmit() {
   }
   if (formData.numero_boleta) {
     cleanedData.numero_boleta = formData.numero_boleta
+  }
+  if (formData.serie_nc_factura) {
+    cleanedData.serie_nc_factura = formData.serie_nc_factura
+  }
+  if (formData.numero_nc_factura) {
+    cleanedData.numero_nc_factura = formData.numero_nc_factura
+  }
+  if (formData.serie_nc_boleta) {
+    cleanedData.serie_nc_boleta = formData.serie_nc_boleta
+  }
+  if (formData.numero_nc_boleta) {
+    cleanedData.numero_nc_boleta = formData.numero_nc_boleta
   }
 
   const result = config.value?.configured
@@ -511,6 +597,10 @@ function handleDelete() {
           numero_factura: undefined,
           serie_boleta: '',
           numero_boleta: undefined,
+          serie_nc_factura: '',
+          numero_nc_factura: undefined,
+          serie_nc_boleta: '',
+          numero_nc_boleta: undefined,
           environment: 'prueba',
           pdf_format: 'A4'
         })
