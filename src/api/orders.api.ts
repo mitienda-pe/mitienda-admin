@@ -300,6 +300,7 @@ export const ordersApi = {
         payment_status: mapPaymentStatusText(rawData.status), // Texto del estado de pago
         shipping_address: receiverAddress.address_line || '',
         shipping_details: {
+          is_pickup: rawData.pickup_store?.status === 'enabled',
           cost: shipping.cost || '0.00',
           address: receiverAddress.address_line || '',
           address_line2: receiverAddress.address_line2 || undefined,

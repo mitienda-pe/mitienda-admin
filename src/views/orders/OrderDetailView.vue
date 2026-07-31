@@ -1194,12 +1194,19 @@ const handleDebugPayments = async () => {
         <Card>
           <template #title>
             <div class="flex items-center gap-2">
-              <i class="pi pi-map-marker text-primary"></i>
-              Envío
+              <i :class="order.shipping_details?.is_pickup ? 'pi pi-shop' : 'pi pi-map-marker'" class="text-primary"></i>
+              {{ order.shipping_details?.is_pickup ? 'Recojo en tienda' : 'Envío' }}
             </div>
           </template>
           <template #content>
             <div class="space-y-3">
+              <div
+                v-if="order.shipping_details?.is_pickup"
+                class="inline-flex items-center gap-2 rounded-md bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary"
+              >
+                <i class="pi pi-shop"></i>
+                Recojo en tienda
+              </div>
               <div v-if="order.shipping_details?.recipient_name">
                 <p class="text-sm text-gray-500">Destinatario</p>
                 <p class="font-semibold text-gray-900">{{ order.shipping_details.recipient_name }}</p>
