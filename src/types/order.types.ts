@@ -190,6 +190,13 @@ export interface ShippingDetails {
   courier?: string
   courier_id?: number
   courier_error?: string | null
+  /** Tarifa elegida por el comprador (Express, Mismo día, etc.). Null si la tienda no usa tipos de servicio. */
+  service_type?: {
+    id: number | null
+    code: string | null
+    name: string
+    icon?: string | null
+  } | null
   tracking_code?: string
   tracking_url?: string
   delivery_proof_url?: string | null

@@ -4,8 +4,29 @@ import type { Order } from '@/types/order.types'
 import type { SenderInfo } from '@/types/store.types'
 import { useFormatters } from './useFormatters'
 
+/**
+ * El envío se lista aunque su costo sea 0 (envío gratis): omitirlo hacía
+ * desaparecer la línea del comprobante y no quedaba claro si hubo despacho.
+ * Se excluyen retiros en tienda y ventas POS sin dirección, donde no hubo envío.
+ */
+function hasShipping(order: Order): boolean {
+  const cost = order.shipping_cost
+  if (cost === null || cost === undefined) return false
+  if (cost > 0) return true
+  return Boolean(order.shipping_details?.address || order.shipping_details?.service_type)
+}
+
+/** Etiqueta del envío, incluyendo la tarifa elegida (Express, Mismo día, etc.). */
+function shippingLabel(order: Order): string {
+  const serviceType = order.shipping_details?.service_type
+  return serviceType ? `Envío (${serviceType.name}):` : 'Envío:'
+}
+
 export function useOrderDownloads() {
   const { formatCurrency, formatDateTime } = useFormatters()
+
+  const shippingAmount = (order: Order): string =>
+    (order.shipping_cost ?? 0) > 0 ? formatCurrency(order.shipping_cost ?? 0) : 'Gratis'
 
   /**
    * Generate PDF document for an order
@@ -132,14 +153,14 @@ export function useOrderDownloads() {
     const totalsX = pageWidth - 14
 
     // Subtotal
-    if (order.shipping_cost && order.shipping_cost > 0) {
-      const subtotal = order.total - order.shipping_cost + (order.discount || 0)
+    if (hasShipping(order)) {
+      const subtotal = order.total - (order.shipping_cost ?? 0) + (order.discount || 0)
       doc.text(`Subtotal: ${formatCurrency(subtotal)}`, totalsX, finalY, { align: 'right' })
     }
 
     // Shipping
-    if (order.shipping_cost && order.shipping_cost > 0) {
-      doc.text(`Envío: ${formatCurrency(order.shipping_cost)}`, totalsX, finalY + 6, { align: 'right' })
+    if (hasShipping(order)) {
+      doc.text(`${shippingLabel(order)} ${shippingAmount(order)}`, totalsX, finalY + 6, { align: 'right' })
     }
 
     // Discount
@@ -150,7 +171,7 @@ export function useOrderDownloads() {
     // Total
     doc.setFontSize(12)
     doc.setFont('helvetica', 'bold')
-    const totalY = finalY + (order.shipping_cost || order.discount ? 22 : 6)
+    const totalY = finalY + (hasShipping(order) || order.discount ? 22 : 6)
     doc.text(`TOTAL: ${formatCurrency(order.total)}`, totalsX, totalY, { align: 'right' })
 
     // Footer
@@ -244,9 +265,9 @@ export function useOrderDownloads() {
     y += 6
 
     // Totals
-    if (order.shipping_cost && order.shipping_cost > 0) {
-      doc.text('Envío:', margin, y)
-      doc.text(formatCurrency(order.shipping_cost), pageWidth - margin, y, { align: 'right' })
+    if (hasShipping(order)) {
+      doc.text(shippingLabel(order), margin, y)
+      doc.text(shippingAmount(order), pageWidth - margin, y, { align: 'right' })
       y += 4
     }
 
@@ -411,8 +432,8 @@ export function useOrderDownloads() {
     rows.push([])
     rows.push(['', '', '', 'Subtotal:', order.items.reduce((sum, i) => sum + i.subtotal, 0).toFixed(2)])
 
-    if (order.shipping_cost && order.shipping_cost > 0) {
-      rows.push(['', '', '', 'Envío:', order.shipping_cost.toFixed(2)])
+    if (hasShipping(order)) {
+      rows.push(['', '', '', shippingLabel(order), (order.shipping_cost ?? 0).toFixed(2)])
     }
 
     if (order.discount && order.discount > 0) {

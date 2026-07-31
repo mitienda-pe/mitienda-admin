@@ -499,6 +499,10 @@ onMounted(() => {
                 class="text-lg text-gray-700"
                 v-tooltip.top="deliveryTypeLabel(data.delivery_type)"
               ></i>
+              <!-- Tarifa elegida por el comprador; solo en tiendas con tipos de servicio -->
+              <p v-if="data.service_type" class="text-xs text-gray-500 mt-0.5 leading-tight">
+                {{ data.service_type.name }}
+              </p>
             </template>
           </Column>
 

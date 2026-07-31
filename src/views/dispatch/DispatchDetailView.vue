@@ -79,6 +79,14 @@ const deliveryIcon = computed(() => {
   return order.value.delivery.type === 'retiro' ? 'pi pi-building' : 'pi pi-truck'
 })
 
+// Se muestra el envío aunque cueste 0 (envío gratis), pero no en retiros en
+// tienda, donde nunca hubo despacho y la línea sería ruido.
+const showShippingRow = computed(() => {
+  const cost = order.value?.shipping_cost
+  if (cost === null || cost === undefined) return false
+  return cost > 0 || order.value?.delivery.type !== 'retiro'
+})
+
 // ─── Methods ──────────────────────────────────────────────────
 
 async function loadOrder() {
@@ -555,6 +563,11 @@ onMounted(() => {
                   </div>
                   <p class="text-sm text-gray-600">{{ order.delivery.address }}</p>
                   <p v-if="order.delivery.ubigeo" class="text-sm text-gray-500">{{ order.delivery.ubigeo }}</p>
+                  <!-- Tarifa elegida por el comprador: define si el pedido sale hoy -->
+                  <p v-if="order.delivery.service_type" class="text-sm text-gray-900 font-medium">
+                    <i :class="['pi', order.delivery.service_type.icon || 'pi-truck', 'text-xs mr-1 text-primary']"></i>
+                    {{ order.delivery.service_type.name }}
+                  </p>
                   <p v-if="order.delivery.scheduled_date" class="text-sm text-gray-600">
                     <i class="pi pi-calendar text-xs mr-1"></i>
                     Programado: {{ formatDate(order.delivery.scheduled_date) }}
@@ -680,6 +693,15 @@ onMounted(() => {
                   </tr>
                 </tbody>
                 <tfoot v-if="showPrices && order.total">
+                  <tr v-if="showShippingRow" class="border-t bg-gray-50">
+                    <td :colspan="3"></td>
+                    <td class="px-4 py-2 text-right text-sm text-gray-600">
+                      Envío<span v-if="order.delivery.service_type"> ({{ order.delivery.service_type.name }})</span>
+                    </td>
+                    <td class="px-4 py-2 text-right text-sm">
+                      {{ (order.shipping_cost ?? 0) > 0 ? formatCurrency(order.shipping_cost ?? 0) : 'Gratis' }}
+                    </td>
+                  </tr>
                   <tr class="border-t-2 bg-gray-50">
                     <td :colspan="3"></td>
                     <td class="px-4 py-3 text-right font-semibold text-sm text-gray-600">Total</td>

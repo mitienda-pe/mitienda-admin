@@ -1,5 +1,13 @@
 export type DispatchStateId = 30 | 31 | 32 | 33 | 34 | 35 | 36 | 37 | 38 | 39
 
+/** Tarifa de envío elegida por el comprador (Express, Mismo día, etc.). */
+export interface ShippingServiceType {
+  id: number | null
+  code: string | null
+  name: string
+  icon?: string | null
+}
+
 export interface DispatchState {
   id: DispatchStateId
   name: string
@@ -14,6 +22,7 @@ export interface DispatchOrder {
   delivery_address: string
   ubigeo: string
   delivery_type: 'domicilio' | 'retiro'
+  service_type: ShippingServiceType | null
   order_date: string
   delivery_date: string | null
   dispatch_state: DispatchState
@@ -46,6 +55,7 @@ export interface DispatchOrderDetail {
     ubigeo: string
     scheduled_date: string | null
     shipped_date: string | null
+    service_type: ShippingServiceType | null
   }
   tracking: {
     code: string | null
@@ -62,6 +72,7 @@ export interface DispatchOrderDetail {
   items: DispatchOrderItem[]
   timeline: DispatchTimelineEntry[]
   total?: number
+  shipping_cost?: number
   fulfillment_provider: string | null
 }
 

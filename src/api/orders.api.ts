@@ -315,6 +315,7 @@ export const ordersApi = {
           courier: shipping.courrier?.name || undefined,
           courier_id: shipping.courrier?.id || undefined,
           courier_error: shipping.courrier?.error ?? null,
+          service_type: shipping.service_type ?? null,
           tracking_code: shipping.tracking_code ?? rawData.tracking_code ?? undefined,
           tracking_url: shipping.url_traking || undefined,
           delivery_proof_url: shipping.delivery_proof_url ?? null,

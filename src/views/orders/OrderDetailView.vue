@@ -615,6 +615,26 @@ const timelineEvents = computed(() => {
   }))
 })
 
+// Tarifa de envío elegida por el comprador (Express, Mismo día, etc.).
+// Solo existe en tiendas con tipos de servicio habilitados.
+const shippingServiceType = computed(() => order.value?.shipping_details?.service_type ?? null)
+
+// El envío se muestra siempre que la orden lleve despacho, incluso con costo 0
+// (envío gratis). Antes se ocultaba con `> 0` y desaparecía del resumen.
+// Se excluyen retiros en tienda y ventas POS sin dirección, donde una línea
+// "Envío: Gratis" sería ruido: ahí simplemente no hubo despacho.
+const hasShippingCost = computed(() => {
+  const cost = order.value?.shipping_cost
+  if (cost === null || cost === undefined) return false
+  if (cost > 0) return true
+  return Boolean(order.value?.shipping_details?.address || shippingServiceType.value)
+})
+
+const shippingCostLabel = computed(() => {
+  const cost = order.value?.shipping_cost ?? 0
+  return cost > 0 ? formatCurrency(cost) : 'Gratis'
+})
+
 // Subtotal de productos + envío (antes de promociones a nivel de orden)
 const subtotalAntesPromociones = computed(() => {
   if (!order.value?.items) return 0
@@ -1179,6 +1199,17 @@ const handleDebugPayments = async () => {
                 <p class="text-sm text-gray-500">Courier</p>
                 <p class="text-gray-900">{{ order.shipping_details.courier }}</p>
               </div>
+              <div v-if="shippingServiceType">
+                <p class="text-sm text-gray-500">Tipo de servicio</p>
+                <p class="text-gray-900 flex items-center gap-2">
+                  <i v-if="shippingServiceType.icon" :class="['pi', shippingServiceType.icon, 'text-primary']"></i>
+                  {{ shippingServiceType.name }}
+                </p>
+              </div>
+              <div v-if="hasShippingCost">
+                <p class="text-sm text-gray-500">Costo de envío</p>
+                <p class="text-gray-900">{{ shippingCostLabel }}</p>
+              </div>
               <div v-if="order.shipping_details?.tracking_code">
                 <p class="text-sm text-gray-500">Código de tracking</p>
                 <p class="font-mono font-semibold text-gray-900">{{ order.shipping_details.tracking_code }}</p>
@@ -1556,7 +1587,7 @@ const handleDebugPayments = async () => {
                       </tr>
 
                       <!-- Servicio de Envío como ítem adicional -->
-                      <tr v-if="order.shipping_cost && order.shipping_cost > 0" class="hover:bg-gray-50 border-t-2 border-gray-200">
+                      <tr v-if="hasShippingCost" class="hover:bg-gray-50 border-t-2 border-gray-200">
                         <!-- Ítem -->
                         <td class="px-6 py-4 text-sm text-gray-700">
                           {{ order.items.length + 1 }}
@@ -1572,7 +1603,9 @@ const handleDebugPayments = async () => {
                         <!-- Descripción -->
                         <td class="px-6 py-4">
                           <div class="text-sm">
-                            <p class="font-medium text-gray-900">Servicio de Envío</p>
+                            <p class="font-medium text-gray-900">
+                              Servicio de Envío<span v-if="shippingServiceType"> — {{ shippingServiceType.name }}</span>
+                            </p>
                             <p v-if="order.shipping_details?.courier" class="text-xs text-gray-500 mt-0.5">
                               {{ order.shipping_details.courier }}
                             </p>
@@ -1586,7 +1619,7 @@ const handleDebugPayments = async () => {
 
                         <!-- Precio Unitario -->
                         <td class="px-6 py-4 text-right text-sm text-gray-900">
-                          {{ formatCurrency(order.shipping_cost) }}
+                          {{ shippingCostLabel }}
                         </td>
 
                         <!-- Descuento -->
@@ -1596,7 +1629,7 @@ const handleDebugPayments = async () => {
 
                         <!-- Valor Venta -->
                         <td class="px-6 py-4 text-right text-sm font-medium text-gray-900">
-                          {{ formatCurrency(order.shipping_cost) }}
+                          {{ shippingCostLabel }}
                         </td>
                       </tr>
                     </tbody>
