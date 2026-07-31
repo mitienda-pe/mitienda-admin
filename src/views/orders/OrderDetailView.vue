@@ -12,6 +12,7 @@ import Card from 'primevue/card'
 import ProgressSpinner from 'primevue/progressspinner'
 import Timeline from 'primevue/timeline'
 import Menu from 'primevue/menu'
+import Textarea from 'primevue/textarea'
 import EmitDocumentDialog from '@/components/billing/EmitDocumentDialog.vue'
 import DeliveryMap from '@/components/map/DeliveryMap.vue'
 import FraudRiskCard from '@/components/fraud/FraudRiskCard.vue'
@@ -19,6 +20,7 @@ import StarRating from '@/components/reviews/StarRating.vue'
 import PluginSlot from '@/components/plugins/PluginSlot.vue'
 import OrderPaymentComments from './components/OrderPaymentComments.vue'
 import OrderNotificationsCard from './components/OrderNotificationsCard.vue'
+import { ordersApi } from '@/api/orders.api'
 import { reviewsApi } from '@/api/reviews.api'
 import { fulfillmentApi } from '@/api/fulfillment.api'
 import { billingApi } from '@/api/billing.api'
@@ -89,6 +91,45 @@ const voidInfo = computed(() => {
   }
   return null
 })
+
+/**
+ * En POS, `authorization_number` guarda el código de autorización para tarjeta,
+ * pero el número de operación para depósito bancario y QR (ver PaymentModal.vue).
+ */
+function authorizationLabel(method?: string): string {
+  return method === 'banco' || method === 'qr' ? 'N° de operación' : 'Autorización'
+}
+
+// --- Nota interna de la tienda (campo legacy tiendaventa_observaciontienda) ---
+const isEditingStoreNotes = ref(false)
+const storeNotesDraft = ref('')
+const isSavingStoreNotes = ref(false)
+
+function startEditStoreNotes() {
+  storeNotesDraft.value = order.value?.store_notes ?? ''
+  isEditingStoreNotes.value = true
+}
+
+function cancelEditStoreNotes() {
+  isEditingStoreNotes.value = false
+  storeNotesDraft.value = ''
+}
+
+async function saveStoreNotes() {
+  if (!order.value || isSavingStoreNotes.value) return
+  isSavingStoreNotes.value = true
+  try {
+    const response = await ordersApi.updateStoreNotes(order.value.id, storeNotesDraft.value.trim())
+    if (!response.success) throw new Error('No se pudo guardar la nota')
+    order.value.store_notes = response.data?.store_notes ?? storeNotesDraft.value.trim()
+    isEditingStoreNotes.value = false
+    toast.add({ severity: 'success', summary: 'Nota guardada', life: 3000 })
+  } catch (err: any) {
+    toast.add({ severity: 'error', summary: 'Error', detail: err.message || 'No se pudo guardar la nota', life: 5000 })
+  } finally {
+    isSavingStoreNotes.value = false
+  }
+}
 
 async function handleConfirmPayment() {
   if (!order.value || isUpdatingPayment.value) return
@@ -1305,7 +1346,7 @@ const handleDebugPayments = async () => {
                       <div v-if="payment.authorization_number" class="mt-1">
                         <p class="text-xs text-gray-500">
                           <i class="pi pi-check-circle mr-1"></i>
-                          Autorización: <span class="font-mono">{{ payment.authorization_number }}</span>
+                          {{ authorizationLabel(payment.method) }}: <span class="font-mono">{{ payment.authorization_number }}</span>
                         </p>
                       </div>
                       <div v-if="payment.reference && !payment.authorization_number" class="mt-1">
@@ -1410,8 +1451,8 @@ const handleDebugPayments = async () => {
       </div>
 
       <!-- Observaciones y Referidor (ancho completo) -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" v-if="order.notes || order.store_notes || order.referrer_code">
-        <Card v-if="order.notes || order.store_notes" class="lg:col-span-2">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card class="lg:col-span-2">
           <template #title>
             <div class="flex items-center gap-2">
               <i class="pi pi-comment text-primary"></i>
@@ -1424,9 +1465,54 @@ const handleDebugPayments = async () => {
                 <p class="text-sm text-gray-500 font-medium mb-2">Cliente</p>
                 <p class="text-gray-900">{{ order.notes }}</p>
               </div>
-              <div v-if="order.store_notes">
-                <p class="text-sm text-gray-500 font-medium mb-2">Tienda (Interno)</p>
-                <p class="text-gray-900 font-semibold">{{ order.store_notes }}</p>
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <p class="text-sm text-gray-500 font-medium">Tienda (Interno)</p>
+                  <Button
+                    v-if="!isEditingStoreNotes"
+                    :label="order.store_notes ? 'Editar' : 'Agregar'"
+                    icon="pi pi-pencil"
+                    text
+                    size="small"
+                    @click="startEditStoreNotes"
+                  />
+                </div>
+
+                <template v-if="isEditingStoreNotes">
+                  <Textarea
+                    v-model="storeNotesDraft"
+                    rows="3"
+                    maxlength="5000"
+                    class="w-full"
+                    placeholder="Ej: N° de operación del depósito o Yape"
+                  />
+                  <div class="flex gap-2 mt-2">
+                    <Button
+                      label="Guardar"
+                      size="small"
+                      :loading="isSavingStoreNotes"
+                      @click="saveStoreNotes"
+                    />
+                    <Button
+                      label="Cancelar"
+                      size="small"
+                      severity="secondary"
+                      text
+                      :disabled="isSavingStoreNotes"
+                      @click="cancelEditStoreNotes"
+                    />
+                  </div>
+                </template>
+                <template v-else>
+                  <p v-if="order.store_notes" class="text-gray-900 font-semibold whitespace-pre-line">
+                    {{ order.store_notes }}
+                  </p>
+                  <p v-else class="text-gray-400 text-sm italic">Sin observaciones</p>
+                </template>
+
+                <p class="text-xs text-gray-400 mt-2">
+                  Es el mismo campo del modal "Observaciones" del panel anterior.
+                </p>
               </div>
             </div>
           </template>

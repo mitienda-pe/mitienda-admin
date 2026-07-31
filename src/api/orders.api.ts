@@ -450,6 +450,18 @@ export const ordersApi = {
   },
 
   /**
+   * Guardar la nota interna de la tienda (campo `tiendaventa_observaciontienda`,
+   * el mismo que edita el modal "Observaciones" del panel legacy).
+   */
+  async updateStoreNotes(orderId: number, storeNotes: string): Promise<ApiResponse<{ store_notes: string }>> {
+    const response = await apiClient.put(`/orders/${orderId}/store-notes`, { store_notes: storeNotes })
+    return {
+      success: response.data?.success === true,
+      data: response.data?.data
+    }
+  },
+
+  /**
    * Listar comentarios del seller sobre el pago de la orden. Solo retorna los
    * comentarios vigentes (no soft-deleted). El interceptor de axios ya
    * normaliza la respuesta a `{ success, data }`, así que solo la devolvemos.
