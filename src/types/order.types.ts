@@ -177,6 +177,16 @@ export interface ErpSync {
 export interface ShippingDetails {
   /** True si la orden es "Recojo en tienda" (no delivery a domicilio). */
   is_pickup?: boolean
+  /** Sucursal de recojo cuando is_pickup = true. */
+  pickup_branch?: {
+    name?: string
+    address?: string
+    district?: string
+    province?: string
+    department?: string
+    phone?: string
+    reference?: string
+  } | null
   cost: string
   address: string
   address_line2?: string

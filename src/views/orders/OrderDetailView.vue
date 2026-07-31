@@ -1207,6 +1207,19 @@ const handleDebugPayments = async () => {
                 <i class="pi pi-shop"></i>
                 Recojo en tienda
               </div>
+              <div v-if="order.shipping_details?.is_pickup && order.shipping_details?.pickup_branch">
+                <p class="text-sm text-gray-500">Sucursal de recojo</p>
+                <p class="font-semibold text-gray-900">{{ order.shipping_details.pickup_branch.name || 'Sucursal' }}</p>
+                <p v-if="order.shipping_details.pickup_branch.address" class="text-gray-900 text-sm">
+                  {{ order.shipping_details.pickup_branch.address }}{{ order.shipping_details.pickup_branch.district ? ', ' + order.shipping_details.pickup_branch.district : '' }}
+                </p>
+                <p v-if="order.shipping_details.pickup_branch.phone" class="text-gray-500 text-sm">
+                  Tel: {{ order.shipping_details.pickup_branch.phone }}
+                </p>
+                <p v-if="order.shipping_details.pickup_branch.reference" class="text-gray-500 text-sm whitespace-pre-line">
+                  {{ order.shipping_details.pickup_branch.reference }}
+                </p>
+              </div>
               <div v-if="order.shipping_details?.recipient_name">
                 <p class="text-sm text-gray-500">Destinatario</p>
                 <p class="font-semibold text-gray-900">{{ order.shipping_details.recipient_name }}</p>
