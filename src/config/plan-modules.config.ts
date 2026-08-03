@@ -99,5 +99,12 @@ export const ALWAYS_ACCESSIBLE_ROUTES = [
   '/store/addresses',
   '/store/subscription',
   '/profile',
-  '/store-selection'
+  '/store-selection',
+  // Los reportes personalizados se asignan tienda por tienda desde superadmin:
+  // esa asignación ES la habilitación. Gatearlos además por `mod_reportes_ventas`
+  // (que aplica a todo `/reports`) los dejaría fuera del alcance de clientes en
+  // plan Small que sí los tienen contratados — el caso de 3 de los 5 locales de
+  // una misma cadena. El menú solo muestra el ítem si el backend devuelve al
+  // menos un reporte asignado, así que no hay ruta visible sin habilitación.
+  '/reports/custom'
 ]

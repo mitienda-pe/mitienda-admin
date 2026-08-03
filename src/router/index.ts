@@ -307,6 +307,12 @@ const routes: RouteRecordRaw[] = [
         name: 'WebAnalytics',
         meta: { title: 'Analítica web' },
         component: () => import('@/views/reports/WebAnalyticsView.vue')
+      },
+      {
+        path: 'custom',
+        name: 'CustomReports',
+        meta: { title: 'Reportes personalizados' },
+        component: () => import('@/views/reports/CustomReportsView.vue')
       }
     ]
   },

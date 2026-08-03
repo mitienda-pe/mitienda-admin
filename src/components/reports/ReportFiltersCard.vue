@@ -41,7 +41,7 @@
         </div>
 
         <!-- Payment Status -->
-        <div class="flex flex-col gap-2">
+        <div v-if="showPaymentStatus" class="flex flex-col gap-2">
           <label for="payment-status" class="text-sm font-medium text-secondary-700">
             Estado de Pago
           </label>
@@ -57,7 +57,7 @@
         </div>
 
         <!-- Payment Gateway -->
-        <div class="flex flex-col gap-2">
+        <div v-if="showPaymentGateway" class="flex flex-col gap-2">
           <label for="payment-gateway" class="text-sm font-medium text-secondary-700">
             Pasarela de Pago
           </label>
@@ -113,6 +113,10 @@ interface Props {
   filters: ReportFilters
   paymentGateways?: Array<{ id: number; name: string }>
   loadingGateways?: boolean
+  // Los reportes personalizados declaran qué filtros admiten; los que no los
+  // soportan los ocultan en vez de mandarlos y que el backend los ignore.
+  showPaymentStatus?: boolean
+  showPaymentGateway?: boolean
 }
 
 interface Emits {
@@ -130,7 +134,9 @@ interface LocalFilters {
 
 const props = withDefaults(defineProps<Props>(), {
   paymentGateways: () => [],
-  loadingGateways: false
+  loadingGateways: false,
+  showPaymentStatus: true,
+  showPaymentGateway: true
 })
 
 const emit = defineEmits<Emits>()
@@ -183,8 +189,8 @@ const handleApplyFilters = () => {
     date_to: localFilters.value.date_to
       ? formatDateToISO(localFilters.value.date_to)
       : undefined,
-    payment_status: localFilters.value.payment_status,
-    payment_gateway_id: localFilters.value.payment_gateway_id
+    payment_status: props.showPaymentStatus ? localFilters.value.payment_status : undefined,
+    payment_gateway_id: props.showPaymentGateway ? localFilters.value.payment_gateway_id : undefined
   }
 
   emit('update:filters', filters)

@@ -1050,6 +1050,7 @@ import HelpDrawer from '@/components/help/HelpDrawer.vue'
 import { useOnboardingStore } from '@/stores/onboarding.store'
 import { useStoreConfigStore } from '@/stores/store-config.store'
 import { pluginsApi } from '@/api/plugins.api'
+import { customReportsApi } from '@/api/custom-reports.api'
 
 const appVersion = __APP_VERSION__
 
@@ -1081,6 +1082,9 @@ onMounted(() => {
   // plugin asignado y activo (activación manual por tienda vía superadmin,
   // store_plugin_assignments). Oculto por defecto para todos los planes.
   loadPluginVisibility()
+  // Mismo criterio para "Reportes > Personalizados": se asignan por tienda desde
+  // superadmin, así que la única forma de saber si mostrarlo es preguntando.
+  loadCustomReportsVisibility()
 })
 
 // Visibilidad del ítem de menú "Plugins".
@@ -1093,6 +1097,18 @@ async function loadPluginVisibility() {
   } catch {
     // Si falla la carga, mantener el ítem oculto (comportamiento por defecto).
     hasActivePlugins.value = false
+  }
+}
+
+// Visibilidad del ítem de menú "Reportes > Personalizados".
+const hasCustomReports = ref(false)
+
+async function loadCustomReportsVisibility() {
+  try {
+    const customReports = await customReportsApi.list()
+    hasCustomReports.value = customReports.length > 0
+  } catch {
+    hasCustomReports.value = false
   }
 }
 
@@ -1282,15 +1298,20 @@ const salesBadgeMap = computed<Record<string, number>>(() => ({
   '/marketing/abandoned-carts': badgeCountsStore.abandonedCartsCount
 }))
 
-// Items del grupo Reportes
-const reportsMenuItems = [
+// Items del grupo Reportes. "Personalizados" solo aparece si la tienda tiene al
+// menos un reporte a medida asignado (hasCustomReports); son reportes hechos por
+// pedido para tenants puntuales, no una función de plan.
+const reportsMenuItems = computed(() => [
   { label: 'Pedidos', icon: 'pi pi-shopping-cart', to: '/reports/orders' },
   { label: 'Ventas por Producto', icon: 'pi pi-box', to: '/reports/product-sales' },
   { label: 'Catálogo de Productos', icon: 'pi pi-list', to: '/reports/product-catalog' },
   { label: 'Promociones', icon: 'pi pi-percentage', to: '/reports/promotions' },
   { label: 'Rechazos de Pago', icon: 'pi pi-exclamation-triangle', to: '/reports/payment-rejections' },
-  { label: 'Redondeo POS', icon: 'pi pi-money-bill', to: '/reports/rounding' }
-]
+  { label: 'Redondeo POS', icon: 'pi pi-money-bill', to: '/reports/rounding' },
+  ...(hasCustomReports.value
+    ? [{ label: 'Personalizados', icon: 'pi pi-file-excel', to: '/reports/custom' }]
+    : [])
+])
 
 // Items del grupo Catálogo
 const catalogMenuItems = [
