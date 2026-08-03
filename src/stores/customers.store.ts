@@ -20,6 +20,10 @@ export const useCustomersStore = defineStore('customers', () => {
   const error = ref<string | null>(null)
   const stats = ref<CustomerStats | null>(null)
 
+  // El backend no pudo buscar por fragmento de correo (tienda demasiado grande
+  // para descifrarlos en la petición). Solo sirve el correo completo.
+  const emailFragmentSkipped = ref(false)
+
   const pagination = ref({
     page: 1,
     limit: 20,
@@ -83,6 +87,8 @@ export const useCustomersStore = defineStore('customers', () => {
       }
 
       const response = await customersApi.getCustomers(apiFilters)
+
+      emailFragmentSkipped.value = response.emailFragmentSkipped === true
 
       if (response.success && response.data) {
         if (loadMore) {
@@ -396,6 +402,7 @@ export const useCustomersStore = defineStore('customers', () => {
     sorting,
     hasOrders,
     stats,
+    emailFragmentSkipped,
 
     // Getters
     hasCustomers,

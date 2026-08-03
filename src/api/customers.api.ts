@@ -45,7 +45,9 @@ export const customersApi = {
   /**
    * Obtener lista de clientes con filtros y paginación
    */
-  async getCustomers(filters: CustomersFilters = {}): Promise<PaginatedResponse<Customer>> {
+  async getCustomers(
+    filters: CustomersFilters = {}
+  ): Promise<PaginatedResponse<Customer> & { emailFragmentSkipped?: boolean }> {
     const params = new URLSearchParams()
 
     if (filters.page) params.append('page', filters.page.toString())
@@ -90,7 +92,11 @@ export const customersApi = {
           total: rawData.pagination?.total || rawData.data.length,
           totalPages: rawData.pagination?.total_pages || 1,
           hasMore: rawData.pagination?.has_next || false
-        }
+        },
+        // La tienda es demasiado grande para descifrar correos en la petición,
+        // así que la búsqueda por fragmento no se ejecutó. Sin esto el panel
+        // mostraría "sin resultados" cuando en realidad no llegó a buscar.
+        emailFragmentSkipped: rawData.search?.email_fragment_skipped === true
       }
     }
 

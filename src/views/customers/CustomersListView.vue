@@ -105,7 +105,7 @@ const totalCustomers = computed(() => customersStore.pagination.total)
         <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
         <InputText
           v-model="searchQuery"
-          placeholder="Buscar por nombre, documento o teléfono..."
+          placeholder="Buscar por nombre, email, documento o teléfono..."
           class="w-full !pl-10"
           @input="handleSearch"
         />
@@ -125,6 +125,22 @@ const totalCustomers = computed(() => customersStore.pagination.total)
         severity="secondary"
         @click="handleClearSearch"
       />
+    </div>
+
+    <!--
+      La tienda tiene demasiados clientes para descifrar los correos en la
+      petición, así que el fragmento no se buscó. Se avisa en vez de dejar que
+      la lista vacía se lea como "este correo no existe".
+    -->
+    <div
+      v-if="customersStore.emailFragmentSkipped"
+      class="flex items-start gap-2 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800"
+    >
+      <i class="pi pi-info-circle mt-0.5"></i>
+      <span>
+        Esta tienda tiene demasiados clientes para buscar por partes del correo.
+        Escribe el correo completo para encontrarlo.
+      </span>
     </div>
 
     <!-- Loading inicial -->
