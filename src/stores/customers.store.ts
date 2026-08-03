@@ -32,8 +32,14 @@ export const useCustomersStore = defineStore('customers', () => {
     order: 'desc' as 'asc' | 'desc'
   })
 
-  // Filter for customers with orders (default: true = only show customers with purchases)
-  const hasOrders = ref<boolean | null>(true)
+  // Sin filtro por compras (null = todos).
+  //
+  // Antes venía en `true`, así que el panel ocultaba de entrada a cualquier
+  // cliente sin una venta pagada — en algunas tiendas, más del 80% del padrón.
+  // Eso rompía la búsqueda: escribir un teléfono o un nombre exacto no devolvía
+  // nada si esa persona aún no había comprado, sin ninguna pista de por qué.
+  // El dropdown "Filtrar por compras" sigue disponible para acotar a mano.
+  const hasOrders = ref<boolean | null>(null)
 
   const filters = ref<CustomerFilters>({
     search: '',
@@ -349,7 +355,7 @@ export const useCustomersStore = defineStore('customers', () => {
       dateFrom: null,
       dateTo: null
     }
-    hasOrders.value = true // Reset to default: only customers with orders
+    hasOrders.value = null // Sin filtro por compras, igual que al entrar al panel
     pagination.value.page = 1
     fetchCustomers()
   }
