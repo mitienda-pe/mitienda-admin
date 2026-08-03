@@ -248,8 +248,8 @@
                 severity="info"
                 text
                 rounded
-                :loading="sendingEmailForOrder === data.id"
-                v-tooltip.top="'Enviar por Email'"
+                :loading="sendingEmailKey === emailKey(data)"
+                v-tooltip.top="`Enviar por email a ${data.customer_email}`"
                 @click="handleSendEmail(data)"
               />
               <Button
@@ -287,7 +287,10 @@ const router = useRouter()
 const documentsStore = useBillingDocumentsStore()
 const ordersStore = useOrdersStore()
 const toast = useToast()
-const sendingEmailForOrder = ref<number | null>(null)
+// Los ids de órdenes y de comprobantes manuales viven en tablas distintas y
+// pueden colisionar, así que el spinner se identifica por source+id.
+const sendingEmailKey = ref<string | null>(null)
+const emailKey = (row: any) => `${row?.source ?? 'order'}-${row?.id}`
 const legacyLoadingKey = ref<string | null>(null)
 
 const localFilters = ref<BillingDocumentFilters>({
@@ -408,24 +411,31 @@ const handleSendEmail = async (document: any) => {
   }
 
   try {
-    sendingEmailForOrder.value = document.id
-    await ordersStore.resendInvoiceEmail(document.id)
+    sendingEmailKey.value = emailKey(document)
+
+    // Los manuales no tienen orden: su id es billing_document_id y el endpoint
+    // de órdenes apuntaría a una venta ajena (o a un 404).
+    if (document.source === 'manual') {
+      await documentsStore.sendManualDocumentEmail(document.id)
+    } else {
+      await ordersStore.resendInvoiceEmail(document.id)
+    }
 
     toast.add({
       severity: 'success',
       summary: 'Email Enviado',
-      detail: `Factura enviada a ${document.customer_email}`,
+      detail: `Comprobante enviado a ${document.customer_email}`,
       life: 3000
     })
   } catch (error: any) {
     toast.add({
       severity: 'error',
       summary: 'Error al Enviar',
-      detail: error.response?.data?.message || 'No se pudo enviar el email',
+      detail: error.response?.data?.message || error.message || 'No se pudo enviar el email',
       life: 5000
     })
   } finally {
-    sendingEmailForOrder.value = null
+    sendingEmailKey.value = null
   }
 }
 </script>

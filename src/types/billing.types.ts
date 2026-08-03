@@ -168,12 +168,16 @@ export type DocumentType = 1 | 2 // 1=Factura, 2=Boleta
 
 export interface BillingDocument {
   id: number
+  // 'order' → id es tiendaventa_id; 'manual' → id es billing_document_id.
+  // Determina a qué endpoint se pide el detalle y el envío por email.
+  source?: 'order' | 'manual'
   order_code: string
   document_type: string // 'Factura' | 'Boleta'
   serie: string
   correlative: string
   customer_name: string
   customer_document: string
+  customer_email?: string | null
   total: number
   emission_date: string
   provider_id: number

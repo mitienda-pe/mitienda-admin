@@ -298,6 +298,20 @@ export const billingApi = {
     return response.data
   },
 
+  /**
+   * Envía por email un comprobante manual ya emitido.
+   * Los manuales no tienen orden, así que no aplica /orders/:id/resend-invoice-email.
+   * Sin `email` se usa el registrado en el comprobante.
+   */
+  async sendManualDocumentEmail(id: number, email?: string): Promise<ApiResponse<{
+    id: number
+    email_sent_to: string
+    document: string
+  }>> {
+    const response = await apiClient.post(`/billing/manual/${id}/send-email`, email ? { email } : {})
+    return response.data
+  },
+
   // ========== Document Lookup API (DeColecta) ==========
 
   /**

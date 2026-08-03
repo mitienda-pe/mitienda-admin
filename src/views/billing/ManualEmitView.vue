@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useBillingManualStore } from '@/stores/billingManual.store'
+import { useBillingDocumentsStore } from '@/stores/billingDocuments.store'
 import { useFormatters } from '@/composables/useFormatters'
 import CustomerSearchSection from '@/components/billing/CustomerSearchSection.vue'
 import LineItemsTable from '@/components/billing/LineItemsTable.vue'
@@ -18,6 +19,7 @@ import { CREDIT_NOTE_TYPES } from '@/types/billing.types'
 
 const router = useRouter()
 const store = useBillingManualStore()
+const documentsStore = useBillingDocumentsStore()
 const { formatCurrency } = useFormatters()
 
 // Dialog visibility
@@ -76,6 +78,8 @@ function handleAddManualItem(item: Omit<ManualDocumentItem, 'id'>) {
 async function handleEmit() {
   const result = await store.emit()
   if (result.success) {
+    emailSentTo.value = null
+    emailError.value = null
     showSuccessDialog.value = true
   }
 }
@@ -91,6 +95,28 @@ function handleSuccessClose() {
 function handleCancel() {
   store.reset()
   router.push('/billing/documents')
+}
+
+// Enviar el comprobante recién emitido por email. La emisión NO lo envía sola:
+// el único envío automático ocurre al confirmarse el pago de una orden.
+const sendingEmail = ref(false)
+const emailSentTo = ref<string | null>(null)
+const emailError = ref<string | null>(null)
+
+async function sendByEmail() {
+  const documentId = store.lastEmitResponse?.id
+  if (!documentId) return
+
+  try {
+    sendingEmail.value = true
+    emailError.value = null
+    const result = await documentsStore.sendManualDocumentEmail(documentId)
+    emailSentTo.value = result?.email_sent_to || store.client.email || ''
+  } catch (error: any) {
+    emailError.value = error.response?.data?.message || error.message || 'No se pudo enviar el email'
+  } finally {
+    sendingEmail.value = false
+  }
 }
 
 // Download PDF
@@ -351,9 +377,24 @@ onUnmounted(() => {
         <p v-if="store.lastEmitResponse" class="text-lg font-semibold mt-2">
           Total: {{ formatCurrency(store.lastEmitResponse.total) }}
         </p>
+        <p v-if="emailSentTo" class="text-sm text-primary mt-3">
+          <i class="pi pi-check mr-1"></i>Enviado a {{ emailSentTo }}
+        </p>
+        <p v-else-if="emailError" class="text-sm text-red-600 mt-3">{{ emailError }}</p>
+        <p v-else-if="!store.client.email" class="text-sm text-gray-500 mt-3">
+          El cliente no tiene email registrado: descarga el PDF para hacérselo llegar.
+        </p>
       </div>
       <template #footer>
         <div class="flex justify-center gap-3">
+          <Button
+            v-if="store.client.email && !emailSentTo"
+            label="Enviar por email"
+            icon="pi pi-envelope"
+            severity="info"
+            :loading="sendingEmail"
+            @click="sendByEmail"
+          />
           <Button
             v-if="store.lastEmitResponse?.files?.pdf"
             label="Descargar PDF"

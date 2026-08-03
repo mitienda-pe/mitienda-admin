@@ -179,6 +179,20 @@ export const useBillingDocumentsStore = defineStore('billingDocuments', () => {
     window.URL.revokeObjectURL(url)
   }
 
+  /**
+   * Envía por email un comprobante manual (sin orden asociada).
+   * Los comprobantes con orden se reenvían con ordersStore.resendInvoiceEmail.
+   */
+  async function sendManualDocumentEmail(id: number, email?: string) {
+    const response = await billingApi.sendManualDocumentEmail(id, email)
+
+    if (!response.success) {
+      throw new Error(response.message || 'No se pudo enviar el email')
+    }
+
+    return response.data
+  }
+
   function clearMessages() {
     error.value = null
     successMessage.value = null
@@ -207,6 +221,7 @@ export const useBillingDocumentsStore = defineStore('billingDocuments', () => {
     clearFilters,
     exportDocuments,
     downloadLegacyDocument,
+    sendManualDocumentEmail,
     clearMessages,
     clearCurrentDocument
   }
