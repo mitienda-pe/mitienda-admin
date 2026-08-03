@@ -105,7 +105,7 @@ const totalCustomers = computed(() => customersStore.pagination.total)
         <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
         <InputText
           v-model="searchQuery"
-          placeholder="Buscar por nombre, email o documento..."
+          placeholder="Buscar por nombre, documento o teléfono..."
           class="w-full !pl-10"
           @input="handleSearch"
         />

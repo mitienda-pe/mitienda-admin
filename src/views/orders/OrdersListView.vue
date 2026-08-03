@@ -147,7 +147,7 @@ const billingType = (order: Order) => {
     <!-- Búsqueda -->
     <SearchBar
       v-model="ordersStore.filters.search"
-      placeholder="Buscar por número de pedido, cliente, RUC/DNI..."
+      placeholder="Buscar por número de pedido, cliente, RUC/DNI, teléfono..."
       @search="handleSearch"
     />
 
