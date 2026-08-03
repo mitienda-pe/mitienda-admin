@@ -1029,7 +1029,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAdminStore } from '@/stores/admin.store'
@@ -1082,9 +1082,6 @@ onMounted(() => {
   // plugin asignado y activo (activación manual por tienda vía superadmin,
   // store_plugin_assignments). Oculto por defecto para todos los planes.
   loadPluginVisibility()
-  // Mismo criterio para "Reportes > Personalizados": se asignan por tienda desde
-  // superadmin, así que la única forma de saber si mostrarlo es preguntando.
-  loadCustomReportsVisibility()
 })
 
 // Visibilidad del ítem de menú "Plugins".
@@ -1101,16 +1098,35 @@ async function loadPluginVisibility() {
 }
 
 // Visibilidad del ítem de menú "Reportes > Personalizados".
+//
+// Se re-consulta ante CADA cambio de tienda, no solo al montar: la impersonación
+// de superadmin reemplaza el token y `selectedStore` en caliente, sin remontar
+// este layout. Resolviéndolo solo en onMounted, el menú conservaba el resultado
+// de la tienda anterior y el ítem no aparecía nunca al entrar a una tienda con
+// reportes asignados.
+//
+// `access_token` ya está actualizado en localStorage cuando `selectedStore`
+// cambia (admin.store lo escribe antes), así que la petición sale con el token
+// de la tienda nueva.
 const hasCustomReports = ref(false)
 
-async function loadCustomReportsVisibility() {
-  try {
-    const customReports = await customReportsApi.list()
-    hasCustomReports.value = customReports.length > 0
-  } catch {
-    hasCustomReports.value = false
-  }
-}
+watch(
+  () => authStore.selectedStore?.id,
+  async (storeId) => {
+    if (!storeId) {
+      hasCustomReports.value = false
+      return
+    }
+
+    try {
+      hasCustomReports.value = (await customReportsApi.list()).length > 0
+    } catch {
+      // Si falla la carga, mantener el ítem oculto (comportamiento por defecto).
+      hasCustomReports.value = false
+    }
+  },
+  { immediate: true }
+)
 
 onUnmounted(() => {
   badgeCountsStore.stopPolling()
