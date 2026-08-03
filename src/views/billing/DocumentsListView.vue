@@ -312,7 +312,13 @@ const hasActiveFilters = computed(() =>
 )
 
 onMounted(() => {
-  documentsStore.fetchDocuments()
+  // El store sobrevive a la navegación, los inputs no: al volver al listado
+  // (p.ej. tras emitir un comprobante) se recargaba con los filtros de la
+  // consulta anterior mientras la barra de filtros se veía vacía, así que el
+  // comprobante recién emitido parecía no haberse guardado. Reflejar los
+  // filtros vigentes en los inputs.
+  localFilters.value = { ...documentsStore.filters }
+  documentsStore.fetchDocuments(documentsStore.pagination.limit, documentsStore.pagination.offset)
 })
 
 const applyFilters = () => {
@@ -350,9 +356,11 @@ const onPage = (event: any) => {
 const formatDate = (dateString: string) => {
   if (!dateString) return '-'
 
-  // Parse date string directly to avoid timezone issues
-  // Backend returns dates in format "YYYY-MM-DD" (DATE type, no time)
-  const parts = dateString.split('-')
+  // Parse date string directly to avoid timezone issues.
+  // Los comprobantes con orden traen DATE ("YYYY-MM-DD") y los manuales
+  // DATETIME ("YYYY-MM-DD HH:MM:SS"); sin recortar la hora el manual se
+  // renderizaba como "03 09:03:01/08/2026".
+  const parts = dateString.split(/[ T]/)[0].split('-')
   if (parts.length === 3) {
     const year = parts[0]
     const month = parts[1]

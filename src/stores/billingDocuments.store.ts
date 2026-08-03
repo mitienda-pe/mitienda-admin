@@ -63,9 +63,19 @@ export const useBillingDocumentsStore = defineStore('billingDocuments', () => {
   }
 
   async function clearFilters() {
+    resetFilters()
+    await fetchDocuments(pagination.value.limit, 0)
+  }
+
+  /**
+   * Limpia filtros y paginación SIN recargar. Para quien va a navegar al
+   * listado y no quiere gastar un request que la vista va a repetir al montar
+   * (p.ej. al volver de una emisión manual: el comprobante recién emitido debe
+   * quedar visible aunque hubiera filtros de una consulta anterior).
+   */
+  function resetFilters() {
     filters.value = { date_from: '', date_to: '', document_type: '', search: '' }
     pagination.value.offset = 0
-    await fetchDocuments(pagination.value.limit, 0)
   }
 
   /** Dispara la descarga de un blob con el nombre indicado. */
@@ -220,6 +230,7 @@ export const useBillingDocumentsStore = defineStore('billingDocuments', () => {
     applyFilters,
     clearFilters,
     exportDocuments,
+    resetFilters,
     downloadLegacyDocument,
     sendManualDocumentEmail,
     clearMessages,

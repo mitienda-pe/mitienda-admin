@@ -88,6 +88,10 @@ async function handleEmit() {
 function handleSuccessClose() {
   showSuccessDialog.value = false
   store.reset()
+  // Sin esto el listado se recarga con los filtros de la consulta anterior
+  // (viven en el store, no en la vista) y el comprobante recién emitido puede
+  // quedar fuera del rango o de la página consultada.
+  documentsStore.resetFilters()
   router.push('/billing/documents')
 }
 
