@@ -190,7 +190,11 @@ export const useAbandonedCartsStore = defineStore('abandoned-carts', {
       this.fetchCarts()
     },
 
-    async exportToExcel() {
+    /**
+     * Descarga los carritos filtrados. Devuelve false si falló, para que la vista
+     * pueda avisar: antes el error moría acá y el botón no daba señal alguna.
+     */
+    async exportToExcel(): Promise<boolean> {
       try {
         const blob = await abandonedCartsApi.exportToExcel(this.filters)
         const url = window.URL.createObjectURL(blob)
@@ -199,9 +203,11 @@ export const useAbandonedCartsStore = defineStore('abandoned-carts', {
         link.download = `carritos-abandonados-${new Date().toISOString().split('T')[0]}.xlsx`
         link.click()
         window.URL.revokeObjectURL(url)
+        return true
       } catch (error: any) {
         this.error = error.message || 'Error al exportar los carritos'
         console.error('Error exporting carts:', error)
+        return false
       }
     }
   }

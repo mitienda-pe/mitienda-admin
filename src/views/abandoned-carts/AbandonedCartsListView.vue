@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useToast } from 'primevue/usetoast'
 import { useAbandonedCartsStore } from '@/stores/abandoned-carts.store'
 import type { AbandonedCart } from '@/types/abandoned-cart.types'
 import SearchBar from '@/components/common/SearchBar.vue'
@@ -15,6 +16,24 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 const cartsStore = useAbandonedCartsStore()
+const toast = useToast()
+
+const isExporting = ref(false)
+
+const handleExport = async () => {
+  isExporting.value = true
+  const ok = await cartsStore.exportToExcel()
+  isExporting.value = false
+
+  if (!ok) {
+    toast.add({
+      severity: 'error',
+      summary: 'No se pudo exportar',
+      detail: cartsStore.error || 'Revisa los filtros e inténtalo de nuevo',
+      life: 4000
+    })
+  }
+}
 
 const dateRange = ref<Date[]>([])
 const showDetailDialog = ref(false)
@@ -159,7 +178,8 @@ const totalCarts = computed(() => cartsStore.pagination.total)
         label="Exportar"
         icon="pi pi-download"
         severity="secondary"
-        @click="cartsStore.exportToExcel()"
+        :loading="isExporting"
+        @click="handleExport"
       />
     </div>
 
