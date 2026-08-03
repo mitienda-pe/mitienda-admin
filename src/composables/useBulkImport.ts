@@ -191,6 +191,7 @@ export function useBulkImport() {
         case 'codigo_barras': row1.push('7501234567890'); row2.push('7501234567891'); break
         case 'precio': row1.push('49.90'); row2.push('129.90'); break
         case 'afectacion': row1.push('1'); row2.push('1'); break
+        case 'icbper': row1.push('0'); row2.push('0'); break
         case 'stock': row1.push('100'); row2.push('50'); break
         case 'stock_ilimitado': row1.push('0'); row2.push('0'); break
         case 'descripcion': row1.push('Camiseta de algodon 100%'); row2.push('Jean clasico corte recto'); break

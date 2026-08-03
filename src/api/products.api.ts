@@ -204,6 +204,8 @@ export const productsApi = {
         cost: rawData.cost ? parseFloat(rawData.cost) : undefined,
         igv_percent: rawData.igv_percent !== undefined ? parseInt(rawData.igv_percent) : 18,
         tax_affectation: rawData.tax_affectation !== undefined ? parseInt(rawData.tax_affectation) : 1,
+        // Bolsa plástica afecta a ICBPER (Ley 30884)
+        icbper: rawData.icbper === true || rawData.icbper === 1,
         // Indica si el producto usa variantes (precio/stock por variante). La
         // normalización debe copiarlo explícitamente o se pierde: de él dependen
         // el editor de variantes y el ocultado del precio/stock general.
@@ -301,6 +303,9 @@ export const productsApi = {
     if (data.sold_by_weight !== undefined) payload.sold_by_weight = data.sold_by_weight ? 1 : 0
     // Control por lotes: el backend lee `lots_managed` y setea producto_sw_lotes.
     if (data.lots_managed !== undefined) payload.lots_managed = data.lots_managed ? 1 : 0
+    // ICBPER (Ley 30884): bolsa plástica. El backend responde 422 si la tienda
+    // emite por NetSuite o por el POS legacy, que aún no declaran el tributo.
+    if (data.icbper !== undefined) payload.icbper = data.icbper ? 1 : 0
 
     // Array fields
     if (data.categories !== undefined) payload.categories = data.categories
@@ -328,6 +333,8 @@ export const productsApi = {
         cost: rawData.cost ? parseFloat(rawData.cost) : undefined,
         igv_percent: rawData.igv_percent !== undefined ? parseInt(rawData.igv_percent) : 18,
         tax_affectation: rawData.tax_affectation !== undefined ? parseInt(rawData.tax_affectation) : 1,
+        // Bolsa plástica afecta a ICBPER (Ley 30884)
+        icbper: rawData.icbper === true || rawData.icbper === 1,
         // Indica si el producto usa variantes (precio/stock por variante). La
         // normalización debe copiarlo explícitamente o se pierde: de él dependen
         // el editor de variantes y el ocultado del precio/stock general.

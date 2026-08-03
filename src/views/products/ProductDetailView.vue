@@ -605,6 +605,20 @@
                   />
                 </div>
 
+                <!-- ICBPER (Ley 30884). NO dispara onTaxAffectationChange: el
+                     tributo va encima del IGV y no altera price_without_tax. -->
+                <div class="mb-3 flex items-start gap-2">
+                  <Checkbox
+                    inputId="edit-icbper"
+                    v-model="form.icbper"
+                    :binary="true"
+                  />
+                  <label for="edit-icbper" class="cursor-pointer">
+                    <span class="block text-xs font-medium text-secondary-600">Bolsa plástica (ICBPER)</span>
+                    <span class="block text-xs text-gray-500">Cobra S/ 0.50 por unidad además del IGV (Ley N.° 30884).</span>
+                  </label>
+                </div>
+
                 <!-- Precio/costo manual: solo sin variaciones. Con variantes el
                      precio y costo se definen por variante (panel "Variantes");
                      la afectación IGV de arriba sí es del producto y se mantiene. -->
@@ -1165,6 +1179,7 @@ const form = ref<FormState>({
   price_without_tax: undefined,
   cost: null,
   tax_affectation: 1,
+  icbper: false, // Bolsa plástica afecta a ICBPER (Ley 30884)
   igv_percent: 18,
   stock: undefined,
   unlimited_stock: false,
@@ -1317,6 +1332,7 @@ const populateForm = async () => {
     price_without_tax: p.price_without_tax ?? undefined,
     cost: p.cost ?? null,
     tax_affectation: p.tax_affectation || 1,
+    icbper: p.icbper === true,
     igv_percent: p.igv_percent || 18,
     stock: p.stock ?? undefined,
     unlimited_stock: p.unlimited_stock || false,

@@ -85,6 +85,12 @@ export interface Product {
   shipping_per_unit?: boolean
   igv_percent?: number
   tax_affectation?: number // 1=Gravado, 2=Exonerado, 3=Inafecto
+  /**
+   * Bolsa plástica afecta a ICBPER (Ley N.° 30884): tributo de monto FIJO por
+   * bolsa (S/ 0.50), cobrado encima del IGV y fuera de su base imponible. El
+   * monto es constante de plataforma; aquí solo viaja el flag.
+   */
+  icbper?: boolean
   published: boolean
   /** Visibilidad en el catálogo del POS. Independiente de `published` (storefront). */
   published_pos?: boolean
@@ -204,6 +210,7 @@ export interface ProductPriceItem {
   price_without_tax: number | null
   igv_percent: number
   tax_affectation: number // 1=Gravado, 2=Exonerado, 3=Inafecto
+  icbper?: boolean // Bolsa plástica afecta a ICBPER (Ley 30884)
   published: boolean
   has_variants: boolean
   variants: VariantPriceItem[]
@@ -351,6 +358,7 @@ export interface ProductCreatePayload {
   order?: number
   igv_percent?: number
   tax_affectation?: number
+  icbper?: boolean // Bolsa plástica afecta a ICBPER (Ley 30884)
   // SEO
   meta_title?: string
   meta_description?: string

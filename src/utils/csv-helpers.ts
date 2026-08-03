@@ -20,6 +20,8 @@ export const CSV_COLUMNS: CsvColumnDef[] = [
   // Precios (dynamically mapped based on pricing_mode)
   { key: 'precio', apiField: 'price', label: 'Precio', required: true, type: 'number', group: 'Precios' },
   { key: 'afectacion', apiField: 'tax_affectation', label: 'Afectacion IGV (1=Afecto,2=Exonerado,3=Inafecto)', required: false, type: 'number', group: 'Precios' },
+  // ICBPER (Ley 30884): bolsa plastica. Monto fijo por bolsa (S/ 0.50) encima del IGV.
+  { key: 'icbper', apiField: 'icbper', label: 'Bolsa plastica / ICBPER (0/1)', required: false, type: 'boolean', group: 'Precios' },
   // Inventario
   { key: 'stock', apiField: 'stock', label: 'Stock', required: true, type: 'number', group: 'Inventario' },
   { key: 'stock_ilimitado', apiField: 'unlimited_stock', label: 'Stock Ilimitado (0/1)', required: false, type: 'boolean', group: 'Inventario' },
