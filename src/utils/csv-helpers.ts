@@ -77,17 +77,56 @@ export function normalizeUnit(value: string, type: 'weight' | 'dimension'): stri
 
 // ── CSV Parsing ──
 
-export function parseCsvString(text: string): { headers: string[]; rows: Record<string, string>[] } {
+export const CSV_DELIMITERS = [',', ';', '\t'] as const
+
+/**
+ * Detecta el separador de la cabecera. Excel en locales es-* guarda los CSV con
+ * ";" (y decimales con coma), asi que no podemos asumir ",".
+ */
+export function detectCsvDelimiter(headerLine: string): string {
+  let best = ','
+  let bestCount = 0
+
+  for (const delimiter of CSV_DELIMITERS) {
+    const count = parseCsvRow(headerLine, delimiter).length
+    if (count > bestCount) {
+      best = delimiter
+      bestCount = count
+    }
+  }
+
+  return best
+}
+
+/**
+ * Convierte un valor numerico del CSV a number respetando el locale del archivo.
+ * Si el separador es ";" o tabulador, la coma es decimal y el punto es de miles
+ * ("1.234,56" -> 1234.56). Con separador "," se deja tal cual.
+ */
+export function parseCsvNumber(value: string, delimiter: string = ','): number {
+  let v = value.trim()
+  if (delimiter !== ',' && v.includes(',')) {
+    v = v.replace(/\./g, '').replace(',', '.')
+  }
+  return parseFloat(v)
+}
+
+export function parseCsvString(text: string): {
+  headers: string[]
+  rows: Record<string, string>[]
+  delimiter: string
+} {
   // Remove UTF-8 BOM
   const cleaned = text.replace(/^\uFEFF/, '')
   const lines = splitCsvLines(cleaned)
-  if (lines.length === 0) return { headers: [], rows: [] }
+  if (lines.length === 0) return { headers: [], rows: [], delimiter: ',' }
 
-  const headers = parseCsvRow(lines[0]).map(h => h.trim().toLowerCase())
+  const delimiter = detectCsvDelimiter(lines[0])
+  const headers = parseCsvRow(lines[0], delimiter).map(h => h.trim().toLowerCase())
   const rows: Record<string, string>[] = []
 
   for (let i = 1; i < lines.length; i++) {
-    const values = parseCsvRow(lines[i])
+    const values = parseCsvRow(lines[i], delimiter)
     // Skip empty rows
     if (values.every(v => v.trim() === '')) continue
     const row: Record<string, string> = {}
@@ -97,7 +136,7 @@ export function parseCsvString(text: string): { headers: string[]; rows: Record<
     rows.push(row)
   }
 
-  return { headers, rows }
+  return { headers, rows, delimiter }
 }
 
 function splitCsvLines(text: string): string[] {
@@ -122,7 +161,7 @@ function splitCsvLines(text: string): string[] {
   return lines
 }
 
-function parseCsvRow(line: string): string[] {
+function parseCsvRow(line: string, delimiter: string = ','): string[] {
   const values: string[] = []
   let current = ''
   let inQuotes = false
@@ -143,7 +182,7 @@ function parseCsvRow(line: string): string[] {
     } else {
       if (ch === '"') {
         inQuotes = true
-      } else if (ch === ',') {
+      } else if (ch === delimiter) {
         values.push(current)
         current = ''
       } else {

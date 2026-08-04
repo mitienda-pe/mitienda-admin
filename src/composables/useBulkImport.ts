@@ -12,6 +12,7 @@ import {
   CSV_COLUMNS,
   REQUIRED_COLUMNS,
   parseCsvString,
+  parseCsvNumber,
   generateCsvString,
   downloadCsv,
   downloadBlob,
@@ -230,7 +231,7 @@ export function useBulkImport() {
       reader.onload = e => {
         try {
           const text = e.target?.result as string
-          const { headers, rows } = parseCsvString(text)
+          const { headers, rows, delimiter } = parseCsvString(text)
 
           if (rows.length === 0) {
             reject(new Error('El archivo CSV esta vacio'))
@@ -251,7 +252,10 @@ export function useBulkImport() {
           // Validate edit mode has id or sku
           if (mode.value === 'edit') {
             if (!headers.includes('id') && !headers.includes('sku')) {
-              reject(new Error('El CSV debe incluir la columna "id" o "sku" para identificar productos'))
+              reject(new Error(
+                'El CSV debe incluir la columna "id" o "sku" para identificar productos. ' +
+                `Columnas detectadas: ${headers.join(', ') || '(ninguna)'}`
+              ))
               return
             }
           }
@@ -279,7 +283,7 @@ export function useBulkImport() {
 
               // Type validation & mapping
               if (colDef.key === 'precio') {
-                const num = parseFloat(value)
+                const num = parseCsvNumber(value, delimiter)
                 if (isNaN(num)) {
                   errors.push(`"${colDef.label}" debe ser un numero`)
                 } else if (num < 0) {
@@ -337,7 +341,7 @@ export function useBulkImport() {
                   errors.push(`Unidad de dimensiones no valida: "${value}". Use: centimetros, metros, pulgadas`)
                 }
               } else if (colDef.type === 'number') {
-                const num = parseFloat(value)
+                const num = parseCsvNumber(value, delimiter)
                 if (isNaN(num)) {
                   errors.push(`"${colDef.label}" debe ser un numero`)
                 } else {

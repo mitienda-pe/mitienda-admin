@@ -20,6 +20,8 @@ const emit = defineEmits<{
 }>()
 
 const parseError = ref<string | null>(null)
+// PrimeVue no tipa los metodos de instancia de FileUpload; solo usamos clear().
+const fileUploadRef = ref<{ clear: () => void } | null>(null)
 
 const validCount = computed(() => props.parsedRows.filter(r => r.isValid).length)
 const errorCount = computed(() => props.parsedRows.filter(r => !r.isValid).length)
@@ -40,6 +42,9 @@ function onFileSelect(event: { files: File[] }) {
     parseError.value = null
     emit('fileSelected', event.files[0])
   }
+  // El archivo ya se leyo aca; limpiar el FileUpload evita que el siguiente clic
+  // dispare su upload() interno (POST sin url -> 405) en vez de reabrir el selector.
+  fileUploadRef.value?.clear()
 }
 
 function getRowClass(row: BulkCsvParsedRow): string {
@@ -60,6 +65,7 @@ function getRowClass(row: BulkCsvParsedRow): string {
 
     <div class="border-2 border-dashed border-gray-300 rounded-lg p-6">
       <FileUpload
+        ref="fileUploadRef"
         mode="basic"
         accept=".csv"
         :auto="false"
