@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { templateSectionsApi } from '@/api/template-sections.api'
-import type { PageSection, SectionColumn, BlockConfig } from '@/types/template-section.types'
+import type { PageSection, SectionColumn, BlockConfig, HomeModo } from '@/types/template-section.types'
+
+const HOME_PAGE = 1
 
 function emptyColumn(posicion: number, colBotstrap: number): SectionColumn {
   return { posicion, colBotstrap, componente_id: 0 }
@@ -14,6 +16,8 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
   const isLoading = ref(false)
   const isSaving = ref(false)
   const error = ref<string | null>(null)
+  // Modo del Home (página 1). Ver HOME_MODES en los tipos.
+  const homeModo = ref<HomeModo>('auto')
 
   // ── Load ───────────────────────────────────────────────────────────────────
 
@@ -23,18 +27,20 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
     try {
       isLoading.value = true
       error.value = null
-      const sections = await templateSectionsApi.getPage(page)
+      const { sections, modo } = await templateSectionsApi.getPage(page)
       pagesData.value.set(page, sections)
       loadedPages.value.add(page)
+      if (page === HOME_PAGE) homeModo.value = modo
     } catch (err: any) {
-      // 404 means no sections saved yet → start empty
-      if (err.response?.status === 404 || err.response?.status === 500) {
+      // Solo el 404 significa "todavía no hay plantilla" y permite arrancar en
+      // blanco. Cualquier otro error deja la página SIN cargar y con `error`
+      // puesto: si se aceptara como lienzo vacío, un fallo transitorio seguido
+      // de "Guardar" sobrescribiría la plantilla real con un array vacío.
+      if (err.response?.status === 404) {
         pagesData.value.set(page, [])
         loadedPages.value.add(page)
       } else {
         error.value = err.response?.data?.message || 'Error al cargar la plantilla'
-        pagesData.value.set(page, [])
-        loadedPages.value.add(page)
       }
     } finally {
       isLoading.value = false
@@ -44,17 +50,28 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
   // ── Save ───────────────────────────────────────────────────────────────────
 
   async function savePage(page: number): Promise<boolean> {
+    // Nunca guardar sobre una página que no se pudo leer (ver loadPage).
+    if (!loadedPages.value.has(page)) {
+      error.value = 'No se pudo cargar la plantilla. Recarga la página antes de guardar.'
+      return false
+    }
+
     try {
       isSaving.value = true
       error.value = null
       const sections = pagesData.value.get(page) ?? []
-      return await templateSectionsApi.savePage(page, sections)
+      const modo = page === HOME_PAGE ? homeModo.value : undefined
+      return await templateSectionsApi.savePage(page, sections, modo)
     } catch (err: any) {
       error.value = err.response?.data?.message || 'Error al guardar'
       return false
     } finally {
       isSaving.value = false
     }
+  }
+
+  function setHomeModo(modo: HomeModo) {
+    homeModo.value = modo
   }
 
   // ── Getters ────────────────────────────────────────────────────────────────
@@ -182,6 +199,9 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
     isLoading,
     isSaving,
     error,
+    homeModo,
+    loadedPages,
+    setHomeModo,
     loadPage,
     savePage,
     getSections,

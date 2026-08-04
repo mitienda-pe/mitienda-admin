@@ -38,9 +38,59 @@ export const PREDEFINED_BLOCKS: PredefinedBlock[] = [
   { codigo: 'marcas', label: 'Marcas', icon: 'pi pi-tag', descripcion: 'Galería de marcas con logo', itemsType: 'marcas', itemsLabel: 'Marcas', limiteLabel: 'Cantidad de marcas' },
   { codigo: 'productos_destacados', label: 'Productos Destacados', icon: 'pi pi-star', descripcion: 'Los productos más populares (automático)', limiteLabel: 'Cantidad de productos' },
   { codigo: 'listas', label: 'Lista de Productos', icon: 'pi pi-list', descripcion: 'Selecciona una lista curada — puedes agregar varias', itemsType: 'listas', itemsLabel: 'Listas de Productos', limiteLabel: 'Productos por lista' },
-  { codigo: 'gamas', label: 'Gamas', icon: 'pi pi-bars', descripcion: 'Líneas o gamas de productos', itemsType: 'gamas', itemsLabel: 'Gamas', limiteLabel: 'Cantidad de gamas' },
+  // `gamas` se retiró: el storefront no tiene componente para ese código, así que
+  // la columna quedaba en blanco. Reincorporarlo exige primero su renderer.
   { codigo: 'combos', label: 'Combos', icon: 'pi pi-box', descripcion: 'Combos especiales de productos', itemsType: 'combos', itemsLabel: 'Combos', limiteLabel: 'Cantidad de combos' },
 ]
+
+/**
+ * Modo del Home. Determina si el storefront arma la portada por su cuenta o si
+ * la plantilla del comerciante es la portada completa.
+ */
+export type HomeModo = 'auto' | 'catalogo' | 'plantilla'
+
+export interface HomeModeDefinition {
+  value: HomeModo
+  label: string
+  icon: string
+  descripcion: string
+}
+
+export const HOME_MODES: HomeModeDefinition[] = [
+  {
+    value: 'catalogo',
+    label: 'Carrusel + catálogo',
+    icon: 'pi pi-images',
+    descripcion: 'El home clásico: tu carrusel y, debajo, todo tu catálogo de productos paginado. Nada más. Puedes agregar bloques HTML arriba o abajo.',
+  },
+  {
+    value: 'auto',
+    label: 'Home completo',
+    icon: 'pi pi-bolt',
+    descripcion: 'Además del carrusel, el home arma solo tus categorías, marcas, listas de productos y destacados. Puedes agregar bloques HTML arriba o abajo.',
+  },
+  {
+    value: 'plantilla',
+    label: 'Home a medida',
+    icon: 'pi pi-th-large',
+    descripcion: 'Tú defines el home completo con bloques. El carrusel y el catálogo solo aparecen si los agregas.',
+  },
+]
+
+/** Bloques que arma el storefront solo, en orden, según el modo. */
+export const HOME_AUTO_BLOCKS: Record<'auto' | 'catalogo', { codigo: string; label: string; icon: string }[]> = {
+  catalogo: [
+    { codigo: 'carrusel', label: 'Carrusel', icon: 'pi pi-images' },
+    { codigo: 'catalogo', label: 'Catálogo de productos (paginado)', icon: 'pi pi-shopping-bag' },
+  ],
+  auto: [
+    { codigo: 'carrusel', label: 'Carrusel', icon: 'pi pi-images' },
+    { codigo: 'categorias', label: 'Categorías', icon: 'pi pi-th-large' },
+    { codigo: 'marcas', label: 'Marcas', icon: 'pi pi-tag' },
+    { codigo: 'listas', label: 'Listas de productos', icon: 'pi pi-list' },
+    { codigo: 'productos_destacados', label: 'Productos destacados', icon: 'pi pi-star' },
+  ],
+}
 
 export interface PageSection {
   ubicacion: 'header' | 'footer'
@@ -59,7 +109,10 @@ export interface PageDefinition {
 }
 
 export const PAGE_DEFINITIONS: PageDefinition[] = [
-  { id: 1, label: 'Home', zones: ['header'] },
+  // El Home expone `footer` solo para el modo automático: ahí los bloques HTML
+  // del comerciante se pintan debajo del catálogo. En modo `plantilla` el
+  // storefront lee únicamente `header`.
+  { id: 1, label: 'Home', zones: ['header', 'footer'] },
   { id: 2, label: 'Catálogo', zones: ['header', 'footer'] },
   { id: 3, label: 'Detalle Producto', zones: ['header', 'footer'] },
   { id: 4, label: 'Carrito', zones: ['header', 'footer'] },
@@ -84,7 +137,7 @@ export const COLUMN_LAYOUTS: ColumnLayout[] = [
   { key: '3-1', label: '3 : 1', colBs: [9, 3] },
   { key: '1-3', label: '1 : 3', colBs: [3, 9] },
   { key: '3', label: '3 columnas', colBs: [4, 4, 4] },
-  { key: '4', label: '4 columnas', colBs: [3, 3, 3] },
+  { key: '4', label: '4 columnas', colBs: [3, 3, 3, 3] },
 ]
 
 export const ZONE_LABELS: Record<'header' | 'footer', string> = {
