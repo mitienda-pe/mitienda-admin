@@ -388,7 +388,9 @@
 
         <!-- Limit -->
         <div>
-          <label class="block text-sm font-medium text-secondary mb-1.5">Cantidad de items a mostrar</label>
+          <label class="block text-sm font-medium text-secondary mb-1.5">
+            {{ getPredefinedBlock(blockConfigCode)?.limiteLabel || 'Cantidad de items a mostrar' }}
+          </label>
           <InputNumber
             v-model="blockConfigForm.limite"
             :min="0"
@@ -398,6 +400,22 @@
             showButtons
           />
           <p class="text-xs text-secondary-400 mt-1">0 = mostrar todos</p>
+        </div>
+
+        <!-- Cuántas listas (solo bloque `listas`) -->
+        <div v-if="blockConfigCode === 'listas'">
+          <label class="block text-sm font-medium text-secondary mb-1.5">Cantidad de listas</label>
+          <InputNumber
+            v-model="blockConfigForm.limite_listas"
+            :min="0"
+            :max="20"
+            placeholder="0"
+            class="w-full"
+            showButtons
+          />
+          <p class="text-xs text-secondary-400 mt-1">
+            0 = todas. Se ignora si abajo eliges listas específicas.
+          </p>
         </div>
 
         <!-- Item Selector -->
@@ -621,7 +639,7 @@ function applyComponent(componentId: number) {
 const blockConfigVisible = ref(false)
 const blockConfigTarget = ref<{ ubicacion: 'header' | 'footer'; sIdx: number; cIdx: number } | null>(null)
 const blockConfigCode = ref('')
-const blockConfigForm = ref<BlockConfig>({ titulo: '', bg_color: '', limite: 0, items: [] })
+const blockConfigForm = ref<BlockConfig>({ titulo: '', bg_color: '', limite: 0, limite_listas: 0, items: [] })
 const blockConfigItems = ref<{ id: number; name: string }[]>([])
 const blockConfigItemsLoading = ref(false)
 
@@ -635,6 +653,7 @@ function blockConfigSummary(col: SectionColumn): string {
   const parts: string[] = []
   if (col.config?.titulo) parts.push(`"${col.config.titulo}"`)
   if (col.config?.limite) parts.push(`máx ${col.config.limite}`)
+  if (col.config?.limite_listas) parts.push(`${col.config.limite_listas} listas`)
   if (col.config?.items?.length) parts.push(`${col.config.items.length} seleccionados`)
   if (col.config?.bg_color) parts.push(col.config.bg_color)
   return parts.length ? parts.join(' · ') : 'Bloque predefinido — click para configurar'
@@ -647,6 +666,7 @@ function openBlockConfig(ubicacion: 'header' | 'footer', sIdx: number, cIdx: num
     titulo: col.config?.titulo ?? '',
     bg_color: col.config?.bg_color ?? '',
     limite: col.config?.limite ?? 0,
+    limite_listas: col.config?.limite_listas ?? 0,
     items: col.config?.items ? [...col.config.items] : [],
   }
   blockConfigVisible.value = true
@@ -717,6 +737,9 @@ function saveBlockConfig() {
   if (blockConfigForm.value.titulo) config.titulo = blockConfigForm.value.titulo
   if (blockConfigForm.value.bg_color) config.bg_color = blockConfigForm.value.bg_color
   if (blockConfigForm.value.limite && blockConfigForm.value.limite > 0) config.limite = blockConfigForm.value.limite
+  if (blockConfigCode.value === 'listas' && blockConfigForm.value.limite_listas && blockConfigForm.value.limite_listas > 0) {
+    config.limite_listas = blockConfigForm.value.limite_listas
+  }
   if (blockConfigForm.value.items?.length) config.items = blockConfigForm.value.items
   sectionsStore.updateBlockConfig(activePage.value, ubicacion, sIdx, cIdx, Object.keys(config).length ? config : undefined as any)
   blockConfigVisible.value = false
