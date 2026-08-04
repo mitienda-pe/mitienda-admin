@@ -92,8 +92,15 @@ export const authApi = {
     return response.data
   },
 
-  // Create a new store for the authenticated user
-  async createStore(data: { nombre: string; subdominio: string; pais: string }): Promise<ApiResponse<{ tienda_id: number; tienda_nombre_comercial: string; tienda_nombreurl: string; tienda_url: string }>> {
+  // Enviar el código de verificación al email de contacto de la tienda nueva.
+  // La API responde con session_id al nivel raíz (no dentro de `data`).
+  async sendStoreOtp(data: { email: string; nombre?: string }): Promise<{ success: boolean; message?: string; session_id?: string; masked_recipient?: string | null; expires_in_seconds?: number }> {
+    const response = await apiClient.post('/user/stores/send-otp', data)
+    return response.data
+  },
+
+  // Create a new store for the authenticated user (requiere email verificado por OTP)
+  async createStore(data: { nombre: string; subdominio: string; pais: string; email: string; telefono: string; session_id_email: string; code_email: string }): Promise<ApiResponse<{ tienda_id: number; tienda_nombre_comercial: string; tienda_nombreurl: string; tienda_url: string }>> {
     const response = await apiClient.post('/user/stores', data)
     return response.data
   },

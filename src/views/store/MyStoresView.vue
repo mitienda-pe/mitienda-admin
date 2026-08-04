@@ -105,12 +105,59 @@
     <!-- Create Store Dialog -->
     <Dialog
       v-model:visible="showCreateDialog"
-      header="Crear Nueva Tienda"
+      :header="step === 'verify' ? 'Verifica tu correo' : 'Crear Nueva Tienda'"
       :style="{ width: '480px' }"
       modal
-      :closable="!isCreating"
+      :closable="!isCreating && !isSendingOtp"
     >
-      <div class="space-y-4">
+      <!-- Paso 2: verificación del correo por código -->
+      <div v-if="step === 'verify'" class="space-y-4">
+        <p class="text-sm text-secondary">
+          Enviamos un código de 6 dígitos a
+          <span class="font-medium">{{ maskedRecipient || createForm.email }}</span>.
+          Ingrésalo para confirmar tu correo y crear la tienda.
+        </p>
+
+        <div>
+          <label class="block text-sm font-medium text-secondary mb-1">Código de verificación</label>
+          <InputText
+            v-model="createForm.code"
+            placeholder="123456"
+            inputmode="numeric"
+            maxlength="6"
+            class="w-full tracking-widest text-center"
+            :invalid="!!errors.code"
+            @input="handleCodeInput"
+          />
+          <small v-if="errors.code" class="p-error">{{ errors.code }}</small>
+        </div>
+
+        <div class="flex items-center justify-between text-sm">
+          <button
+            type="button"
+            class="text-primary hover:underline disabled:opacity-50 disabled:no-underline"
+            :disabled="isSendingOtp || resendCountdown > 0"
+            @click="handleSendOtp(true)"
+          >
+            {{ resendCountdown > 0 ? `Reenviar código (${resendCountdown}s)` : 'Reenviar código' }}
+          </button>
+          <button
+            type="button"
+            class="text-secondary-500 hover:underline"
+            :disabled="isCreating"
+            @click="backToForm"
+          >
+            Cambiar datos
+          </button>
+        </div>
+
+        <Message v-if="createError" severity="error" :closable="false" class="mt-2">
+          {{ createError }}
+        </Message>
+      </div>
+
+      <!-- Paso 1: datos de la tienda -->
+      <div v-else class="space-y-4">
         <!-- Store name -->
         <div>
           <label class="block text-sm font-medium text-secondary mb-1">Nombre de la tienda</label>
@@ -153,6 +200,35 @@
           />
         </div>
 
+        <!-- Contact email -->
+        <div>
+          <label class="block text-sm font-medium text-secondary mb-1">Correo de contacto</label>
+          <InputText
+            v-model="createForm.email"
+            placeholder="contacto@mitienda.com"
+            type="email"
+            class="w-full"
+            :invalid="!!errors.email"
+            @input="errors.email = ''"
+          />
+          <small v-if="errors.email" class="p-error">{{ errors.email }}</small>
+          <small v-else class="text-secondary-400">Te enviaremos un código para verificarlo</small>
+        </div>
+
+        <!-- Contact phone -->
+        <div>
+          <label class="block text-sm font-medium text-secondary mb-1">Teléfono de contacto</label>
+          <InputText
+            v-model="createForm.telefono"
+            placeholder="999888777"
+            inputmode="tel"
+            class="w-full"
+            :invalid="!!errors.telefono"
+            @input="handlePhoneInput"
+          />
+          <small v-if="errors.telefono" class="p-error">{{ errors.telefono }}</small>
+        </div>
+
         <Message v-if="createError" severity="error" :closable="false" class="mt-2">
           {{ createError }}
         </Message>
@@ -163,14 +239,22 @@
           label="Cancelar"
           severity="secondary"
           text
-          :disabled="isCreating"
+          :disabled="isCreating || isSendingOtp"
           @click="showCreateDialog = false"
         />
         <Button
-          label="Crear Tienda"
-          icon="pi pi-plus"
+          v-if="step === 'verify'"
+          label="Verificar y crear"
+          icon="pi pi-check"
           :loading="isCreating"
           @click="handleCreateStore"
+        />
+        <Button
+          v-else
+          label="Continuar"
+          icon="pi pi-arrow-right"
+          :loading="isSendingOtp"
+          @click="handleSendOtp(false)"
         />
       </template>
     </Dialog>
@@ -178,7 +262,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import { useToast } from 'primevue/usetoast'
@@ -232,13 +316,64 @@ async function handleSwitchStore(store: Store) {
 // Create store
 const showCreateDialog = ref(false)
 const isCreating = ref(false)
+const isSendingOtp = ref(false)
 const createError = ref('')
-const createForm = ref({
+const step = ref<'form' | 'verify'>('form')
+const sessionId = ref('')
+const maskedRecipient = ref('')
+const resendCountdown = ref(0)
+let resendTimer: ReturnType<typeof setInterval> | null = null
+
+const emptyForm = () => ({
   nombre: '',
   subdominio: '',
-  pais: 'PE'
+  pais: 'PE',
+  email: '',
+  telefono: '',
+  code: ''
 })
+const createForm = ref(emptyForm())
 const errors = ref<Record<string, string>>({})
+
+function startResendCountdown(seconds = 60) {
+  resendCountdown.value = seconds
+  if (resendTimer) clearInterval(resendTimer)
+  resendTimer = setInterval(() => {
+    resendCountdown.value--
+    if (resendCountdown.value <= 0 && resendTimer) {
+      clearInterval(resendTimer)
+      resendTimer = null
+    }
+  }, 1000)
+}
+
+function resetCreateDialog() {
+  step.value = 'form'
+  sessionId.value = ''
+  maskedRecipient.value = ''
+  createForm.value = emptyForm()
+  errors.value = {}
+  createError.value = ''
+  if (resendTimer) {
+    clearInterval(resendTimer)
+    resendTimer = null
+  }
+  resendCountdown.value = 0
+}
+
+function backToForm() {
+  step.value = 'form'
+  createError.value = ''
+  errors.value = {}
+}
+
+onBeforeUnmount(() => {
+  if (resendTimer) clearInterval(resendTimer)
+})
+
+watch(showCreateDialog, (open) => {
+  if (!open) resetCreateDialog()
+})
 
 const countries = [
   { label: 'Perú', value: 'PE' },
@@ -254,35 +389,106 @@ function handleSubdomainInput() {
     .replace(/[^a-z0-9-]/g, '')
 }
 
-async function handleCreateStore() {
+function handlePhoneInput() {
+  errors.value.telefono = ''
+  createForm.value.telefono = createForm.value.telefono.replace(/\D/g, '')
+}
+
+function handleCodeInput() {
+  errors.value.code = ''
+  createForm.value.code = createForm.value.code.replace(/\D/g, '')
+}
+
+// Valida el paso 1 y devuelve los datos limpios (null si hay errores).
+function validateForm() {
   errors.value = {}
   createError.value = ''
 
-  // Validate
   if (createForm.value.nombre.trim().length < 3) {
     errors.value.nombre = 'El nombre debe tener al menos 3 caracteres'
-    return
+    return null
   }
 
   const sub = createForm.value.subdominio.trim()
   if (!/^[a-z0-9][a-z0-9-]{1,18}[a-z0-9]$/.test(sub)) {
     errors.value.subdominio = 'Debe tener entre 3 y 20 caracteres (letras, números y guiones)'
+    return null
+  }
+
+  const email = createForm.value.email.trim().toLowerCase()
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    errors.value.email = 'Ingresa un correo electrónico válido'
+    return null
+  }
+
+  const telefono = createForm.value.telefono.trim()
+  if (telefono.length < 6 || telefono.length > 15) {
+    errors.value.telefono = 'Ingresa un teléfono válido (6 a 15 dígitos)'
+    return null
+  }
+
+  return { nombre: createForm.value.nombre.trim(), sub, email, telefono }
+}
+
+// Paso 1 → envía el código al correo de contacto. `resend` reusa los datos ya validados.
+async function handleSendOtp(resend: boolean) {
+  const form = validateForm()
+  if (!form) return
+
+  isSendingOtp.value = true
+  const result = await authStore.sendStoreOtp({ email: form.email, nombre: form.nombre })
+  isSendingOtp.value = false
+
+  if (!result) {
+    createError.value = authStore.error || 'No se pudo enviar el código de verificación'
+    return
+  }
+
+  sessionId.value = result.session_id || ''
+  maskedRecipient.value = result.masked_recipient || form.email
+  createForm.value.code = ''
+  step.value = 'verify'
+  startResendCountdown()
+
+  toast.add({
+    severity: 'success',
+    summary: resend ? 'Código reenviado' : 'Código enviado',
+    detail: `Revisa ${maskedRecipient.value}`,
+    life: 4000
+  })
+}
+
+// Paso 2 → verifica el código y crea la tienda.
+async function handleCreateStore() {
+  const form = validateForm()
+  if (!form) {
+    // Los datos base quedaron inválidos: vuelve al formulario para corregirlos.
+    step.value = 'form'
+    return
+  }
+
+  if (!/^\d{6}$/.test(createForm.value.code)) {
+    errors.value.code = 'Ingresa el código de 6 dígitos'
     return
   }
 
   isCreating.value = true
 
   const result = await authStore.createStore({
-    nombre: createForm.value.nombre.trim(),
-    subdominio: sub,
-    pais: createForm.value.pais
+    nombre: form.nombre,
+    subdominio: form.sub,
+    pais: createForm.value.pais,
+    email: form.email,
+    telefono: form.telefono,
+    session_id_email: sessionId.value,
+    code_email: createForm.value.code
   })
 
   isCreating.value = false
 
   if (result) {
+    // El watch sobre showCreateDialog limpia el formulario al cerrar.
     showCreateDialog.value = false
-    createForm.value = { nombre: '', subdominio: '', pais: 'PE' }
 
     toast.add({
       severity: 'success',

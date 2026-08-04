@@ -94,7 +94,29 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function createStore(data: { nombre: string; subdominio: string; pais: string }) {
+  // Paso 1 del alta de tienda: enviar el OTP al email de contacto.
+  async function sendStoreOtp(data: { email: string; nombre?: string }) {
+    try {
+      isLoading.value = true
+      error.value = null
+
+      const response = await authApi.sendStoreOtp(data)
+
+      if (response.success && response.session_id) {
+        return response
+      }
+
+      error.value = response.message || 'No se pudo enviar el código de verificación'
+      return null
+    } catch (err: any) {
+      error.value = err.response?.data?.message || err.response?.data?.messages?.error || 'No se pudo enviar el código de verificación'
+      return null
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function createStore(data: { nombre: string; subdominio: string; pais: string; email: string; telefono: string; session_id_email: string; code_email: string }) {
     try {
       isLoading.value = true
       error.value = null
@@ -294,6 +316,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     fetchStores,
     selectStore,
+    sendStoreOtp,
     createStore,
     checkSuperAdmin,
     logout,
