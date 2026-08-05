@@ -490,7 +490,6 @@
       </template>
     </Dialog>
 
-    <ConfirmDialog />
   </div>
 </template>
 
@@ -524,7 +523,6 @@ import ColorPicker from 'primevue/colorpicker'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import ProgressSpinner from 'primevue/progressspinner'
-import ConfirmDialog from 'primevue/confirmdialog'
 import Message from 'primevue/message'
 
 const sectionsStore = useTemplateSectionsStore()

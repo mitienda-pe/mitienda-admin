@@ -502,7 +502,6 @@
     </Dialog>
 
     <!-- Confirm Delete Dialog -->
-    <ConfirmDialog />
   </div>
 </template>
 
@@ -542,7 +541,6 @@ import Dialog from 'primevue/dialog'
 import Divider from 'primevue/divider'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
-import ConfirmDialog from 'primevue/confirmdialog'
 
 const toast = useToast()
 const confirm = useConfirm()

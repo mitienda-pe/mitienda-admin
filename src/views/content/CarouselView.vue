@@ -3,7 +3,6 @@ import { ref, computed, onMounted } from 'vue'
 import { useCarouselStore } from '@/stores/carousel.store'
 import { AppButton, AppEmptyState, AppErrorState } from '@/components/ui'
 import Dropdown from 'primevue/dropdown'
-import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import CarouselSlideCard from '@/components/carousel/CarouselSlideCard.vue'
@@ -316,7 +315,6 @@ async function handleMoveDown(slide: CarouselSlide) {
       @upload-success="handleUploadSuccess"
     />
 
-    <ConfirmDialog />
   </div>
 </template>
 

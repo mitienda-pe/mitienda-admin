@@ -2,7 +2,6 @@
 import { ref, computed } from 'vue'
 import Card from 'primevue/card'
 import Button from 'primevue/button'
-import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
 import type { ProductImage } from '@/types/product.types'
 import placeholderImage from '@/assets/images/landscape-placeholder-svgrepo-com.svg'
@@ -189,7 +188,6 @@ const onDragEnd = () => {
     </template>
   </Card>
 
-  <ConfirmDialog />
 </template>
 
 <style scoped>

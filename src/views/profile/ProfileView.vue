@@ -291,7 +291,6 @@
     </div>
 
     <!-- Dialog de confirmación para desvincular -->
-    <ConfirmDialog />
   </div>
 </template>
 
@@ -310,7 +309,6 @@ import Dropdown from 'primevue/dropdown'
 import Message from 'primevue/message'
 import Tag from 'primevue/tag'
 import ProgressSpinner from 'primevue/progressspinner'
-import ConfirmDialog from 'primevue/confirmdialog'
 
 const confirm = useConfirm()
 const toast = useToast()

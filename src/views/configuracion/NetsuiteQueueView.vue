@@ -8,7 +8,6 @@ import TabView from 'primevue/tabview'
 import TabPanel from 'primevue/tabpanel'
 import Tag from 'primevue/tag'
 import Toast from 'primevue/toast'
-import ConfirmDialog from 'primevue/confirmdialog'
 import { useNetsuiteQueueStore } from '@/stores/netsuite-queue.store'
 import QueueStats from '@/components/netsuite-queue/QueueStats.vue'
 import QueueFilters from '@/components/netsuite-queue/QueueFilters.vue'
@@ -359,7 +358,6 @@ function toggleAutoRefresh() {
     />
 
     <!-- Confirm Dialog -->
-    <ConfirmDialog />
 
     <!-- Toast -->
     <Toast />

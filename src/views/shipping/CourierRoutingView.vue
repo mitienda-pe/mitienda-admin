@@ -16,7 +16,6 @@ import InputNumber from 'primevue/inputnumber'
 import Tag from 'primevue/tag'
 import Card from 'primevue/card'
 import ProgressSpinner from 'primevue/progressspinner'
-import ConfirmDialog from 'primevue/confirmdialog'
 
 const toast = useToast()
 const confirm = useConfirm()
@@ -390,6 +389,5 @@ onMounted(loadData)
       </template>
     </Dialog>
 
-    <ConfirmDialog />
   </div>
 </template>

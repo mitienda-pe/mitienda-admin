@@ -300,7 +300,6 @@
   </div>
 
   <!-- Delete Confirmation -->
-  <ConfirmDialog />
 </template>
 
 <script setup lang="ts">
@@ -310,7 +309,6 @@ import { useConfirm } from 'primevue/useconfirm'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Checkbox from 'primevue/checkbox'
-import ConfirmDialog from 'primevue/confirmdialog'
 import Divider from 'primevue/divider'
 import InputNumber from 'primevue/inputnumber'
 import InputSwitch from 'primevue/inputswitch'
