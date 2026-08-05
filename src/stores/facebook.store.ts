@@ -13,9 +13,11 @@ const DEFAULT_SETTINGS: StoreFacebookSettings = {
   has_capi_token: false,
   tienda_fb_test_event_code: null,
   tienda_swintegracionfb: 0,
+  tienda_tag_facebook_domain_verification: null,
   store_url: '',
   feed_csv_url: '',
-  feed_xml_url: ''
+  feed_xml_url: '',
+  has_custom_domain: false
 }
 
 export const useFacebookStore = defineStore('facebook', () => {
@@ -30,7 +32,8 @@ export const useFacebookStore = defineStore('facebook', () => {
     const editableKeys: (keyof StoreFacebookUpdate)[] = [
       'tienda_identificadorpixel',
       'tienda_fb_capi_token',
-      'tienda_fb_test_event_code'
+      'tienda_fb_test_event_code',
+      'tienda_tag_facebook_domain_verification'
     ]
     return editableKeys.some(
       key => (draftSettings.value[key] ?? '') !== (savedSettings.value[key] ?? '')
@@ -60,7 +63,9 @@ export const useFacebookStore = defineStore('facebook', () => {
       const update: StoreFacebookUpdate = {
         tienda_identificadorpixel: draftSettings.value.tienda_identificadorpixel,
         tienda_fb_capi_token: draftSettings.value.tienda_fb_capi_token,
-        tienda_fb_test_event_code: draftSettings.value.tienda_fb_test_event_code
+        tienda_fb_test_event_code: draftSettings.value.tienda_fb_test_event_code,
+        tienda_tag_facebook_domain_verification:
+          draftSettings.value.tienda_tag_facebook_domain_verification
       }
       const response = await facebookApi.updateSettings(update)
       if (response.success && response.data) {

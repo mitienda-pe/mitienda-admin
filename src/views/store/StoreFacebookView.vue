@@ -46,6 +46,10 @@ async function toggleIntegration() {
 
 const pixelPattern = /^\d{10,20}$/
 const testEventPattern = /^TEST\d+$/i
+// Meta muestra la etiqueta completa para copiar, asi que se acepta pegarla tal
+// cual o solo el codigo; el backend guarda unicamente el codigo.
+const domainVerificationTokenPattern = /^[A-Za-z0-9]{20,60}$/
+const domainVerificationTagPattern = /content\s*=\s*["']([A-Za-z0-9]{20,60})["']/i
 
 // Token editing state
 const isEditingToken = ref(false)
@@ -65,7 +69,19 @@ const testEventError = computed(() => {
   return !testEventPattern.test(val.trim())
 })
 
-const hasValidationErrors = computed(() => pixelError.value || testEventError.value)
+const domainVerificationError = computed(() => {
+  const val = store.draftSettings.tienda_tag_facebook_domain_verification
+  if (!val || val.trim() === '') return false
+  const trimmed = val.trim()
+  if (trimmed.toLowerCase().includes('facebook-domain-verification')) {
+    return !domainVerificationTagPattern.test(trimmed)
+  }
+  return !domainVerificationTokenPattern.test(trimmed)
+})
+
+const hasValidationErrors = computed(
+  () => pixelError.value || testEventError.value || domainVerificationError.value
+)
 
 function startEditToken() {
   isEditingToken.value = true
@@ -206,7 +222,63 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Card 2: Conversions API -->
+      <!-- Card 2: Verificacion de dominio -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-secondary mb-4 flex items-center gap-2">
+          <i class="pi pi-verified text-primary" />
+          Verificacion de dominio
+        </h2>
+
+        <div class="space-y-5">
+          <p class="text-xs text-gray-400">
+            Meta pide verificar tu dominio para que puedas administrar los permisos de tu catalogo y
+            usar los eventos priorizados de tu Pixel. Elige la opcion
+            <strong>Meta etiqueta</strong> en
+            <strong>Meta Business Manager &gt; Seguridad de la marca &gt; Dominios</strong> y pega
+            aqui lo que te muestre: nosotros la publicamos en tu tienda.
+          </p>
+
+          <!-- Sin dominio propio no hay nada que verificar -->
+          <div
+            v-if="!store.savedSettings.has_custom_domain"
+            class="bg-amber-50 border border-amber-200 rounded-lg p-4 text-xs text-amber-800"
+          >
+            <i class="pi pi-exclamation-triangle mr-1" />
+            Tu tienda todavia usa un subdominio de mitienda.pe. Meta solo verifica dominios propios,
+            asi que primero necesitas conectar el tuyo.
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-secondary-700 mb-1">
+              Meta etiqueta
+              <span class="text-gray-400 font-normal">(opcional)</span>
+            </label>
+            <input
+              type="text"
+              :value="store.draftSettings.tienda_tag_facebook_domain_verification || ''"
+              class="w-full border rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+              :class="domainVerificationError ? 'border-red-300' : 'border-gray-300'"
+              placeholder='<meta name="facebook-domain-verification" content="..." />'
+              @input="
+                store.updateField(
+                  'tienda_tag_facebook_domain_verification',
+                  ($event.target as HTMLInputElement).value || null
+                )
+              "
+            />
+            <p v-if="domainVerificationError" class="text-xs text-red-500 mt-1">
+              <i class="pi pi-exclamation-circle mr-1" />Pega la etiqueta completa que te da Meta o
+              solo el codigo del atributo <code>content</code>.
+            </p>
+            <p v-else class="text-xs text-gray-400 mt-1">
+              Puedes pegar la etiqueta completa; guardamos solo el codigo. Despues de guardar, vuelve
+              a Meta y pulsa "Verificar".
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Conversions API -->
       <div class="bg-white rounded-lg shadow p-6">
         <h2 class="text-lg font-semibold text-secondary mb-4 flex items-center gap-2">
           <i class="pi pi-server text-primary" />
@@ -336,7 +408,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Card 3: Product Catalog -->
+      <!-- Card 4: Product Catalog -->
       <div class="bg-white rounded-lg shadow p-6">
         <h2 class="text-lg font-semibold text-secondary mb-4 flex items-center gap-2">
           <i class="pi pi-shopping-bag text-primary" />
@@ -410,7 +482,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Card 4: Setup Guide -->
+      <!-- Card 5: Setup Guide -->
       <div class="bg-white rounded-lg shadow p-6">
         <h2 class="text-lg font-semibold text-secondary mb-4 flex items-center gap-2">
           <i class="pi pi-question-circle text-primary" />
