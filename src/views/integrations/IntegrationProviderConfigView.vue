@@ -8,6 +8,7 @@ import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Checkbox from 'primevue/checkbox'
 import Dropdown from 'primevue/dropdown'
+import type { IntegrationProviderField } from '@/types/integration-provider.types'
 
 const route = useRoute()
 const router = useRouter()
@@ -70,6 +71,17 @@ const provider = computed(() => store.currentConfig?.provider)
 const isConfigured = computed(() => store.currentConfig?.configured ?? false)
 const isEnabled = computed(() => store.currentConfig?.enabled ?? false)
 
+/**
+ * Some credentials are only needed to set the provider up — a one-time OAuth grant token is
+ * consumed on first use and comes back empty, so requiring it on every edit would force the
+ * merchant back to the provider's console just to change an unrelated field. Leaving it blank
+ * keeps the authorization already stored.
+ */
+function isFieldRequired(field: IntegrationProviderField): boolean {
+  if (field.required === false) return false
+  return !(field.required_on_create_only && isConfigured.value)
+}
+
 const isFrontendOnly = computed(() => provider.value?.frontend_only === true)
 const hasEvents = computed(() => (provider.value?.supported_events?.length ?? 0) > 0)
 const hasCredentialFields = computed(() => (provider.value?.config_fields?.length ?? 0) > 0)
@@ -78,8 +90,8 @@ async function handleSave() {
   if (!code.value || !provider.value) return
 
   // Validate all required credential fields are non-empty
-  const requiredFields = provider.value.config_fields.filter((f: any) => f.required !== false)
-  const emptyFields = requiredFields.filter((f: any) => !formCredentials.value[f.key]?.trim())
+  const requiredFields = provider.value.config_fields.filter(isFieldRequired)
+  const emptyFields = requiredFields.filter((f) => !formCredentials.value[f.key]?.trim())
   if (emptyFields.length > 0) {
     toast.add({
       severity: 'error',
@@ -254,7 +266,11 @@ async function handleDelete() {
             <div v-for="field in provider.config_fields" :key="field.key">
               <label class="block text-sm font-medium text-secondary-700 mb-1">
                 {{ field.label }}
-                <span v-if="field.required" class="text-red-500">*</span>
+                <span v-if="isFieldRequired(field)" class="text-red-500">*</span>
+                <span
+                  v-else-if="field.required_on_create_only"
+                  class="text-xs font-normal text-gray-400"
+                >(opcional)</span>
               </label>
               <Password
                 v-if="field.type === 'password'"
@@ -280,6 +296,13 @@ async function handleDelete() {
                 :placeholder="field.placeholder"
                 class="w-full"
               />
+              <small
+                v-if="field.required_on_create_only && isConfigured"
+                class="text-gray-400 mt-1 block"
+              >
+                Déjalo en blanco para mantener la autorización actual. Solo pega un código nuevo
+                si necesitas volver a autorizar la conexión.
+              </small>
               <small v-if="field.help" class="text-gray-400 mt-1 block">{{ field.help }}</small>
             </div>
           </div>

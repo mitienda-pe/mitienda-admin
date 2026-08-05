@@ -3,6 +3,8 @@ export interface IntegrationProviderField {
   label: string
   type: 'text' | 'password' | 'select'
   required: boolean
+  /** Required to configure the provider, but not to edit it afterwards (e.g. one-time OAuth grant tokens) */
+  required_on_create_only?: boolean
   placeholder?: string
   help?: string
   default?: string
