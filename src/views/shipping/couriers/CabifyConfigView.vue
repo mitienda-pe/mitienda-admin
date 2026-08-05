@@ -58,9 +58,30 @@
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-secondary-700 mb-1">Shipping Type ID</label>
-              <InputText v-model="form.shipping_type_id" class="w-full" placeholder="UUID del tipo de envío (express / same day)" />
-              <small class="text-secondary-400">Lo entrega Cabify según la cobertura de tu origen.</small>
+              <label class="block text-sm font-medium text-secondary-700 mb-1">Tipo de envío</label>
+              <div class="flex gap-2">
+                <Dropdown
+                  v-model="form.shipping_type_id"
+                  :options="shippingTypes"
+                  optionLabel="name"
+                  optionValue="id"
+                  editable
+                  class="flex-1"
+                  placeholder="Consulta los disponibles o pega el ID"
+                />
+                <Button
+                  icon="pi pi-sync"
+                  severity="secondary"
+                  outlined
+                  :loading="isLoadingShippingTypes"
+                  v-tooltip.top="'Consultar los tipos disponibles en tu cuenta Cabify'"
+                  @click="loadShippingTypes"
+                />
+              </div>
+              <small class="text-secondary-400">
+                El ID es propio de tu cuenta Cabify. Completa credenciales y coordenadas de origen,
+                luego consulta los tipos disponibles para esa ubicación.
+              </small>
             </div>
             <div>
               <label class="block text-sm font-medium text-secondary-700 mb-2">Entorno</label>
@@ -160,8 +181,8 @@
           <h4 class="text-sm font-semibold text-secondary-700 mb-2">Pasos para configurar</h4>
           <ol class="text-sm text-secondary-500 space-y-2 list-decimal list-inside">
             <li>Solicita tus credenciales OAuth (client_id / client_secret) a Cabify</li>
-            <li>Pide el Shipping Type ID de tu cobertura</li>
             <li>Ingresa la latitud/longitud y dirección de tu almacén de origen</li>
+            <li>Consulta los tipos de envío disponibles con el botón de recarga y elige el tuyo</li>
             <li>Usa el entorno de prueba (sandbox) antes de activar en producción</li>
           </ol>
 
@@ -190,11 +211,14 @@ import { useRouter } from 'vue-router'
 import { useCourierProvidersStore } from '@/stores/courier-providers.store'
 import { useDirtyForm } from '@/composables/useDirtyForm'
 import { useToast } from 'primevue/usetoast'
+import { courierProvidersApi } from '@/api/courier-providers.api'
+import type { CabifyShippingType, CourierEnvironment } from '@/types/courier-provider.types'
 import cabifyLogo from '@/assets/images/logo-cabify-logistics.svg'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import SelectButton from 'primevue/selectbutton'
+import Dropdown from 'primevue/dropdown'
 import Divider from 'primevue/divider'
 import { UnsavedChangesBar } from '@/components/ui'
 
@@ -225,6 +249,75 @@ const form = ref({
 const { isDirty, reset: resetDirty } = useDirtyForm(() => form.value)
 
 const isConfigured = computed(() => store.currentConfig?.courier?.configured ?? false)
+
+const shippingTypes = ref<CabifyShippingType[]>([])
+const isLoadingShippingTypes = ref(false)
+
+/**
+ * Los shipping_type_id son opacos y propios de cada cuenta Cabify, y qué
+ * subconjunto está disponible depende de la ubicación. La única fuente de
+ * verdad es la API, así que los consultamos con las credenciales del form
+ * (sirve incluso antes de guardar) y el origen configurado.
+ */
+async function loadShippingTypes() {
+  if (!form.value.client_id.trim() || !form.value.client_secret.trim()) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Faltan credenciales',
+      detail: 'Ingresa Client ID y Client Secret para consultar a Cabify',
+      life: 4000,
+    })
+    return
+  }
+
+  const lat = Number(form.value.origin_lat)
+  const lon = Number(form.value.origin_lon)
+  if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat === 0 || lon === 0) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Falta el origen',
+      detail: 'Los tipos disponibles dependen de la ubicación: completa latitud y longitud',
+      life: 4000,
+    })
+    return
+  }
+
+  isLoadingShippingTypes.value = true
+  try {
+    shippingTypes.value = await courierProvidersApi.getCabifyShippingTypes({
+      client_id: form.value.client_id,
+      client_secret: form.value.client_secret,
+      environment: form.value.environment as CourierEnvironment,
+      lat,
+      lon,
+    })
+
+    toast.add(
+      shippingTypes.value.length
+        ? {
+            severity: 'success',
+            summary: 'Tipos disponibles',
+            detail: `Cabify devolvió ${shippingTypes.value.length} tipo(s) para ese origen`,
+            life: 3000,
+          }
+        : {
+            severity: 'warn',
+            summary: 'Sin resultados',
+            detail: 'Cabify no devolvió tipos de envío para esa ubicación',
+            life: 4000,
+          },
+    )
+  } catch (err: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: err.response?.data?.messages?.error || 'No se pudieron obtener los tipos de envío',
+      life: 5000,
+    })
+  } finally {
+    isLoadingShippingTypes.value = false
+  }
+}
 
 watch(() => store.currentConfig, (config) => {
   if (config?.credentials) {

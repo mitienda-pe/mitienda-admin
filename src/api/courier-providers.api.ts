@@ -5,6 +5,8 @@ import type {
   SaveCourierConfigRequest,
   CalculatePriceRequest,
   CreateOrderRequest,
+  CabifyShippingType,
+  CabifyShippingTypesRequest,
 } from '@/types/courier-provider.types'
 
 export const courierProvidersApi = {
@@ -46,5 +48,10 @@ export const courierProvidersApi = {
       environment,
     })
     return response.data.data
+  },
+
+  async getCabifyShippingTypes(payload: CabifyShippingTypesRequest): Promise<CabifyShippingType[]> {
+    const response = await api.post('/courier-providers/cabify/shipping-types', payload)
+    return response.data.data.shipping_types
   },
 }

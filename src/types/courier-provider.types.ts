@@ -171,3 +171,18 @@ export interface NirexCredentials {
   origin_reference: string
   environment: CourierEnvironment
 }
+
+// Cabify-specific types
+export interface CabifyShippingType {
+  id: string
+  name: string
+  description: string | null
+}
+
+export interface CabifyShippingTypesRequest {
+  client_id?: string
+  client_secret?: string
+  environment?: CourierEnvironment
+  lat?: number
+  lon?: number
+}
