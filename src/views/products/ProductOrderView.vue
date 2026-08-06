@@ -6,30 +6,42 @@ import DataTable, {
 } from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
+import Dropdown from 'primevue/dropdown'
 import Tag from 'primevue/tag'
 import { useToast } from 'primevue/usetoast'
 import SearchBar from '@/components/common/SearchBar.vue'
 import CsvImportDialog from '@/components/products/CsvImportDialog.vue'
 import { AppBadge } from '@/components/ui'
-import type { ProductOrderItem } from '@/types/product.types'
+import type { ProductOrderItem, PublishedFilter } from '@/types/product.types'
+import { publishedFilterOptions } from '@/config/product-filters.config'
 
 const store = useProductManagementStore()
 const toast = useToast()
 
 const searchQuery = ref('')
+const publishedFilter = ref<PublishedFilter>('')
 const importDialogVisible = ref(false)
 
-// The whole catalog is loaded once; search filters the loaded list in-memory.
-const isFiltered = computed(() => searchQuery.value.trim().length > 0)
+// The whole catalog is loaded once; search and the published filter narrow the
+// loaded list in-memory. They must NOT be pushed to the backend: `producto_orden`
+// is global and saving renumbers the entire loaded list 1..N, so reordering a
+// server-side subset would leave the hidden products with colliding positions.
+const isFiltered = computed(
+  () => searchQuery.value.trim().length > 0 || publishedFilter.value !== '',
+)
 
 const displayedItems = computed<ProductOrderItem[]>(() => {
   if (!isFiltered.value) return store.orderItems
   const q = searchQuery.value.trim().toLowerCase()
-  return store.orderItems.filter(
-    p =>
+  const wantPublished = publishedFilter.value === '1'
+  return store.orderItems.filter(p => {
+    if (publishedFilter.value !== '' && p.published !== wantPublished) return false
+    if (!q) return true
+    return (
       p.name?.toLowerCase().includes(q) ||
-      (p.sku || '').toLowerCase().includes(q),
-  )
+      (p.sku || '').toLowerCase().includes(q)
+    )
+  })
 })
 
 onMounted(() => {
@@ -89,7 +101,7 @@ const handleDiscard = async () => {
 const handleExport = async () => {
   try {
     const { productManagementApi } = await import('@/api/product-management.api')
-    const blob = await productManagementApi.exportOrder()
+    const blob = await productManagementApi.exportOrder(publishedFilter.value)
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -136,6 +148,14 @@ const hasDirtyChanges = computed(() => store.dirtyOrderCount > 0)
           @search="onSearch"
         />
       </div>
+      <Dropdown
+        v-model="publishedFilter"
+        :options="publishedFilterOptions"
+        option-label="label"
+        option-value="value"
+        class="w-52"
+        aria-label="Filtrar por estado de publicación"
+      />
       <Button
         label="Exportar CSV"
         icon="pi pi-download"
@@ -201,15 +221,15 @@ const hasDirtyChanges = computed(() => store.dirtyOrderCount > 0)
       />
     </div>
 
-    <!-- Filtered banner: reorder by dragging is disabled while searching -->
+    <!-- Filtered banner: reorder by dragging is disabled while filtering -->
     <div
       v-if="isFiltered"
       class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-800 flex items-center gap-2"
     >
       <i class="pi pi-info-circle"></i>
-      Estás viendo resultados filtrados. Limpia la búsqueda para reordenar
-      arrastrando todo el catálogo. Mientras filtras, puedes mover un producto
-      escribiendo su número de orden.
+      Estás viendo resultados filtrados. Limpia la búsqueda y el filtro de
+      publicación para reordenar arrastrando todo el catálogo. Mientras filtras,
+      puedes mover un producto escribiendo su número de orden.
     </div>
 
     <!-- Empty -->
@@ -220,7 +240,7 @@ const hasDirtyChanges = computed(() => store.dirtyOrderCount > 0)
       <i class="pi pi-sort-alt text-6xl text-gray-300 mb-4"></i>
       <h3 class="text-xl font-semibold text-gray-900 mb-2">No hay productos</h3>
       <p class="text-gray-600">
-        {{ searchQuery ? 'No se encontraron productos con esa busqueda' : 'No hay productos registrados' }}
+        {{ isFiltered ? 'No se encontraron productos con esos filtros' : 'No hay productos registrados' }}
       </p>
     </div>
 

@@ -6,18 +6,28 @@ import Column from 'primevue/column'
 import InputNumber from 'primevue/inputnumber'
 import Checkbox from 'primevue/checkbox'
 import Button from 'primevue/button'
+import Dropdown from 'primevue/dropdown'
 import { useToast } from 'primevue/usetoast'
 import SearchBar from '@/components/common/SearchBar.vue'
 import CsvImportDialog from '@/components/products/CsvImportDialog.vue'
 import { AppBadge } from '@/components/ui'
-import type { ProductStockItem } from '@/types/product.types'
+import type { ProductStockItem, PublishedFilter } from '@/types/product.types'
+import { publishedFilterOptions } from '@/config/product-filters.config'
 
 const store = useProductManagementStore()
 const toast = useToast()
 const importDialogVisible = ref(false)
 
 const searchQuery = ref('')
+const publishedFilter = ref<PublishedFilter>('')
 const expandedRows = ref<ProductStockItem[]>([])
+
+// Filtros vigentes que deben viajar en TODA recarga del listado (búsqueda,
+// paginación, orden, guardado) para no perder el filtro al refrescar.
+const listFilters = () => ({
+  search: searchQuery.value,
+  published: publishedFilter.value,
+})
 
 const sortFieldMap: Record<string, string> = {
   sku: 'sku',
@@ -37,13 +47,18 @@ onMounted(() => {
 const onSearch = (value: string) => {
   searchQuery.value = value
   store.stockPagination.page = 1
-  store.fetchStock({ search: value })
+  store.fetchStock(listFilters())
+}
+
+const onPublishedFilterChange = () => {
+  store.stockPagination.page = 1
+  store.fetchStock(listFilters())
 }
 
 const onPage = (event: { page: number; rows: number }) => {
   store.stockPagination.page = event.page + 1
   store.stockPagination.limit = event.rows
-  store.fetchStock({ search: searchQuery.value })
+  store.fetchStock(listFilters())
 }
 
 const onSort = (event: DataTableSortEvent) => {
@@ -54,7 +69,7 @@ const onSort = (event: DataTableSortEvent) => {
   sortOrder.value = event.sortOrder ?? 1
   store.stockPagination.page = 1
   store.fetchStock({
-    search: searchQuery.value,
+    ...listFilters(),
     sort_field: backendField,
     sort_order: order,
   })
@@ -95,7 +110,7 @@ const handleSave = async () => {
       detail: 'Los cambios se guardaron correctamente',
       life: 3000,
     })
-    store.fetchStock({ search: searchQuery.value })
+    store.fetchStock(listFilters())
   } else {
     toast.add({
       severity: 'error',
@@ -108,7 +123,7 @@ const handleSave = async () => {
 
 const handleDiscard = () => {
   store.resetStockDirty()
-  store.fetchStock({ search: searchQuery.value })
+  store.fetchStock(listFilters())
 }
 
 // ── Export ──
@@ -116,7 +131,7 @@ const handleDiscard = () => {
 const handleExport = async () => {
   try {
     const { productManagementApi } = await import('@/api/product-management.api')
-    const blob = await productManagementApi.exportStock()
+    const blob = await productManagementApi.exportStock(publishedFilter.value)
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -141,7 +156,7 @@ watch(
 // ── Helpers ──
 
 const onImported = () => {
-  store.fetchStock({ search: searchQuery.value })
+  store.fetchStock(listFilters())
 }
 
 const hasDirtyChanges = computed(() => store.dirtyStockCount > 0)
@@ -171,6 +186,15 @@ const first = computed(
           @search="onSearch"
         />
       </div>
+      <Dropdown
+        v-model="publishedFilter"
+        :options="publishedFilterOptions"
+        option-label="label"
+        option-value="value"
+        class="w-52"
+        aria-label="Filtrar por estado de publicación"
+        @change="onPublishedFilterChange"
+      />
       <Button
         label="Exportar CSV"
         icon="pi pi-download"

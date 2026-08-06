@@ -11,14 +11,23 @@ import { useToast } from 'primevue/usetoast'
 import SearchBar from '@/components/common/SearchBar.vue'
 import CsvImportDialog from '@/components/products/CsvImportDialog.vue'
 import { AppBadge } from '@/components/ui'
-import type { ProductPriceItem } from '@/types/product.types'
+import type { ProductPriceItem, PublishedFilter } from '@/types/product.types'
+import { publishedFilterOptions } from '@/config/product-filters.config'
 
 const store = useProductManagementStore()
 const toast = useToast()
 
 const searchQuery = ref('')
+const publishedFilter = ref<PublishedFilter>('')
 const expandedRows = ref<ProductPriceItem[]>([])
 const importDialogVisible = ref(false)
+
+// Filtros vigentes que deben viajar en TODA recarga del listado (búsqueda,
+// paginación, orden, guardado) para no perder el filtro al refrescar.
+const listFilters = () => ({
+  search: searchQuery.value,
+  published: publishedFilter.value,
+})
 
 // ── Sort mapping ──
 
@@ -43,13 +52,18 @@ onMounted(() => {
 const onSearch = (value: string) => {
   searchQuery.value = value
   store.pricePagination.page = 1
-  store.fetchPrices({ search: value })
+  store.fetchPrices(listFilters())
+}
+
+const onPublishedFilterChange = () => {
+  store.pricePagination.page = 1
+  store.fetchPrices(listFilters())
 }
 
 const onPage = (event: { page: number; rows: number }) => {
   store.pricePagination.page = event.page + 1
   store.pricePagination.limit = event.rows
-  store.fetchPrices({ search: searchQuery.value })
+  store.fetchPrices(listFilters())
 }
 
 const onSort = (event: DataTableSortEvent) => {
@@ -60,7 +74,7 @@ const onSort = (event: DataTableSortEvent) => {
   sortOrder.value = event.sortOrder ?? 1
   store.pricePagination.page = 1
   store.fetchPrices({
-    search: searchQuery.value,
+    ...listFilters(),
     sort_field: backendField,
     sort_order: order,
   })
@@ -94,7 +108,7 @@ const handleSave = async () => {
       detail: 'Los cambios se guardaron correctamente',
       life: 3000,
     })
-    store.fetchPrices({ search: searchQuery.value })
+    store.fetchPrices(listFilters())
   } else {
     toast.add({
       severity: 'error',
@@ -107,7 +121,7 @@ const handleSave = async () => {
 
 const handleDiscard = () => {
   store.resetPriceDirty()
-  store.fetchPrices({ search: searchQuery.value })
+  store.fetchPrices(listFilters())
 }
 
 // ── Export ──
@@ -115,7 +129,7 @@ const handleDiscard = () => {
 const handleExport = async () => {
   try {
     const { productManagementApi } = await import('@/api/product-management.api')
-    const blob = await productManagementApi.exportPrices()
+    const blob = await productManagementApi.exportPrices(publishedFilter.value)
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -155,7 +169,7 @@ const handleCalculateMissing = async () => {
           detail: `Se calcularon: ${parts.join(', ')}`,
           life: 5000,
         })
-        store.fetchPrices({ search: searchQuery.value })
+        store.fetchPrices(listFilters())
       }
     }
   } catch {
@@ -189,7 +203,7 @@ const onAffectationChange = (productId: number, value: number) => {
 }
 
 const onImported = () => {
-  store.fetchPrices({ search: searchQuery.value })
+  store.fetchPrices(listFilters())
 }
 
 const hasDirtyChanges = computed(() => store.dirtyPriceCount > 0)
@@ -220,6 +234,15 @@ const first = computed(
           @search="onSearch"
         />
       </div>
+      <Dropdown
+        v-model="publishedFilter"
+        :options="publishedFilterOptions"
+        option-label="label"
+        option-value="value"
+        class="w-52"
+        aria-label="Filtrar por estado de publicación"
+        @change="onPublishedFilterChange"
+      />
       <Button
         label="Calcular faltantes"
         icon="pi pi-calculator"

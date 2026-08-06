@@ -387,10 +387,16 @@ export type ProductUpdatePayload = Partial<ProductCreatePayload> & {
 
 // ── Management view list filters ──
 
+// '1' = solo publicados, '0' = solo no publicados, '' = todos (sin filtro).
+// Se usa cadena vacía en vez de undefined para que el Dropdown pueda enlazar
+// la opción "Todos"; los helpers que arman la query la descartan por falsy.
+export type PublishedFilter = '' | '1' | '0'
+
 export interface ProductManagementFilters {
   page?: number
   limit?: number
   search?: string
+  published?: PublishedFilter
   sort_field?: string
   sort_order?: 'ASC' | 'DESC'
 }

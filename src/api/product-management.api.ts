@@ -10,6 +10,7 @@ import type {
   CsvImportPreview,
   ProductCreatePayload,
   ProductManagementFilters,
+  PublishedFilter,
 } from '@/types/product.types'
 
 function buildParams(filters: ProductManagementFilters): URLSearchParams {
@@ -17,6 +18,7 @@ function buildParams(filters: ProductManagementFilters): URLSearchParams {
   if (filters.page) params.append('page', filters.page.toString())
   if (filters.limit) params.append('limit', filters.limit.toString())
   if (filters.search) params.append('search', filters.search)
+  if (filters.published) params.append('published', filters.published)
   if (filters.sort_field) params.append('sort_field', filters.sort_field)
   if (filters.sort_order) params.append('sort_order', filters.sort_order)
   return params
@@ -104,22 +106,25 @@ export const productManagementApi = {
 
   // ── CSV Export ──
 
-  async exportPrices(): Promise<Blob> {
+  async exportPrices(published?: PublishedFilter): Promise<Blob> {
     const response = await apiClient.get('/products/export-prices', {
+      params: published ? { published } : undefined,
       responseType: 'blob',
     })
     return response.data
   },
 
-  async exportStock(): Promise<Blob> {
+  async exportStock(published?: PublishedFilter): Promise<Blob> {
     const response = await apiClient.get('/products/export-stock', {
+      params: published ? { published } : undefined,
       responseType: 'blob',
     })
     return response.data
   },
 
-  async exportOrder(): Promise<Blob> {
+  async exportOrder(published?: PublishedFilter): Promise<Blob> {
     const response = await apiClient.get('/products/export-order', {
+      params: published ? { published } : undefined,
       responseType: 'blob',
     })
     return response.data
