@@ -467,6 +467,23 @@ export interface SaveVariantsPayload {
   deleted_ids: number[]
 }
 
+// ── Precios por mayor (descuentos por volumen) ──
+
+/**
+ * Un tramo: a partir de `quantity` unidades el precio unitario pasa a ser
+ * `price`. No es un porcentaje — es el precio final por unidad.
+ *
+ * `variant_id` en null significa que el tramo aplica a nivel producto. Los
+ * tramos de una variante son un override: si la variante tiene los suyos, los
+ * del producto no corren para esa variante.
+ */
+export interface WholesalePriceTier {
+  id?: number
+  variant_id: number | null
+  quantity: number
+  price: number
+}
+
 // ── Bulk CSV Import ──
 
 export interface BulkCsvParsedRow {

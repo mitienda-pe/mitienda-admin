@@ -123,6 +123,15 @@
           @variants-toggle="handleVariantsToggle"
         />
 
+        <!-- Precios por mayor (descuentos por volumen) -->
+        <WholesalePriceEditor
+          v-if="product && wholesalePricesEnabled"
+          :key="`wholesale-${product.id}`"
+          :product-id="product.id"
+          :base-price="form.price ?? product.price"
+          :has-variants="product.has_variation_attributes || false"
+        />
+
         <!-- Control por lotes y vencimiento (perecibles) -->
         <ProductLotManager
           v-if="product"
@@ -1069,6 +1078,7 @@ import ProductDocumentList from '@/components/products/ProductDocumentList.vue'
 import ProductDescriptionEditor from '@/components/products/ProductDescriptionEditor.vue'
 import ProductVariantEditor from '@/components/products/ProductVariantEditor.vue'
 import ProductLotManager from '@/components/products/ProductLotManager.vue'
+import WholesalePriceEditor from '@/components/products/WholesalePriceEditor.vue'
 import { AiFieldGenerator, UnsavedChangesBar } from '@/components/ui'
 import { AI_BUTTON_IDS } from '@/config/ai-buttons.config'
 import ProductTagAssignment from '@/components/ProductTagAssignment.vue'
@@ -1077,6 +1087,7 @@ import type { ProductUpdatePayload, ExternalCategoryOption } from '@/types/produ
 import { useShippingConfigStore } from '@/stores/shipping-config.store'
 import { useProductCardStore } from '@/stores/product-card.store'
 import { useStoreConfigStore } from '@/stores/store-config.store'
+import { usePlanStore } from '@/stores/plan.store'
 import { useProductTypeStore } from '@/stores/product-type.store'
 import { productsApi } from '@/api/products.api'
 
@@ -1091,6 +1102,12 @@ const toast = useToast()
 const shippingConfigStore = useShippingConfigStore()
 const productCardStore = useProductCardStore()
 const storeConfigStore = useStoreConfigStore()
+const planStore = usePlanStore()
+
+// Precios por mayor: módulo comercial del plan Large. El editor además se
+// auto-oculta si el API responde 403, así que esto es solo para no pintar la
+// card mientras el plan ya se conoce.
+const wholesalePricesEnabled = computed(() => planStore.isModuleEnabled('mod_listaprecioxmayor'))
 
 // Control por lotes: necesitamos saber si la tienda lo tiene activo y el estado
 // del producto. Carga perezosa de la config si aún no está en memoria.

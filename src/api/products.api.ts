@@ -10,6 +10,7 @@ import type {
   ProductLot,
   ProductLotCreate,
   ProductLotMovement,
+  WholesalePriceTier,
 } from '@/types/product.types'
 
 export interface ProductsFilters {
@@ -568,6 +569,22 @@ export const productsApi = {
     if (params.lote_id) qs.append('lote_id', String(params.lote_id))
     if (params.page) qs.append('page', String(params.page))
     const response = await apiClient.get(`/products/${productId}/lots/kardex?${qs.toString()}`)
+    return response.data
+  },
+
+  // ─── Precios por mayor (descuentos por volumen) ────────────────
+  // Gated a mod_listaprecioxmayor (plan Large). El PUT reemplaza el set
+  // completo de tramos del producto: mandar `tiers: []` los borra todos.
+  async getWholesalePrices(productId: number): Promise<ApiResponse<WholesalePriceTier[]>> {
+    const response = await apiClient.get(`/products/${productId}/wholesale-prices`)
+    return response.data
+  },
+
+  async saveWholesalePrices(
+    productId: number,
+    tiers: WholesalePriceTier[]
+  ): Promise<ApiResponse<WholesalePriceTier[]>> {
+    const response = await apiClient.put(`/products/${productId}/wholesale-prices`, { tiers })
     return response.data
   },
 }
