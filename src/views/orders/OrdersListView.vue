@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useOrdersStore } from '@/stores/orders.store'
+import { usePlanStore } from '@/stores/plan.store'
 import SearchBar from '@/components/common/SearchBar.vue'
 import OrderFilters from '@/components/orders/OrderFilters.vue'
 import { useFormatters } from '@/composables/useFormatters'
@@ -15,6 +16,7 @@ import type { OrderSortField } from '@/api/orders.api'
 
 const router = useRouter()
 const ordersStore = useOrdersStore()
+const planStore = usePlanStore()
 const { formatCurrency, formatDateTime } = useFormatters()
 
 const filters = ref<OrderFiltersData>({
@@ -79,6 +81,19 @@ const sortFieldComputed = computed(() => ordersStore.sort.by)
 const sortOrderComputed = computed(() => (ordersStore.sort.dir === 'asc' ? 1 : -1))
 const firstRow = computed(() => (ordersStore.pagination.page - 1) * ordersStore.pagination.limit)
 const totalOrders = computed(() => ordersStore.pagination.total)
+
+// La columna solo aplica a tiendas con el panel de Despacho habilitado; en el
+// resto los estados 30-39 nunca se registran y saldría siempre vacía.
+const showDispatchColumn = computed(() => planStore.isModuleEnabled('mod_panel_despacho'))
+
+// Solo "Entregado" (34) se destaca en verde: es el estado que dispara la
+// facturación. Los cierres en falso (rechazado, cancelado, devuelto) van en rojo.
+const dispatchSeverity = (stateId: number) => {
+  if (stateId === 34) return 'success'
+  if (stateId >= 35 && stateId <= 37) return 'danger'
+  if (stateId === 33 || stateId === 39) return 'info'
+  return 'secondary'
+}
 
 // Estado de pago
 const statusConfig = (status: OrderStatus) => {
@@ -249,6 +264,19 @@ const billingType = (order: Order) => {
               :severity="statusConfig(data.status).severity"
               :icon="`pi ${statusConfig(data.status).icon}`"
             />
+          </template>
+        </Column>
+
+        <!-- Estado de despacho: se factura cuando el pedido figura entregado, así
+             que verlo acá evita entrar orden por orden o cruzar contra Despacho. -->
+        <Column v-if="showDispatchColumn" field="dispatch_state" header="Despacho">
+          <template #body="{ data }">
+            <Tag
+              v-if="data.dispatch_state?.name"
+              :value="data.dispatch_state.name"
+              :severity="dispatchSeverity(data.dispatch_state.id)"
+            />
+            <span v-else class="text-gray-400 text-sm">—</span>
           </template>
         </Column>
 

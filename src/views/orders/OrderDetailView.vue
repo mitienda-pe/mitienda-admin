@@ -4,7 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useOrdersStore } from '@/stores/orders.store'
 import { useStoreInfoStore } from '@/stores/store-info.store'
 import { useFormatters } from '@/composables/useFormatters'
-import { useOrderDownloads } from '@/composables/useOrderDownloads'
+import { useOrderDownloads, printableFromOrder, type PrintableOrder } from '@/composables/useOrderDownloads'
+import ShippingLabelDialog from '@/components/orders/ShippingLabelDialog.vue'
 import { useToast } from 'primevue/usetoast'
 import { useAuthStore } from '@/stores/auth.store'
 import Button from 'primevue/button'
@@ -38,7 +39,7 @@ const storeInfoStore = useStoreInfoStore()
 const authStore = useAuthStore()
 const toast = useToast()
 const { formatCurrency, formatDate, formatTime, formatDateTime } = useFormatters()
-const { downloadPDF, downloadTicket, downloadPickingList, downloadCSV, downloadShippingLabel } = useOrderDownloads()
+const { downloadPDF, downloadTicket, downloadPickingList, downloadCSV } = useOrderDownloads()
 
 const orderId = Number(route.params.id)
 const showEmitDialog = ref(false)
@@ -49,6 +50,8 @@ const debugPaymentData = ref<any>(null)
 const debugPaymentError = ref<string | null>(null)
 const downloadMenu = ref()
 const senderInfo = ref<SenderInfo | undefined>(undefined)
+const showLabelDialog = ref(false)
+const labelPrintable = ref<PrintableOrder | null>(null)
 const orderReviews = ref<OrderItemReview[]>([])
 
 // Fulfillment state
@@ -259,7 +262,7 @@ const handleDownloadTicket = () => {
 
 const handleDownloadPickingList = () => {
   if (!order.value) return
-  downloadPickingList(order.value, storeName.value)
+  downloadPickingList(printableFromOrder(order.value), storeName.value)
   toast.add({
     severity: 'success',
     summary: 'Descarga iniciada',
@@ -358,13 +361,8 @@ function extractFilename(header?: string): string | null {
 
 const handleDownloadShippingLabel = () => {
   if (!order.value) return
-  downloadShippingLabel(order.value, senderInfo.value)
-  toast.add({
-    severity: 'success',
-    summary: 'Descarga iniciada',
-    detail: 'La etiqueta de envío se está descargando',
-    life: 2000
-  })
+  labelPrintable.value = printableFromOrder(order.value)
+  showLabelDialog.value = true
 }
 
 const toggleDownloadMenu = (event: Event) => {
@@ -1393,11 +1391,6 @@ const handleDebugPayments = async () => {
                   <p class="font-semibold text-gray-900 capitalize">{{ order.payment_method }}</p>
                 </div>
 
-                <div v-if="order.gateway_message">
-                  <p class="text-sm text-gray-500">Mensaje de la pasarela</p>
-                  <p class="text-gray-900">{{ order.gateway_message }}</p>
-                </div>
-
                 <!-- Motivo de anulación (POS void) -->
                 <div
                   v-if="voidInfo"
@@ -1419,7 +1412,7 @@ const handleDebugPayments = async () => {
 
                 <!-- Motivo de rechazo -->
                 <div
-                  v-else-if="order.gateway_error_user || order.gateway_error_store || (order.status === 'cancelled' && !order.gateway_message)"
+                  v-else-if="order.gateway_error_user || order.gateway_error_store || order.status === 'cancelled'"
                   class="mt-3 p-3 rounded-lg border"
                   :class="order.status === 'cancelled' ? 'bg-red-50 border-red-200' : 'bg-yellow-50 border-yellow-200'"
                 >
@@ -1483,7 +1476,9 @@ const handleDebugPayments = async () => {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div v-if="order.notes">
                 <p class="text-sm text-gray-500 font-medium mb-2">Cliente</p>
-                <p class="text-gray-900">{{ order.notes }}</p>
+                <!-- Suele traer saltos de línea: direcciones alternas, DNI de quien
+                     recibe, agencia de transporte. Se respeta el formato original. -->
+                <p class="text-gray-900 whitespace-pre-line">{{ order.notes }}</p>
               </div>
               <div>
                 <div class="flex items-center justify-between mb-2">
@@ -2477,6 +2472,12 @@ const handleDebugPayments = async () => {
       :requested-doc-number="order.customer?.document_number"
       :requested-business-name="order.customer?.business_name"
       @success="handleEmitSuccess"
+    />
+
+    <ShippingLabelDialog
+      v-model:visible="showLabelDialog"
+      :order="labelPrintable"
+      :sender-info="senderInfo"
     />
   </div>
 </template>

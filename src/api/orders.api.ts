@@ -152,6 +152,7 @@ export const ordersApi = {
               created_at: order.date_created || '',
               updated_at: order.date_created || '',
               notes: shipping.receiver_address?.comment || undefined,
+              dispatch_state: order.dispatch_state || null,
               billing_document: eBilling ? {
                 id: eBilling.id || 0,
                 status: eBilling.status || 0,
@@ -294,7 +295,6 @@ export const ordersApi = {
         payment_gateway: rawData.payment_gateway || 'No especificado',
         payments: rawData.payments || [], // POS sales may have multiple payments
         gateway_code: rawData.gateway_code || undefined,
-        gateway_message: rawData.gateway_message || undefined,
         gateway_error_user: rawData.gateway_error_user || undefined,
         gateway_error_store: rawData.gateway_error_store || undefined,
         payment_status: mapPaymentStatusText(rawData.status), // Texto del estado de pago

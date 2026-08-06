@@ -3,9 +3,14 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { useFormatters } from '@/composables/useFormatters'
+import { useOrderDownloads, printableFromDispatch, type PrintableOrder } from '@/composables/useOrderDownloads'
+import { useStoreInfoStore } from '@/stores/store-info.store'
+import { useAuthStore } from '@/stores/auth.store'
 import { dispatchApi } from '@/api/dispatch.api'
 import apiClient from '@/api/axios'
+import ShippingLabelDialog from '@/components/orders/ShippingLabelDialog.vue'
 import type { DispatchOrderDetail, DispatchState, DispatchStateId } from '@/types/dispatch.types'
+import type { SenderInfo } from '@/types/store.types'
 import Button from 'primevue/button'
 import Dropdown from 'primevue/dropdown'
 import Textarea from 'primevue/textarea'
@@ -17,6 +22,9 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const { formatDate, formatDateTime, formatCurrency } = useFormatters()
+const { downloadPickingList } = useOrderDownloads()
+const storeInfoStore = useStoreInfoStore()
+const authStore = useAuthStore()
 
 const orderId = Number(route.params.id)
 
@@ -25,6 +33,11 @@ const order = ref<DispatchOrderDetail | null>(null)
 const isLoading = ref(false)
 const showPrices = ref(false)
 const states = ref<DispatchState[]>([])
+const senderInfo = ref<SenderInfo | undefined>(undefined)
+const showLabelDialog = ref(false)
+const labelPrintable = ref<PrintableOrder | null>(null)
+
+const storeName = computed(() => authStore.selectedStore?.name || 'Mi Tienda')
 
 // Status change form
 const statusForm = ref({
@@ -87,7 +100,84 @@ const showShippingRow = computed(() => {
   return cost > 0 || order.value?.delivery.type !== 'retiro'
 })
 
+/**
+ * Datos de envío como texto plano, en el orden en que se rotula una caja.
+ *
+ * El almacén los selecciona y pega en Word para armar etiquetas cuando el
+ * transportista pide un formato propio, así que el bloque se renderiza como
+ * texto corrido y no como una grilla de cards: sombrear una grilla arrastra la
+ * maquetación al pegarla.
+ */
+const shippingLines = computed(() => {
+  const shipping = order.value?.shipping
+  if (!shipping) return []
+
+  const location = [shipping.district, shipping.province, shipping.department]
+    .filter(Boolean).join(' - ')
+
+  return [
+    { label: 'Nombre', value: shipping.recipient_name },
+    {
+      label: 'Documento del destinatario',
+      value: shipping.doc_number ? `${shipping.doc_type || 'DOC'} : ${shipping.doc_number}` : ''
+    },
+    { label: 'Teléfono', value: shipping.recipient_phone },
+    {
+      label: 'Dirección',
+      value: [shipping.address, shipping.address_line2, location].filter(Boolean).join('\n')
+    },
+    { label: 'Referencia del envío', value: shipping.reference }
+  ].filter(line => line.value)
+})
+
+const shippingAsText = computed(() =>
+  ['DATOS DE ENVIO:', '', ...shippingLines.value.map(l => `${l.label}\n${l.value}\n`)].join('\n')
+)
+
 // ─── Methods ──────────────────────────────────────────────────
+
+function copyShippingData() {
+  navigator.clipboard.writeText(shippingAsText.value)
+  toast.add({ severity: 'success', summary: 'Datos de envío copiados', life: 2000 })
+}
+
+function handleDownloadPickingList() {
+  if (!order.value) return
+  downloadPickingList(printableFromDispatch(order.value), storeName.value)
+}
+
+function handlePrintLabel() {
+  if (!order.value) return
+  labelPrintable.value = printableFromDispatch(order.value)
+  showLabelDialog.value = true
+}
+
+async function loadSenderInfo() {
+  try {
+    const [, senderAddress] = await Promise.all([
+      storeInfoStore.fetchInfo(),
+      storeInfoStore.getSenderAddress()
+    ])
+
+    const info = storeInfoStore.info
+    if (info) {
+      senderInfo.value = {
+        businessName: info.tienda_razonsocial || '',
+        commercialName: info.tienda_nombre_comercial || '',
+        ruc: info.tienda_ruc || '',
+        phone: info.tienda_telefonocelular1 || info.tienda_telefonofijo1 || '',
+        address: senderAddress?.tiendadireccion_direccion || '',
+        district: senderAddress?.tiendadireccion_dist || '',
+        province: senderAddress?.tiendadireccion_prov || '',
+        department: senderAddress?.tiendadireccion_dpto || ''
+      }
+    }
+  } catch (error) {
+    // Sin remitente la etiqueta sigue siendo útil: pierde el bloque FROM, no el destino.
+    console.error('Error loading sender info:', error)
+    senderInfo.value = { businessName: storeName.value, commercialName: storeName.value, ruc: '', phone: '', address: '' }
+  }
+}
 
 async function loadOrder() {
   isLoading.value = true
@@ -397,6 +487,7 @@ function getTimelineColor(stateId: number): string {
 onMounted(() => {
   loadStates()
   loadOrder()
+  loadSenderInfo()
 })
 </script>
 
@@ -428,6 +519,26 @@ onMounted(() => {
           </span>
         </div>
         <div class="flex items-center gap-2">
+          <!-- Picking y etiqueta: el despacho es donde se arma la caja, así que
+               ambos documentos se imprimen desde acá sin pasar por Pedidos. -->
+          <Button
+            label="Picking List"
+            icon="pi pi-box"
+            severity="secondary"
+            outlined
+            size="small"
+            @click="handleDownloadPickingList"
+          />
+          <Button
+            v-if="order.delivery.type !== 'retiro'"
+            label="Etiqueta"
+            icon="pi pi-tag"
+            severity="secondary"
+            outlined
+            size="small"
+            @click="handlePrintLabel"
+          />
+
           <!-- Olva: crear/reintentar envío -->
           <Button
             v-if="isOlvaOrder && !olvaHasTracking"
@@ -576,6 +687,27 @@ onMounted(() => {
               </div>
             </div>
 
+            <!-- Datos de envío en bloque, listos para sombrear y pegar -->
+            <div v-if="shippingLines.length" class="mt-4 pt-4 border-t">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Datos de envío</h3>
+                <Button
+                  label="Copiar"
+                  icon="pi pi-copy"
+                  text
+                  size="small"
+                  @click="copyShippingData"
+                />
+              </div>
+              <div class="bg-gray-50 border rounded-lg p-4">
+                <p class="font-semibold text-gray-900 mb-3">DATOS DE ENVIO:</p>
+                <div v-for="line in shippingLines" :key="line.label" class="mb-3 last:mb-0">
+                  <p class="text-sm text-gray-500">{{ line.label }}</p>
+                  <p class="text-gray-900 whitespace-pre-line">{{ line.value }}</p>
+                </div>
+              </div>
+            </div>
+
             <!-- Tracking -->
             <div v-if="order.tracking.code || order.tracking.url" class="mt-4 pt-4 border-t">
               <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Tracking</h3>
@@ -625,8 +757,8 @@ onMounted(() => {
 
             <!-- Observation -->
             <div v-if="order.observation" class="mt-4 pt-4 border-t">
-              <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Observación del cliente</h3>
-              <p class="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">{{ order.observation }}</p>
+              <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2">Nota del cliente</h3>
+              <p class="text-sm text-gray-700 bg-amber-50 border border-amber-200 p-3 rounded-lg whitespace-pre-line">{{ order.observation }}</p>
             </div>
           </div>
 
@@ -838,6 +970,12 @@ onMounted(() => {
       <h2 class="text-lg font-semibold text-gray-700 mb-2">Pedido no encontrado</h2>
       <Button label="Volver a Despacho" icon="pi pi-arrow-left" text @click="goBack" />
     </div>
+
+    <ShippingLabelDialog
+      v-model:visible="showLabelDialog"
+      :order="labelPrintable"
+      :sender-info="senderInfo"
+    />
   </div>
 </template>
 

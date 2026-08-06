@@ -18,7 +18,6 @@ export interface Order {
   payment_gateway?: string
   payments?: OrderPayment[] // For POS sales with multiple payment methods
   gateway_code?: string
-  gateway_message?: string
   gateway_error_user?: string
   gateway_error_store?: string
   shipping_address?: Address | string
@@ -26,6 +25,8 @@ export interface Order {
   billing_address?: Address
   notes?: string
   store_notes?: string
+  /** Estado de despacho vigente. Solo viene en el listado de pedidos. */
+  dispatch_state?: { id: number; name: string | null } | null
   tiendaventa_estado_notif_erp?: number // 0 = success, 1 = error
   tiendaventa_mensaje_notif_erp?: string
   tiendaventa_payload_notif_erp?: string // Request payload sent to NetSuite

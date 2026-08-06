@@ -44,19 +44,16 @@ export interface DispatchOrderDetail {
     email: string
     phone: string
   }
-  recipient: {
-    name: string
-    phone: string
-  }
   delivery: {
     type: 'domicilio' | 'retiro'
     address: string
-    reference: string
     ubigeo: string
     scheduled_date: string | null
     shipped_date: string | null
     service_type: ShippingServiceType | null
   }
+  /** Datos del destinatario tal como van rotulados en la caja. */
+  shipping: DispatchShipping
   tracking: {
     code: string | null
     url: string | null
@@ -74,6 +71,23 @@ export interface DispatchOrderDetail {
   total?: number
   shipping_cost?: number
   fulfillment_provider: string | null
+}
+
+export interface DispatchShipping {
+  recipient_name: string
+  recipient_phone: string
+  /** DNI, RUC, CE… Vacío cuando la orden no trae ningún documento. */
+  doc_type: string
+  doc_number: string
+  address: string
+  address_line2: string
+  reference: string
+  district: string
+  province: string
+  department: string
+  ubigeo_code: string
+  latitude: string
+  longitude: string
 }
 
 export interface DispatchOrderItem {
