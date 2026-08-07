@@ -107,6 +107,9 @@ export interface StoreConfig {
   sw_logincliente: number
   // Solo Boleta de Venta: oculta la opción de factura en el checkout
   tiendageneral_sw_solo_boleta: number
+  // Bloquear la compra si el DNI/RUC no se puede validar en RENIEC/SUNAT
+  tiendageneral_sw_validar_documento: number
+  tiendageneral_texto_validacion_documento: string | null
   tiendageneral_sw_verificacion_edad: number
   tiendageneral_edad_minima: number
   tiendageneral_texto_verificacion_edad: string | null
@@ -131,6 +134,8 @@ export interface StoreConfigUpdate {
   tiendageneral_json_horarioActivo?: string | null
   sw_logincliente?: number
   tiendageneral_sw_solo_boleta?: number
+  tiendageneral_sw_validar_documento?: number
+  tiendageneral_texto_validacion_documento?: string | null
   tiendageneral_sw_verificacion_edad?: number
   tiendageneral_edad_minima?: number
   tiendageneral_texto_verificacion_edad?: string | null

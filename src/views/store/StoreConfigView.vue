@@ -76,6 +76,11 @@ const isSoloBoletaEnabled = computed({
   set: (val: boolean) => store.updateField('tiendageneral_sw_solo_boleta', val ? 1 : 0)
 })
 
+const isDocumentValidationEnabled = computed({
+  get: () => store.draftConfig.tiendageneral_sw_validar_documento === 1,
+  set: (val: boolean) => store.updateField('tiendageneral_sw_validar_documento', val ? 1 : 0)
+})
+
 const isAgeVerificationEnabled = computed({
   get: () => store.draftConfig.tiendageneral_sw_verificacion_edad === 1,
   set: (val: boolean) => store.updateField('tiendageneral_sw_verificacion_edad', val ? 1 : 0)
@@ -342,6 +347,42 @@ watch(
               </p>
             </div>
             <InputSwitch v-model="isSoloBoletaEnabled" />
+          </div>
+        </div>
+
+        <!-- Validación obligatoria de documento -->
+        <div class="mt-6 pt-6 border-t border-gray-100">
+          <div class="flex items-center justify-between">
+            <div>
+              <label class="text-sm font-medium text-secondary-700">Exigir documento validado</label>
+              <p class="text-xs text-gray-400 mt-0.5">
+                Bloquea la compra si el DNI o RUC no se encuentra en RENIEC/SUNAT. Desactivado, el comprador
+                completa sus datos a mano cuando el documento no aparece.
+              </p>
+            </div>
+            <InputSwitch v-model="isDocumentValidationEnabled" />
+          </div>
+          <div v-if="isDocumentValidationEnabled" class="space-y-4 mt-4 pl-1">
+            <div class="rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+              El Carné de Extranjería y el Pasaporte no se pueden consultar, así que quedan exentos.
+              Si RENIEC/SUNAT no responde, la compra continúa para no frenar tus ventas.
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-secondary-700 mb-2">
+                Mensaje cuando no se puede validar
+              </label>
+              <p class="text-xs text-gray-400 mb-2">
+                Se muestra en el checkout junto al botón de continuar. Dejar vacío para usar el mensaje predeterminado.
+              </p>
+              <textarea
+                :value="store.draftConfig.tiendageneral_texto_validacion_documento ?? ''"
+                rows="2"
+                maxlength="500"
+                class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary"
+                placeholder="No pudimos validar tu número de documento. Por favor comunícate con nosotros para ayudarte."
+                @input="store.updateField('tiendageneral_texto_validacion_documento', ($event.target as HTMLTextAreaElement).value || null)"
+              />
+            </div>
           </div>
         </div>
       </div>
