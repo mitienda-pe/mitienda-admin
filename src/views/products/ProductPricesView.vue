@@ -13,6 +13,7 @@ import CsvImportDialog from '@/components/products/CsvImportDialog.vue'
 import { AppBadge } from '@/components/ui'
 import type { ProductPriceItem, PublishedFilter } from '@/types/product.types'
 import { publishedFilterOptions } from '@/config/product-filters.config'
+import { usePlanStore } from '@/stores/plan.store'
 
 const store = useProductManagementStore()
 const toast = useToast()
@@ -134,6 +135,28 @@ const handleExport = async () => {
     const a = document.createElement('a')
     a.href = url
     a.download = `precios_${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo exportar', life: 3000 })
+  }
+}
+
+// ── Precios por mayor (descuentos por volumen) ──
+// Gated a mod_listaprecioxmayor: la vista de precios es de todos los planes,
+// pero el modulo comercial no.
+const planStore = usePlanStore()
+const wholesaleEnabled = computed(() => planStore.isModuleEnabled('mod_listaprecioxmayor'))
+const wholesaleImportVisible = ref(false)
+
+const handleWholesaleExport = async () => {
+  try {
+    const { productManagementApi } = await import('@/api/product-management.api')
+    const blob = await productManagementApi.exportWholesalePrices(publishedFilter.value)
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `precios_por_mayor_${new Date().toISOString().slice(0, 10)}.csv`
     a.click()
     URL.revokeObjectURL(url)
   } catch {
@@ -265,6 +288,22 @@ const first = computed(
         size="small"
         @click="importDialogVisible = true"
       />
+      <template v-if="wholesaleEnabled">
+        <Button
+          label="Exportar por mayor"
+          icon="pi pi-download"
+          outlined
+          size="small"
+          @click="handleWholesaleExport"
+        />
+        <Button
+          label="Importar por mayor"
+          icon="pi pi-upload"
+          outlined
+          size="small"
+          @click="wholesaleImportVisible = true"
+        />
+      </template>
       <template v-if="hasDirtyChanges">
         <Button
           label="Descartar"
@@ -527,6 +566,12 @@ const first = computed(
       mode="prices"
       @update:visible="importDialogVisible = $event"
       @imported="onImported"
+    />
+
+    <CsvImportDialog
+      :visible="wholesaleImportVisible"
+      mode="wholesale"
+      @update:visible="wholesaleImportVisible = $event"
     />
   </div>
 </template>

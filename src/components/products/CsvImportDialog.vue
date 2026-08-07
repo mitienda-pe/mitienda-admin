@@ -12,7 +12,7 @@ import type { CsvImportPreview } from '@/types/product.types'
 
 interface Props {
   visible: boolean
-  mode: 'prices' | 'stock' | 'order'
+  mode: 'prices' | 'stock' | 'order' | 'wholesale'
 }
 
 const props = defineProps<Props>()
@@ -34,6 +34,7 @@ const importResult = ref<{ processed: number; updated: number } | null>(null)
 const title = computed(() => {
   if (props.mode === 'prices') return 'Importar Precios'
   if (props.mode === 'order') return 'Importar Orden'
+  if (props.mode === 'wholesale') return 'Importar Precios por Mayor'
   return 'Importar Stock'
 })
 
@@ -74,7 +75,9 @@ const handleUpload = async () => {
         ? productManagementApi.importPricesPreview
         : props.mode === 'order'
           ? productManagementApi.importOrderPreview
-          : productManagementApi.importStockPreview
+          : props.mode === 'wholesale'
+            ? productManagementApi.importWholesalePricesPreview
+            : productManagementApi.importStockPreview
     const response = await previewFn(selectedFile.value)
 
     if (response.success && response.data) {
@@ -112,7 +115,9 @@ const handleConfirm = async () => {
         ? productManagementApi.importPricesConfirm
         : props.mode === 'order'
           ? productManagementApi.importOrderConfirm
-          : productManagementApi.importStockConfirm
+          : props.mode === 'wholesale'
+            ? productManagementApi.importWholesalePricesConfirm
+            : productManagementApi.importStockConfirm
     const response = await confirmFn(selectedFile.value)
 
     if (response.success && response.data) {
@@ -167,7 +172,7 @@ const handleClose = () => {
       <p class="text-sm text-gray-600">
         Sube un archivo CSV con las columnas requeridas. Puedes descargar una plantilla
         usando el boton "Exportar CSV" en la vista de
-        {{ mode === 'prices' ? 'precios' : mode === 'order' ? 'orden del catalogo' : 'stock' }}.
+        {{ mode === 'prices' ? 'precios' : mode === 'order' ? 'orden del catalogo' : mode === 'wholesale' ? 'precios por mayor' : 'stock' }}.
       </p>
 
       <div class="text-xs text-gray-500 bg-gray-50 rounded p-3">
@@ -183,6 +188,18 @@ const handleClose = () => {
           <p class="mt-1">
             <code>orden</code> se usa como prioridad: el catalogo se ordena por ese valor y se
             renumera de 1 a N. Los productos que no incluyas quedan al final conservando su orden actual.
+          </p>
+        </template>
+        <template v-else-if="mode === 'wholesale'">
+          <code>producto_id, sku, desde_cantidad, precio_mayor</code>
+          <p class="mt-1">Para variantes: <code>variante_id, variante_sku</code></p>
+          <p class="mt-1">
+            Cada fila es un tramo: desde <code>desde_cantidad</code> unidades, el precio por unidad
+            pasa a ser <code>precio_mayor</code>. La cantidad minima es 2.
+          </p>
+          <p class="mt-1">
+            Solo se tocan las filas que incluyas: los demas tramos quedan como estan.
+            Para <strong>eliminar</strong> un tramo, deja <code>precio_mayor</code> vacio o en 0.
           </p>
         </template>
         <template v-else>

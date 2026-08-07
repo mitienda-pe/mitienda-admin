@@ -183,6 +183,32 @@ export const productManagementApi = {
     return response.data
   },
 
+  // Precios por mayor: el export sirve de plantilla del import.
+  async exportWholesalePrices(published?: PublishedFilter): Promise<Blob> {
+    const response = await apiClient.get('/products/export-wholesale-prices', {
+      params: published ? { published } : undefined,
+      responseType: 'blob',
+    })
+    return response.data
+  },
+
+  async importWholesalePricesPreview(file: File): Promise<ApiResponse<CsvImportPreview>> {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await apiClient.post('/products/import-wholesale-prices', formData)
+    return response.data
+  },
+
+  async importWholesalePricesConfirm(
+    file: File
+  ): Promise<ApiResponse<{ processed: number; updated: number }>> {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('confirm', '1')
+    const response = await apiClient.post('/products/import-wholesale-prices', formData)
+    return response.data
+  },
+
   // ── Calculate missing prices ──
 
   async calculateMissingPrices(): Promise<
