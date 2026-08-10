@@ -91,7 +91,7 @@
         <Column header="Costo / Tiempo de envío" style="width: 200px">
           <template #body="{ data }">
             <span class="text-sm text-secondary-600">
-              {{ data.shippingCost !== null ? 'S/ ' + data.shippingCost.toFixed(2) : '—' }}
+              {{ data.shippingCost !== null ? currencySymbol + ' ' + data.shippingCost.toFixed(2) : '—' }}
               <span class="text-secondary-300"> · </span>
               {{ data.shippingTime !== null ? data.shippingTime + ' día(s)' : '—' }}
             </span>
@@ -178,7 +178,7 @@
             <label class="block text-sm font-medium text-secondary-700 mb-2">Costo envío (opcional)</label>
             <InputNumber
               v-model="form.shippingCost"
-              mode="currency" currency="PEN" locale="es-PE"
+              mode="currency" :currency="currencyIso" currencyDisplay="narrowSymbol" locale="es-PE"
               :min="0" class="w-full" placeholder="usa la cobertura"
             />
           </div>
@@ -234,6 +234,9 @@ import InputSwitch from 'primevue/inputswitch'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import type { BranchZoneAssignment } from '@/types/branch-zone.types'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencyIso, currencySymbol } = useFormatters()
 
 const router = useRouter()
 const store = useBranchZonesStore()

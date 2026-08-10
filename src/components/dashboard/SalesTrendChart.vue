@@ -16,6 +16,7 @@ import { LineChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent, LegendComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import type { TrendPoint } from '@/types/dashboard.types'
+import { useFormatters } from '@/composables/useFormatters'
 
 use([LineChart, GridComponent, TooltipComponent, LegendComponent, CanvasRenderer])
 
@@ -25,16 +26,15 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const { formatCurrency, currencySymbol } = useFormatters()
+
 const chartOption = computed(() => ({
   tooltip: {
     trigger: 'axis',
     formatter(params: any) {
       const p = params[0]
       const date = p.axisValue
-      const net = Number(p.data).toLocaleString('es-PE', {
-        style: 'currency',
-        currency: 'PEN'
-      })
+      const net = formatCurrency(Number(p.data))
       const orders = props.data[p.dataIndex]?.orders ?? 0
       return `<strong>${date}</strong><br/>Ventas Netas: ${net}<br/>Pedidos: ${orders}`
     }
@@ -52,7 +52,7 @@ const chartOption = computed(() => ({
     type: 'value',
     axisLabel: {
       formatter: (val: number) =>
-        val >= 1000 ? `S/ ${(val / 1000).toFixed(0)}K` : `S/ ${val}`
+        val >= 1000 ? `${currencySymbol.value} ${(val / 1000).toFixed(0)}K` : `${currencySymbol.value} ${val}`
     }
   },
   series: [

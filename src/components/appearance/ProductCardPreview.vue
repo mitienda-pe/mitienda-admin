@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { ProductCardConfig } from '@/types/product-card.types'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencySymbol } = useFormatters()
 
 interface Props {
   config: ProductCardConfig
@@ -177,8 +180,8 @@ const buttonLabel = computed(() => {
         <span class="pc-category">Categoría</span>
         <h3 class="pc-name">Producto de ejemplo</h3>
         <div class="pc-prices">
-          <span class="pc-price-original">S/ 120.00</span>
-          <span class="pc-price">S/ 96.00</span>
+          <span class="pc-price-original">{{ currencySymbol }} 120.00</span>
+          <span class="pc-price">{{ currencySymbol }} 96.00</span>
         </div>
 
         <!-- Button type 1: Ver más -->

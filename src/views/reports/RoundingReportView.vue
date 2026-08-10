@@ -83,7 +83,7 @@
           <template #content>
             <div class="text-sm text-secondary-600">Ganancia por redondeo</div>
             <div class="text-2xl font-bold text-emerald-600 mt-1">
-              S/ {{ formatAmount(report.summary.ganancia_redondeo) }}
+              {{ currencySymbol }} {{ formatAmount(report.summary.ganancia_redondeo) }}
             </div>
             <div class="text-xs text-secondary-500 mt-1">A favor del negocio</div>
           </template>
@@ -93,7 +93,7 @@
           <template #content>
             <div class="text-sm text-secondary-600">Pérdida por redondeo</div>
             <div class="text-2xl font-bold text-red-600 mt-1">
-              S/ {{ formatAmount(report.summary.perdida_redondeo) }}
+              {{ currencySymbol }} {{ formatAmount(report.summary.perdida_redondeo) }}
             </div>
             <div class="text-xs text-secondary-500 mt-1">En contra del negocio</div>
           </template>
@@ -103,11 +103,11 @@
           <template #content>
             <div class="text-sm text-secondary-600">Neto</div>
             <div class="text-2xl font-bold mt-1" :class="report.summary.neto >= 0 ? 'text-emerald-600' : 'text-red-600'">
-              S/ {{ formatAmount(report.summary.neto) }}
+              {{ currencySymbol }} {{ formatAmount(report.summary.neto) }}
             </div>
             <div class="text-xs text-secondary-500 mt-1">
-              Ventas S/ {{ formatAmount(report.summary.total_ventas_registradas) }} ·
-              Cobrado S/ {{ formatAmount(report.summary.total_efectivo_cobrado) }}
+              Ventas {{ currencySymbol }} {{ formatAmount(report.summary.total_ventas_registradas) }} ·
+              Cobrado {{ currencySymbol }} {{ formatAmount(report.summary.total_efectivo_cobrado) }}
             </div>
           </template>
         </Card>
@@ -144,18 +144,18 @@
             </Column>
             <Column field="ganancia_redondeo" header="Ganancia" sortable bodyStyle="text-align: right">
               <template #body="{ data }">
-                <span class="text-emerald-600">S/ {{ formatAmount(data.ganancia_redondeo) }}</span>
+                <span class="text-emerald-600">{{ currencySymbol }} {{ formatAmount(data.ganancia_redondeo) }}</span>
               </template>
             </Column>
             <Column field="perdida_redondeo" header="Pérdida" sortable bodyStyle="text-align: right">
               <template #body="{ data }">
-                <span class="text-red-600">S/ {{ formatAmount(data.perdida_redondeo) }}</span>
+                <span class="text-red-600">{{ currencySymbol }} {{ formatAmount(data.perdida_redondeo) }}</span>
               </template>
             </Column>
             <Column field="neto" header="Neto" sortable bodyStyle="text-align: right">
               <template #body="{ data }">
                 <span :class="data.neto >= 0 ? 'text-emerald-600' : 'text-red-600'">
-                  S/ {{ formatAmount(data.neto) }}
+                  {{ currencySymbol }} {{ formatAmount(data.neto) }}
                 </span>
               </template>
             </Column>
@@ -181,6 +181,9 @@ import { CanvasRenderer } from 'echarts/renderers'
 import { AppButton, AppEmptyState, AppErrorState } from '@/components/ui'
 import reportsApi from '@/api/reports.api'
 import type { RoundingReportFilters, RoundingReportResponse } from '@/types/report.types'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencySymbol } = useFormatters()
 
 use([BarChart, TooltipComponent, GridComponent, CanvasRenderer])
 

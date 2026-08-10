@@ -176,7 +176,7 @@
               <InputText v-model="simDestZipcode" class="w-full" placeholder="15046" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-secondary-700 mb-1">Valor del paquete (S/.)</label>
+              <label class="block text-sm font-medium text-secondary-700 mb-1">Valor del paquete ({{ currencySymbol }})</label>
               <InputText v-model="simPackageValue" class="w-full" placeholder="50" />
             </div>
             <div>
@@ -272,6 +272,9 @@ import SelectButton from 'primevue/selectbutton'
 import Divider from 'primevue/divider'
 import { UnsavedChangesBar } from '@/components/ui'
 import hopLogo from '@/assets/images/logo-hop.svg'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencySymbol } = useFormatters()
 
 const router = useRouter()
 const store = useCourierProvidersStore()

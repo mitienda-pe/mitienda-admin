@@ -1,5 +1,7 @@
 // Shipping Rates Types
 
+import { useStoreConfigStore } from '@/stores/store-config.store'
+
 export type CountryCode = 'PE' | 'EC' | 'CO'
 
 export type DeliveryTimeUnit = 'days' | 'hours' | 'minutes'
@@ -164,11 +166,19 @@ export function formatDeliveryTime(time: number, unit: DeliveryTimeUnit): string
   return time === 1 ? '1 día' : `${time} días`
 }
 
-// Helper para formatear precio con símbolo de moneda
+// Helper para formatear precio con símbolo de moneda. La tarifa se cobra en la
+// moneda de la tienda (`tiendasgenerales.moneda_id`), no en la del país de
+// destino: el country code solo es el fallback cuando el store aún no cargó.
 export function formatPrice(price: number, countryCode: CountryCode): string {
   const country = getCountryByCode(countryCode)
-  const symbol = country?.currencySymbol || 'S/'
-  return `${symbol} ${price.toFixed(2)}`
+  let symbol = ''
+  try {
+    // Import perezoso: este módulo es de tipos y lo consumen stores.
+    symbol = useStoreConfigStore().currentCurrencySymbol
+  } catch {
+    symbol = ''
+  }
+  return `${symbol || country?.currencySymbol || 'S/'} ${price.toFixed(2)}`
 }
 
 // --- Shipping Config Types ---

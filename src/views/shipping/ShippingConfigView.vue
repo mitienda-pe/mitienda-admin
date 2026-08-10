@@ -12,6 +12,9 @@ import ShippingScheduleEditor from '@/components/shipping/ShippingScheduleEditor
 import BlockedDatesEditor from '@/components/shipping/BlockedDatesEditor.vue'
 import { useToast } from 'primevue/usetoast'
 import apiClient from '@/api/axios'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencyIso } = useFormatters()
 
 const store = useShippingConfigStore()
 const { draftConfig, isLoading, isSaving, error, hasChanges } = storeToRefs(store)
@@ -264,7 +267,8 @@ watch(hasPickupPoint, (has) => {
             <InputNumber
               v-model="draftConfig.montoRepartoGratis"
               mode="currency"
-              currency="PEN"
+              :currency="currencyIso"
+              currencyDisplay="narrowSymbol"
               locale="es-PE"
               :minFractionDigits="2"
               :min="0"

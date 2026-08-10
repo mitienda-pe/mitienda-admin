@@ -18,6 +18,9 @@ import Checkbox from 'primevue/checkbox'
 import Button from 'primevue/button'
 import { useToast } from 'primevue/usetoast'
 import type { ProductCreatePayload } from '@/types/product.types'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencyIso, currencySymbol } = useFormatters()
 
 const router = useRouter()
 const catalogStore = useCatalogStore()
@@ -445,14 +448,15 @@ const handleSave = async () => {
           <!-- Precio con IGV -->
           <div>
             <label for="price" class="block text-sm font-medium text-gray-700 mb-1">
-              Precio con IGV (S/)
+              Precio con IGV ({{ currencySymbol }})
             </label>
             <InputNumber
               id="price"
               :modelValue="form.price"
               @update:modelValue="onPriceChange"
               mode="currency"
-              currency="PEN"
+              :currency="currencyIso"
+              currencyDisplay="narrowSymbol"
               locale="es-PE"
               :min="0"
               :minFractionDigits="2"
@@ -466,7 +470,7 @@ const handleSave = async () => {
           <!-- Precio sin IGV -->
           <div>
             <label for="price-no-tax" class="block text-sm font-medium text-gray-700 mb-1">
-              Precio sin IGV (S/)
+              Precio sin IGV ({{ currencySymbol }})
             </label>
             <InputNumber
               id="price-no-tax"
@@ -485,13 +489,14 @@ const handleSave = async () => {
         <div class="grid grid-cols-2 gap-4 mt-4">
           <div>
             <label for="cost" class="block text-sm font-medium text-gray-700 mb-1">
-              Costo de compra (S/)
+              Costo de compra ({{ currencySymbol }})
             </label>
             <InputNumber
               id="cost"
               v-model="form.cost"
               mode="currency"
-              currency="PEN"
+              :currency="currencyIso"
+              currencyDisplay="narrowSymbol"
               locale="es-PE"
               :min="0"
               :minFractionDigits="2"

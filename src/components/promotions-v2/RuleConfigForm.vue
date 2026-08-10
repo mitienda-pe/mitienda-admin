@@ -33,7 +33,8 @@
         :minFractionDigits="2"
         :maxFractionDigits="2"
         mode="currency"
-        currency="PEN"
+        :currency="currencyIso"
+        currencyDisplay="narrowSymbol"
         locale="es-PE"
         :placeholder="field.placeholder"
         class="w-full"
@@ -97,7 +98,7 @@
               <div class="h-8 w-8 rounded bg-gray-200" v-else></div>
               <div>
                 <div class="text-sm font-medium">{{ option.producto_nombre }}</div>
-                <div class="text-xs text-gray-500">SKU: {{ option.producto_sku }} · S/ {{ option.producto_precio }}</div>
+                <div class="text-xs text-gray-500">SKU: {{ option.producto_sku }} · {{ currencySymbol }} {{ option.producto_precio }}</div>
               </div>
             </div>
           </template>
@@ -295,6 +296,10 @@ import {
   type RuleCategory,
   type ConfigFieldSchema,
 } from '@/config/promotion-v2-config-schemas'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencyIso, currencySymbol } = useFormatters()
+
 
 const props = defineProps<{
   ruleCategory: RuleCategory

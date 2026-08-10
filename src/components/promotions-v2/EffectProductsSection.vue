@@ -243,6 +243,9 @@ import { ref, computed, watch } from 'vue'
 import Dialog from 'primevue/dialog'
 import { productsApi } from '@/api/products.api'
 import { usePromotionV2Store } from '@/stores/promotion-v2.store'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencySymbol } = useFormatters()
 
 interface ProductItem {
   id: number
@@ -272,12 +275,12 @@ const effectLabel = computed(() => {
   }
   if (props.effect.type === 'fixed_discount_product') {
     const amount = Number(config.amount || 0)
-    return amount ? `S/ ${amount.toFixed(2)} desc. x unidad` : 'Descuento fijo por producto'
+    return amount ? `${currencySymbol.value} ${amount.toFixed(2)} desc. x unidad` : 'Descuento fijo por producto'
   }
   if (props.effect.type === 'override_price') {
     // El config guarda soles (campo currency), no centavos.
     const price = Number(config.new_price || 0)
-    return price ? `Precio especial: S/ ${price.toFixed(2)}` : 'Precio especial'
+    return price ? `Precio especial: ${currencySymbol.value} ${price.toFixed(2)}` : 'Precio especial'
   }
   if (props.effect.type === 'gift_product') {
     return `${config.gift_quantity || 1} unidad(es) gratis`

@@ -153,12 +153,12 @@
               </Column>
               <Column field="old_price" header="Precio Anterior" style="width: 15%">
                 <template #body="slotProps">
-                  <span class="font-mono text-sm">S/ {{ slotProps.data.old_price.toFixed(2) }}</span>
+                  <span class="font-mono text-sm">{{ currencySymbol }} {{ slotProps.data.old_price.toFixed(2) }}</span>
                 </template>
               </Column>
               <Column field="new_price_with_igv" header="Precio Nuevo" style="width: 15%">
                 <template #body="slotProps">
-                  <span class="font-mono text-sm font-semibold">S/ {{ (slotProps.data.new_price_with_igv || slotProps.data.new_price || 0).toFixed(2) }}</span>
+                  <span class="font-mono text-sm font-semibold">{{ currencySymbol }} {{ (slotProps.data.new_price_with_igv || slotProps.data.new_price || 0).toFixed(2) }}</span>
                 </template>
               </Column>
               <Column field="price_change_percent" header="Cambio" style="width: 15%">
@@ -228,13 +228,13 @@
           </Column>
           <Column field="old_price" header="Precio Actual" style="width: 15%">
             <template #body="slotProps">
-              <span class="font-mono text-sm">S/ {{ slotProps.data.old_price.toFixed(2) }}</span>
+              <span class="font-mono text-sm">{{ currencySymbol }} {{ slotProps.data.old_price.toFixed(2) }}</span>
             </template>
           </Column>
           <Column field="new_price_with_igv" header="Precio Nuevo" style="width: 15%">
             <template #body="slotProps">
               <span class="font-mono text-sm font-semibold text-green-700">
-                S/ {{ (slotProps.data.new_price_with_igv || slotProps.data.new_price || 0).toFixed(2) }}
+                {{ currencySymbol }} {{ (slotProps.data.new_price_with_igv || slotProps.data.new_price || 0).toFixed(2) }}
               </span>
             </template>
           </Column>
@@ -382,6 +382,9 @@ import Column from 'primevue/column'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import ProgressSpinner from 'primevue/progressspinner'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencySymbol } = useFormatters()
 
 interface SyncStatus {
   last_sync: string | null

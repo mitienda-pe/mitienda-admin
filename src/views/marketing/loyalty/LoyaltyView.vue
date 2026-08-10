@@ -65,7 +65,7 @@
             <h3 class="text-lg font-semibold text-secondary mb-4">Parámetros generales</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-secondary-700 mb-1">Monto mínimo de compra (S/)</label>
+                <label class="block text-sm font-medium text-secondary-700 mb-1">Monto mínimo de compra ({{ currencySymbol }})</label>
                 <InputNumber v-model="form.min_order_amount" :min="0" :maxFractionDigits="2" mode="decimal" class="w-full" />
                 <p class="text-xs text-secondary-400 mt-1">Compra mínima para que cuente en el programa</p>
               </div>
@@ -81,7 +81,7 @@
                 <InputNumber v-model="form.stamps_required" :min="2" :max="50" class="w-full" />
               </div>
               <div>
-                <label class="block text-sm font-medium text-secondary-700 mb-1">Valor del cupón generado (S/)</label>
+                <label class="block text-sm font-medium text-secondary-700 mb-1">Valor del cupón generado ({{ currencySymbol }})</label>
                 <InputNumber v-model="form.stamp_reward_amount" :min="1" :maxFractionDigits="2" mode="decimal" class="w-full" />
               </div>
               <div>
@@ -93,8 +93,8 @@
             <div class="mt-6 p-4 bg-secondary-50 rounded-lg">
               <p class="text-sm text-secondary-600">
                 <strong>Vista previa:</strong> Tus clientes necesitarán <strong>{{ form.stamps_required }}</strong> compras
-                de S/ {{ form.min_order_amount?.toFixed(2) || '0.00' }} o más para ganar un cupón de
-                <strong>S/ {{ form.stamp_reward_amount?.toFixed(2) || '0.00' }}</strong>
+                de {{ currencySymbol }} {{ form.min_order_amount?.toFixed(2) || '0.00' }} o más para ganar un cupón de
+                <strong>{{ currencySymbol }} {{ form.stamp_reward_amount?.toFixed(2) || '0.00' }}</strong>
                 (válido por {{ form.coupon_expiry_days }} días).
               </p>
             </div>
@@ -105,14 +105,14 @@
             <h3 class="text-lg font-semibold text-secondary mb-4">Configuración de puntos</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label class="block text-sm font-medium text-secondary-700 mb-1">Puntos por sol gastado</label>
+                <label class="block text-sm font-medium text-secondary-700 mb-1">Puntos por cada {{ currencySymbol }} 1 gastado</label>
                 <InputNumber v-model="form.points_per_sol" :min="0.01" :maxFractionDigits="4" mode="decimal" class="w-full" />
-                <p class="text-xs text-secondary-400 mt-1">Ej: 5 = S/50 genera 250 puntos</p>
+                <p class="text-xs text-secondary-400 mt-1">Ej: 5 = {{ currencySymbol }} 50 genera 250 puntos</p>
               </div>
               <div>
-                <label class="block text-sm font-medium text-secondary-700 mb-1">Valor de cada punto (S/)</label>
+                <label class="block text-sm font-medium text-secondary-700 mb-1">Valor de cada punto ({{ currencySymbol }})</label>
                 <InputNumber v-model="form.point_value_soles" :min="0.001" :maxFractionDigits="4" mode="decimal" class="w-full" />
-                <p class="text-xs text-secondary-400 mt-1">Ej: 0.20 = 250 pts valen S/50</p>
+                <p class="text-xs text-secondary-400 mt-1">Ej: 0.20 = 250 pts valen {{ currencySymbol }} 50</p>
               </div>
               <div>
                 <label class="block text-sm font-medium text-secondary-700 mb-1">Mínimo de puntos para pagar</label>
@@ -123,9 +123,9 @@
             <!-- Preview puntos -->
             <div v-if="form.points_per_sol && form.point_value_soles" class="mt-6 p-4 bg-secondary-50 rounded-lg">
               <p class="text-sm text-secondary-600">
-                <strong>Ejemplo:</strong> Una compra de <strong>S/ 50.00</strong> genera
+                <strong>Ejemplo:</strong> Una compra de <strong>{{ currencySymbol }} 50.00</strong> genera
                 <strong>{{ Math.floor(50 * (form.points_per_sol || 0)) }} puntos</strong>,
-                equivalentes a <strong>S/ {{ (Math.floor(50 * (form.points_per_sol || 0)) * (form.point_value_soles || 0)).toFixed(2) }}</strong>
+                equivalentes a <strong>{{ currencySymbol }} {{ (Math.floor(50 * (form.points_per_sol || 0)) * (form.point_value_soles || 0)).toFixed(2) }}</strong>
                 de descuento en una compra futura.
               </p>
             </div>
@@ -164,7 +164,7 @@
             </div>
             <div class="bg-white rounded-lg shadow p-5">
               <p class="text-sm text-secondary-500">Pasivo estimado</p>
-              <p class="text-3xl font-bold text-primary mt-1">S/ {{ store.dashboard.liability_soles }}</p>
+              <p class="text-3xl font-bold text-primary mt-1">{{ currencySymbol }} {{ store.dashboard.liability_soles }}</p>
               <p class="text-xs text-secondary-400 mt-1">{{ formatNumber(parseFloat(store.dashboard.total_liability)) }} {{ program?.type === 'stamps' ? 'sellos' : 'puntos' }}</p>
             </div>
           </div>
@@ -416,7 +416,7 @@ import ProgressSpinner from 'primevue/progressspinner'
 
 const store = useLoyaltyStore()
 const toast = useToast()
-const { formatDate, formatNumber } = useFormatters()
+const { formatDate, formatNumber, currencySymbol } = useFormatters()
 
 // State
 const activeTab = ref(0)

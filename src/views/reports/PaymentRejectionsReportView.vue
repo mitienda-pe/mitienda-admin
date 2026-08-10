@@ -126,7 +126,7 @@
           <template #content>
             <div class="text-sm text-secondary-600">Monto rechazado</div>
             <div class="text-2xl font-bold text-secondary-900 mt-1">
-              S/ {{ formatAmount(report.summary.rejected_amount) }}
+              {{ currencySymbol }} {{ formatAmount(report.summary.rejected_amount) }}
             </div>
             <div class="text-xs text-secondary-500 mt-1">
               {{ report.summary.pending }} pendientes · {{ report.summary.expired }} expirados
@@ -344,6 +344,10 @@ import type {
   PaymentRejectionsFilters,
   PaymentRejectionsResponse
 } from '@/types/report.types'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencySymbol } = useFormatters()
+
 
 use([PieChart, BarChart, TooltipComponent, LegendComponent, GridComponent, CanvasRenderer])
 

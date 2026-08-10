@@ -161,7 +161,7 @@
 
         <Column field="total" header="Total" :sortable="true">
           <template #body="{ data }">
-            <span class="font-medium">S/ {{ parseFloat(data.total).toFixed(2) }}</span>
+            <span class="font-medium">{{ currencySymbol }} {{ parseFloat(data.total).toFixed(2) }}</span>
           </template>
         </Column>
 
@@ -282,6 +282,9 @@ import Tag from 'primevue/tag'
 import InputText from 'primevue/inputtext'
 import Dropdown from 'primevue/dropdown'
 import type { BillingDocumentFilters } from '@/types/billing.types'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencySymbol } = useFormatters()
 
 const router = useRouter()
 const documentsStore = useBillingDocumentsStore()

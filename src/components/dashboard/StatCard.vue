@@ -30,6 +30,7 @@ import { computed } from 'vue'
 import Card from 'primevue/card'
 import Tag from 'primevue/tag'
 import type { MetricChange } from '@/types/dashboard.types'
+import { useFormatters } from '@/composables/useFormatters'
 
 interface Props {
   label: string
@@ -48,9 +49,11 @@ const props = withDefaults(defineProps<Props>(), {
   format: 'number'
 })
 
+const { formatCurrency } = useFormatters()
+
 const formattedValue = computed(() => {
   if (props.format === 'currency') {
-    return `S/ ${Number(props.value).toFixed(2)}`
+    return formatCurrency(Number(props.value))
   } else if (props.format === 'percentage') {
     return `${Number(props.value).toFixed(1)}%`
   } else if (props.format === 'number') {

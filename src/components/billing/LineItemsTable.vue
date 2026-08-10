@@ -22,7 +22,7 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const { formatCurrency } = useFormatters()
+const { formatCurrency, currencyIso } = useFormatters()
 
 // Affectation type labels (10 = gravado, 20 = inafecto, 30 = exonerado)
 const AFFECTATION_LABELS: Record<number, string> = {
@@ -129,7 +129,8 @@ function onRemove(item: ManualDocumentItem) {
         <InputNumber
           :modelValue="data.unit_price"
           mode="currency"
-          currency="PEN"
+          :currency="currencyIso"
+          currencyDisplay="narrowSymbol"
           locale="es-PE"
           :min="0"
           :maxFractionDigits="2"

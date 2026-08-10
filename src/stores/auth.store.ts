@@ -165,6 +165,17 @@ export const useAuthStore = defineStore('auth', () => {
           planStore.fetchPlan()
         })
 
+        // Recargar la config de la tienda: de ahí sale la moneda con la que los
+        // formatters muestran todos los montos. Sin esto, al saltar de una
+        // tienda en soles a una en dólares (o viceversa) se seguiría mostrando
+        // el símbolo de la tienda anterior.
+        import('@/stores/store-config.store').then(({ useStoreConfigStore }) => {
+          const configStore = useStoreConfigStore()
+          configStore.clearConfig()
+          configStore.fetchConfig()
+          configStore.fetchCountryConfig()
+        })
+
         return true
       } else {
         error.value = response.message || 'Error al seleccionar tienda'

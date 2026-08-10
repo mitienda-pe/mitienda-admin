@@ -125,6 +125,16 @@ export const useAdminStore = defineStore('admin', () => {
           authStore.selectedStore = fakeStore
         }
 
+        // Recargar la config de la tienda impersonada: de ahí sale la moneda con
+        // la que los formatters muestran los montos. Impersonar no pasa por
+        // `selectStore()` y /admin usa el mismo DashboardLayout, así que el
+        // layout no se remonta y su fetchConfig() de onMounted no vuelve a
+        // correr: sin esto la tienda se vería con la moneda del super-admin.
+        const { useStoreConfigStore } = await import('./store-config.store')
+        const configStore = useStoreConfigStore()
+        configStore.clearConfig()
+        await Promise.all([configStore.fetchConfig(), configStore.fetchCountryConfig()])
+
         return true
       }
 
@@ -157,6 +167,10 @@ export const useAdminStore = defineStore('admin', () => {
         // Limpiar contexto de impersonación
         impersonationContext.value = null
         localStorage.removeItem('impersonation_context')
+
+        // Descartar la config de la tienda impersonada (ver nota en impersonate).
+        const { useStoreConfigStore } = await import('./store-config.store')
+        useStoreConfigStore().clearConfig()
 
         return true
       }

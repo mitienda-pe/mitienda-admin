@@ -637,14 +637,15 @@
                 <div v-else class="space-y-3">
                   <div>
                     <label for="edit-price" class="block text-xs font-medium text-secondary-600 mb-1">
-                      Precio con IGV (S/)
+                      Precio con IGV ({{ currencySymbol }})
                     </label>
                     <InputNumber
                       id="edit-price"
                       :modelValue="form.price"
                       @update:modelValue="onPriceChange"
                       mode="currency"
-                      currency="PEN"
+                      :currency="currencyIso"
+                      currencyDisplay="narrowSymbol"
                       locale="es-PE"
                       :min="0"
                       :minFractionDigits="2"
@@ -654,7 +655,7 @@
                   </div>
                   <div>
                     <label for="edit-price-no-tax" class="block text-xs font-medium text-secondary-600 mb-1">
-                      Precio sin IGV (S/)
+                      Precio sin IGV ({{ currencySymbol }})
                     </label>
                     <InputNumber
                       id="edit-price-no-tax"
@@ -669,13 +670,14 @@
                   </div>
                   <div>
                     <label for="edit-cost" class="block text-xs font-medium text-secondary-600 mb-1">
-                      Costo de compra (S/)
+                      Costo de compra ({{ currencySymbol }})
                     </label>
                     <InputNumber
                       id="edit-cost"
                       v-model="form.cost"
                       mode="currency"
-                      currency="PEN"
+                      :currency="currencyIso"
+                      currencyDisplay="narrowSymbol"
                       locale="es-PE"
                       :min="0"
                       :minFractionDigits="2"
@@ -690,7 +692,7 @@
                 </div>
 
                 <p v-if="product.price_range?.has_range" class="text-xs text-secondary-400 mt-2">
-                  Variantes: S/ {{ product.price_range.min?.toFixed(2) }} - S/ {{ product.price_range.max?.toFixed(2) }}
+                  Variantes: {{ currencySymbol }} {{ product.price_range.min?.toFixed(2) }} - {{ currencySymbol }} {{ product.price_range.max?.toFixed(2) }}
                 </p>
                 <div class="flex gap-3 mt-2 text-xs text-secondary-500">
                   <span v-if="product.compare_price">
@@ -1135,7 +1137,7 @@ if (!productCardStore.isLoaded) {
 const cropperAspectRatio = computed(() => {
   return productCardStore.savedConfig.image_aspect_ratio === '4/5' ? 4 / 5 : 1
 })
-const { formatCurrency, formatDate } = useFormatters()
+const { formatCurrency, formatDate, currencyIso, currencySymbol } = useFormatters()
 
 const product = computed(() => productsStore.currentProduct)
 
@@ -1237,7 +1239,7 @@ const aiContext = computed(() => {
   if (f.sku) parts.push(`SKU: ${f.sku}`)
   if (p?.brand?.name) parts.push(`Marca: ${p.brand.name}`)
   if (p?.categories?.length) parts.push(`Categoría: ${p.categories.map(c => c.name).join(', ')}`)
-  if (f.price) parts.push(`Precio: S/ ${Number(f.price).toFixed(2)}`)
+  if (f.price) parts.push(`Precio: ${currencySymbol.value} ${Number(f.price).toFixed(2)}`)
   if (f.description_short) parts.push(`Descripción corta: ${f.description_short}`)
   return parts.join('\n')
 })

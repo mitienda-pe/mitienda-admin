@@ -14,6 +14,9 @@ import { AppBadge } from '@/components/ui'
 import type { ProductPriceItem, PublishedFilter } from '@/types/product.types'
 import { publishedFilterOptions } from '@/config/product-filters.config'
 import { usePlanStore } from '@/stores/plan.store'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencyIso } = useFormatters()
 
 const store = useProductManagementStore()
 const toast = useToast()
@@ -457,7 +460,8 @@ const first = computed(
               :modelValue="data.price"
               @update:modelValue="val => onPriceChange(data.id, 'price', val)"
               mode="currency"
-              currency="PEN"
+              :currency="currencyIso"
+              currencyDisplay="narrowSymbol"
               locale="es-PE"
               :minFractionDigits="2"
               :maxFractionDigits="2"
@@ -542,7 +546,8 @@ const first = computed(
                     :modelValue="variant.price"
                     @update:modelValue="val => onVariantPriceChange(data.id, variant.id, 'price', val)"
                     mode="currency"
-                    currency="PEN"
+                    :currency="currencyIso"
+              currencyDisplay="narrowSymbol"
                     locale="es-PE"
                     :minFractionDigits="2"
                     :maxFractionDigits="2"

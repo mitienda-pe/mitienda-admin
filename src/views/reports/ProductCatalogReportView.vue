@@ -191,13 +191,13 @@
 
           <Column field="price_without_tax" header="Precio sin IGV" style="min-width: 130px">
             <template #body="{ data }">
-              S/ {{ formatCurrency(data.price_without_tax) }}
+              {{ currencySymbol }} {{ formatCurrency(data.price_without_tax) }}
             </template>
           </Column>
 
           <Column field="price_with_tax" header="Precio con IGV" style="min-width: 130px">
             <template #body="{ data }">
-              <span class="font-semibold">S/ {{ formatCurrency(data.price_with_tax) }}</span>
+              <span class="font-semibold">{{ currencySymbol }} {{ formatCurrency(data.price_with_tax) }}</span>
             </template>
           </Column>
 
@@ -246,6 +246,10 @@ import type {
   ProductCatalogPreviewResponse,
   ExportFormat
 } from '@/types/report.types'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencySymbol } = useFormatters()
+
 
 const toast = useToast()
 

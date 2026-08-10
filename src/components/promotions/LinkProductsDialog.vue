@@ -8,6 +8,9 @@ import Column from 'primevue/column'
 import { productsApi } from '@/api/products.api'
 import type { Product } from '@/types/product.types'
 import { usePromotionsStore } from '@/stores/promotions.store'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencySymbol } = useFormatters()
 
 interface Props {
   visible: boolean
@@ -160,7 +163,7 @@ watch(() => props.visible, (isVisible) => {
           </Column>
           <Column field="price" header="Precio" headerStyle="width: 120px; padding: 1rem" bodyStyle="padding: 1rem">
             <template #body="slotProps">
-              <span class="font-medium text-gray-900">S/ {{ Number(slotProps.data.price).toFixed(2) }}</span>
+              <span class="font-medium text-gray-900">{{ currencySymbol }} {{ Number(slotProps.data.price).toFixed(2) }}</span>
             </template>
           </Column>
           <Column header="Stock" headerStyle="width: 120px; padding: 1rem" bodyStyle="padding: 1rem">

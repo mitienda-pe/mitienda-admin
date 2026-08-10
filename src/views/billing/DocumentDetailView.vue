@@ -66,7 +66,7 @@
               <div>
                 <label class="text-sm font-semibold text-gray-600">Total</label>
                 <p class="text-lg font-bold text-gray-900">
-                  S/ {{ parseFloat(String(document.total)).toFixed(2) }}
+                  {{ currencySymbol }} {{ parseFloat(String(document.total)).toFixed(2) }}
                 </p>
               </div>
 
@@ -180,6 +180,9 @@ import Button from 'primevue/button'
 import Message from 'primevue/message'
 import Tag from 'primevue/tag'
 import ProgressSpinner from 'primevue/progressspinner'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencySymbol } = useFormatters()
 
 const route = useRoute()
 const documentsStore = useBillingDocumentsStore()

@@ -16,6 +16,7 @@ import { BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import type { HourDistribution } from '@/types/dashboard.types'
+import { useFormatters } from '@/composables/useFormatters'
 
 use([BarChart, GridComponent, TooltipComponent, CanvasRenderer])
 
@@ -24,6 +25,8 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
+const { formatCurrency, currencySymbol } = useFormatters()
 
 // Fill all 24 hours (some may be missing from backend)
 const fullHours = computed(() => {
@@ -36,10 +39,7 @@ const chartOption = computed(() => ({
     trigger: 'axis',
     formatter(params: any) {
       const p = params[0]
-      const amount = Number(p.data).toLocaleString('es-PE', {
-        style: 'currency',
-        currency: 'PEN'
-      })
+      const amount = formatCurrency(Number(p.data))
       const item = fullHours.value[p.dataIndex]
       return `<strong>${p.axisValue}:00</strong><br/>Monto: ${amount}<br/>Pedidos: ${item?.count ?? 0}`
     }
@@ -54,7 +54,7 @@ const chartOption = computed(() => ({
     type: 'value',
     axisLabel: {
       formatter: (val: number) =>
-        val >= 1000 ? `S/ ${(val / 1000).toFixed(0)}K` : `S/ ${val}`
+        val >= 1000 ? `${currencySymbol.value} ${(val / 1000).toFixed(0)}K` : `${currencySymbol.value} ${val}`
     }
   },
   series: [

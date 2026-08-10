@@ -380,6 +380,9 @@ import LinkBonificationsDialog from '@/components/promotions/LinkBonificationsDi
 import EditPromotionDialog from '@/components/promotions/EditPromotionDialog.vue'
 import { useToast } from 'primevue/usetoast'
 import apiClient from '@/api/axios'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencySymbol } = useFormatters()
 
 const route = useRoute()
 const router = useRouter()
@@ -468,7 +471,7 @@ function formatDiscount(valor: number | string | null | undefined, tipodescuento
   if (isPercentage) {
     return `${numericValue}%`
   } else {
-    return `S/ ${numericValue.toFixed(2)}`
+    return `${currencySymbol.value} ${numericValue.toFixed(2)}`
   }
 }
 

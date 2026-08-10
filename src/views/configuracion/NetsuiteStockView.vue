@@ -252,7 +252,7 @@
                 </Column>
                 <Column header="Precio" style="min-width: 110px" class="text-right">
                   <template #body="{ data }">
-                    <span class="font-semibold">S/ {{ Number(data.preview?.producto_precio ?? 0).toFixed(2) }}</span>
+                    <span class="font-semibold">{{ currencySymbol }} {{ Number(data.preview?.producto_precio ?? 0).toFixed(2) }}</span>
                   </template>
                 </Column>
                 <Column header="Stock" style="min-width: 80px" class="text-right">
@@ -321,6 +321,9 @@ import Tag from 'primevue/tag'
 import Paginator from 'primevue/paginator'
 import Message from 'primevue/message'
 import Dialog from 'primevue/dialog'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencySymbol } = useFormatters()
 
 const toast = useToast()
 
@@ -424,7 +427,7 @@ function getStockDiff(data: ProductStock): string {
 
 function formatMoney(value: number | null | undefined): string {
   if (value === null || value === undefined) return 'N/A'
-  return `S/ ${Number(value).toFixed(2)}`
+  return `${currencySymbol.value} ${Number(value).toFixed(2)}`
 }
 
 async function queryIndividualStock(product: ProductStock) {

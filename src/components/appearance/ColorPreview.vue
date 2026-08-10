@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { StoreColorConfig } from '@/types/appearance.types'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencySymbol } = useFormatters()
 
 interface Props {
   colors: StoreColorConfig
@@ -139,7 +142,7 @@ const iconColor = computed(() =>
               <div
                 class="text-xs mt-0.5"
                 :style="{ color: colors.body.text }"
-              >S/ 49.90</div>
+              >{{ currencySymbol }} 49.90</div>
               <button
                 class="w-full mt-1.5 text-xs py-1 rounded"
                 :style="{
@@ -161,7 +164,7 @@ const iconColor = computed(() =>
               <div
                 class="text-xs mt-0.5"
                 :style="{ color: colors.body.text }"
-              >S/ 79.90</div>
+              >{{ currencySymbol }} 79.90</div>
               <button
                 class="w-full mt-1.5 text-xs py-1 rounded"
                 :style="{

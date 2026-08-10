@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Product } from '@/types/product.types'
+import { useFormatters } from '@/composables/useFormatters'
 
 interface Props {
   product: Product
@@ -13,6 +14,8 @@ const props = withDefaults(defineProps<Props>(), {
   showCurrency: true
 })
 
+const { currencySymbol } = useFormatters()
+
 const sizeClasses = computed(() => {
   const sizes = {
     sm: 'text-sm',
@@ -24,19 +27,19 @@ const sizeClasses = computed(() => {
 })
 
 const displayPrice = computed(() => {
-  const currencySymbol = props.showCurrency ? 'S/ ' : ''
+  const prefix = props.showCurrency ? `${currencySymbol.value} ` : ''
 
   // Si tiene variantes con rango de precios, mostrar "Desde: "
   if (props.product.has_variation_attributes && props.product.price_range?.has_range) {
     const minPrice = props.product.price_range.min?.toFixed(2) ?? '0.00'
-    return `Desde: ${currencySymbol}${minPrice}`
+    return `Desde: ${prefix}${minPrice}`
   }
 
   // Precio fijo o variantes con un solo precio
   const price = typeof props.product.price === 'number'
     ? props.product.price.toFixed(2)
     : '0.00'
-  return `${currencySymbol}${price}`
+  return `${prefix}${price}`
 })
 </script>
 

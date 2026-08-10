@@ -62,6 +62,9 @@ import type * as MonacoTypes from 'monaco-editor'
 import 'ai-text-enhancer'
 import { useAuthStore } from '@/stores/auth.store'
 import { AI_BUTTON_IDS } from '@/config/ai-buttons.config'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencySymbol } = useFormatters()
 
 interface Props {
   modelValue: boolean
@@ -145,9 +148,9 @@ const aiContext = computed(() => {
   if (ctx.barcode) parts.push(`Codigo de barras: ${ctx.barcode}`)
   parts.push(`Categoria: ${ctx.categories?.join(', ') || 'Sin categoria'}`)
   parts.push(`Marca: ${ctx.brand || 'Sin marca'}`)
-  if (ctx.price) parts.push(`Precio: S/ ${ctx.price.toFixed(2)}`)
+  if (ctx.price) parts.push(`Precio: ${currencySymbol.value} ${ctx.price.toFixed(2)}`)
   if (ctx.comparePrice && ctx.comparePrice > ctx.price) {
-    parts.push(`Precio anterior: S/ ${ctx.comparePrice.toFixed(2)} (descuento ${Math.round((1 - ctx.price / ctx.comparePrice) * 100)}%)`)
+    parts.push(`Precio anterior: ${currencySymbol.value} ${ctx.comparePrice.toFixed(2)} (descuento ${Math.round((1 - ctx.price / ctx.comparePrice) * 100)}%)`)
   }
   if (ctx.descriptionShort) parts.push(`Descripcion corta: ${ctx.descriptionShort}`)
   if (ctx.weight) parts.push(`Peso: ${ctx.weight} ${ctx.weightUnit}`)

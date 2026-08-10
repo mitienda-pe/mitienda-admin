@@ -67,7 +67,7 @@
             mode="decimal"
             :minFractionDigits="2"
             :maxFractionDigits="2"
-            prefix="S/ "
+            :prefix="`${currencySymbol} `"
             class="w-full p-inputtext-sm"
             @input="emitUpdate"
           />
@@ -82,7 +82,7 @@
             mode="decimal"
             :minFractionDigits="2"
             :maxFractionDigits="2"
-            prefix="S/ "
+            :prefix="`${currencySymbol} `"
             class="w-full p-inputtext-sm"
             disabled
           />
@@ -98,7 +98,7 @@
             :min="0"
             :minFractionDigits="2"
             :maxFractionDigits="4"
-            prefix="S/ "
+            :prefix="`${currencySymbol} `"
             class="w-full p-inputtext-sm"
             @input="emitUpdate"
           />
@@ -176,7 +176,7 @@
     <div v-if="variants.length > 0" class="flex items-center justify-between mt-3 text-sm text-secondary-500">
       <span>{{ variants.length }} variantes</span>
       <span v-if="priceRange">
-        Rango: S/ {{ priceRange.min.toFixed(2) }} - S/ {{ priceRange.max.toFixed(2) }}
+        Rango: {{ currencySymbol }} {{ priceRange.min.toFixed(2) }} - {{ currencySymbol }} {{ priceRange.max.toFixed(2) }}
       </span>
     </div>
   </div>
@@ -185,6 +185,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { ProductVariant } from '@/types/product.types'
+import { useFormatters } from '@/composables/useFormatters'
 import type { ProductImage } from '@/types/product.types'
 import Button from 'primevue/button'
 import Checkbox from 'primevue/checkbox'
@@ -207,6 +208,8 @@ const emit = defineEmits<{
 }>()
 
 const imagePickerRef = ref()
+
+const { currencySymbol } = useFormatters()
 const editingVariant = ref<ProductVariant | null>(null)
 
 const imageMap = computed(() => {

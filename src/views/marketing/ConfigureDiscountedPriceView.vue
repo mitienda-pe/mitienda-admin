@@ -18,7 +18,7 @@
           <strong>Descuento:</strong>
           {{ currentPromotion.tiendapromocion_tipodescuento === 1
             ? `${currentPromotion.tiendapromocion_valor}%`
-            : `S/ ${currentPromotion.tiendapromocion_valor}` }}
+            : `${currencySymbol} ${currentPromotion.tiendapromocion_valor}` }}
         </span>
       </div>
     </div>
@@ -81,14 +81,14 @@
                   </td>
                   <td class="px-4 py-4 text-sm text-gray-500">{{ product.producto_sku }}</td>
                   <td class="px-4 py-4 text-sm text-gray-900">
-                    S/ {{ Number(product.producto_precio).toFixed(2) }}
+                    {{ currencySymbol }} {{ Number(product.producto_precio).toFixed(2) }}
                   </td>
                   <td class="px-4 py-4 text-sm font-semibold text-green-600">
-                    S/ {{ calculateDiscountedPrice(product).toFixed(2) }}
+                    {{ currencySymbol }} {{ calculateDiscountedPrice(product).toFixed(2) }}
                     <span class="text-xs text-gray-500 ml-1">
                       ({{ currentPromotion.tiendapromocion_tipodescuento === 1
                         ? `-${currentPromotion.tiendapromocion_valor}%`
-                        : `-S/ ${currentPromotion.tiendapromocion_valor}` }})
+                        : `-${currencySymbol} ${currentPromotion.tiendapromocion_valor}` }})
                     </span>
                   </td>
                   <td class="px-4 py-4 text-center">
@@ -124,10 +124,10 @@
                   ? 'Porcentual - Se aplica un porcentaje de descuento sobre el precio normal'
                   : 'Monto Fijo - Se resta un monto fijo del precio normal' }}
               </li>
-              <li><strong>Ejemplo:</strong> Si un producto cuesta S/ 100 y el descuento es
+              <li><strong>Ejemplo:</strong> Si un producto cuesta {{ currencySymbol }} 100 y el descuento es
                 {{ currentPromotion.tiendapromocion_tipodescuento === 1
-                  ? `${currentPromotion.tiendapromocion_valor}%, el cliente pagará S/ ${(100 - (100 * currentPromotion.tiendapromocion_valor / 100)).toFixed(2)}`
-                  : `S/ ${currentPromotion.tiendapromocion_valor}, el cliente pagará S/ ${(100 - currentPromotion.tiendapromocion_valor).toFixed(2)}` }}
+                  ? `${currentPromotion.tiendapromocion_valor}%, el cliente pagará ${currencySymbol} ${(100 - (100 * currentPromotion.tiendapromocion_valor / 100)).toFixed(2)}`
+                  : `${currencySymbol} ${currentPromotion.tiendapromocion_valor}, el cliente pagará ${currencySymbol} ${(100 - currentPromotion.tiendapromocion_valor).toFixed(2)}` }}
               </li>
             </ul>
           </div>
@@ -153,6 +153,9 @@ import Button from 'primevue/button'
 import LinkProductsDialog from '@/components/promotions/LinkProductsDialog.vue'
 import { useToast } from 'primevue/usetoast'
 import apiClient from '@/api/axios'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencySymbol } = useFormatters()
 
 const route = useRoute()
 const toast = useToast()

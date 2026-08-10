@@ -200,7 +200,7 @@
           <Column field="discount_value" header="Valor" style="min-width: 100px">
             <template #body="{ data }">
               <span class="font-semibold">
-                {{ data.discount_type_raw === 1 ? data.discount_value + '%' : 'S/ ' + data.discount_value.toFixed(2) }}
+                {{ data.discount_type_raw === 1 ? data.discount_value + '%' : currencySymbol + ' ' + data.discount_value.toFixed(2) }}
               </span>
             </template>
           </Column>
@@ -263,6 +263,9 @@ import type {
   PromotionsPreviewResponse
 } from '@/types/report.types'
 import { ExportFormat } from '@/types/report.types'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencySymbol } = useFormatters()
 
 const toast = useToast()
 

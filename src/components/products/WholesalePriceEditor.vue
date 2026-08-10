@@ -20,6 +20,9 @@ import Button from 'primevue/button'
 import { AppButton, AppBadge } from '@/components/ui'
 import { productsApi } from '@/api/products.api'
 import type { WholesalePriceTier } from '@/types/product.types'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencyIso } = useFormatters()
 
 const props = defineProps<{
   productId: number
@@ -243,7 +246,8 @@ async function save() {
               <InputNumber
                 v-model="tier.price"
                 mode="currency"
-                currency="PEN"
+                :currency="currencyIso"
+                currencyDisplay="narrowSymbol"
                 locale="es-PE"
                 :min="0"
                 :min-fraction-digits="2"

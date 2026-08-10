@@ -40,7 +40,7 @@
       </div>
       <div v-if="customer.total_spent" class="customer-card__stat">
         <span class="customer-card__stat-label">Total gastado</span>
-        <span class="customer-card__stat-value">S/ {{ formatMoney(customer.total_spent) }}</span>
+        <span class="customer-card__stat-value">{{ currencySymbol }} {{ formatMoney(customer.total_spent) }}</span>
       </div>
     </div>
   </div>
@@ -50,6 +50,9 @@
 import { defineProps, defineEmits } from 'vue'
 import Tag from 'primevue/tag'
 import type { Customer } from '@/types/customer.types'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencySymbol } = useFormatters()
 
 interface Props {
   customer: Customer

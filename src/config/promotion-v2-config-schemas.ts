@@ -5,6 +5,8 @@
  * Used by RuleConfigForm.vue to render type-specific forms instead of raw JSON.
  */
 
+import { useStoreConfigStore } from '@/stores/store-config.store'
+
 export type FieldType =
   | 'number'
   | 'currency' // monto en soles (PEN); el motor de evaluación lo convierte a centavos al leer
@@ -469,17 +471,14 @@ export function isKnownType(category: RuleCategory, type: string): boolean {
 // --- HUMAN-READABLE FORMATTERS ---
 
 /**
- * Símbolo de moneda usado en los labels human-readable. Se resuelve lazy desde
- * el store-config store (que ya cargó countryConfig al boot de DashboardLayout).
- * Si el store aún no está disponible (e.g. tests, SSR), cae a vacío para no
- * crashear; en ese caso el usuario verá un label sin símbolo en vez de "S/"
- * incorrecto para una tienda no-PE.
+ * Símbolo de moneda usado en los labels human-readable. Sale de la moneda con
+ * la que vende la tienda (`tiendasgenerales.moneda_id`), no de su país. Si Pinia
+ * todavía no está activo (e.g. tests) cae a vacío para no crashear; en ese caso
+ * el usuario verá un label sin símbolo en vez de un "S/" incorrecto.
  */
 function symbol(): string {
   try {
-    // Import dinámico para evitar ciclo con stores que dependen de este config.
-    const mod = require('@/stores/store-config.store') as typeof import('@/stores/store-config.store')
-    return mod.useStoreConfigStore().currentCurrencySymbol || ''
+    return useStoreConfigStore().currentCurrencySymbol || ''
   } catch {
     return ''
   }

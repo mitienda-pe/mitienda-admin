@@ -41,7 +41,7 @@
                 id="bar_texto"
                 v-model="formData.bar_texto"
                 rows="3"
-                placeholder="Ej: ¡Envío gratis en compras mayores a S/100! 🚚"
+                :placeholder="`Ej: ¡Envío gratis en compras mayores a ${currencySymbol} 100! 🚚`"
                 class="w-full"
                 :class="{ 'p-invalid': errors.bar_texto }"
               />
@@ -323,6 +323,9 @@ import InputSwitch from 'primevue/inputswitch'
 import Calendar from 'primevue/calendar'
 import Divider from 'primevue/divider'
 import Message from 'primevue/message'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencySymbol } = useFormatters()
 
 const router = useRouter()
 const route = useRoute()

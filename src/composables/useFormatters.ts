@@ -1,3 +1,4 @@
+import { computed } from 'vue'
 import { useStoreConfigStore } from '@/stores/store-config.store'
 
 // Mapeo ISO2 → locale BCP47 para Intl. PE/CR/EC usan es-* respectivamente;
@@ -22,22 +23,54 @@ export function useFormatters() {
     }
   }
 
+  // Moneda con la que la tienda vende (`tiendasgenerales.moneda_id`). Es
+  // independiente del país: una tienda peruana puede cobrar en USD. Manda sobre
+  // la moneda default del país; el país solo aporta locale y decimales.
+  const getStoreCurrency = () => {
+    try {
+      const config = useStoreConfigStore().savedConfig
+      return config?.moneda_iso
+        ? { iso: config.moneda_iso, simbolo: config.moneda_simbolo }
+        : null
+    } catch {
+      return null
+    }
+  }
+
   const getLocale = (): string => {
     const iso2 = getCountry()?.iso2
     return iso2 ? (LOCALE_BY_ISO2[iso2] ?? 'es') : 'es-PE'
   }
 
-  // Formatear moneda según país de la tienda. Cae a PEN/S/ si el countryConfig
-  // aún no se cargó (caso boot inicial).
+  // ISO 4217 de la moneda en la que se muestran los montos.
+  const currencyIso = computed(() => {
+    return getStoreCurrency()?.iso || getCountry()?.moneda_iso || 'PEN'
+  })
+
+  // Símbolo para los sitios que arman el monto a mano (charts, prefijos de
+  // InputNumber, labels). Preferir formatCurrency() cuando se pueda.
+  const currencySymbol = computed(() => {
+    return getStoreCurrency()?.simbolo || getCountry()?.moneda_simbolo || 'S/'
+  })
+
+  // Formatear moneda según la moneda de venta de la tienda. Cae a la moneda del
+  // país, y a PEN/S/ si nada se cargó todavía (caso boot inicial).
   const formatCurrency = (amount: number): string => {
     const country = getCountry()
-    const currency = country?.moneda_iso ?? 'PEN'
-    const decimals = country?.decimales ?? 2
+    const currency = currencyIso.value
+    // Los decimales del país solo aplican si la tienda vende en la moneda de su
+    // país; para una moneda ajena (p.ej. CLP sin decimales en una tienda PE)
+    // dejamos que Intl use los de la propia moneda.
+    const useCountryDecimals = !country?.moneda_iso || country.moneda_iso === currency
+    const decimals = useCountryDecimals ? (country?.decimales ?? 2) : null
+
     return new Intl.NumberFormat(getLocale(), {
       style: 'currency',
       currency,
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals + 1
+      currencyDisplay: 'narrowSymbol',
+      ...(decimals !== null
+        ? { minimumFractionDigits: decimals, maximumFractionDigits: decimals + 1 }
+        : {})
     }).format(amount)
   }
 
@@ -135,6 +168,8 @@ export function useFormatters() {
   }
 
   return {
+    currencyIso,
+    currencySymbol,
     formatCurrency,
     formatNumber,
     formatPercentage,

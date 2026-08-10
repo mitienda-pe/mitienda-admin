@@ -22,7 +22,7 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const { formatCurrency } = useFormatters()
+const { formatCurrency, currencyIso } = useFormatters()
 
 // Form state
 const code = ref('')
@@ -190,7 +190,8 @@ function onCancel() {
           <InputNumber
             v-model="unitPrice"
             mode="currency"
-            currency="PEN"
+            :currency="currencyIso"
+            currencyDisplay="narrowSymbol"
             locale="es-PE"
             :min="0"
             :maxFractionDigits="2"

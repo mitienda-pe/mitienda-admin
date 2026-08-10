@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import type { StoreTypographyConfig } from '@/types/appearance.types'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencySymbol } = useFormatters()
 
 interface Props {
   typography: StoreTypographyConfig
@@ -101,7 +104,7 @@ function scaled(base: number, scale: number): string {
                   fontFamily: `'${typography.body.bodyFont}', sans-serif`,
                   fontSize: scaled(11, typography.scale),
                 }"
-              >S/ 49.90</div>
+              >{{ currencySymbol }} 49.90</div>
               <button
                 class="w-full mt-1.5 py-1 rounded bg-primary text-white"
                 :style="{
@@ -129,7 +132,7 @@ function scaled(base: number, scale: number): string {
                   fontFamily: `'${typography.body.bodyFont}', sans-serif`,
                   fontSize: scaled(11, typography.scale),
                 }"
-              >S/ 79.90</div>
+              >{{ currencySymbol }} 79.90</div>
               <button
                 class="w-full mt-1.5 py-1 rounded bg-primary text-white"
                 :style="{

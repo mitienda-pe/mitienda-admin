@@ -217,7 +217,8 @@
               <InputNumber
                 v-model="formData.tiendacombo_precio"
                 mode="currency"
-                currency="PEN"
+                :currency="currencyIso"
+                currencyDisplay="narrowSymbol"
                 locale="es-PE"
                 class="w-full"
                 :class="{ 'p-invalid': formErrors.precio }"
@@ -317,7 +318,7 @@ const router = useRouter()
 const route = useRoute()
 const comboStore = useComboStore()
 const toast = useToast()
-const { formatCurrency } = useFormatters()
+const { formatCurrency, currencyIso } = useFormatters()
 
 const isLoading = ref(false)
 const isEditMode = computed(() => !!route.params.id)

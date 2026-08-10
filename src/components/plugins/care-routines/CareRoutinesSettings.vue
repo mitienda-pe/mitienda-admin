@@ -3,6 +3,9 @@ import { onMounted, reactive, ref } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { rutinasApi, type Rutina, type RutinaSavePayload } from '@/api/rutinas.api'
 import { productsApi } from '@/api/products.api'
+import { useFormatters } from '@/composables/useFormatters'
+
+const { currencySymbol } = useFormatters()
 
 // El add-on gestiona sus rutinas vía endpoints dedicados (/rutinas*), no vía
 // el config-schema genérico de plugins; por eso ignoramos las props recibidas.
@@ -460,7 +463,7 @@ onMounted(loadList)
               <div class="h-10 w-10 rounded bg-gray-100" v-else />
               <div class="min-w-0 flex-1">
                 <p class="truncate text-sm text-gray-800">{{ p.producto_nombre }}</p>
-                <p v-if="p.producto_precio" class="text-xs text-gray-500">S/ {{ p.producto_precio.toFixed(2) }}</p>
+                <p v-if="p.producto_precio" class="text-xs text-gray-500">{{ currencySymbol }} {{ p.producto_precio.toFixed(2) }}</p>
               </div>
               <button type="button" class="rounded bg-primary px-3 py-1 text-xs font-medium text-white hover:bg-primary/90" @click="pickProduct(p)">
                 Agregar

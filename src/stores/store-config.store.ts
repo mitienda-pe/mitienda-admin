@@ -53,14 +53,18 @@ export const useStoreConfigStore = defineStore('store-config', () => {
     return JSON.stringify(draftConfig.value) !== JSON.stringify(savedConfig.value)
   })
 
+  // El catálogo `currencies` solo se carga en /store/config, así que fuera de
+  // esa vista la moneda sale de `savedConfig` (el GET /store-config ya trae el
+  // join con `monedas`). El país es el último recurso: una tienda peruana puede
+  // vender en dólares, y ahí la moneda del país no aplica.
   const currentCurrencySymbol = computed(() => {
     const c = currencies.value.find(c => c.moneda_id === draftConfig.value.moneda_id)
-    return c?.moneda_simbolo || countryConfig.value?.moneda_simbolo || ''
+    return c?.moneda_simbolo || savedConfig.value.moneda_simbolo || countryConfig.value?.moneda_simbolo || ''
   })
 
   const currentCurrencyIso = computed(() => {
     const c = currencies.value.find(c => c.moneda_id === draftConfig.value.moneda_id)
-    return c?.moneda_iso || countryConfig.value?.moneda_iso || ''
+    return c?.moneda_iso || savedConfig.value.moneda_iso || countryConfig.value?.moneda_iso || ''
   })
 
   const currentDecimales = computed(() => countryConfig.value?.decimales ?? 2)
@@ -206,6 +210,21 @@ export const useStoreConfigStore = defineStore('store-config', () => {
     draftConfig.value = deepClone(savedConfig.value)
   }
 
+  /**
+   * Descarta la config de la tienda anterior al cambiar de tienda. Sin esto,
+   * `savedConfig` (que alimenta la moneda de los formatters) y `countryConfig`
+   * quedan pegados de la tienda previa: DashboardLayout no se remonta en el
+   * switch, así que su `fetchConfig()` de onMounted no vuelve a correr.
+   */
+  function clearConfig() {
+    savedConfig.value = deepClone(DEFAULT_CONFIG)
+    draftConfig.value = deepClone(DEFAULT_CONFIG)
+    countryConfig.value = null
+    currencies.value = []
+    isLoaded.value = false
+    error.value = null
+  }
+
   return {
     savedConfig,
     draftConfig,
@@ -230,6 +249,7 @@ export const useStoreConfigStore = defineStore('store-config', () => {
     uploadBanner,
     deleteBanner,
     updateField,
-    resetConfig
+    resetConfig,
+    clearConfig
   }
 })
