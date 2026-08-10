@@ -31,6 +31,14 @@ export interface Catalog {
   created_at: string | null
 }
 
+/** Conteo de productos que entran en un alcance (pre-vuelo del formulario). */
+export interface CatalogScopeCount {
+  matched_count: number
+  included_count: number
+  max_products: number
+  truncated: boolean
+}
+
 export interface CreateCatalogPayload {
   nombre: string
   scope: CatalogScope

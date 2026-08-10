@@ -83,6 +83,27 @@
                 </p>
               </div>
               <p v-if="errors.scope" class="text-danger text-xs mt-1">{{ errors.scope }}</p>
+
+              <!-- Pre-conteo del alcance: avisa del tope de 100 antes de generar -->
+              <p v-if="countingScope" class="text-xs text-gray-400 mt-2">
+                <i class="pi pi-spinner pi-spin" /> Contando productos…
+              </p>
+              <p
+                v-else-if="scopeCount"
+                class="text-xs mt-2"
+                :class="scopeCount.truncated ? 'text-amber-600' : 'text-gray-500'"
+              >
+                <i :class="scopeCount.truncated ? 'pi pi-exclamation-triangle' : 'pi pi-check-circle'" class="mr-1" />
+                <template v-if="scopeCount.truncated">
+                  {{ scopeCount.matched_count }} productos publicados en este alcance —
+                  se incluirán solo los primeros {{ scopeCount.included_count }}.
+                  Acota por categoría, marca o lista para controlar cuáles entran.
+                </template>
+                <template v-else>
+                  {{ scopeCount.matched_count }}
+                  {{ scopeCount.matched_count === 1 ? 'producto publicado' : 'productos publicados' }} en este alcance.
+                </template>
+              </p>
             </div>
 
             <!-- Productos por página -->
@@ -213,7 +234,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, watch, onMounted, onUnmounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import Card from 'primevue/card'
 import Dropdown from 'primevue/dropdown'
@@ -226,6 +247,7 @@ import {
   CATALOG_MAX_PRODUCTS,
   type Catalog,
   type CatalogScope,
+  type CatalogScopeCount,
   type CatalogPerPage,
   type CatalogCoverType,
   type CreateCatalogPayload
@@ -287,6 +309,55 @@ async function loadProductLists() {
   }
 }
 
+// ── Pre-conteo del alcance ───────────────────────────────────────
+// Se consulta al cambiar alcance o selección para avisar del tope de 100 antes
+// de generar. `countSeq` descarta respuestas que llegan fuera de orden.
+const scopeCount = ref<CatalogScopeCount | null>(null)
+const countingScope = ref(false)
+let countSeq = 0
+let countTimer: ReturnType<typeof setTimeout> | undefined
+
+async function refreshScopeCount() {
+  // Alcances que aún no tienen selección: nada que contar todavía.
+  if (
+    (form.scope === 'category' && !form.category_id) ||
+    (form.scope === 'brand' && !form.brand_id) ||
+    (form.scope === 'list' && !form.list_id)
+  ) {
+    scopeCount.value = null
+    countingScope.value = false
+    return
+  }
+
+  const seq = ++countSeq
+  countingScope.value = true
+  try {
+    const res = await catalogPdfApi.previewCount({
+      scope: form.scope,
+      category_id: form.scope === 'category' ? form.category_id : undefined,
+      brand_id: form.scope === 'brand' ? form.brand_id : undefined,
+      list_id: form.scope === 'list' ? form.list_id : undefined
+    })
+    if (seq !== countSeq) return
+    scopeCount.value = res
+  } catch {
+    if (seq !== countSeq) return
+    // El conteo es informativo: si falla, el formulario sigue usable.
+    scopeCount.value = null
+  } finally {
+    if (seq === countSeq) countingScope.value = false
+  }
+}
+
+watch(
+  () => [form.scope, form.category_id, form.brand_id, form.list_id],
+  () => {
+    scopeCount.value = null
+    clearTimeout(countTimer)
+    countTimer = setTimeout(refreshScopeCount, 300)
+  }
+)
+
 // ── Portada subida ───────────────────────────────────────────────
 const uploadingCover = ref(false)
 async function onCoverSelected(e: Event) {
@@ -330,12 +401,22 @@ async function onSubmit() {
     if (form.scope === 'list') payload.list_id = form.list_id
     if (form.cover_type === 'uploaded' && form.cover_url) payload.cover_url = form.cover_url
 
-    const { catalog_id } = await catalogPdfApi.createCatalog(payload)
-    toast.add({ severity: 'success', summary: 'Catálogo en cola', detail: 'Generando el PDF…', life: 3000 })
+    const created = await catalogPdfApi.createCatalog(payload)
+    const { catalog_id } = created
+    toast.add({
+      severity: created.truncated ? 'warn' : 'success',
+      summary: 'Catálogo en cola',
+      detail: created.truncated
+        ? `Se incluirán ${created.included_count} de ${created.matched_count} productos.`
+        : 'Generando el PDF…',
+      life: created.truncated ? 6000 : 3000
+    })
     await loadHistory()
     startPolling(catalog_id)
   } catch (e: any) {
-    const msg = e?.response?.data?.message || 'No se pudo generar el catálogo'
+    // CI4 responde los errores como { status, error, messages: { error: "..." } }.
+    const data = e?.response?.data
+    const msg = data?.messages?.error || data?.message || 'No se pudo generar el catálogo'
     toast.add({ severity: 'error', summary: 'Error', detail: msg, life: 5000 })
   } finally {
     submitting.value = false
@@ -405,9 +486,11 @@ onMounted(() => {
   loadBrands()
   loadProductLists()
   loadHistory()
+  refreshScopeCount()
 })
 onUnmounted(() => {
   pollTimers.forEach(t => clearInterval(t))
   pollTimers.clear()
+  clearTimeout(countTimer)
 })
 </script>
