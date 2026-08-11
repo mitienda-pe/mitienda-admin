@@ -52,6 +52,8 @@ export interface NetsuiteCredential {
   // Custom Form ID del Sales Order en NetSuite (solo modo sales_order). null = form por defecto de la cuenta.
   tiendacredencialerp_so_custom_form_id?: string | null
   tiendacredencialerp_shipping_item_id?: string | null
+  // custbody_sj_motiv_venta (San Jorge). null = no se envía el campo.
+  tiendacredencialerp_motivo_venta_id?: string | null
   tiendacredencialerp_fecha_creacion?: string
   tiendacredencialerp_fecha_actualizacion?: string
   locations?: NetsuiteLocation[]
@@ -92,6 +94,7 @@ export interface SaveNetsuiteCredentialsRequest {
   sync_mode_pos?: string | null
   so_custom_form_id?: string | null
   shipping_item_id?: string | null
+  motivo_venta_id?: string | null
   estado: number
   locations?: NetsuiteLocation[]
 }

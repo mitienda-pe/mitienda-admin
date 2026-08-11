@@ -379,6 +379,16 @@
               Item NetSuite (de venta) para la línea de costo de envío en el Sales Order. Vacío = no se agrega envío.
             </small>
           </div>
+          <div>
+            <label for="motivo_venta_id" class="block text-sm font-medium text-secondary-700 mb-2">
+              Motivo de Venta <span class="text-secondary-400 text-xs">(opcional)</span>
+            </label>
+            <InputText id="motivo_venta_id" v-model="formData.motivo_venta_id" class="w-full" placeholder="ej: 5 = VENTA DE PRODUC. TERMINADOS Y MERCADERIA" />
+            <small class="text-secondary-600 mt-1 block">
+              Valor de <code>custbody_sj_motiv_venta</code> que se envía en facturas y sales orders.
+              Solo aplica a cuentas que tengan ese campo personalizado. Vacío = no se envía.
+            </small>
+          </div>
           <div class="md:col-span-2">
             <label for="default_salesrep_id" class="block text-sm font-medium text-secondary-700 mb-2">
               Default Sales Rep ID <span class="text-secondary-400 text-xs">(opcional)</span>
@@ -918,6 +928,7 @@ const formData = reactive<Partial<SaveNetsuiteCredentialsRequest>>({
   sync_mode_pos: null as string | null,
   so_custom_form_id: '',
   shipping_item_id: '',
+  motivo_venta_id: '',
   estado: 1
 })
 
@@ -1130,6 +1141,7 @@ watch(() => props.tiendaId, async (tiendaId) => {
       sync_mode_pos: creds.tiendacredencialerp_sync_mode_pos || null,
       so_custom_form_id: creds.tiendacredencialerp_so_custom_form_id || '',
       shipping_item_id: creds.tiendacredencialerp_shipping_item_id || '',
+      motivo_venta_id: creds.tiendacredencialerp_motivo_venta_id || '',
       estado: Number(creds.tiendacredencialerp_estado)
     })
 
@@ -1172,6 +1184,7 @@ watch(() => props.tiendaId, async (tiendaId) => {
       sync_mode_pos: null,
       so_custom_form_id: '',
       shipping_item_id: '',
+      motivo_venta_id: '',
       estado: 1
     })
   }
@@ -1431,6 +1444,7 @@ async function handleSubmit() {
     sync_mode_pos: formData.sync_mode_pos || null,
     so_custom_form_id: stringOrNull(formData.so_custom_form_id) ?? null,
     shipping_item_id: stringOrNull(formData.shipping_item_id) ?? null,
+    motivo_venta_id: stringOrNull(formData.motivo_venta_id) ?? null,
     estado: formData.estado || 1,
     locations: locations.value.length > 0 ? locations.value : undefined
   }
