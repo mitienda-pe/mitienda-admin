@@ -21,7 +21,7 @@ import StarRating from '@/components/reviews/StarRating.vue'
 import PluginSlot from '@/components/plugins/PluginSlot.vue'
 import OrderPaymentComments from './components/OrderPaymentComments.vue'
 import OrderNotificationsCard from './components/OrderNotificationsCard.vue'
-import { ordersApi } from '@/api/orders.api'
+import { ordersApi, type GatewayStatusResult } from '@/api/orders.api'
 import { reviewsApi } from '@/api/reviews.api'
 import { fulfillmentApi } from '@/api/fulfillment.api'
 import { billingApi } from '@/api/billing.api'
@@ -64,7 +64,18 @@ const isUpdatingPayment = ref(false)
 // Olva redispatch state
 const isRetryingOlva = ref(false)
 
+// Consulta directa a la pasarela. Nace de las ventas con pago asíncrono
+// (PagoEfectivo, agentes, billeteras) cuyo webhook nunca llegó: quedan en
+// "pendiente" con el dinero ya cobrado, y hasta ahora la única salida era
+// aprobarlas desde el panel legacy, que no dispara el pipeline de venta pagada.
+const isCheckingGateway = ref(false)
+const gatewayStatus = ref<GatewayStatusResult | null>(null)
+
 const canConfirmPayment = computed(() => {
+  return order.value?.status === 'pending'
+})
+
+const canCheckGateway = computed(() => {
   return order.value?.status === 'pending'
 })
 
@@ -131,6 +142,65 @@ async function saveStoreNotes() {
     toast.add({ severity: 'error', summary: 'Error', detail: err.message || 'No se pudo guardar la nota', life: 5000 })
   } finally {
     isSavingStoreNotes.value = false
+  }
+}
+
+async function handleCheckGateway() {
+  if (!order.value || isCheckingGateway.value) return
+  isCheckingGateway.value = true
+  gatewayStatus.value = null
+  try {
+    const response = await ordersApi.getGatewayStatus(order.value.id)
+    if (!response.success || !response.data) throw new Error('No se pudo consultar la pasarela')
+    gatewayStatus.value = response.data
+  } catch (err: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: err.message || 'No se pudo consultar la pasarela',
+      life: 5000
+    })
+  } finally {
+    isCheckingGateway.value = false
+  }
+}
+
+/**
+ * Confirma la orden con el id de transacción que devolvió la pasarela, para que
+ * la venta quede trazable hasta el cobro. Pasa por el mismo endpoint que el
+ * botón "Confirmar pago", así que emite `order.paid` con todo lo que cuelga de
+ * él (comprobante, WMS/ERP, ficha de cliente, fidelidad).
+ */
+async function handleApproveFromGateway() {
+  const lookup = gatewayStatus.value?.lookup
+  if (!order.value || !lookup?.transaction_id || isUpdatingPayment.value) return
+
+  const confirmed = window.confirm(
+    `Se confirmará el pedido con el pago ${lookup.transaction_id} por ` +
+    `${formatCurrency(lookup.amount)} verificado en ${gatewayStatus.value?.gateway.name}. ¿Continuar?`
+  )
+  if (!confirmed) return
+
+  isUpdatingPayment.value = true
+  try {
+    const response = await ordersApi.confirmPaymentWithTransaction(order.value.id, {
+      transaction_id: lookup.transaction_id,
+      payment_notes: `Confirmado tras consultar ${gatewayStatus.value?.gateway.name}: ${lookup.status}`
+    })
+    if (!response.success) throw new Error('No se pudo confirmar el pago')
+
+    gatewayStatus.value = null
+    await ordersStore.fetchOrder(order.value.id)
+    toast.add({
+      severity: 'success',
+      summary: 'Pago confirmado',
+      detail: 'El pedido fue marcado como pagado con el pago verificado en la pasarela',
+      life: 4000
+    })
+  } catch (err: any) {
+    toast.add({ severity: 'error', summary: 'Error', detail: err.message || 'No se pudo confirmar el pago', life: 5000 })
+  } finally {
+    isUpdatingPayment.value = false
   }
 }
 
@@ -1073,6 +1143,16 @@ const handleDebugPayments = async () => {
           @click="showEmitDialog = true"
         />
         <Button
+          v-if="canCheckGateway"
+          label="Consultar en la pasarela"
+          icon="pi pi-search"
+          severity="secondary"
+          outlined
+          :loading="isCheckingGateway"
+          v-tooltip.left="'Preguntar a la pasarela si el pago se cobró (útil cuando el webhook no llegó)'"
+          @click="handleCheckGateway"
+        />
+        <Button
           v-if="canConfirmPayment"
           label="Confirmar pago"
           icon="pi pi-check"
@@ -1100,6 +1180,66 @@ const handleDebugPayments = async () => {
           <i :class="['pi', statusConfig.iconClass]"></i>
           {{ statusConfig.label }}
         </span>
+      </div>
+    </div>
+
+    <!-- Resultado de la consulta a la pasarela -->
+    <div
+      v-if="gatewayStatus"
+      class="mb-6 rounded-lg border p-4"
+      :class="gatewayStatus.can_approve
+        ? 'bg-green-50 border-green-200'
+        : (gatewayStatus.lookup?.found ? 'bg-yellow-50 border-yellow-200' : 'bg-secondary-50 border-secondary-200')"
+    >
+      <div class="flex items-start justify-between gap-4 flex-wrap">
+        <div class="flex items-start gap-3">
+          <i
+            class="pi mt-0.5"
+            :class="gatewayStatus.can_approve
+              ? 'pi-check-circle text-green-600'
+              : (gatewayStatus.lookup?.found ? 'pi-exclamation-triangle text-yellow-600' : 'pi-info-circle text-secondary-500')"
+          ></i>
+          <div>
+            <p class="text-sm font-semibold text-secondary-800">
+              {{ gatewayStatus.gateway.name || 'Pasarela' }}
+            </p>
+            <p class="text-sm text-secondary-700">{{ gatewayStatus.message }}</p>
+
+            <dl v-if="gatewayStatus.lookup?.found" class="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-xs text-secondary-600">
+              <div class="flex gap-1">
+                <dt class="font-medium">Transacción:</dt>
+                <dd class="font-mono">{{ gatewayStatus.lookup.transaction_id }}</dd>
+              </div>
+              <div class="flex gap-1">
+                <dt class="font-medium">Estado:</dt>
+                <dd>{{ gatewayStatus.lookup.status }}</dd>
+              </div>
+              <div class="flex gap-1">
+                <dt class="font-medium">Monto cobrado:</dt>
+                <dd :class="gatewayStatus.lookup.amount_matches === false ? 'text-red-600 font-semibold' : ''">
+                  {{ formatCurrency(gatewayStatus.lookup.amount) }}
+                </dd>
+              </div>
+              <div class="flex gap-1">
+                <dt class="font-medium">Total del pedido:</dt>
+                <dd>{{ formatCurrency(gatewayStatus.order.total) }}</dd>
+              </div>
+              <div v-if="gatewayStatus.lookup.kind === 'order'" class="flex gap-1">
+                <dt class="font-medium">Método:</dt>
+                <dd>Pago asíncrono (efectivo/agente/billetera)</dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <Button
+          v-if="gatewayStatus.can_approve"
+          label="Confirmar con este pago"
+          icon="pi pi-check"
+          severity="success"
+          :loading="isUpdatingPayment"
+          @click="handleApproveFromGateway"
+        />
       </div>
     </div>
 

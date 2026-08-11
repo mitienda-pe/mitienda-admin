@@ -42,6 +42,41 @@ export interface OrderStats {
   cancelled: number
 }
 
+/** Respuesta de la consulta directa a la API de la pasarela. */
+export interface GatewayStatusResult {
+  order: {
+    id: number
+    reference_code: string
+    total: number
+    paid_status: number
+    transaction_id: string | null
+  }
+  gateway: {
+    code: string | null
+    name: string | null
+    pasarela_id: number
+    supported: boolean
+  }
+  lookup: {
+    /** 'transaction_id' si ya teníamos el id; 'reference' si hubo que buscarlo. */
+    method: 'transaction_id' | 'reference'
+    found: boolean
+    approved: boolean
+    status: string
+    transaction_id: string | null
+    /** 'order' = PagoEfectivo/agente/billetera; 'charge'/'payment' = tarjeta. */
+    kind: string | null
+    amount: number
+    amount_matches?: boolean
+    is_refunded: boolean
+    is_chargeback: boolean
+    error: string | null
+  } | null
+  /** Solo true si el pago está aprobado, el monto cuadra y la orden sigue impaga. */
+  can_approve: boolean
+  message: string
+}
+
 // Helper para mapear el estado del pago a OrderStatus
 // tiendaventa_pagado: 0=rechazado, 1=pagado, 2=pendiente, 4=anulado, 9=creado,
 // 12=expirado, 13=contracargo, 14=reembolsado
@@ -428,6 +463,41 @@ export const ordersApi = {
     }
 
     const response = await apiClient.put(`/orders/${id}`, { status })
+    return response.data
+  },
+
+  /**
+   * Confirmar el pago guardando el id de transacción verificado en la pasarela.
+   *
+   * Es el mismo endpoint que usa `updateOrderStatus(id, 'paid')` — y por lo
+   * tanto emite OrderPaid igual — pero deja registrado con qué cobro se aprobó.
+   * Sin eso la venta queda pagada "porque alguien dijo que sí", que es
+   * justamente lo que hace ilegible al panel legacy.
+   */
+  async confirmPaymentWithTransaction(
+    orderId: number,
+    params: { transaction_id: string; payment_method?: string; payment_notes?: string }
+  ): Promise<ApiResponse<Order>> {
+    const response = await apiClient.put(`/orders/${orderId}/payment-status`, {
+      payment_status: 'approved',
+      transaction_id: params.transaction_id,
+      payment_method: params.payment_method,
+      payment_notes: params.payment_notes,
+      source: 'web'
+    })
+    return response.data
+  },
+
+  /**
+   * Consultar el estado real del pago en la API de la pasarela.
+   *
+   * Sirve para los pagos asíncronos (PagoEfectivo, agentes, billeteras) cuyo
+   * webhook nunca llegó: la orden figura como "Creado" aunque el dinero ya se
+   * haya cobrado. Solo consulta — confirmar sigue siendo `updateOrderStatus`,
+   * que es el que dispara la facturación, el WMS y el resto del pipeline.
+   */
+  async getGatewayStatus(orderId: number): Promise<ApiResponse<GatewayStatusResult>> {
+    const response = await apiClient.get(`/orders/${orderId}/gateway-status`)
     return response.data
   },
 
