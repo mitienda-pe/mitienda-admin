@@ -144,6 +144,27 @@ export function useFormatters() {
     }).format(parsedDate)
   }
 
+  // Formatear fecha y hora con segundos (DD/MM/YYYY HH:mm:ss)
+  //
+  // Para líneas de tiempo, donde dos eventos pueden caer dentro del mismo
+  // minuto: un pedido que se paga a los 29 segundos de creado se ve idéntico
+  // a su creación si solo se muestran horas y minutos.
+  const formatDateTimeWithSeconds = (date: string | Date | null | undefined): string => {
+    if (!date) return 'N/A'
+    const parsedDate = new Date(date)
+    if (isNaN(parsedDate.getTime())) return 'N/A'
+
+    return new Intl.DateTimeFormat(getLocale(), {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    }).format(parsedDate)
+  }
+
   // Formatear hora (HH:mm)
   const formatTime = (date: string | Date | null | undefined): string => {
     if (!date) return 'N/A'
@@ -176,6 +197,7 @@ export function useFormatters() {
     formatRelativeDate,
     formatDate,
     formatDateTime,
+    formatDateTimeWithSeconds,
     formatTime,
     getChangeColorClass,
     getChangeIcon

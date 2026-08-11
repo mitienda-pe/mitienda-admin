@@ -38,7 +38,7 @@ const ordersStore = useOrdersStore()
 const storeInfoStore = useStoreInfoStore()
 const authStore = useAuthStore()
 const toast = useToast()
-const { formatCurrency, formatDate, formatTime, formatDateTime } = useFormatters()
+const { formatCurrency, formatDate, formatTime, formatDateTime, formatDateTimeWithSeconds } = useFormatters()
 const { downloadPDF, downloadTicket, downloadPickingList, downloadCSV } = useOrderDownloads()
 
 const orderId = Number(route.params.id)
@@ -664,11 +664,19 @@ const timelineEvents = computed(() => {
   const hasInHistory = (id: number) => history.some(ev => ev.tiendaestado_id === id)
 
   // 1) Pedido creado — siempre. No se loguea en tiendasestadosdespacho.
+  //
+  //    El estado 30 ("Pago pendiente" / "Solicitud de pedido recibida") describe
+  //    ESTE mismo momento y, desde que se corrigió su fecha, cae en el mismo
+  //    instante exacto. Se colapsan en una sola entrada — abajo el estado 30 se
+  //    omite — y solo se rescata su observación, que sí puede traer texto.
+  const estado30 = history.find(ev => ev.tiendaestado_id === 30)
+
   raw.push({
     status: 'Pedido creado',
     sortDate: order.value.created_at,
     icon: 'pi pi-shopping-cart',
     color: '#9C27B0',
+    observacion: estado30?.observacion ?? null,
   })
 
   // 2) Pago confirmado — sintetizar si el status lo indica y no esta en historial.
@@ -684,9 +692,12 @@ const timelineEvents = computed(() => {
     })
   }
 
-  // 3) Eventos reales de tiendasestadosdespacho (incluyen Pago pendiente, Pago
-  //    confirmado si esta logueado, y todos los estados de despacho del courier).
+  // 3) Eventos reales de tiendasestadosdespacho (Pago confirmado si esta
+  //    logueado, y todos los estados de despacho del courier). El 30 se omite:
+  //    ya se mostro arriba como "Pedido creado".
   for (const ev of history) {
+    if (ev.tiendaestado_id === 30) continue
+
     const visual = SHIPPING_STATE_VISUAL[ev.tiendaestado_id] || {
       icon: 'pi pi-circle-fill',
       color: '#607D8B',
@@ -714,10 +725,11 @@ const timelineEvents = computed(() => {
   // ordenan correctamente por comparacion lexicografica.
   raw.sort((a, b) => a.sortDate.localeCompare(b.sortDate))
 
-  // Formatear fecha al render
+  // Formatear fecha al render. Con segundos: el pago suele caer en el mismo
+  // minuto que la creacion del pedido y si no, los eventos se ven iguales.
   return raw.map(ev => ({
     status: ev.status,
-    date: formatDateTime(ev.sortDate),
+    date: formatDateTimeWithSeconds(ev.sortDate),
     icon: ev.icon,
     color: ev.color,
     observacion: ev.observacion,
