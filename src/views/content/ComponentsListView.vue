@@ -141,7 +141,17 @@
                 severity="secondary"
                 @click="$router.push({ name: 'component-edit', params: { id: data.id } })"
               />
-              <span v-else class="text-xs text-secondary-400 italic">Solo lectura</span>
+              <!-- Los tipos que no son HTML vienen del panel anterior: no hay
+                   editor para ellos y el storefront tampoco los pinta (quedan
+                   fuera de RENDERABLE_CODES en TemplateSectionController). -->
+              <span
+                v-else
+                v-tooltip.top="discontinuedTooltip(data)"
+                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600"
+              >
+                <i class="pi pi-info-circle mr-1 text-xs"></i>
+                Tipo descontinuado
+              </span>
               <!-- Solo se ofrece eliminar cuando el bloque no está colocado en
                    ninguna página. Con uso desconocido (usage === null) tampoco. -->
               <Button
@@ -430,6 +440,11 @@ const usageLabel = (usage: ComponentUsage[]) => {
 
 const usageTooltip = (usage: ComponentUsage[]) =>
   `En uso en: ${usagePages(usage).join(', ')}`
+
+const discontinuedTooltip = (component: StoreComponent) => {
+  const tipo = component.type_name ? `«${component.type_name}»` : 'de este tipo'
+  return `Bloque ${tipo}, creado en el panel anterior. Ya no se puede editar aquí y la tienda no lo muestra.`
+}
 
 // ── Eliminar ──────────────────────────────────────────────────────────────────
 
