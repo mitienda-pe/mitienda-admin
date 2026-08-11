@@ -145,7 +145,11 @@
             </td>
             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
               {{ promo.priority }}
-              <span v-if="promo.stackable" class="ml-1 text-xs text-primary">(acumulable)</span>
+              <!-- Sólo en cupones: en una promoción automática stackable=1 no
+                   hace nada, y rotularla "acumulable" sería mentirle al seller. -->
+              <span v-if="isCouponMode && promo.stackable" class="ml-1 text-xs text-primary">
+                (acumulable)
+              </span>
             </td>
             <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
               <div class="flex gap-2">

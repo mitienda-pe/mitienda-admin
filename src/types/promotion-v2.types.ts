@@ -43,6 +43,8 @@ export interface PromotionV2 {
   description: string | null
   priority: number
   stackable: number
+  /** Tope del descuento total del carrito (% del subtotal). Sólo aplica a cupones acumulables. */
+  max_cart_discount_pct: number | null
   exclusive_group: string | null
   status: PromotionV2Status
   starts_at: string
@@ -109,6 +111,7 @@ export interface CreatePromotionV2Data {
   description?: string
   priority?: number
   stackable?: number
+  max_cart_discount_pct?: number | null
   exclusive_group?: string
   status?: PromotionV2Status
   starts_at: string
@@ -120,6 +123,7 @@ export interface UpdatePromotionV2Data {
   description?: string
   priority?: number
   stackable?: number
+  max_cart_discount_pct?: number | null
   exclusive_group?: string
   status?: PromotionV2Status
   starts_at?: string

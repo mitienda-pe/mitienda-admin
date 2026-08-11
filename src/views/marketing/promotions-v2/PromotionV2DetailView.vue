@@ -224,10 +224,44 @@
             <InputText v-model="editForm.exclusive_group" placeholder="Opcional" class="w-full" />
           </div>
         </div>
-        <!-- Checkbox "Acumulable" oculto desde 2026-05-26: política sin
-             stacking. El campo sigue en el form (preserva el valor existente)
-             para no perder configuración en promos antiguas hasta limpieza
-             total. -->
+        <!-- "Acumulable" sólo se ofrece en cupones: en una promoción automática
+             el motor sigue ignorando el flag (política 2026-05-26). En modo
+             promoción el campo viaja igual en el form para no pisar el valor
+             existente de promos antiguas. -->
+        <div v-if="isCouponMode" class="rounded-md border border-gray-200 p-4">
+          <label class="flex items-start gap-3">
+            <input
+              v-model="editForm.stackable"
+              type="checkbox"
+              class="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+            />
+            <span>
+              <span class="block text-sm font-medium text-secondary-700">Acumulable</span>
+              <span class="block text-xs text-gray-500">
+                El cupón se suma a la promoción automática vigente en vez de competir con ella. El
+                descuento se calcula sobre el monto que queda después de esa promoción.
+              </span>
+            </span>
+          </label>
+
+          <div v-if="editForm.stackable" class="mt-4 border-t border-gray-100 pt-4">
+            <label class="mb-1 block text-sm font-medium text-secondary-700">
+              Tope de descuento total (%)
+            </label>
+            <InputNumber
+              v-model="editForm.max_cart_discount_pct"
+              :min="1"
+              :max="100"
+              placeholder="Sin tope"
+              class="w-full"
+              inputClass="w-full"
+            />
+            <p class="mt-1 text-xs text-gray-400">
+              Si el descuento sumado supera el tope, se recorta el cupón — nunca la promoción que el
+              cliente ya veía.
+            </p>
+          </div>
+        </div>
 
         <div class="grid grid-cols-2 gap-4">
           <div>
@@ -306,6 +340,7 @@ interface EditFormData {
   description: string
   priority: number
   stackable: boolean
+  max_cart_discount_pct: number | undefined
   exclusive_group: string
   starts_at: string
   ends_at: string
@@ -345,6 +380,7 @@ const editForm = ref<EditFormData>({
   description: '',
   priority: 0,
   stackable: false,
+  max_cart_discount_pct: undefined,
   exclusive_group: '',
   starts_at: '',
   ends_at: '',
@@ -387,6 +423,7 @@ function openEditDialog() {
     description: promotion.value.description || '',
     priority: promotion.value.priority,
     stackable: !!promotion.value.stackable,
+    max_cart_discount_pct: promotion.value.max_cart_discount_pct ?? undefined,
     exclusive_group: promotion.value.exclusive_group || '',
     starts_at: promotion.value.starts_at || '',
     ends_at: promotion.value.ends_at || '',
@@ -403,6 +440,10 @@ async function handleEdit() {
     description: editForm.value.description || undefined,
     priority: editForm.value.priority,
     stackable: editForm.value.stackable ? 1 : 0,
+    // Dejar de ser acumulable borra el tope: sin stacking no hay nada que topar.
+    max_cart_discount_pct: editForm.value.stackable
+      ? (editForm.value.max_cart_discount_pct ?? null)
+      : null,
     exclusive_group: editForm.value.exclusive_group || undefined,
     starts_at: formatDateForApi(editStartsDate.value),
     ends_at: formatDateForApi(editEndsDate.value),

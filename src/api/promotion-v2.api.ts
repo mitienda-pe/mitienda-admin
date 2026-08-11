@@ -135,7 +135,18 @@ export interface CreateSimpleCouponPayload {
   max_uses_per_user?: number | null
   status?: string
   priority?: number
+  /**
+   * 1 = el cupón se aplica ENCIMA de las promociones automáticas (sobre el
+   * remanente) en vez de competir con ellas. Sólo surte efecto en cupones: en
+   * promociones automáticas el motor ignora el flag.
+   */
   stackable?: 0 | 1
+  /**
+   * Tope del descuento TOTAL del carrito, como % del subtotal de productos.
+   * Sólo lo usa el motor sobre cupones acumulables; si el stack lo supera,
+   * recorta el aporte del cupón. Ausente/null = sin tope.
+   */
+  max_cart_discount_pct?: number | null
   metadata?: Record<string, unknown>
 }
 

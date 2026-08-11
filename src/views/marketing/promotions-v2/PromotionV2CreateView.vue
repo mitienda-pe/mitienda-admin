@@ -124,6 +124,49 @@
                 />
               </div>
             </div>
+
+            <!-- Acumulable: sólo tiene efecto en cupones. En promociones
+                 automáticas el motor sigue ignorando el flag (política
+                 2026-05-26), por eso el toggle vive únicamente acá. -->
+            <div class="rounded-md border border-gray-200 p-4">
+              <label class="flex items-start gap-3">
+                <input
+                  v-model="form.stackable"
+                  type="checkbox"
+                  class="mt-0.5 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <span>
+                  <span class="block text-sm font-medium text-secondary-700">Acumulable</span>
+                  <span class="block text-xs text-gray-500">
+                    El cupón se suma a la promoción automática que ya tenga el carrito, en vez de
+                    competir con ella. El descuento se calcula sobre el monto que queda después de
+                    la promoción: 40% automático + 10% de cupón deja un 46% efectivo, no 50%.
+                  </span>
+                </span>
+              </label>
+
+              <div v-if="form.stackable" class="mt-4 border-t border-gray-100 pt-4">
+                <label class="block text-sm font-medium text-secondary-700">
+                  Tope de descuento total (%)
+                </label>
+                <input
+                  v-model.number="form.max_cart_discount_pct"
+                  type="number"
+                  min="1"
+                  max="100"
+                  placeholder="Sin tope"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  :class="{ 'border-red-300': errors.max_cart_discount_pct }"
+                />
+                <p v-if="errors.max_cart_discount_pct" class="mt-1 text-xs text-red-600">
+                  {{ errors.max_cart_discount_pct }}
+                </p>
+                <p v-else class="mt-1 text-xs text-gray-400">
+                  Límite del descuento sumado de todo el carrito. Si al aplicar el cupón se supera,
+                  se recorta el cupón — nunca la promoción que el cliente ya veía. Recomendado.
+                </p>
+              </div>
+            </div>
           </template>
 
           <!-- Priority & Exclusive group (only in promotion mode) -->
@@ -285,6 +328,7 @@ const form = reactive({
   discount_value: 0,
   max_uses: undefined as number | undefined,
   max_uses_per_user: undefined as number | undefined,
+  max_cart_discount_pct: undefined as number | undefined,
 })
 
 const errors = reactive({
@@ -293,6 +337,7 @@ const errors = reactive({
   discount_value: '',
   starts_at: '',
   ends_at: '',
+  max_cart_discount_pct: '',
 })
 
 const isPercentageDiscount = computed(() => form.discount_type.startsWith('percentage_'))
@@ -310,6 +355,7 @@ function validate(): boolean {
   errors.discount_value = ''
   errors.starts_at = ''
   errors.ends_at = ''
+  errors.max_cart_discount_pct = ''
 
   if (isCouponMode.value) {
     if (!form.code.trim()) {
@@ -320,6 +366,12 @@ function validate(): boolean {
         errors.discount_value = 'Ingresa un valor mayor a cero'
       } else if (isPercentageDiscount.value && form.discount_value > 100) {
         errors.discount_value = 'El porcentaje no puede ser mayor a 100'
+      }
+    }
+    // El tope es opcional, pero si se escribe tiene que ser un % usable.
+    if (form.stackable && form.max_cart_discount_pct !== undefined && form.max_cart_discount_pct !== null) {
+      if (form.max_cart_discount_pct <= 0 || form.max_cart_discount_pct > 100) {
+        errors.max_cart_discount_pct = 'El tope debe estar entre 1 y 100'
       }
     }
   } else {
@@ -342,7 +394,14 @@ function validate(): boolean {
     })
   }
 
-  return !errors.name && !errors.code && !errors.discount_value && !errors.starts_at && !errors.ends_at
+  return (
+    !errors.name &&
+    !errors.code &&
+    !errors.discount_value &&
+    !errors.starts_at &&
+    !errors.ends_at &&
+    !errors.max_cart_discount_pct
+  )
 }
 
 async function handleSubmit() {
@@ -362,6 +421,10 @@ async function handleSubmit() {
         max_uses: form.max_uses,
         max_uses_per_user: form.max_uses_per_user,
         status: form.status,
+        stackable: form.stackable ? 1 : 0,
+        // Sólo viaja si el cupón es acumulable: en uno normal no hay descuento
+        // ajeno sobre el cual topar.
+        max_cart_discount_pct: form.stackable ? form.max_cart_discount_pct : undefined,
       }
       const result = await store.addSimpleCoupon(payload)
       if (result) {
