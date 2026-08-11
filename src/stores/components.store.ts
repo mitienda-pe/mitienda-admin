@@ -88,6 +88,18 @@ export const useComponentsStore = defineStore('components', () => {
     }
   }
 
+  async function deleteComponent(id: number): Promise<void> {
+    const response = await componentsApi.remove(id)
+    if (!response.success) {
+      throw new Error(response.message || 'Error al eliminar el bloque')
+    }
+    components.value = components.value.filter(c => c.id !== id)
+    pagination.value.total = Math.max(0, pagination.value.total - 1)
+    if (currentComponent.value?.id === id) {
+      currentComponent.value = null
+    }
+  }
+
   async function toggleActive(id: number): Promise<void> {
     try {
       const response = await componentsApi.toggleActive(id)
@@ -115,6 +127,7 @@ export const useComponentsStore = defineStore('components', () => {
     fetchComponentById,
     createComponent,
     updateComponent,
+    deleteComponent,
     toggleActive,
   }
 })

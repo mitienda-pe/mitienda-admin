@@ -1,5 +1,12 @@
 export type ComponentEditorType = 'wysiwyg' | 'code' | 'visual_builder'
 
+/** Una colocación del bloque dentro de la plantilla (una página + su zona). */
+export interface ComponentUsage {
+  page: number
+  page_label: string
+  zone: string
+}
+
 export interface StoreComponent {
   id: number
   tienda_id: number
@@ -12,6 +19,8 @@ export interface StoreComponent {
   editor_type: ComponentEditorType
   html_content?: string
   html_record_id?: number | null
+  /** Páginas donde está colocado. `null` = el API no pudo determinarlo. */
+  usage: ComponentUsage[] | null
 }
 
 export interface ComponentCreateData {

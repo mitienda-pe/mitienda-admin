@@ -64,6 +64,31 @@
           </template>
         </Column>
 
+        <Column header="Uso" style="width: 190px">
+          <template #body="{ data }">
+            <span
+              v-if="data.usage === null"
+              class="text-xs text-secondary-400 italic"
+            >
+              No disponible
+            </span>
+            <span
+              v-else-if="data.usage.length"
+              v-tooltip.top="usageTooltip(data.usage)"
+              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary/10 text-primary"
+            >
+              <i class="pi pi-check-circle mr-1 text-xs"></i>
+              {{ usageLabel(data.usage) }}
+            </span>
+            <span
+              v-else
+              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600"
+            >
+              Sin usar
+            </span>
+          </template>
+        </Column>
+
         <Column field="editor_type" header="Editor">
           <template #body="{ data }">
             <span
@@ -103,19 +128,33 @@
           </template>
         </Column>
 
-        <Column header="Acciones" style="width: 100px">
+        <Column header="Acciones" style="width: 130px">
           <template #body="{ data }">
-            <Button
-              v-if="data.type_id === 2"
-              v-tooltip.top="'Editar'"
-              icon="pi pi-pencil"
-              text
-              rounded
-              size="small"
-              severity="secondary"
-              @click="$router.push({ name: 'component-edit', params: { id: data.id } })"
-            />
-            <span v-else class="text-xs text-secondary-400 italic">Solo lectura</span>
+            <div class="flex items-center gap-1">
+              <Button
+                v-if="data.type_id === 2"
+                v-tooltip.top="'Editar'"
+                icon="pi pi-pencil"
+                text
+                rounded
+                size="small"
+                severity="secondary"
+                @click="$router.push({ name: 'component-edit', params: { id: data.id } })"
+              />
+              <span v-else class="text-xs text-secondary-400 italic">Solo lectura</span>
+              <!-- Solo se ofrece eliminar cuando el bloque no está colocado en
+                   ninguna página. Con uso desconocido (usage === null) tampoco. -->
+              <Button
+                v-if="data.usage !== null && !data.usage.length"
+                v-tooltip.top="'Eliminar'"
+                icon="pi pi-trash"
+                text
+                rounded
+                size="small"
+                severity="danger"
+                @click="confirmDelete(data)"
+              />
+            </div>
           </template>
         </Column>
       </DataTable>
@@ -247,6 +286,7 @@ import { useRouter } from 'vue-router'
 import { useComponentsStore } from '@/stores/components.store'
 import { useFormatters } from '@/composables/useFormatters'
 import { useToast } from 'primevue/usetoast'
+import { useConfirm } from 'primevue/useconfirm'
 import DataTable from 'primevue/datatable'
 import type { DataTablePageEvent, DataTableSortEvent } from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -257,12 +297,13 @@ import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import Dialog from 'primevue/dialog'
 import Divider from 'primevue/divider'
-import type { StoreComponent, ComponentEditorType } from '@/types/component.types'
+import type { StoreComponent, ComponentEditorType, ComponentUsage } from '@/types/component.types'
 
 const router = useRouter()
 const componentsStore = useComponentsStore()
 const { formatDate } = useFormatters()
 const toast = useToast()
+const confirm = useConfirm()
 
 const rows = ref(20)
 const sortField = ref('tiendacomponente_fecharegistro')
@@ -374,6 +415,50 @@ const onSort = (event: DataTableSortEvent) => {
     sortOrder.value = event.sortOrder === 1 ? 'ASC' : 'DESC'
     loadData(1)
   }
+}
+
+// ── Uso en plantillas ─────────────────────────────────────────────────────────
+
+// Un bloque puede estar colocado varias veces en la misma página; el badge
+// muestra páginas distintas, no colocaciones.
+const usagePages = (usage: ComponentUsage[]) => [...new Set(usage.map(u => u.page_label))]
+
+const usageLabel = (usage: ComponentUsage[]) => {
+  const pages = usagePages(usage)
+  return pages.length <= 2 ? pages.join(', ') : `${pages[0]} +${pages.length - 1}`
+}
+
+const usageTooltip = (usage: ComponentUsage[]) =>
+  `En uso en: ${usagePages(usage).join(', ')}`
+
+// ── Eliminar ──────────────────────────────────────────────────────────────────
+
+const confirmDelete = (component: StoreComponent) => {
+  confirm.require({
+    header: 'Eliminar bloque',
+    message: `Se eliminará "${component.name}" y su contenido. Esta acción no se puede deshacer.`,
+    icon: 'pi pi-exclamation-triangle',
+    acceptClass: 'p-button-danger',
+    acceptLabel: 'Eliminar',
+    rejectLabel: 'Cancelar',
+    accept: async () => {
+      try {
+        await componentsStore.deleteComponent(component.id)
+        toast.add({ severity: 'success', summary: 'Eliminado', detail: 'Bloque eliminado', life: 3000 })
+        // El API es la única fuente del mapa de uso: si el bloque se colocó en
+        // la plantilla desde otra pestaña, la fila vuelve con su badge correcto.
+        loadData(componentsStore.pagination.page)
+      } catch (error: any) {
+        toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: error.response?.data?.message || error.message || 'Error al eliminar el bloque',
+          life: 6000,
+        })
+        loadData(componentsStore.pagination.page)
+      }
+    },
+  })
 }
 
 const handleToggleActive = async (component: StoreComponent) => {

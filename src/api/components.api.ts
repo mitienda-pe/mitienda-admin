@@ -15,6 +15,9 @@ const transformComponent = (raw: any): StoreComponent => ({
   editor_type: (raw.editor_type || raw.tiendacomponente_configuracion1 || 'code') as ComponentEditorType,
   html_content: raw.html_content ?? undefined,
   html_record_id: raw.html_record_id ? parseInt(raw.html_record_id) : null,
+  // Sin el campo (respuesta de un API viejo) el uso es desconocido, no vacío:
+  // vacío habilitaría el botón de eliminar sin haberlo verificado.
+  usage: Array.isArray(raw.usage) ? raw.usage : null,
 })
 
 export const componentsApi = {
@@ -79,6 +82,15 @@ export const componentsApi = {
     }
 
     return { success: false, message: rawData.message }
+  },
+
+  /**
+   * Elimina un bloque. El API responde 409 si está colocado en la plantilla;
+   * el axios interceptor convierte eso en un throw con la respuesta original.
+   */
+  async remove(id: number): Promise<ApiResponse<null>> {
+    const response = await apiClient.delete(`/components/${id}`)
+    return { success: response.data?.success === true, message: response.data?.message }
   },
 
   async toggleActive(id: number): Promise<ApiResponse<StoreComponent>> {
