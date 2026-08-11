@@ -678,7 +678,7 @@ const timelineEvents = computed(() => {
   if (isPaid && !hasInHistory(31)) {
     raw.push({
       status: 'Pago confirmado',
-      sortDate: order.value.updated_at,
+      sortDate: order.value.paid_at || order.value.created_at,
       icon: 'pi pi-check-circle',
       color: '#2196F3',
     })
@@ -704,7 +704,7 @@ const timelineEvents = computed(() => {
   if (status === 'cancelled' && !hasInHistory(36) && !hasInHistory(35)) {
     raw.push({
       status: 'Pedido cancelado',
-      sortDate: order.value.updated_at,
+      sortDate: order.value.paid_at || order.value.created_at,
       icon: 'pi pi-times-circle',
       color: '#F44336',
     })

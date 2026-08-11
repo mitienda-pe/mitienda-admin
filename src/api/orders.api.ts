@@ -376,7 +376,11 @@ export const ordersApi = {
           ? rawData.payment_comments_count
           : Number(rawData.payment_comments_count) || 0,
         created_at: rawData.date_created || '',
-        updated_at: rawData.date_created || '',
+        // El backend no expone un `updated_at` de la venta. Antes se copiaba
+        // `date_created` en ambos, y el timeline del detalle terminaba mostrando
+        // "Pedido creado" y "Pago confirmado" exactamente a la misma hora.
+        paid_at: rawData.date_payment || null,
+        updated_at: rawData.date_payment || rawData.date_created || '',
         notes: rawData.notes || undefined,
         store_notes: rawData.store_notes || undefined,
         // ERP Sync fields - intentar varios nombres posibles del backend

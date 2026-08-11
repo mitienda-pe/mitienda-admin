@@ -49,6 +49,8 @@ export interface Order {
   shipping_history?: ShippingHistoryEvent[] // Eventos de despacho (tiendasestadosdespacho)
   payment_comments_count?: number // Comentarios del seller sobre el pago (anotaciones manuales)
   created_at: string
+  /** Fecha real de confirmación del pago (`date_payment` del backend). Null si aún no se pagó. */
+  paid_at?: string | null
   updated_at: string
 }
 
