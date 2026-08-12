@@ -4,8 +4,11 @@
       <div class="flex-1">
         <!-- Nombre y URL -->
         <div class="mb-2">
-          <h3 class="text-lg font-semibold text-gray-900">
+          <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
             {{ store.name }}
+            <span class="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">
+              ID {{ store.id }}
+            </span>
           </h3>
           <a
             :href="store.url"
