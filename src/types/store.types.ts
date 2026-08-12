@@ -90,6 +90,16 @@ export interface Rubro {
 
 // ── Store Configuration Types ──
 
+/**
+ * Modos del mapa de ubicación en el checkout del storefront.
+ *   oculto      → ni el botón se muestra
+ *   opcional    → botón visible, mapa colapsado (comportamiento histórico)
+ *   visible     → mapa abierto de entrada, dato opcional
+ *   obligatorio → sin coordenadas no se puede confirmar el pedido
+ * 'obligatorio' solo se exige en envío a domicilio.
+ */
+export type CheckoutMapMode = 'oculto' | 'opcional' | 'visible' | 'obligatorio'
+
 export interface StoreConfig {
   tiendageneral_idioma: string
   moneda_id: number
@@ -110,6 +120,9 @@ export interface StoreConfig {
   // Bloquear la compra si el DNI/RUC no se puede validar en RENIEC/SUNAT
   tiendageneral_sw_validar_documento: number
   tiendageneral_texto_validacion_documento: string | null
+  // Mapa de ubicación en el checkout: oculto|opcional|visible|obligatorio.
+  // 'opcional' es el comportamiento histórico y el default de la plataforma.
+  tiendageneral_mapa_checkout: CheckoutMapMode
   tiendageneral_sw_verificacion_edad: number
   tiendageneral_edad_minima: number
   tiendageneral_texto_verificacion_edad: string | null
@@ -136,6 +149,7 @@ export interface StoreConfigUpdate {
   tiendageneral_sw_solo_boleta?: number
   tiendageneral_sw_validar_documento?: number
   tiendageneral_texto_validacion_documento?: string | null
+  tiendageneral_mapa_checkout?: CheckoutMapMode
   tiendageneral_sw_verificacion_edad?: number
   tiendageneral_edad_minima?: number
   tiendageneral_texto_verificacion_edad?: string | null

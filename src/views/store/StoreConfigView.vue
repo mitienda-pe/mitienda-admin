@@ -11,7 +11,7 @@ import InputNumber from 'primevue/inputnumber'
 import Dropdown from 'primevue/dropdown'
 import ProgressSpinner from 'primevue/progressspinner'
 import { useToast } from 'primevue/usetoast'
-import type { StoreScheduleDay } from '@/types/store.types'
+import type { StoreScheduleDay, CheckoutMapMode } from '@/types/store.types'
 
 const store = useStoreConfigStore()
 const storeInfoStore = useStoreInfoStore()
@@ -95,6 +95,34 @@ const lotsStrategy = computed({
   get: () => store.draftConfig.tiendageneral_lote_estrategia || 'fefo',
   set: (val: string) => store.updateField('tiendageneral_lote_estrategia', val)
 })
+
+const checkoutMapMode = computed({
+  get: () => store.draftConfig.tiendageneral_mapa_checkout || 'opcional',
+  set: (val: CheckoutMapMode) => store.updateField('tiendageneral_mapa_checkout', val)
+})
+
+const CHECKOUT_MAP_OPTIONS = [
+  {
+    value: 'oculto',
+    label: 'No pedir ubicación',
+    description: 'El mapa no aparece en el checkout.'
+  },
+  {
+    value: 'opcional',
+    label: 'Opcional (recomendado)',
+    description: 'El comprador ve un botón para abrir el mapa si quiere marcar su ubicación.'
+  },
+  {
+    value: 'visible',
+    label: 'Siempre visible',
+    description: 'El mapa aparece abierto, pero el comprador puede continuar sin marcarlo.'
+  },
+  {
+    value: 'obligatorio',
+    label: 'Obligatorio',
+    description: 'Sin ubicación marcada no se puede confirmar el pedido. Solo aplica a envío a domicilio.'
+  }
+]
 
 const LOTS_STRATEGY_OPTIONS = [
   { value: 'fefo', label: 'FEFO — vence primero, sale primero', description: 'Descuenta primero el lote que vence antes. Ideal para perecibles.' },
@@ -383,6 +411,37 @@ watch(
                 @input="store.updateField('tiendageneral_texto_validacion_documento', ($event.target as HTMLTextAreaElement).value || null)"
               />
             </div>
+          </div>
+        </div>
+
+        <!-- Mapa de ubicación en el checkout -->
+        <div class="mt-6 pt-6 border-t border-gray-100">
+          <label class="text-sm font-medium text-secondary-700">Ubicación en el mapa</label>
+          <p class="text-xs text-gray-400 mt-0.5 mb-3">
+            Permite que el comprador marque en un mapa el punto exacto de entrega. Las coordenadas
+            quedan guardadas en el pedido y sirven para planificar rutas de reparto.
+          </p>
+          <Dropdown
+            v-model="checkoutMapMode"
+            :options="CHECKOUT_MAP_OPTIONS"
+            option-label="label"
+            option-value="value"
+            class="w-full"
+          >
+            <template #option="{ option }">
+              <div>
+                <div class="text-sm font-medium">{{ option.label }}</div>
+                <div class="text-xs text-gray-400">{{ option.description }}</div>
+              </div>
+            </template>
+          </Dropdown>
+          <div
+            v-if="checkoutMapMode === 'obligatorio'"
+            class="rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800 mt-3"
+          >
+            Solo se exige en envío a domicilio: en recojo en tienda no se pide la ubicación.
+            Si tus compradores tienen direcciones guardadas sin coordenadas, se les pedirá marcarlas
+            antes de comprar.
           </div>
         </div>
       </div>
