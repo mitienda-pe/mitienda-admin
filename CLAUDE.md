@@ -16,7 +16,20 @@ npm run format       # Prettier on src/
 npm run test         # Vitest unit tests
 npm run test:ui      # Vitest with browser UI
 npm run test:coverage
+
+scripts/release.sh --dry-run   # preview the next version
+scripts/release.sh             # version bump + CHANGELOG + tag (local only)
+scripts/release.sh minor       # major | minor | patch (default: patch)
+scripts/release.sh --push      # also pushes to origin, which deploys
 ```
+
+## Releases and changelog
+
+[CHANGELOG.md](CHANGELOG.md) is generated from the conventional commits — **never edit it by hand**, `scripts/changelog.sh` overwrites it. The 21 existing `v2.x` tags already render as real release sections.
+
+- **Semver**, and `package.json` is the source of truth: that number feeds the "hay versión nueva" prompt ([useVersionCheck.ts](src/composables/useVersionCheck.ts)) and the `version.json` that Vite writes at build time, so it must not become a date. Config lives in [scripts/release.conf](scripts/release.conf).
+- If `package.json` already holds a version with no matching tag, `release.sh` adopts it instead of bumping past it. That is the current state: `package.json` is at 2.60.1 but the newest tag is `v2.59.0`, so the next release will be `v2.60.1`.
+- Only `feat`, `fix`, `perf`, `refactor`, `revert` and breaking changes (`!` or `BREAKING CHANGE`) reach the changelog; `chore`/`docs`/`test`/`debug` are dropped unless you pass `--all`.
 
 ## Architecture
 
