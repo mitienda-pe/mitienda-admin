@@ -97,6 +97,26 @@ export const productsApi = {
             description_html: product.description_html || '',
             price: parseFloat(product.price || '0'),
             price_without_tax: product.price_without_tax !== undefined && product.price_without_tax !== null ? parseFloat(product.price_without_tax) : undefined,
+            // `price` viene con la promoción ya aplicada; sin estos dos campos la
+            // tarjeta mostraba el precio rebajado como si fuera el de lista y no
+            // cuadraba con el detalle (que muestra el precio sin promoción).
+            original_price: product.original_price !== undefined && product.original_price !== null
+              ? parseFloat(product.original_price)
+              : undefined,
+            promotion: product.promotion
+              ? {
+                  id: product.promotion.id,
+                  name: product.promotion.name,
+                  type: product.promotion.type,
+                  value: product.promotion.value,
+                  percentage: product.promotion.percentage !== undefined && product.promotion.percentage !== null
+                    ? parseFloat(product.promotion.percentage)
+                    : undefined,
+                  amount: product.promotion.amount !== undefined && product.promotion.amount !== null
+                    ? parseFloat(product.promotion.amount)
+                    : undefined
+                }
+              : null,
             stock: product.stock || 0,
             unlimited_stock: product.unlimited_stock === 1 || product.unlimited_stock === true,
             has_variation_attributes: product.has_variation_attributes === true,

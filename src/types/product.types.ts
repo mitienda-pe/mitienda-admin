@@ -48,6 +48,24 @@ export interface ProductType {
   activo?: boolean
 }
 
+/**
+ * Promoción activa que el listado de productos aplica sobre el precio.
+ * La API la resuelve tanto de promotions_v2 como de las promos legacy
+ * (`GET /products` → Product::getProductPromotionsBatch); `price` ya viene con
+ * el descuento aplicado y `original_price` trae el precio de lista.
+ * `id` puede ser string (`"v2_123"`) cuando la promo viene del motor V2.
+ */
+export interface ProductPromotion {
+  id: number | string
+  name: string
+  type: 'percentage' | 'fixed'
+  /** Texto listo para mostrar (ej. "-20%"). Preferir `percentage`/`amount` al formatear. */
+  value: string
+  percentage?: number
+  /** Monto descontado en la moneda de la tienda. */
+  amount?: number
+}
+
 export interface Product {
   id: number
   sku: string
@@ -64,6 +82,9 @@ export interface Product {
   price_without_tax?: number // Precio sin IGV (8 decimales de precisión)
   price_range?: PriceRange | null // Rango de precios para productos con variantes
   has_variation_attributes?: boolean // Indica si el producto tiene variantes
+  /** Precio de lista cuando hay promoción activa: `price` ya viene descontado. */
+  original_price?: number
+  promotion?: ProductPromotion | null
   compare_price?: number
   cost?: number
   stock: number

@@ -35,11 +35,18 @@
         </div>
 
         <!-- Precio -->
-        <div class="flex items-baseline gap-2">
+        <div class="flex items-baseline flex-wrap gap-2">
           <span class="text-2xl font-bold text-primary">{{ formatCurrency(product.price) }}</span>
-          <span v-if="product.compare_price" class="text-sm text-secondary-400 line-through">
-            {{ formatCurrency(product.compare_price) }}
+          <span v-if="listPrice" class="text-sm text-secondary-400 line-through">
+            {{ formatCurrency(listPrice) }}
           </span>
+          <Tag
+            v-if="discountLabel"
+            :value="discountLabel"
+            severity="danger"
+            class="!text-xs"
+            v-tooltip.top="product.promotion?.name"
+          />
         </div>
 
         <!-- Stock -->
@@ -73,6 +80,27 @@ const { formatCurrency } = useFormatters()
 
 const mainImage = computed(() => {
   return props.product.images?.find(img => img.is_main) || props.product.images?.[0]
+})
+
+// El listado devuelve `price` YA con la promoción aplicada. Sin mostrar el
+// precio de lista tachado, la tarjeta parecía contradecir al detalle (que
+// muestra el precio sin promoción). `compare_price` queda como respaldo para
+// los productos con precio de comparación manual.
+const listPrice = computed(() => {
+  const original = props.product.original_price
+  if (original && original > props.product.price) return original
+  return props.product.compare_price || null
+})
+
+const discountLabel = computed(() => {
+  const promo = props.product.promotion
+  if (!promo || !listPrice.value) return null
+
+  if (promo.type === 'percentage' && promo.percentage) {
+    return `-${Number(promo.percentage.toFixed(2))}%`
+  }
+  if (promo.amount) return `-${formatCurrency(promo.amount)}`
+  return promo.value || null
 })
 
 // Servicio = tipo con requires_shipping=false. Fallback al id 2 si la API no
