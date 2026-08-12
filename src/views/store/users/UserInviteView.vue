@@ -27,14 +27,38 @@ const isLoading = ref(false)
 // Available modules (from plan)
 const availableModules = ref<UserModule[]>([])
 
-// Group modules by group name
+/**
+ * Agrupa los módulos respetando el orden en que los manda la API, que ya viene
+ * con la taxonomía del menú del backoffice (Config\BackofficeModules).
+ *
+ * La clave de agrupación se normaliza (minúsculas, sin tildes) a propósito: la
+ * columna `modulos.modulo_grupo` es la del panel legacy y trae el mismo grupo
+ * escrito de varias formas — `Catálogo` y `catalogo`, `Ventas` y `ventas` —, lo
+ * que hacía aparecer dos veces el mismo encabezado. Hoy la API normaliza antes
+ * de responder, pero agrupar por texto crudo dejaría el bug a un `git revert`
+ * de distancia.
+ */
 const groupedModules = computed(() => {
-  const groups: Record<string, UserModule[]> = {}
+  const groups: { key: string; name: string; modules: UserModule[] }[] = []
+  const byKey = new Map<string, (typeof groups)[number]>()
+
   for (const mod of availableModules.value) {
-    const group = mod.group || 'Otros'
-    if (!groups[group]) groups[group] = []
-    groups[group].push(mod)
+    const name = mod.group || 'Otros'
+    const key = name
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim()
+
+    let group = byKey.get(key)
+    if (!group) {
+      group = { key, name, modules: [] }
+      byKey.set(key, group)
+      groups.push(group)
+    }
+    group.modules.push(mod)
   }
+
   return groups
 })
 
@@ -311,13 +335,13 @@ onMounted(() => {
 
         <!-- Module groups -->
         <div v-else class="space-y-6">
-          <div v-for="(modules, groupName) in groupedModules" :key="groupName">
+          <div v-for="group in groupedModules" :key="group.key">
             <h3 class="text-sm font-semibold text-gray-600 uppercase tracking-wide mb-3">
-              {{ groupName }}
+              {{ group.name }}
             </h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               <label
-                v-for="mod in modules"
+                v-for="mod in group.modules"
                 :key="mod.id"
                 class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
                 :class="
