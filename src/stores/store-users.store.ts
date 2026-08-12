@@ -17,10 +17,17 @@ export const useStoreUsersStore = defineStore('storeUsers', () => {
   const isLoading = ref(false)
   const isDetailLoading = ref(false)
   const error = ref<string | null>(null)
+  /**
+   * La API responde 403 cuando quien pregunta no es el dueño de la tienda: el
+   * listado expone los correos y los permisos de todo el equipo. No es un error
+   * recuperable, así que la vista muestra un aviso en vez de "Reintentar".
+   */
+  const isForbidden = ref(false)
 
   async function fetchUsers() {
     isLoading.value = true
     error.value = null
+    isForbidden.value = false
     try {
       const response = await storeUsersApi.getUsers()
       if (response.success && response.data) {
@@ -28,7 +35,12 @@ export const useStoreUsersStore = defineStore('storeUsers', () => {
         isOwner.value = !!(response as ApiResponse<StoreUser[]> & { is_owner?: boolean }).is_owner
       }
     } catch (e: any) {
-      error.value = e.message || 'Error al cargar usuarios'
+      if (e.response?.status === 403) {
+        isForbidden.value = true
+        isOwner.value = false
+      } else {
+        error.value = e.message || 'Error al cargar usuarios'
+      }
     } finally {
       isLoading.value = false
     }
@@ -89,6 +101,7 @@ export const useStoreUsersStore = defineStore('storeUsers', () => {
     isLoading,
     isDetailLoading,
     error,
+    isForbidden,
     fetchUsers,
     fetchUser,
     fetchAvailableModules,

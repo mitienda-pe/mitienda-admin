@@ -83,6 +83,18 @@ function fullName(user: StoreUser): string {
       <i class="pi pi-spinner pi-spin text-4xl text-primary" />
     </div>
 
+    <!-- Sin permiso: no es el dueño de la tienda -->
+    <div
+      v-else-if="store.isForbidden"
+      class="bg-white rounded-xl border border-gray-200 p-12 text-center"
+    >
+      <i class="pi pi-lock text-4xl text-gray-300 mb-3" />
+      <h3 class="text-lg font-semibold text-gray-700">Acceso restringido</h3>
+      <p class="text-sm text-gray-500 mt-1">
+        Solo el dueño de la tienda puede administrar los usuarios y sus permisos.
+      </p>
+    </div>
+
     <!-- Error -->
     <div
       v-else-if="store.error"
