@@ -137,7 +137,7 @@
             </li>
 
             <!-- Grupo Ventas -->
-            <li>
+            <li v-if="salesMenuItems.length > 0">
               <button
                 @click="salesExpanded = !salesExpanded"
                 :aria-expanded="salesExpanded"
@@ -183,7 +183,7 @@
             </li>
 
             <!-- Grupo Reportes -->
-            <li>
+            <li v-if="reportsMenuItems.length > 0">
               <button
                 @click="reportsExpanded = !reportsExpanded"
                 :aria-expanded="reportsExpanded"
@@ -215,7 +215,7 @@
             </li>
 
             <!-- Grupo Catálogo -->
-            <li>
+            <li v-if="catalogMenuItems.length > 0">
               <button
                 @click="catalogExpanded = !catalogExpanded"
                 :aria-expanded="catalogExpanded"
@@ -247,7 +247,7 @@
             </li>
 
             <!-- Grupo Marketing -->
-            <li>
+            <li v-if="marketingMenuItems.length > 0">
               <button
                 @click="marketingExpanded = !marketingExpanded"
                 :aria-expanded="marketingExpanded"
@@ -279,7 +279,7 @@
             </li>
 
             <!-- Grupo Contenido -->
-            <li>
+            <li v-if="contentMenuItems.length > 0">
               <button
                 @click="contentExpanded = !contentExpanded"
                 :aria-expanded="contentExpanded"
@@ -311,7 +311,7 @@
             </li>
 
             <!-- Grupo Apariencia -->
-            <li>
+            <li v-if="appearanceMenuItems.length > 0">
               <button
                 @click="appearanceExpanded = !appearanceExpanded"
                 :aria-expanded="appearanceExpanded"
@@ -343,7 +343,7 @@
             </li>
 
             <!-- Grupo Facturación -->
-            <li>
+            <li v-if="billingMenuItems.length > 0">
               <button
                 @click="billingExpanded = !billingExpanded"
                 :aria-expanded="billingExpanded"
@@ -375,7 +375,7 @@
             </li>
 
             <!-- Grupo Reparto -->
-            <li>
+            <li v-if="shippingMenuItems.length > 0">
               <button
                 @click="shippingExpanded = !shippingExpanded"
                 :aria-expanded="shippingExpanded"
@@ -407,7 +407,7 @@
             </li>
 
             <!-- Grupo Tu Tienda -->
-            <li>
+            <li v-if="storeMenuItems.length > 0">
               <button
                 @click="storeExpanded = !storeExpanded"
                 :aria-expanded="storeExpanded"
@@ -439,7 +439,7 @@
             </li>
 
             <!-- Grupo: Integraciones -->
-            <li>
+            <li v-if="integrationMenuItems.length > 0">
               <button
                 @click="integrationExpanded = !integrationExpanded"
                 :aria-expanded="integrationExpanded"
@@ -471,7 +471,7 @@
             </li>
 
             <!-- Grupo: POS -->
-            <li>
+            <li v-if="posMenuItems.length > 0">
               <button
                 @click="posExpanded = !posExpanded"
                 :aria-expanded="posExpanded"
@@ -514,7 +514,7 @@
             </li>
 
             <!-- Grupo: NetSuite -->
-            <li>
+            <li v-if="configMenuItems.length > 0">
               <button
                 @click="configExpanded = !configExpanded"
                 :aria-expanded="configExpanded"
@@ -587,7 +587,7 @@
             </li>
 
             <!-- Grupo Ventas -->
-            <li>
+            <li v-if="salesMenuItems.length > 0">
               <button
                 @click="salesExpanded = !salesExpanded"
                 :aria-expanded="salesExpanded"
@@ -634,7 +634,7 @@
             </li>
 
             <!-- Grupo Reportes -->
-            <li>
+            <li v-if="reportsMenuItems.length > 0">
               <button
                 @click="reportsExpanded = !reportsExpanded"
                 :aria-expanded="reportsExpanded"
@@ -667,7 +667,7 @@
             </li>
 
             <!-- Grupo Catálogo -->
-            <li>
+            <li v-if="catalogMenuItems.length > 0">
               <button
                 @click="catalogExpanded = !catalogExpanded"
                 :aria-expanded="catalogExpanded"
@@ -700,7 +700,7 @@
             </li>
 
             <!-- Grupo Marketing -->
-            <li>
+            <li v-if="marketingMenuItems.length > 0">
               <button
                 @click="marketingExpanded = !marketingExpanded"
                 :aria-expanded="marketingExpanded"
@@ -733,7 +733,7 @@
             </li>
 
             <!-- Grupo Contenido -->
-            <li>
+            <li v-if="contentMenuItems.length > 0">
               <button
                 @click="contentExpanded = !contentExpanded"
                 :aria-expanded="contentExpanded"
@@ -766,7 +766,7 @@
             </li>
 
             <!-- Grupo Apariencia (móvil) -->
-            <li>
+            <li v-if="appearanceMenuItems.length > 0">
               <button
                 @click="appearanceExpanded = !appearanceExpanded"
                 :aria-expanded="appearanceExpanded"
@@ -799,7 +799,7 @@
             </li>
 
             <!-- Grupo Facturación -->
-            <li>
+            <li v-if="billingMenuItems.length > 0">
               <button
                 @click="billingExpanded = !billingExpanded"
                 :aria-expanded="billingExpanded"
@@ -832,7 +832,7 @@
             </li>
 
             <!-- Grupo Reparto (móvil) -->
-            <li>
+            <li v-if="shippingMenuItems.length > 0">
               <button
                 @click="shippingExpanded = !shippingExpanded"
                 :aria-expanded="shippingExpanded"
@@ -865,7 +865,7 @@
             </li>
 
             <!-- Grupo Tu Tienda (móvil) -->
-            <li>
+            <li v-if="storeMenuItems.length > 0">
               <button
                 @click="storeExpanded = !storeExpanded"
                 :aria-expanded="storeExpanded"
@@ -898,7 +898,7 @@
             </li>
 
             <!-- Grupo Integraciones (móvil) -->
-            <li>
+            <li v-if="integrationMenuItems.length > 0">
               <button
                 @click="integrationExpanded = !integrationExpanded"
                 :aria-expanded="integrationExpanded"
@@ -931,7 +931,7 @@
             </li>
 
             <!-- Grupo POS (móvil) -->
-            <li>
+            <li v-if="posMenuItems.length > 0">
               <button
                 @click="posExpanded = !posExpanded"
                 :aria-expanded="posExpanded"
@@ -975,7 +975,7 @@
             </li>
 
             <!-- Grupo NetSuite -->
-            <li>
+            <li v-if="configMenuItems.length > 0">
               <button
                 @click="configExpanded = !configExpanded"
                 :aria-expanded="configExpanded"
@@ -1044,6 +1044,7 @@ import { useBroadcasts } from '@/composables/useBroadcasts'
 import { useOneSignal } from '@/composables/useOneSignal'
 import { brand } from '@/config/branding'
 import { usePlanStore } from '@/stores/plan.store'
+import { usePermissionsStore } from '@/stores/permissions.store'
 import UpgradeModal from '@/components/plan/UpgradeModal.vue'
 import HelpFab from '@/components/help/HelpFab.vue'
 import HelpDrawer from '@/components/help/HelpDrawer.vue'
@@ -1060,6 +1061,7 @@ const authStore = useAuthStore()
 const adminStore = useAdminStore()
 const badgeCountsStore = useBadgeCountsStore()
 const planStore = usePlanStore()
+const permissionsStore = usePermissionsStore()
 const onboardingStore = useOnboardingStore()
 const storeConfigStore = useStoreConfigStore()
 const { initOneSignal } = useOneSignal()
@@ -1251,19 +1253,38 @@ const posExpanded = computed({
   set: (val) => { posExpandedRef.value = val }
 })
 
+/**
+ * Esconde del menú los ítems cuyo módulo no le fue concedido a ESTE usuario
+ * (`usuariosmodulos`). Es distinto de `isItemLocked`, que marca con candado lo
+ * que la TIENDA no contrató e invita a subir de plan: acá no hay upgrade que
+ * valga, el permiso lo da el dueño de la tienda, así que el ítem no se muestra.
+ *
+ * Sin restricción activa (el caso de casi todas las tiendas) devuelve la lista
+ * intacta — ver el docblock de permissions.store.
+ */
+function visibleItems<T extends { to?: string; action?: string }>(items: T[]): T[] {
+  return items.filter(item => {
+    // "Abrir POS" no navega a una ruta, abre la app externa; se rige por /pos
+    // igual que isPosItemLocked.
+    const path = item.to ?? (item.action === 'open-pos' ? '/pos' : null)
+    if (!path) return true
+    return permissionsStore.canAccessRoute(path)
+  })
+}
+
 // Items simples del menú. "Plugins" solo se muestra si la tienda tiene plugins
 // activos asignados (hasActivePlugins); oculto por defecto para todos los planes.
-const simpleMenuItems = computed(() => [
+const simpleMenuItems = computed(() => visibleItems([
   { label: 'Dashboard', icon: 'pi pi-home', to: '/dashboard' },
   { label: 'Analítica Web', icon: 'pi pi-chart-line', to: '/reports/web-analytics' },
   { label: 'Clientes', icon: 'pi pi-users', to: '/customers' },
   ...(hasActivePlugins.value
     ? [{ label: 'Plugins', icon: 'pi pi-microchip', to: '/plugins' }]
     : [])
-])
+]))
 
 // Items del grupo Tu Tienda
-const storeMenuItems = [
+const storeMenuItemsSource = [
   { label: 'Suscripcion', icon: 'pi pi-star', to: '/store/subscription' },
   { label: 'Información', icon: 'pi pi-info-circle', to: '/store/info' },
   { label: 'Direcciones', icon: 'pi pi-map-marker', to: '/store/addresses' },
@@ -1275,8 +1296,10 @@ const storeMenuItems = [
   { label: 'Formas de Pago', icon: 'pi pi-credit-card', to: '/payment-gateways' }
 ]
 
+const storeMenuItems = computed(() => visibleItems(storeMenuItemsSource))
+
 // Items del grupo Contenido
-const contentMenuItems = [
+const contentMenuItemsSource = [
   { label: 'Páginas', icon: 'pi pi-file-edit', to: '/pages' },
   { label: 'Blog', icon: 'pi pi-pencil', to: '/blog' },
   { label: 'Legal', icon: 'pi pi-shield', to: '/legal' },
@@ -1285,8 +1308,10 @@ const contentMenuItems = [
   { label: 'Mensajes', icon: 'pi pi-comment', to: '/content/messages' }
 ]
 
+const contentMenuItems = computed(() => visibleItems(contentMenuItemsSource))
+
 // Items del grupo Apariencia
-const appearanceMenuItems = [
+const appearanceMenuItemsSource = [
   { label: 'Configuración', icon: 'pi pi-cog', to: '/appearance/config' },
   { label: 'Colores', icon: 'pi pi-palette', to: '/appearance/colors' },
   { label: 'Tipografía', icon: 'pi pi-language', to: '/appearance/typography' },
@@ -1297,14 +1322,18 @@ const appearanceMenuItems = [
   { label: 'Bloques de Plantilla', icon: 'pi pi-box', to: '/content/components' },
 ]
 
+const appearanceMenuItems = computed(() => visibleItems(appearanceMenuItemsSource))
+
 // Items del grupo Ventas
-const salesMenuItems = [
+const salesMenuItemsSource = [
   { label: 'Pedidos', icon: 'pi pi-shopping-cart', to: '/orders' },
   { label: 'Despacho', icon: 'pi pi-truck', to: '/dispatch' },
   { label: 'Opiniones', icon: 'pi pi-star', to: '/reviews' },
   { label: 'Reclamaciones', icon: 'pi pi-book', to: '/complaints' },
   { label: 'Carritos Abandonados', icon: 'pi pi-shopping-bag', to: '/marketing/abandoned-carts' }
 ]
+
+const salesMenuItems = computed(() => visibleItems(salesMenuItemsSource))
 
 // Badge count mapping for sales menu items
 const salesBadgeMap = computed<Record<string, number>>(() => ({
@@ -1317,7 +1346,7 @@ const salesBadgeMap = computed<Record<string, number>>(() => ({
 // Items del grupo Reportes. "Personalizados" solo aparece si la tienda tiene al
 // menos un reporte a medida asignado (hasCustomReports); son reportes hechos por
 // pedido para tenants puntuales, no una función de plan.
-const reportsMenuItems = computed(() => [
+const reportsMenuItems = computed(() => visibleItems([
   { label: 'Pedidos', icon: 'pi pi-shopping-cart', to: '/reports/orders' },
   { label: 'Ventas por Producto', icon: 'pi pi-box', to: '/reports/product-sales' },
   { label: 'Catálogo de Productos', icon: 'pi pi-list', to: '/reports/product-catalog' },
@@ -1327,10 +1356,10 @@ const reportsMenuItems = computed(() => [
   ...(hasCustomReports.value
     ? [{ label: 'Personalizados', icon: 'pi pi-file-excel', to: '/reports/custom' }]
     : [])
-])
+]))
 
 // Items del grupo Catálogo
-const catalogMenuItems = [
+const catalogMenuItemsSource = [
   { label: 'Productos', icon: 'pi pi-box', to: '/products' },
   { label: 'Nuevo Producto', icon: 'pi pi-plus', to: '/products/create' },
   { label: 'Precios', icon: 'pi pi-dollar', to: '/products/prices' },
@@ -1347,12 +1376,14 @@ const catalogMenuItems = [
   { label: 'Configuración', icon: 'pi pi-cog', to: '/catalog/config' }
 ]
 
+const catalogMenuItems = computed(() => visibleItems(catalogMenuItemsSource))
+
 // Items del grupo Marketing
 // - 'Cupones' (mod_cupones, Small+): subset de promotions V2 con activation_type=coupon
 // - 'Promociones avanzadas' (mod_promociones_v2, Medium+): motor completo (automáticas, referrals, etc.)
 // "Promociones (legacy)" se retiró del menú: mod_promociones quedó despublicado.
 // Las rutas /marketing/promotions* siguen vivas para edición residual y redirigen a V2/Cupones.
-const marketingMenuItems = [
+const marketingMenuItemsSource = [
   { label: 'Cupones', icon: 'pi pi-ticket', to: '/marketing/coupons' },
   { label: 'Promociones avanzadas', icon: 'pi pi-sparkles', to: '/marketing/promotions-v2' },
   { label: 'Barras de Anuncios', icon: 'pi pi-megaphone', to: '/marketing/announcement-bars' },
@@ -1364,15 +1395,19 @@ const marketingMenuItems = [
   { label: 'Fidelización', icon: 'pi pi-gift', to: '/marketing/loyalty' }
 ]
 
+const marketingMenuItems = computed(() => visibleItems(marketingMenuItemsSource))
+
 // Items del grupo Facturación
-const billingMenuItems = [
+const billingMenuItemsSource = [
   { label: 'Proveedores', icon: 'pi pi-building', to: '/billing/providers' },
   { label: 'Series por sucursal', icon: 'pi pi-sitemap', to: '/billing/series' },
   { label: 'Documentos', icon: 'pi pi-file', to: '/billing/documents' }
 ]
 
+const billingMenuItems = computed(() => visibleItems(billingMenuItemsSource))
+
 // Items del grupo Reparto
-const shippingMenuItems = [
+const shippingMenuItemsSource = [
   { label: 'Configuración', icon: 'pi pi-cog', to: '/shipping/config' },
   { label: 'Tarifas de Envío', icon: 'pi pi-money-bill', to: '/shipping/rates' },
   { label: 'Zonas de Reparto', icon: 'pi pi-map', to: '/shipping/zones' },
@@ -1380,6 +1415,8 @@ const shippingMenuItems = [
   { label: 'Proveedores', icon: 'pi pi-truck', to: '/shipping/couriers' },
   { label: 'Reglas de Courier', icon: 'pi pi-directions', to: '/shipping/courier-routing' }
 ]
+
+const shippingMenuItems = computed(() => visibleItems(shippingMenuItemsSource))
 
 // Items del grupo Integraciones (incluye lo que antes vivía en el grupo "API":
 // Credenciales y Webhooks legacy). "Webhooks (legacy)" se muestra solo a las
@@ -1399,14 +1436,16 @@ const integrationMenuItems = computed(() => {
     items.splice(3, 0, { label: 'Webhooks (legacy)', icon: 'pi pi-link', to: '/api/webhooks' })
   }
 
-  return items
+  return visibleItems(items)
 })
 
 // Items del grupo NetSuite
-const configMenuItems = [
+const configMenuItemsSource = [
   { label: 'Configuración', icon: 'pi pi-cog', to: '/configuracion/netsuite' },
   { label: 'Stock', icon: 'pi pi-box', to: '/configuracion/netsuite/stock' }
 ]
+
+const configMenuItems = computed(() => visibleItems(configMenuItemsSource))
 
 // Items del grupo POS
 interface PosMenuItem {
@@ -1415,11 +1454,13 @@ interface PosMenuItem {
   to?: string
   action?: 'open-pos'
 }
-const posMenuItems: PosMenuItem[] = [
+const posMenuItemsSource: PosMenuItem[] = [
   { label: 'Cajeros', icon: 'pi pi-id-card', to: '/pos/cajeros' },
   { label: 'Sucursales', icon: 'pi pi-map-marker', to: '/pos/sucursales' },
   { label: 'Abrir POS', icon: 'pi pi-external-link', action: 'open-pos' }
 ]
+
+const posMenuItems = computed(() => visibleItems(posMenuItemsSource))
 
 function isPosItemLocked(item: PosMenuItem): boolean {
   if (item.action === 'open-pos') {

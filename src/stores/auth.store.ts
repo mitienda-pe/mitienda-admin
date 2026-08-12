@@ -165,6 +165,14 @@ export const useAuthStore = defineStore('auth', () => {
           planStore.fetchPlan()
         })
 
+        // Los permisos por usuario son POR TIENDA: el mismo usuario puede ser
+        // dueño en una e invitado con acceso acotado en otra.
+        import('@/stores/permissions.store').then(({ usePermissionsStore }) => {
+          const permissionsStore = usePermissionsStore()
+          permissionsStore.clearPermissions()
+          permissionsStore.fetchPermissions()
+        })
+
         // Recargar la config de la tienda: de ahí sale la moneda con la que los
         // formatters muestran todos los montos. Sin esto, al saltar de una
         // tienda en soles a una en dólares (o viceversa) se seguiría mostrando
@@ -232,6 +240,10 @@ export const useAuthStore = defineStore('auth', () => {
         const planStore = usePlanStore()
         planStore.clearPlan()
       })
+
+      import('@/stores/permissions.store').then(({ usePermissionsStore }) => {
+        usePermissionsStore().clearPermissions()
+      })
     }
   }
 
@@ -296,6 +308,12 @@ export const useAuthStore = defineStore('auth', () => {
       const planStore = usePlanStore()
       planStore.restorePlan()
       if (selectedStore.value) planStore.fetchPlan()
+    })
+
+    import('@/stores/permissions.store').then(({ usePermissionsStore }) => {
+      const permissionsStore = usePermissionsStore()
+      permissionsStore.restorePermissions()
+      if (selectedStore.value) permissionsStore.fetchPermissions()
     })
 
     // Fetch updated stores in background

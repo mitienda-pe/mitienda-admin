@@ -82,8 +82,17 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
 
     // Handle 403 module access errors - show upgrade modal
+    //
+    // El filtro `moduleaccess` de la API devuelve 403 con `module` por dos
+    // motivos distintos y los distingue con `reason`: 'plan' (la tienda no lo
+    // contrató → subir de plan lo resuelve) y 'permission' (el dueño no se lo
+    // concedió a este usuario → el upgrade no tiene nada que ver). El modal de
+    // upgrade solo aplica al primero.
     const responseData = error.response?.data as Record<string, unknown> | undefined
     if (error.response?.status === 403 && responseData?.module) {
+      if (responseData.reason === 'permission') {
+        return Promise.reject(error)
+      }
       import('@/stores/plan.store').then(({ usePlanStore }) => {
         const planStore = usePlanStore()
         const moduleCode = responseData.module as string

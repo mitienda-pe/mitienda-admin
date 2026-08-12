@@ -1309,6 +1309,25 @@ router.beforeEach(async (to, _from, next) => {
       if (blockedModule) planStore.showUpgradeModal(blockedModule)
       return next(false)
     }
+
+    // Permisos por usuario (usuariosmodulos). Capa aparte del plan: el plan
+    // dice qué contrató la tienda, esto qué le concedió el dueño a este
+    // usuario. Solo aplica en tiendas que activaron el gate; el dueño y el
+    // superadmin quedan exentos dentro del propio store.
+    const { usePermissionsStore } = await import('@/stores/permissions.store')
+    const permissionsStore = usePermissionsStore()
+    if (!permissionsStore.isLoaded) {
+      permissionsStore.restorePermissions()
+      if (!permissionsStore.isLoaded) {
+        await permissionsStore.fetchPermissions()
+      }
+    }
+
+    if (!permissionsStore.canAccessRoute(to.path)) {
+      // Sin modal de upgrade: subir de plan no lo resuelve, hay que pedírselo
+      // al dueño de la tienda. Se manda al dashboard, que siempre es accesible.
+      return next('/dashboard')
+    }
   }
 
   // Si está en store-selection pero ya tiene tienda seleccionada
