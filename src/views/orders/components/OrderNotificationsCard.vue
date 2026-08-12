@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import Card from 'primevue/card'
 import Dialog from 'primevue/dialog'
 import ProgressSpinner from 'primevue/progressspinner'
@@ -64,12 +64,34 @@ const emailBadge = computed(() =>
 
 const deliveries = computed(() => webhook.value?.deliveries ?? [])
 
+// --- Cuenta regresiva del reenvío -------------------------------------------
+// El reenvío por email es forzado (no lo frena el flag de idempotencia), así que
+// clickear tres veces seguidas mandaba tres correos iguales al vendedor. El API
+// rechaza el segundo envío dentro de la ventana; acá además apagamos el botón
+// para que el vendedor vea por qué. El delta lo da el servidor (`seconds_since_
+// last_sent`) porque restar sobre `last_sent_at` fallaría en otro huso horario.
+const statusLoadedAt = ref(Date.now())
+const nowMs = ref(Date.now())
+let ticker: ReturnType<typeof setInterval> | undefined
+
+const cooldownRemaining = computed(() => {
+  const since = sellerEmail.value?.seconds_since_last_sent
+  if (since === null || since === undefined) return 0
+  const total = sellerEmail.value?.cooldown_seconds ?? 60
+  const elapsed = since + Math.floor((nowMs.value - statusLoadedAt.value) / 1000)
+  return Math.max(0, total - elapsed)
+})
+
+const emailResendDisabled = computed(() => cooldownRemaining.value > 0)
+
 async function loadStatus() {
   if (!props.orderId) return
   isLoading.value = true
   try {
     const response = await ordersApi.getNotificationsStatus(props.orderId)
     status.value = response.success && response.data ? response.data : null
+    statusLoadedAt.value = Date.now()
+    nowMs.value = statusLoadedAt.value
   } catch {
     // Silencioso: el detalle de orden no debe romperse si el endpoint no está.
     status.value = null
@@ -114,6 +136,13 @@ function summarizeResult(channel: ResendNotificationChannel, result: ResendNotif
     const e = result.email
     if (e.error === 'no_recipients_configured') {
       parts.push('Email: sin destinatarios configurados')
+    } else if (e.error === 'throttled') {
+      // No es un fallo: el correo ya salió hace unos segundos y el API evitó
+      // mandarlo de nuevo. Se informa como aviso, no como error.
+      const retry = e.retry_after_seconds ?? 0
+      parts.push(
+        `Email: ya se envió recién, no se duplicó${retry > 0 ? ` (reintenta en ${retry} s)` : ''}`
+      )
     } else if (e.ok) {
       parts.push(`Email: enviado a ${e.sent?.length ?? 0} destinatario(s)`)
       anyOk = true
@@ -129,6 +158,7 @@ function summarizeResult(channel: ResendNotificationChannel, result: ResendNotif
 
 async function resend(channel: ResendNotificationChannel) {
   if (resendingChannel.value) return
+  if (channel !== 'webhook' && emailResendDisabled.value) return
   resendingChannel.value = channel
   try {
     const response = await ordersApi.resendNotifications(props.orderId, channel)
@@ -160,6 +190,13 @@ watch(
 
 onMounted(() => {
   if (props.orderId) loadStatus()
+  ticker = setInterval(() => {
+    nowMs.value = Date.now()
+  }, 1000)
+})
+
+onUnmounted(() => {
+  if (ticker) clearInterval(ticker)
 })
 </script>
 
@@ -229,6 +266,9 @@ onMounted(() => {
             <p class="text-xs text-gray-500 mt-0.5">
               Correo "{{ sellerEmail?.is_paid ? 'Venta confirmada' : 'Nuevo pedido' }}" a los emails configurados.
             </p>
+            <p v-if="sellerEmail?.last_sent_at" class="text-xs text-gray-500 mt-0.5">
+              Último envío: {{ formatDateTime(sellerEmail.last_sent_at) }}
+            </p>
           </div>
           <span
             class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0"
@@ -242,11 +282,11 @@ onMounted(() => {
         <!-- Acciones -->
         <div class="border-t border-gray-100 pt-3 flex flex-wrap items-center gap-2">
           <AppButton
-            label="Reenviar notificación"
+            :label="emailResendDisabled ? `Reenviar en ${cooldownRemaining} s` : 'Reenviar notificación'"
             icon="pi pi-send"
             size="small"
             :loading="resendingChannel === 'both'"
-            :disabled="resendingChannel !== null"
+            :disabled="resendingChannel !== null || emailResendDisabled"
             @click="resend('both')"
           />
           <AppButton
@@ -262,10 +302,14 @@ onMounted(() => {
             variant="text"
             size="small"
             :loading="resendingChannel === 'email'"
-            :disabled="resendingChannel !== null"
+            :disabled="resendingChannel !== null || emailResendDisabled"
             @click="resend('email')"
           />
         </div>
+        <p v-if="emailResendDisabled" class="text-xs text-gray-500">
+          El correo al vendedor se envió hace un momento. Espera {{ cooldownRemaining }} s para
+          reenviarlo y evitar que llegue duplicado.
+        </p>
       </div>
     </template>
   </Card>

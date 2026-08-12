@@ -114,6 +114,19 @@ export interface OrderNotificationsStatus {
   seller_email: {
     sent: boolean
     is_paid: boolean
+    /**
+     * Fecha del último aviso al vendedor (automático o reenvío manual).
+     * `null` en órdenes notificadas antes de que existiera el timestamp.
+     */
+    last_sent_at?: string | null
+    /**
+     * Segundos transcurridos desde el último envío, calculados en el servidor:
+     * la cuenta regresiva no puede salir de `last_sent_at` porque el navegador
+     * puede estar en otro huso horario.
+     */
+    seconds_since_last_sent?: number | null
+    /** Ventana en la que el API rechaza un segundo reenvío del mismo correo. */
+    cooldown_seconds?: number
   }
 }
 
@@ -143,7 +156,11 @@ export interface ResendNotificationsResult {
     recipients?: string[]
     sent?: string[]
     failed?: string[]
+    /** `'no_recipients_configured'` | `'throttled'` | mensaje de error. */
     error?: string | null
+    last_sent_at?: string | null
+    /** Solo con `error === 'throttled'`: segundos que faltan para poder reenviar. */
+    retry_after_seconds?: number
   }
 }
 
