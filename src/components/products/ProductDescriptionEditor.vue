@@ -7,7 +7,7 @@
 
     <div class="h-[70vh]">
       <!-- Quill WYSIWYG Editor -->
-      <QuillEditor v-if="editorMode === 'wysiwyg'" v-model="localContent" height="100%" toolbar="full" />
+      <QuillEditor v-if="editorMode === 'wysiwyg'" ref="quillRef" v-model="localContent" height="100%" toolbar="full" />
 
       <!-- Monaco Code Editor -->
       <div v-else ref="monacoContainer" class="h-full w-full border border-gray-300 rounded"></div>
@@ -34,16 +34,29 @@
 
     <template #footer>
       <div class="flex justify-between items-center w-full">
-        <Button
-          v-if="editorMode === 'wysiwyg'"
-          label="Mejorar con IA"
-          icon="pi pi-sparkles"
-          size="small"
-          severity="secondary"
-          outlined
-          @click="openAiEnhancer"
-        />
-        <span v-else />
+        <div class="flex gap-2">
+          <Button
+            v-if="editorMode === 'wysiwyg'"
+            label="Mejorar con IA"
+            icon="pi pi-sparkles"
+            size="small"
+            severity="secondary"
+            outlined
+            @click="openAiEnhancer"
+          />
+          <!-- Visor 3D/AR: sólo para tiendas con el add-on activo. El shortcode
+               va sin atributos porque el storefront completa foto y medidas
+               desde el propio producto. -->
+          <Button
+            v-if="ar3dEnabled"
+            label="Insertar visor 3D/AR"
+            icon="pi pi-box"
+            size="small"
+            severity="secondary"
+            outlined
+            @click="insertArShortcode"
+          />
+        </div>
         <div class="flex gap-2">
           <Button label="Cancelar" severity="secondary" @click="handleClose" />
           <Button label="Guardar" @click="handleSave" />
@@ -61,6 +74,7 @@ import { QuillEditor } from '@/components/ui'
 import type * as MonacoTypes from 'monaco-editor'
 import 'ai-text-enhancer'
 import { useAuthStore } from '@/stores/auth.store'
+import { useStoreConfigStore } from '@/stores/store-config.store'
 import { AI_BUTTON_IDS } from '@/config/ai-buttons.config'
 import { useFormatters } from '@/composables/useFormatters'
 
@@ -102,11 +116,29 @@ const visible = computed({
 })
 
 const authStore = useAuthStore()
+const storeConfig = useStoreConfigStore()
 
 const editorMode = ref(props.mode)
 const localContent = ref(props.content)
 const monacoContainer = ref<HTMLElement | null>(null)
+const quillRef = ref<{ insertText: (text: string) => void } | null>(null)
 let monacoEditor: MonacoTypes.editor.IStandaloneCodeEditor | null = null
+
+const ar3dEnabled = computed(() => storeConfig.savedConfig.tiendageneral_sw_ar_3d === 1)
+
+/**
+ * Inserta `[ar]` donde esté el cursor. El shortcode no lleva atributos: la ficha
+ * del storefront le pasa al visor la foto principal y las medidas del producto.
+ */
+const insertArShortcode = () => {
+  const text = '[ar]'
+  if (editorMode.value === 'code') {
+    monacoEditor?.trigger('shortcode', 'type', { text })
+    monacoEditor?.focus()
+    return
+  }
+  quillRef.value?.insertText(text)
+}
 
 const aiEnhancerRef = ref<HTMLElement | null>(null)
 const userId = computed(() => String(authStore.selectedStore?.id || ''))
@@ -276,6 +308,10 @@ watch(() => props.content, (newContent) => {
 })
 
 onMounted(() => {
+  // El add-on de visor 3D/AR se lee de la config de la tienda, que no siempre
+  // está cargada al entrar directo a la ficha de producto.
+  if (!storeConfig.isLoaded) storeConfig.fetchConfig()
+
   if (visible.value && editorMode.value === 'code') {
     initMonaco()
   }

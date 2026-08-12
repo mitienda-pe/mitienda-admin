@@ -131,6 +131,10 @@ export interface StoreConfig {
   // Control de inventario por lotes con vencimiento (opt-in, Large/PDV)
   tiendageneral_sw_lotes: number
   tiendageneral_lote_estrategia: string | null
+  // Solo lectura: add-on de visor 3D/AR. Lo activa MiTienda tras enviar el
+  // dominio de la tienda al proveedor (licencia por dominio, no por cuenta).
+  // Habilita el botón que inserta el shortcode [ar] en la descripción.
+  tiendageneral_sw_ar_3d?: number
   // Derivado (solo lectura): la tienda tiene webhooks legacy configurados.
   // El sidebar muestra "Webhooks (legacy)" solo cuando es true.
   has_legacy_webhooks?: boolean

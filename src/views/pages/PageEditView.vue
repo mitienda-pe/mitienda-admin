@@ -187,7 +187,7 @@
           <label class="block text-sm font-medium text-secondary-700 mb-1">Tipo de bloque</label>
           <Dropdown
             v-model="shortcodeType"
-            :options="SHORTCODE_TYPES"
+            :options="availableShortcodes"
             option-label="label"
             option-value="value"
             class="w-full"
@@ -324,6 +324,7 @@ import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePagesStore } from '@/stores/pages.store'
 import { useCatalogStore } from '@/stores/catalog.store'
+import { useStoreConfigStore } from '@/stores/store-config.store'
 import { productsApi } from '@/api/products.api'
 import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
@@ -423,6 +424,30 @@ const SHORTCODE_TYPES: ShortcodeType[] = [
     help: "Widget externo. El ID está en el embed: new StorepointWidget('ESTE_ID', ...).",
     fields: [{ key: 'id', label: 'Widget ID de Storepoint', type: 'text', placeholder: '1690e3dbcdc582', required: true }],
   },
+  {
+    value: 'ar',
+    label: 'Visor 3D / Realidad Aumentada',
+    help: 'Genera un modelo 3D a partir de la foto. En la descripción de un producto se escribe [ar] a secas; acá hay que indicar la foto y las medidas.',
+    fields: [
+      { key: 'imagen', label: 'URL de la foto', type: 'text', placeholder: 'https://…/silla.jpg', help: 'Debe ser pública y mostrar un solo objeto sobre fondo limpio.', required: true },
+      { key: 'ancho', label: 'Ancho (cm)', type: 'number', placeholder: '60' },
+      { key: 'alto', label: 'Alto (cm)', type: 'number', placeholder: '90' },
+      { key: 'profundidad', label: 'Profundidad (cm)', type: 'number', placeholder: '60' },
+      {
+        key: 'tipo',
+        label: 'Categoría',
+        type: 'select',
+        help: 'Define cómo se apoya el objeto en AR.',
+        options: [
+          { label: 'Silla', value: 'chair' },
+          { label: 'Sofá', value: 'sofa' },
+          { label: 'Lámpara', value: 'lamp' },
+          { label: 'Mesa', value: 'table' },
+          { label: 'Otro', value: 'other' },
+        ],
+      },
+    ],
+  },
 ]
 
 const route = useRoute()
@@ -444,6 +469,7 @@ const editorRef = ref<{
 
 // Shortcode insertion
 const catalogStore = useCatalogStore()
+const storeConfig = useStoreConfigStore()
 const showShortcode = ref(false)
 const shortcodeType = ref<string>(SHORTCODE_TYPES[0].value)
 // Valores por atributo del shortcode seleccionado (key → valor). Dropdown con
@@ -462,6 +488,14 @@ const supportsShortcodes = computed(
 )
 
 const supportsAi = computed(() => page.value?.editor_type === 'code')
+
+// El visor 3D/AR es un add-on: sólo aparece en el selector si MiTienda lo activó
+// para esta tienda (el proveedor licencia el widget por dominio).
+const availableShortcodes = computed(() =>
+  SHORTCODE_TYPES.filter(
+    (s) => s.value !== 'ar' || storeConfig.savedConfig.tiendageneral_sw_ar_3d === 1
+  )
+)
 
 const selectedShortcode = computed(() =>
   SHORTCODE_TYPES.find((s) => s.value === shortcodeType.value)
@@ -684,5 +718,7 @@ const handleBack = () => {
 
 onMounted(() => {
   loadPage()
+  // Necesaria para saber si la tienda tiene el add-on de visor 3D/AR.
+  if (!storeConfig.isLoaded) storeConfig.fetchConfig()
 })
 </script>

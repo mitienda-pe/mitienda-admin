@@ -34,6 +34,7 @@ const DEFAULT_CONFIG: StoreConfig = {
   sw_notif_incluir_email_tienda: 1,
   tiendageneral_sw_lotes: 0,
   tiendageneral_lote_estrategia: 'fefo',
+  tiendageneral_sw_ar_3d: 0,
   has_legacy_webhooks: false
 }
 
