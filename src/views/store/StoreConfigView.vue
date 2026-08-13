@@ -91,6 +91,11 @@ const isLotsEnabled = computed({
   set: (val: boolean) => store.updateField('tiendageneral_sw_lotes', val ? 1 : 0)
 })
 
+const isPurchaseLimitEnabled = computed({
+  get: () => store.draftConfig.sw_limitarproducto === 1,
+  set: (val: boolean) => store.updateField('sw_limitarproducto', val ? 1 : 0)
+})
+
 const lotsStrategy = computed({
   get: () => store.draftConfig.tiendageneral_lote_estrategia || 'fefo',
   set: (val: string) => store.updateField('tiendageneral_lote_estrategia', val)
@@ -643,6 +648,25 @@ watch(
                 </p>
               </div>
             </div>
+          </div>
+
+          <hr class="border-gray-100" />
+
+          <!-- Límite de compra por producto -->
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <label class="text-sm font-medium text-secondary-700">Límite de compra por producto</label>
+                <p class="text-xs text-gray-400 mt-0.5">
+                  Permite fijar cuántas unidades como máximo puede llevar un comprador de cada producto.
+                  Actívalo aquí y luego define el tope en la ficha de cada producto (0 = sin límite).
+                </p>
+              </div>
+              <InputSwitch v-model="isPurchaseLimitEnabled" />
+            </div>
+            <p v-if="isPurchaseLimitEnabled" class="text-xs text-gray-400 mt-1">
+              Solo aplica a la tienda virtual. Las ventas del POS no tienen tope.
+            </p>
           </div>
         </div>
       </div>

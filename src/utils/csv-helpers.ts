@@ -25,6 +25,9 @@ export const CSV_COLUMNS: CsvColumnDef[] = [
   // Inventario
   { key: 'stock', apiField: 'stock', label: 'Stock', required: true, type: 'number', group: 'Inventario' },
   { key: 'stock_ilimitado', apiField: 'unlimited_stock', label: 'Stock Ilimitado (0/1)', required: false, type: 'boolean', group: 'Inventario' },
+  // Tope de unidades por compra. Solo surte efecto si la tienda tiene encendido
+  // el limite de compra por producto (Configuracion de tienda).
+  { key: 'cantidad_maxima', apiField: 'max_purchase_qty', label: 'Cantidad Maxima de Compra (0 = sin limite)', required: false, type: 'number', group: 'Inventario' },
   // Contenido
   { key: 'descripcion', apiField: 'description', label: 'Descripcion', required: false, type: 'string', group: 'Contenido' },
   { key: 'descripcion_corta', apiField: 'description_short', label: 'Descripcion Corta', required: false, type: 'string', group: 'Contenido' },

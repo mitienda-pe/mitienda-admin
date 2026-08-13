@@ -801,6 +801,27 @@
                 </div>
               </div>
 
+              <!-- Cantidad máxima de compra. Va fuera del bloque de stock porque
+                   el tope aplica igual a productos con variantes: es un límite
+                   del producto, no del inventario. -->
+              <div v-if="purchaseLimitEnabled" class="border-t border-gray-200 pt-4">
+                <h4 class="text-sm font-semibold text-secondary-700 mb-3">Cantidad máxima de compra</h4>
+                <div class="flex items-center gap-3">
+                  <InputNumber
+                    id="edit-max-purchase"
+                    v-model="form.max_purchase_qty"
+                    :min="0"
+                    :max="9999"
+                    :useGrouping="false"
+                    class="w-24"
+                  />
+                  <span class="text-sm text-secondary-500">unidades por compra</span>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">
+                  0 = sin límite. Solo aplica a la tienda virtual; las ventas del POS no tienen tope.
+                </p>
+              </div>
+
               <!-- Fechas -->
               <div class="border-t border-gray-200 pt-4 text-xs text-secondary-500 space-y-1">
                 <p><span class="font-medium">Creado:</span> {{ formatDate(product.created_at) }}</p>
@@ -1120,6 +1141,9 @@ if (!storeConfigStore.isLoaded) {
 // Tipos de producto (físico/servicio). Cache global; carga perezosa.
 productTypeStore.fetchTypes()
 const lotsStoreEnabled = computed(() => storeConfigStore.draftConfig.tiendageneral_sw_lotes === 1)
+// Límite de compra por producto: el campo solo se edita si la tienda encendió
+// la función en Configuración (igual que en el panel legacy).
+const purchaseLimitEnabled = computed(() => storeConfigStore.draftConfig.sw_limitarproducto === 1)
 const productLotsManaged = ref(false)
 
 // El manager guarda el flag por su cuenta; aquí reflejamos el cambio para
@@ -1202,6 +1226,7 @@ const form = ref<FormState>({
   igv_percent: 18,
   stock: undefined,
   unlimited_stock: false,
+  max_purchase_qty: 0,
   sold_by_weight: false,
   published: true,
   published_pos: true,
@@ -1355,6 +1380,7 @@ const populateForm = async () => {
     igv_percent: p.igv_percent || 18,
     stock: p.stock ?? undefined,
     unlimited_stock: p.unlimited_stock || false,
+    max_purchase_qty: p.max_purchase_qty ?? 0,
     sold_by_weight: p.sold_by_weight === true,
     published: p.published,
     published_pos: p.published_pos !== false,

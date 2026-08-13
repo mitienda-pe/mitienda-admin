@@ -89,6 +89,9 @@ export interface Product {
   cost?: number
   stock: number
   unlimited_stock: boolean
+  /** Tope de unidades por compra (0 = sin tope). Solo se aplica si la tienda
+   *  tiene encendido el límite de compra por producto. */
+  max_purchase_qty?: number
   min_stock?: number
   // Control por lotes con vencimiento (perecibles)
   lots_managed?: boolean
@@ -367,6 +370,7 @@ export interface ProductCreatePayload {
   cost?: number | null
   stock?: number
   unlimited_stock?: boolean
+  max_purchase_qty?: number
   description?: string
   description_short?: string
   brand_id?: number | null

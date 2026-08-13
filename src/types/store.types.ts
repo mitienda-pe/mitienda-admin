@@ -131,6 +131,9 @@ export interface StoreConfig {
   // Control de inventario por lotes con vencimiento (opt-in, Large/PDV)
   tiendageneral_sw_lotes: number
   tiendageneral_lote_estrategia: string | null
+  // Límite de compra por producto: habilita el campo "cantidad máxima de compra"
+  // en la ficha de cada producto. Apagado, los topes guardados no se aplican.
+  sw_limitarproducto: number
   // Solo lectura: add-on de visor 3D/AR. Lo activa MiTienda tras enviar el
   // dominio de la tienda al proveedor (licencia por dominio, no por cuenta).
   // Habilita el botón que inserta el shortcode [ar] en la descripción.
@@ -160,6 +163,7 @@ export interface StoreConfigUpdate {
   sw_notif_incluir_email_tienda?: number
   tiendageneral_sw_lotes?: number
   tiendageneral_lote_estrategia?: string | null
+  sw_limitarproducto?: number
 }
 
 export interface Currency {

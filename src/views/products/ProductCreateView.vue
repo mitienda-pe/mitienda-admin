@@ -6,6 +6,7 @@ import { useGammaStore } from '@/stores/gamma.store'
 import { useProductTypeStore } from '@/stores/product-type.store'
 import { productManagementApi } from '@/api/product-management.api'
 import { usePlanStore } from '@/stores/plan.store'
+import { useStoreConfigStore } from '@/stores/store-config.store'
 import { useOnboarding } from '@/composables/useOnboarding'
 import QuotaBanner from '@/components/plan/QuotaBanner.vue'
 import InputText from 'primevue/inputtext'
@@ -27,6 +28,7 @@ const catalogStore = useCatalogStore()
 const gammaStore = useGammaStore()
 const productTypeStore = useProductTypeStore()
 const planStore = usePlanStore()
+const storeConfigStore = useStoreConfigStore()
 const { resumeTourIfPending } = useOnboarding()
 const toast = useToast()
 
@@ -51,6 +53,7 @@ const form = ref<ProductCreatePayload>({
   igv_percent: 18,
   stock: undefined,
   unlimited_stock: false,
+  max_purchase_qty: 0,
   description: '',
   description_short: '',
   brand_id: null,
@@ -67,6 +70,10 @@ const errors = ref<Record<string, string>>({})
 // no necesita stock ni envío; ocultamos esos campos y lo marcamos ilimitado.
 const selectedType = computed(() => productTypeStore.getById(form.value.product_type_id))
 const requiresShipping = computed(() => selectedType.value?.requires_shipping ?? true)
+
+// Límite de compra por producto: solo se ofrece si la tienda lo tiene encendido
+// en Configuración.
+const purchaseLimitEnabled = computed(() => storeConfigStore.draftConfig.sw_limitarproducto === 1)
 
 watch(requiresShipping, (needsShipping) => {
   if (!needsShipping) {
@@ -192,6 +199,9 @@ onMounted(async () => {
     await catalogStore.fetchAll()
   }
   productTypeStore.fetchTypes()
+  if (!storeConfigStore.isLoaded) {
+    storeConfigStore.fetchConfig()
+  }
   resumeTourIfPending()
 })
 
@@ -541,6 +551,22 @@ const handleSave = async () => {
               Stock ilimitado
             </label>
           </div>
+        </div>
+      </div>
+
+      <!-- Cantidad máxima de compra (si la tienda usa límite por producto) -->
+      <div v-if="purchaseLimitEnabled" class="border-t border-gray-100 pt-4">
+        <h3 class="text-sm font-semibold text-gray-700 mb-3">Cantidad máxima de compra</h3>
+        <div class="flex items-center gap-3">
+          <InputNumber
+            id="max-purchase"
+            v-model="form.max_purchase_qty"
+            :min="0"
+            :max="9999"
+            :useGrouping="false"
+            class="max-w-[120px]"
+          />
+          <span class="text-sm text-gray-500">unidades por compra (0 = sin límite)</span>
         </div>
       </div>
 
