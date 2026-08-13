@@ -24,6 +24,8 @@ export interface DispatchOrder {
   delivery_type: 'domicilio' | 'retiro'
   service_type: ShippingServiceType | null
   order_date: string
+  /** Null en contra-entrega POS: el cobro ocurre recién en la entrega */
+  payment_date: string | null
   delivery_date: string | null
   dispatch_state: DispatchState
   tracking_code: string | null
@@ -62,6 +64,7 @@ export interface DispatchOrderDetail {
   dispatch_state: DispatchState
   available_transitions: number[]
   order_date: string
+  payment_date: string | null
   payment_status: number
   pasarela_id: number
   courier_id: number
@@ -141,6 +144,11 @@ export interface DispatchOrdersFilters {
   district?: string
   include_pending_payment?: string
   include_confirmed_payment?: string
+  /**
+   * Criterio de fecha para ordenar Y para el rango date_from/date_to.
+   * La API usa 'payment_date' por defecto.
+   */
+  sort?: 'payment_date' | 'order_date'
   page?: number
   per_page?: number
 }

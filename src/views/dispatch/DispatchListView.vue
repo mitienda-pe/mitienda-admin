@@ -36,9 +36,15 @@ const isDispatchEnabled = ref(true)
 const dispatchDisabledMessage = ref('')
 
 // Filters
+//
+// sort arranca en 'payment_date': con pagos asíncronos (depósito, Yape) lo que
+// importa en almacén es cuándo entró la plata, no cuándo el cliente armó el
+// carrito. Una orden colocada hace una semana y pagada hoy tiene que salir
+// arriba. El rango de fechas usa el mismo criterio (lo resuelve la API).
 const filters = ref<DispatchOrdersFilters>({
   page: 1,
-  per_page: 20
+  per_page: 20,
+  sort: 'payment_date'
 })
 
 // Date wrappers for Calendar (Calendar expects Date, filters use string)
@@ -77,6 +83,11 @@ const deliveryTypeOptions = [
   { label: 'Retiro en tienda', value: 'retiro' }
 ]
 
+const sortOptions = [
+  { label: 'Fecha de pago', value: 'payment_date' },
+  { label: 'Fecha de colocación', value: 'order_date' }
+]
+
 // ─── Computed ─────────────────────────────────────────────────
 
 const stateOptions = computed(() => {
@@ -102,6 +113,27 @@ const hasActiveFilters = computed(() => {
 })
 
 const firstRow = computed(() => ((filters.value.page ?? 1) - 1) * (filters.value.per_page ?? 20))
+
+const sortByPayment = computed(() => filters.value.sort !== 'order_date')
+
+/** La columna de fecha y el rango siguen el criterio elegido en "Ordenar por" */
+const dateColumnHeader = computed(() => sortByPayment.value ? 'F. pago' : 'Fecha')
+
+/** Fecha por la que se ordena esta fila; en contra-entrega POS no hay pago aún */
+function sortedDate(order: DispatchOrder): string | null {
+  return sortByPayment.value ? (order.payment_date ?? order.order_date) : order.order_date
+}
+
+/**
+ * La otra fecha, mostrada en chico solo cuando difiere del día que se ordena
+ * — es lo que explica por qué una orden vieja aparece arriba de la lista.
+ */
+function secondaryDate(order: DispatchOrder): string | null {
+  const primary = sortedDate(order)
+  const other = sortByPayment.value ? order.order_date : order.payment_date
+  if (!other || !primary) return null
+  return other.slice(0, 10) === primary.slice(0, 10) ? null : other
+}
 
 // ─── Methods ──────────────────────────────────────────────────
 
@@ -165,7 +197,12 @@ function onFilterChange() {
 }
 
 function clearFilters() {
-  filters.value = { page: 1, per_page: filters.value.per_page ?? 20 }
+  // sort no es un filtro sino cómo se lee la lista: se conserva al limpiar
+  filters.value = {
+    page: 1,
+    per_page: filters.value.per_page ?? 20,
+    sort: filters.value.sort
+  }
   selectedOrders.value = []
   loadOrders()
 }
@@ -340,9 +377,24 @@ onMounted(() => {
             />
           </div>
 
+          <!-- Ordenar por -->
+          <div class="flex-1 min-w-[160px]">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Ordenar por</label>
+            <Dropdown
+              v-model="filters.sort"
+              :options="sortOptions"
+              option-label="label"
+              option-value="value"
+              class="w-full"
+              @change="onFilterChange"
+            />
+          </div>
+
           <!-- Fecha desde -->
           <div class="flex-1 min-w-[160px]">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha desde</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              {{ sortByPayment ? 'Pagado desde' : 'Fecha desde' }}
+            </label>
             <Calendar
               v-model="dateFrom"
               placeholder="Seleccionar fecha"
@@ -358,7 +410,9 @@ onMounted(() => {
 
           <!-- Fecha hasta -->
           <div class="flex-1 min-w-[160px]">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Fecha hasta</label>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              {{ sortByPayment ? 'Pagado hasta' : 'Fecha hasta' }}
+            </label>
             <Calendar
               v-model="dateTo"
               placeholder="Seleccionar fecha"
@@ -463,9 +517,14 @@ onMounted(() => {
             </template>
           </Column>
 
-          <Column field="order_date" header="Fecha">
+          <Column field="order_date" :header="dateColumnHeader">
             <template #body="{ data }">
-              <span class="text-sm text-gray-700">{{ formatDate(data.order_date) }}</span>
+              <div class="flex flex-col">
+                <span class="text-sm text-gray-700">{{ formatDate(sortedDate(data)) }}</span>
+                <span v-if="secondaryDate(data)" class="text-xs text-gray-500">
+                  {{ sortByPayment ? 'Colocado' : 'Pagado' }} {{ formatDate(secondaryDate(data)) }}
+                </span>
+              </div>
             </template>
           </Column>
 
