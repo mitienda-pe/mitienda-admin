@@ -19,7 +19,6 @@ export const carouselApi = {
       alt_text?: string
       enlace?: string
       desktop_aspect: string
-      mobile_aspect?: string
     }
   ): Promise<ApiResponse<CarouselSlide>> {
     const formData = new FormData()
@@ -27,7 +26,6 @@ export const carouselApi = {
     if (data.alt_text) formData.append('alt_text', data.alt_text)
     if (data.enlace) formData.append('enlace', data.enlace)
     formData.append('desktop_aspect', data.desktop_aspect)
-    if (data.mobile_aspect) formData.append('mobile_aspect', data.mobile_aspect)
 
     const response = await apiClient.post('/carousel', formData)
     return response.data

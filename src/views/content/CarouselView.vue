@@ -80,10 +80,11 @@ async function handleUploadSuccess(data: { blob: Blob; fileName: string }) {
       )
       toast.add({ severity: 'success', summary: 'Imagen mobile agregada', life: 3000 })
     } else {
-      // Create new slide with desktop image
+      // Create new slide with desktop image. El aspecto mobile NO se manda acá:
+      // el slide nace sin imagen mobile, y declarar un ratio sin imagen hace que
+      // el storefront recorte la imagen desktop. Se graba al subir la mobile.
       await store.createSlide(file, {
-        desktop_aspect: selectedDesktopPreset.value.value,
-        mobile_aspect: selectedMobilePreset.value.value
+        desktop_aspect: selectedDesktopPreset.value.value
       })
       toast.add({ severity: 'success', summary: 'Slide agregado al carrusel', life: 3000 })
     }

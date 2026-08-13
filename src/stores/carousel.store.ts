@@ -29,7 +29,6 @@ export const useCarouselStore = defineStore('carousel', () => {
       alt_text?: string
       enlace?: string
       desktop_aspect: string
-      mobile_aspect?: string
     }
   ): Promise<CarouselSlide> {
     const response = await carouselApi.create(image, data)
