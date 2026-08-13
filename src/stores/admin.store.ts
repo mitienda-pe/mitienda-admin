@@ -135,6 +135,15 @@ export const useAdminStore = defineStore('admin', () => {
         configStore.clearConfig()
         await Promise.all([configStore.fetchConfig(), configStore.fetchCountryConfig()])
 
+        // Los permisos por usuario son por tienda y quedan cacheados en
+        // localStorage: sin refrescarlos, el superadmin entraría a la tienda
+        // con los permisos de la anterior. Por el mismo motivo que la config
+        // de arriba, impersonar no pasa por `selectStore()`.
+        const { usePermissionsStore } = await import('./permissions.store')
+        const permissionsStore = usePermissionsStore()
+        permissionsStore.clearPermissions()
+        await permissionsStore.fetchPermissions()
+
         return true
       }
 
@@ -168,9 +177,14 @@ export const useAdminStore = defineStore('admin', () => {
         impersonationContext.value = null
         localStorage.removeItem('impersonation_context')
 
-        // Descartar la config de la tienda impersonada (ver nota en impersonate).
+        // Descartar la config y los permisos de la tienda impersonada (ver nota
+        // en impersonate). Se limpian sin volver a pedirlos: el superadmin sale
+        // a su propia consola, y al entrar a otra tienda se cargan de nuevo.
         const { useStoreConfigStore } = await import('./store-config.store')
         useStoreConfigStore().clearConfig()
+
+        const { usePermissionsStore } = await import('./permissions.store')
+        usePermissionsStore().clearPermissions()
 
         return true
       }
