@@ -13,6 +13,7 @@ import Card from 'primevue/card'
 import ProgressSpinner from 'primevue/progressspinner'
 import Timeline from 'primevue/timeline'
 import Menu from 'primevue/menu'
+import Dialog from 'primevue/dialog'
 import Textarea from 'primevue/textarea'
 import EmitDocumentDialog from '@/components/billing/EmitDocumentDialog.vue'
 import DeliveryMap from '@/components/map/DeliveryMap.vue'
@@ -29,7 +30,7 @@ import type { BillingStatus } from '@/types/billing.types'
 import type { OrderItemReview } from '@/types/review.types'
 import type { FulfillmentProvider } from '@/types/fulfillment.types'
 import apiClient from '@/api/axios'
-import type { Order, OrderStatus } from '@/types/order.types'
+import type { Order, OrderStatus, OrderIntegrationAttempt } from '@/types/order.types'
 import type { SenderInfo } from '@/types/store.types'
 
 const route = useRoute()
@@ -721,6 +722,24 @@ const timelineEvents = computed(() => {
     })
   }
 
+  // 5) Sincronizacion con el ERP/WMS: solo el ultimo intento de cada proveedor.
+  //    Una orden reprocesada varias veces tiene un intento por vez, y listarlos
+  //    todos tapa los estados de despacho, que es lo que se viene a mirar.
+  const ultimoPorProveedor = new Map<string, OrderIntegrationAttempt>()
+  for (const intento of order.value.integration_attempts ?? []) {
+    ultimoPorProveedor.set(intento.provider, intento)
+  }
+  for (const intento of ultimoPorProveedor.values()) {
+    const ok = intento.status === 'success'
+    raw.push({
+      status: ok ? `Sincronizado con ${intento.name}` : `Error al sincronizar con ${intento.name}`,
+      sortDate: intento.at,
+      icon: ok ? 'pi pi-sync' : 'pi pi-exclamation-triangle',
+      color: ok ? '#00b2a6' : '#F44336',
+      observacion: intento.error_message,
+    })
+  }
+
   // Ordenar cronologicamente. Las strings tipo "2026-04-30 12:25:00" o ISO
   // ordenan correctamente por comparacion lexicografica.
   raw.sort((a, b) => a.sortDate.localeCompare(b.sortDate))
@@ -970,6 +989,47 @@ const erpPayloadData = computed(() => {
     return null
   }
 })
+
+// ─── Integraciones (Contanet, Mintsoft, Urbano, Flexy, Niux) ────────────────
+// NetSuite queda fuera: ya tiene su propio card con invoice id, documento y
+// pagos aplicados. Mostrarlo acá sería repetir lo mismo con menos detalle.
+const integrations = computed(() =>
+  (order.value?.integrations ?? []).filter(i => i.provider !== 'netsuite')
+)
+
+const integrationChipClass = (status: string) => {
+  if (status === 'synced') return 'bg-green-100 text-green-800'
+  if (status === 'error') return 'bg-red-100 text-red-800'
+  if (status === 'pending') return 'bg-amber-100 text-amber-800'
+  return 'bg-gray-100 text-gray-700'
+}
+
+const integrationChipIcon = (status: string) => {
+  if (status === 'synced') return 'pi-check-circle'
+  if (status === 'error') return 'pi-times-circle'
+  if (status === 'pending') return 'pi-clock'
+  return 'pi-question-circle'
+}
+
+const integrationDetail = ref<{ name: string; message: string | null; payload: string | null } | null>(null)
+
+const openIntegrationDetail = (integration: { name: string; message: string | null; payload: string | null }) => {
+  integrationDetail.value = {
+    name: integration.name,
+    message: integration.message,
+    payload: integration.payload,
+  }
+}
+
+/** Intenta indentar el JSON del ERP; si no es JSON, lo muestra tal cual. */
+const prettyJson = (raw: string | null): string => {
+  if (!raw) return ''
+  try {
+    return JSON.stringify(JSON.parse(raw), null, 2)
+  } catch {
+    return raw
+  }
+}
 
 const erpSyncStatus = computed(() => {
   if (!order.value) return null
@@ -2082,6 +2142,57 @@ const handleDebugPayments = async () => {
               </template>
             </Card>
 
+            <!-- Integraciones (ERP/WMS distintos de NetSuite) -->
+            <Card v-if="integrations.length">
+              <template #title>
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-link text-primary"></i>
+                  Integraciones
+                </div>
+              </template>
+              <template #content>
+                <div class="divide-y divide-gray-100">
+                  <div
+                    v-for="integration in integrations"
+                    :key="integration.provider"
+                    class="py-3 first:pt-0 last:pb-0 flex items-start justify-between gap-3"
+                  >
+                    <div class="min-w-0">
+                      <p class="font-medium text-gray-900">{{ integration.name }}</p>
+                      <p v-if="integration.document" class="text-sm text-gray-600 font-mono mt-0.5">
+                        {{ integration.document }}
+                      </p>
+                      <p v-else-if="integration.tracking_code" class="text-sm text-gray-600 font-mono mt-0.5">
+                        {{ integration.tracking_code }}
+                      </p>
+                      <p v-if="integration.last_attempt_at" class="text-xs text-gray-500 mt-0.5">
+                        Último intento: {{ formatDateTimeWithSeconds(integration.last_attempt_at) }}
+                      </p>
+                    </div>
+                    <div class="flex flex-col items-end gap-1.5 shrink-0">
+                      <span
+                        :class="[
+                          'px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1.5',
+                          integrationChipClass(integration.status)
+                        ]"
+                      >
+                        <i :class="['pi', integrationChipIcon(integration.status)]"></i>
+                        {{ integration.status_label }}
+                      </span>
+                      <button
+                        v-if="integration.message || integration.payload"
+                        type="button"
+                        class="text-xs text-primary hover:underline"
+                        @click="openIntegrationDetail(integration)"
+                      >
+                        Ver detalle
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </Card>
+
             <!-- Sincronización ERP -->
             <Card v-if="erpSyncData || order.tiendaventa_mensaje_notif_erp">
               <template #title>
@@ -2631,5 +2742,25 @@ const handleDebugPayments = async () => {
       :order="labelPrintable"
       :sender-info="senderInfo"
     />
+
+    <Dialog
+      :visible="integrationDetail !== null"
+      modal
+      :header="integrationDetail?.name ?? 'Integración'"
+      :style="{ width: '46rem' }"
+      :breakpoints="{ '960px': '90vw' }"
+      @update:visible="integrationDetail = null"
+    >
+      <div v-if="integrationDetail" class="space-y-4">
+        <div v-if="integrationDetail.message">
+          <p class="text-xs text-gray-500 mb-1">Respuesta del ERP</p>
+          <pre class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs overflow-x-auto whitespace-pre-wrap break-words">{{ prettyJson(integrationDetail.message) }}</pre>
+        </div>
+        <div v-if="integrationDetail.payload">
+          <p class="text-xs text-gray-500 mb-1">Payload enviado</p>
+          <pre class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs overflow-x-auto whitespace-pre-wrap break-words">{{ prettyJson(integrationDetail.payload) }}</pre>
+        </div>
+      </div>
+    </Dialog>
   </div>
 </template>

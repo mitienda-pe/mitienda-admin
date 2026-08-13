@@ -394,6 +394,9 @@ export const ordersApi = {
                                         undefined,
         tiendaventa_payload_notif_erp: rawData.tiendaventa_payload_notif_erp ?? undefined,
         erp_sync: rawData.erp_sync ?? undefined,
+        // Estado por integración e intentos: solo vienen en el detalle.
+        integrations: rawData.integrations ?? undefined,
+        integration_attempts: rawData.integration_attempts ?? undefined,
         // Promotions info
         promotions: rawData.discount?.promotions || rawData.promotions || undefined,
         promotions_discount: rawData.discount?.promotions_discount || rawData.promotions_discount || undefined,

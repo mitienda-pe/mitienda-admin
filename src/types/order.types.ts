@@ -27,10 +27,20 @@ export interface Order {
   store_notes?: string
   /** Estado de despacho vigente. Solo viene en el listado de pedidos. */
   dispatch_state?: { id: number; name: string | null } | null
-  tiendaventa_estado_notif_erp?: number // 0 = success, 1 = error
+  /**
+   * Código crudo de `tiendaventa_estado_notif_erp`. Ojo: NO significa lo mismo
+   * según qué integración lo escribió (para NetSuite 0 = éxito, para Contanet y
+   * el WMS 1 = éxito). Para mostrar estado usar `integrations`, que ya viene
+   * traducido por el backend.
+   */
+  tiendaventa_estado_notif_erp?: number
   tiendaventa_mensaje_notif_erp?: string
   tiendaventa_payload_notif_erp?: string // Request payload sent to NetSuite
   erp_sync?: ErpSync
+  /** Estado actual de cada integración ERP/WMS. Solo en el detalle. */
+  integrations?: OrderIntegration[]
+  /** Intentos de sincronización registrados. Solo en el detalle. */
+  integration_attempts?: OrderIntegrationAttempt[]
   fulfillment?: {
     status: 'not_sent' | 'sent' | 'error' | 'processing' | 'unknown'
     status_code: number
@@ -185,6 +195,32 @@ export interface BillingDocument {
   xml_url?: string
   netsuite_invoice_id?: string | null // ID interno del invoice en NetSuite (solo si source = netsuite)
   sunat_pending?: boolean // emitido pero aún no aceptado por SUNAT (estado 2, resumen diario boletas)
+}
+
+export interface OrderIntegration {
+  provider: string
+  /** Nombre para mostrar, ya resuelto por el backend. */
+  name: string
+  status: 'synced' | 'error' | 'pending' | 'unknown'
+  status_label: string
+  status_code: number | null
+  /** Respuesta cruda del ERP, o el motivo del fallo. */
+  message: string | null
+  payload: string | null
+  tracking_code: string | null
+  /** Número de documento que devolvió el ERP, cuando lo devuelve. */
+  document: string | null
+  last_attempt_at: string | null
+}
+
+export interface OrderIntegrationAttempt {
+  provider: string
+  name: string
+  status: 'success' | 'failed'
+  error_message: string | null
+  duration_ms: number | null
+  event_type: string | null
+  at: string
 }
 
 export interface ErpSync {
