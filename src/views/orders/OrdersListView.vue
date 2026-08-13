@@ -86,6 +86,24 @@ const totalOrders = computed(() => ordersStore.pagination.total)
 // resto los estados 30-39 nunca se registran y saldría siempre vacía.
 const showDispatchColumn = computed(() => planStore.isModuleEnabled('mod_panel_despacho'))
 
+// Sincronización con el ERP/WMS. El backend solo manda `sync` en las órdenes de
+// tiendas con una integración que escriba estado; sin eso la columna sobra.
+const showSyncColumn = computed(() => ordersStore.orders.some(o => Boolean(o.sync)))
+
+const syncSeverity = (status: string) => {
+  if (status === 'synced') return 'success'
+  if (status === 'error') return 'danger'
+  if (status === 'pending') return 'warn'
+  return 'secondary'
+}
+
+const syncIcon = (status: string) => {
+  if (status === 'synced') return 'pi pi-check-circle'
+  if (status === 'error') return 'pi pi-times-circle'
+  if (status === 'pending') return 'pi pi-clock'
+  return 'pi pi-question-circle'
+}
+
 // Solo "Entregado" (34) se destaca en verde: es el estado que dispara la
 // facturación. Los cierres en falso (rechazado, cancelado, devuelto) van en rojo.
 const dispatchSeverity = (stateId: number) => {
@@ -275,6 +293,22 @@ const billingType = (order: Order) => {
               v-if="data.dispatch_state?.name"
               :value="data.dispatch_state.name"
               :severity="dispatchSeverity(data.dispatch_state.id)"
+            />
+            <span v-else class="text-gray-400 text-sm">—</span>
+          </template>
+        </Column>
+
+        <!-- Estado del envío de la orden al ERP/WMS. Una venta que no llegó al
+             ERP no está en la contabilidad del vendedor, y hasta ahora eso solo
+             se veía entrando orden por orden. -->
+        <Column v-if="showSyncColumn" field="sync" header="Sync">
+          <template #body="{ data }">
+            <Tag
+              v-if="data.sync"
+              v-tooltip.top="data.sync.name"
+              :value="data.sync.status_label"
+              :severity="syncSeverity(data.sync.status)"
+              :icon="syncIcon(data.sync.status)"
             />
             <span v-else class="text-gray-400 text-sm">—</span>
           </template>

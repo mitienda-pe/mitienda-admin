@@ -188,6 +188,9 @@ export const ordersApi = {
               updated_at: order.date_created || '',
               notes: shipping.receiver_address?.comment || undefined,
               dispatch_state: order.dispatch_state || null,
+              // Estado de sincronización con el ERP/WMS. Solo viene si la tienda
+              // tiene una integración que escriba estado.
+              sync: order.sync || null,
               billing_document: eBilling ? {
                 id: eBilling.id || 0,
                 status: eBilling.status || 0,

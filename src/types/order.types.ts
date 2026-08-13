@@ -37,6 +37,8 @@ export interface Order {
   tiendaventa_mensaje_notif_erp?: string
   tiendaventa_payload_notif_erp?: string // Request payload sent to NetSuite
   erp_sync?: ErpSync
+  /** Resumen de la sincronización con el ERP/WMS. Solo en el listado. */
+  sync?: OrderSyncSummary | null
   /** Estado actual de cada integración ERP/WMS. Solo en el detalle. */
   integrations?: OrderIntegration[]
   /** Intentos de sincronización registrados. Solo en el detalle. */
@@ -195,6 +197,13 @@ export interface BillingDocument {
   xml_url?: string
   netsuite_invoice_id?: string | null // ID interno del invoice en NetSuite (solo si source = netsuite)
   sunat_pending?: boolean // emitido pero aún no aceptado por SUNAT (estado 2, resumen diario boletas)
+}
+
+export interface OrderSyncSummary {
+  provider: string
+  name: string
+  status: 'synced' | 'error' | 'pending' | 'unknown'
+  status_label: string
 }
 
 export interface OrderIntegration {
