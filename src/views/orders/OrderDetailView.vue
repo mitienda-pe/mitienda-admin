@@ -1031,13 +1031,29 @@ const prettyJson = (raw: string | null): string => {
   }
 }
 
+/**
+ * El card de NetSuite se dibuja solo si la orden no tiene otra integración.
+ *
+ * `tiendaventa_estado_notif_erp` y su mensaje son una sola columna compartida:
+ * la escribe la integración que haya corrido. Si la escribió Contanet o el WMS,
+ * este card estaba mostrando esa respuesta rotulada como "Respuesta de NetSuite"
+ * y, peor, la marcaba en rojo — porque el 1 que para NetSuite es error, para los
+ * demás es éxito.
+ *
+ * `integrations` ya viene sin NetSuite, así que una tienda que solo usa NetSuite
+ * lo tiene vacío y sigue viendo su card igual que siempre.
+ */
+const showNetsuiteCard = computed(() =>
+  integrations.value.length === 0 &&
+  Boolean(erpSyncData.value || order.value?.tiendaventa_mensaje_notif_erp)
+)
+
+// Estado de NetSuite tal como lo resuelve el backend (`erp_sync`), en vez de
+// releer el código crudo acá con la convención invertida.
 const erpSyncStatus = computed(() => {
-  if (!order.value) return null
+  const status = order.value?.erp_sync?.status
 
-  // tiendaventa_estado_notif_erp: 0 = success, 1 = error
-  const status = order.value.tiendaventa_estado_notif_erp
-
-  if (status === 0) {
+  if (status === 'synced') {
     return {
       label: 'Exitoso',
       severity: 'success',
@@ -1045,7 +1061,9 @@ const erpSyncStatus = computed(() => {
       bgClass: 'bg-green-100',
       textClass: 'text-green-800'
     }
-  } else if (status === 1) {
+  }
+
+  if (status === 'error') {
     return {
       label: 'Error',
       severity: 'danger',
@@ -2193,8 +2211,8 @@ const handleDebugPayments = async () => {
               </template>
             </Card>
 
-            <!-- Sincronización ERP -->
-            <Card v-if="erpSyncData || order.tiendaventa_mensaje_notif_erp">
+            <!-- Sincronización ERP (NetSuite) -->
+            <Card v-if="showNetsuiteCard">
               <template #title>
                 <div class="flex items-center justify-between w-full">
                   <div class="flex items-center gap-2">
