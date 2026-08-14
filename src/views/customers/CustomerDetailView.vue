@@ -29,13 +29,21 @@ const customerId = Number(route.params.id)
 // Peru codPais constant
 const PERU_COD_PAIS = 1
 
-onMounted(() => {
+// onMounted corre DESPUÉS del primer render, así que sin esta bandera ese
+// primer frame ya encuentra `customer` en null y pinta el empty state.
+const isBooting = ref(true)
+
+onMounted(async () => {
   if (!customerId || isNaN(customerId)) {
     toast.add({ severity: 'error', summary: 'Error', detail: 'ID de cliente inválido', life: 5000 })
     router.push({ name: 'Customers' })
     return
   }
-  customersStore.fetchCustomer(customerId)
+  // El store conserva el último cliente cargado. Sin limpiarlo, abrir otro
+  // cliente muestra los datos del anterior hasta que llega la respuesta.
+  customersStore.clearCurrentCustomer()
+  await customersStore.fetchCustomer(customerId)
+  isBooting.value = false
 })
 
 const customer = computed(() => customersStore.currentCustomer)
@@ -384,7 +392,12 @@ const setDefaultAddress = async (addressId: number) => {
     </div>
 
     <!-- Loading -->
-    <div v-if="customersStore.isLoading" class="flex justify-center items-center py-12">
+    <!--
+      isDetailLoading, NO isLoading: ese último es el flag del LISTADO y para
+      cuando se abre el detalle ya está en false, así que la cadena caía directo
+      al empty state y se leía "Cliente no encontrado" durante toda la carga.
+    -->
+    <div v-if="isBooting || customersStore.isDetailLoading" class="flex justify-center items-center py-12">
       <ProgressSpinner />
     </div>
 
