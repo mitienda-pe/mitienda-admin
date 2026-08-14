@@ -32,6 +32,7 @@ const DEFAULT_CONFIG: StoreConfig = {
   tiendageneral_edad_minima: 18,
   tiendageneral_texto_verificacion_edad: null,
   sw_notif_incluir_email_tienda: 1,
+  tiendageneral_sw_inventario: 0,
   tiendageneral_sw_lotes: 0,
   tiendageneral_lote_estrategia: 'fefo',
   sw_limitarproducto: 0,

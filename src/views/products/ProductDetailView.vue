@@ -142,6 +142,24 @@
           @update:managed="onLotsManagedChange"
         />
 
+        <!-- Kardex del producto: se abre el listado ya filtrado por este producto -->
+        <Card v-if="product && inventoryEnabled">
+          <template #title><span class="text-lg">Movimientos de inventario</span></template>
+          <template #content>
+            <div class="flex items-center justify-between gap-4">
+              <p class="text-sm text-secondary-500">
+                Historial de ingresos, salidas, ventas y transferencias de este producto.
+              </p>
+              <AppButton
+                label="Ver kardex"
+                icon="pi pi-book"
+                variant="outlined"
+                @click="$router.push({ name: 'InventoryMovements', query: { producto_id: product.id } })"
+              />
+            </div>
+          </template>
+        </Card>
+
         <!-- Descripcion -->
         <Card>
           <template #title>
@@ -1141,6 +1159,12 @@ if (!storeConfigStore.isLoaded) {
 // Tipos de producto (físico/servicio). Cache global; carga perezosa.
 productTypeStore.fetchTypes()
 const lotsStoreEnabled = computed(() => storeConfigStore.draftConfig.tiendageneral_sw_lotes === 1)
+// Kardex del producto: solo si la tienda tiene el módulo y encendió el inventario.
+const inventoryEnabled = computed(
+  () =>
+    planStore.isModuleEnabled('mod_stock_sucursal') &&
+    storeConfigStore.draftConfig.tiendageneral_sw_inventario === 1
+)
 // Límite de compra por producto: el campo solo se edita si la tienda encendió
 // la función en Configuración (igual que en el panel legacy).
 const purchaseLimitEnabled = computed(() => storeConfigStore.draftConfig.sw_limitarproducto === 1)

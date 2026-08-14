@@ -1364,6 +1364,8 @@ const catalogMenuItemsSource = [
   { label: 'Nuevo Producto', icon: 'pi pi-plus', to: '/products/create' },
   { label: 'Precios', icon: 'pi pi-dollar', to: '/products/prices' },
   { label: 'Stock', icon: 'pi pi-warehouse', to: '/products/stock' },
+  { label: 'Inventario', icon: 'pi pi-book', to: '/inventory/movements' },
+  { label: 'Transferencias', icon: 'pi pi-arrow-right-arrow-left', to: '/inventory/transfers' },
   { label: 'Orden', icon: 'pi pi-sort-alt', to: '/products/order' },
   { label: 'Importacion Masiva', icon: 'pi pi-upload', to: '/products/bulk-import' },
   { label: 'Categorías', icon: 'pi pi-folder', to: '/catalog/categories' },

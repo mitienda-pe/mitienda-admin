@@ -112,6 +112,31 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    // Inventario multi-almacén: kardex y transferencias. Gateado por
+    // `mod_stock_sucursal`, el mismo módulo que el stock por sucursal.
+    path: '/inventory',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: '',
+        redirect: '/inventory/movements'
+      },
+      {
+        path: 'movements',
+        name: 'InventoryMovements',
+        meta: { title: 'Inventario' },
+        component: () => import('@/views/inventory/InventoryMovementsView.vue')
+      },
+      {
+        path: 'transfers',
+        name: 'InventoryTransfers',
+        meta: { title: 'Transferencias' },
+        component: () => import('@/views/inventory/InventoryTransfersView.vue')
+      }
+    ]
+  },
+  {
     path: '/products',
     component: DashboardLayout,
     meta: { requiresAuth: true, requiresStore: true },

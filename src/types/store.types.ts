@@ -128,6 +128,8 @@ export interface StoreConfig {
   tiendageneral_texto_verificacion_edad: string | null
   // Notificaciones de venta: incluir copia al correo de la tienda
   sw_notif_incluir_email_tienda: number
+  // Kardex de inventario multi-almacén (opt-in, módulo mod_stock_sucursal)
+  tiendageneral_sw_inventario: number
   // Control de inventario por lotes con vencimiento (opt-in, Large/PDV)
   tiendageneral_sw_lotes: number
   tiendageneral_lote_estrategia: string | null
@@ -161,6 +163,7 @@ export interface StoreConfigUpdate {
   tiendageneral_edad_minima?: number
   tiendageneral_texto_verificacion_edad?: string | null
   sw_notif_incluir_email_tienda?: number
+  tiendageneral_sw_inventario?: number
   tiendageneral_sw_lotes?: number
   tiendageneral_lote_estrategia?: string | null
   sw_limitarproducto?: number
