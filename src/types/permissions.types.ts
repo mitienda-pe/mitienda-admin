@@ -4,7 +4,10 @@ export interface UserPermissions {
    * es el comportamiento histórico y el default de todas las tiendas.
    */
   enforced: boolean
-  /** Dueño de la tienda (usuariotipo_id = 1): siempre ve todo. */
+  /**
+   * Acceso total a los módulos del plan: propietario, administrador o superadmin
+   * impersonando. El nombre viene de cuando el propietario era el único caso.
+   */
   is_owner: boolean
   /**
    * Códigos de módulo concedidos. Viene vacío para el dueño, que tiene todo

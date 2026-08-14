@@ -25,6 +25,7 @@ const STORAGE_KEY = 'user_permissions'
  */
 export const usePermissionsStore = defineStore('permissions', () => {
   const enforced = ref(false)
+  /** Acceso total: propietario, administrador o superadmin impersonando. */
   const isOwner = ref(false)
   const moduleCodes = ref<string[]>([])
   const isLoaded = ref(false)

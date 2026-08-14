@@ -6,7 +6,9 @@ import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Checkbox from 'primevue/checkbox'
+import RadioButton from 'primevue/radiobutton'
 import type { UserModule } from '@/types/store-users.types'
+import { STORE_ROLE } from '@/types/store-users.types'
 
 const route = useRoute()
 const router = useRouter()
@@ -21,6 +23,13 @@ const email = ref('')
 const nombres = ref('')
 const apellidos = ref('')
 const selectedModuleIds = ref<Set<number>>(new Set())
+/**
+ * Rol con el que se invita. Un administrador ve todos los módulos del plan y no
+ * usa `usuariosmodulos`, así que al elegirlo la lista de permisos deja de
+ * aplicar y se esconde.
+ */
+const tipoId = ref<number>(STORE_ROLE.INVITADO)
+const invitaComoAdministrador = computed(() => tipoId.value === STORE_ROLE.ADMINISTRADOR)
 const isSaving = ref(false)
 const isLoading = ref(false)
 
@@ -164,7 +173,9 @@ async function handleInvite() {
       email: email.value.trim(),
       nombres: nombres.value.trim(),
       apellidos: apellidos.value.trim(),
-      module_ids: Array.from(selectedModuleIds.value)
+      // Un administrador no lleva módulos: los tiene todos por definición.
+      module_ids: invitaComoAdministrador.value ? [] : Array.from(selectedModuleIds.value),
+      tipo_id: tipoId.value
     })
 
     if (result) {
@@ -221,6 +232,9 @@ onMounted(() => {
     loadUserData()
   } else {
     loadAvailableModules()
+    // `isOwner` sale del listado, y a esta vista se puede llegar por URL sin
+    // haber pasado por él. Sin esto el propietario no vería el selector de rol.
+    if (!store.users.length) store.fetchUsers()
   }
 })
 </script>
@@ -305,8 +319,54 @@ onMounted(() => {
         </div>
       </div>
 
+      <!-- Role card: solo al invitar, y solo el propietario puede nombrar admins -->
+      <div
+        v-if="!isEditMode && store.isOwner"
+        class="bg-white rounded-xl border border-gray-200 p-6 space-y-4"
+      >
+        <h2 class="text-lg font-semibold text-gray-800">Rol en la tienda</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <label
+            class="flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-colors"
+            :class="
+              tipoId === STORE_ROLE.INVITADO
+                ? 'border-primary/30 bg-primary/5'
+                : 'border-gray-200 hover:bg-gray-50'
+            "
+          >
+            <RadioButton v-model="tipoId" :value="STORE_ROLE.INVITADO" />
+            <span>
+              <span class="block font-medium text-gray-800">Invitado</span>
+              <span class="block text-sm text-gray-500 mt-1">
+                Solo accede a los módulos que le marques.
+              </span>
+            </span>
+          </label>
+          <label
+            class="flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-colors"
+            :class="
+              tipoId === STORE_ROLE.ADMINISTRADOR
+                ? 'border-primary/30 bg-primary/5'
+                : 'border-gray-200 hover:bg-gray-50'
+            "
+          >
+            <RadioButton v-model="tipoId" :value="STORE_ROLE.ADMINISTRADOR" />
+            <span>
+              <span class="block font-medium text-gray-800">Administrador</span>
+              <span class="block text-sm text-gray-500 mt-1">
+                Accede a todo y gestiona invitados. No puede tocar al
+                propietario ni a otros administradores.
+              </span>
+            </span>
+          </label>
+        </div>
+      </div>
+
       <!-- Modules card -->
-      <div class="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
+      <div
+        v-if="!invitaComoAdministrador"
+        class="bg-white rounded-xl border border-gray-200 p-6 space-y-4"
+      >
         <div class="flex items-center justify-between">
           <h2 class="text-lg font-semibold text-gray-800">Permisos de módulos</h2>
           <div class="flex gap-2">

@@ -39,6 +39,13 @@ export const storeUsersApi = {
     return response.data
   },
 
+  async updateRole(userId: number, tipoId: number): Promise<ApiResponse<void>> {
+    const response = await apiClient.put(`/store-users/${userId}/role`, {
+      tipo_id: tipoId
+    })
+    return response.data
+  },
+
   async deleteUser(userId: number): Promise<ApiResponse<void>> {
     const response = await apiClient.delete(`/store-users/${userId}`)
     return response.data

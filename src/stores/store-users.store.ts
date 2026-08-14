@@ -13,7 +13,10 @@ import type {
 export const useStoreUsersStore = defineStore('storeUsers', () => {
   const users = ref<StoreUser[]>([])
   const currentUser = ref<StoreUserDetail | null>(null)
+  /** El usuario actual es el propietario: puede nombrar y quitar administradores. */
   const isOwner = ref(false)
+  /** Puede entrar al módulo de usuarios (propietario o administrador). */
+  const canManageUsers = ref(false)
   const isLoading = ref(false)
   const isDetailLoading = ref(false)
   const error = ref<string | null>(null)
@@ -32,12 +35,18 @@ export const useStoreUsersStore = defineStore('storeUsers', () => {
       const response = await storeUsersApi.getUsers()
       if (response.success && response.data) {
         users.value = response.data
-        isOwner.value = !!(response as ApiResponse<StoreUser[]> & { is_owner?: boolean }).is_owner
+        const meta = response as ApiResponse<StoreUser[]> & {
+          is_owner?: boolean
+          can_manage_users?: boolean
+        }
+        isOwner.value = !!meta.is_owner
+        canManageUsers.value = !!meta.can_manage_users
       }
     } catch (e: any) {
       if (e.response?.status === 403) {
         isForbidden.value = true
         isOwner.value = false
+        canManageUsers.value = false
       } else {
         error.value = e.message || 'Error al cargar usuarios'
       }
@@ -86,6 +95,14 @@ export const useStoreUsersStore = defineStore('storeUsers', () => {
     return response
   }
 
+  async function updateRole(userId: number, tipoId: number) {
+    const response = await storeUsersApi.updateRole(userId, tipoId)
+    if (response.success) {
+      await fetchUsers()
+    }
+    return response
+  }
+
   async function deleteUser(userId: number) {
     const response = await storeUsersApi.deleteUser(userId)
     if (response.success) {
@@ -98,6 +115,7 @@ export const useStoreUsersStore = defineStore('storeUsers', () => {
     users,
     currentUser,
     isOwner,
+    canManageUsers,
     isLoading,
     isDetailLoading,
     error,
@@ -107,6 +125,7 @@ export const useStoreUsersStore = defineStore('storeUsers', () => {
     fetchAvailableModules,
     inviteUser,
     updateModules,
+    updateRole,
     deleteUser
   }
 })
