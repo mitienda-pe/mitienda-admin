@@ -18,7 +18,6 @@ import AppBadge from '@/components/ui/AppBadge.vue'
 import AppEmptyState from '@/components/ui/AppEmptyState.vue'
 import InventoryLineItems, { type InventoryLine } from '@/components/inventory/InventoryLineItems.vue'
 import { usePlanStore } from '@/stores/plan.store'
-import { branchStockApi } from '@/api/branch-stock.api'
 import { inventoryApi, type Transfer, type TransferDetail, type TransferShortage, type Warehouse } from '@/api/inventory.api'
 
 const toast = useToast()
@@ -27,6 +26,10 @@ const planStore = usePlanStore()
 const moduleEnabled = computed(() => planStore.isModuleEnabled('mod_stock_sucursal'))
 
 const loading = ref(false)
+// Arranca en true: hasta saber cuántos almacenes hay no se puede decidir entre
+// el listado y el aviso de "necesitas dos almacenes", y mostrarlo antes de
+// tiempo le dice al comerciante algo falso sobre su tienda.
+const cargandoAlmacenes = ref(true)
 const transfers = ref<Transfer[]>([])
 const warehouses = ref<Warehouse[]>([])
 const page = ref(1)
@@ -64,11 +67,14 @@ function formatFecha(fecha: string): string {
 }
 
 async function loadWarehouses() {
+  cargandoAlmacenes.value = true
   try {
     const res = await inventoryApi.warehouses()
     warehouses.value = res.data?.items ?? []
   } catch {
     warehouses.value = []
+  } finally {
+    cargandoAlmacenes.value = false
   }
 }
 
@@ -110,28 +116,6 @@ function onOrigenChange() {
   if (destinoId.value === origenId.value) destinoId.value = null
 }
 
-/**
- * Completa el saldo del producto recién agregado en el almacén de origen. Es
- * informativo: la verdad la tiene el API, que rechaza la transferencia si falta
- * stock. Se busca por SKU porque el listado de stock por sucursal es paginado.
- */
-async function onLineAdded(line: InventoryLine) {
-  if (!origenId.value || !line.sku) return
-  try {
-    const res = await branchStockApi.list({
-      tiendadireccion_id: origenId.value,
-      search: line.sku
-    })
-    const match = (res.data?.items ?? []).find((i) => i.producto_id === line.producto_id)
-    if (!match) return
-    lineas.value = lineas.value.map((l) =>
-      l.producto_id === line.producto_id ? { ...l, disponible: match.stock_sucursal } : l
-    )
-  } catch {
-    // Sin el dato la línea sigue siendo válida; solo pierde la ayuda visual.
-  }
-}
-
 async function guardar() {
   if (!puedeGuardar.value || !origenId.value || !destinoId.value) return
   guardando.value = true
@@ -141,7 +125,11 @@ async function guardar() {
       origen_id: origenId.value,
       destino_id: destinoId.value,
       nota: nota.value.trim() || undefined,
-      items: lineas.value.map((l) => ({ producto_id: l.producto_id, cantidad: l.cantidad }))
+      items: lineas.value.map((l) => ({
+        producto_id: l.producto_id,
+        productoatributo_id: l.productoatributo_id || undefined,
+        cantidad: l.cantidad
+      }))
     })
     toast.add({
       severity: 'success',
@@ -180,8 +168,13 @@ async function verDetalle(id: number) {
   }
 }
 
-function nombreProducto(productoId: number): string {
-  return lineas.value.find((l) => l.producto_id === productoId)?.nombre ?? `#${productoId}`
+function nombreProducto(productoId: number, varianteId: number): string {
+  const line = lineas.value.find(
+    (l) => l.producto_id === productoId && l.productoatributo_id === varianteId
+  )
+  if (!line) return `#${productoId}`
+
+  return line.variante ? `${line.nombre} · ${line.variante}` : line.nombre
 }
 
 function extractShortages(e: unknown): TransferShortage[] {
@@ -219,7 +212,7 @@ onMounted(async () => {
         </p>
       </div>
       <AppButton
-        v-if="moduleEnabled && warehouses.length > 1"
+        v-if="moduleEnabled && !cargandoAlmacenes && warehouses.length > 1"
         icon="pi pi-plus"
         label="Nueva transferencia"
         @click="abrirDialogo"
@@ -233,8 +226,12 @@ onMounted(async () => {
       icon="pi-lock"
     />
 
+    <div v-else-if="cargandoAlmacenes" class="text-gray-500 py-10 text-center">
+      <i class="pi pi-spin pi-spinner text-2xl"></i>
+    </div>
+
     <AppEmptyState
-      v-else-if="!loading && warehouses.length < 2"
+      v-else-if="warehouses.length < 2"
       title="Necesitas al menos dos almacenes"
       description="Marca como almacén al menos dos de tus direcciones para poder transferir mercadería entre ellas."
       icon="pi-map-marker"
@@ -348,14 +345,15 @@ onMounted(async () => {
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Productos</label>
-          <InventoryLineItems v-model="lineas" @added="onLineAdded" />
+          <InventoryLineItems v-model="lineas" :almacen-id="origenId" />
         </div>
 
         <div v-if="faltantes.length" class="bg-red-50 border border-red-200 rounded-lg p-3">
           <p class="text-sm font-medium text-red-700 mb-1">Sin stock suficiente en el origen</p>
           <ul class="text-sm text-red-600 space-y-0.5">
-            <li v-for="f in faltantes" :key="f.producto_id">
-              {{ nombreProducto(f.producto_id) }}: pediste {{ f.solicitado }}, hay {{ f.disponible }}
+            <li v-for="f in faltantes" :key="`${f.producto_id}:${f.productoatributo_id}`">
+              {{ nombreProducto(f.producto_id, f.productoatributo_id) }}:
+              pediste {{ f.solicitado }}, hay {{ f.disponible }}
             </li>
           </ul>
         </div>

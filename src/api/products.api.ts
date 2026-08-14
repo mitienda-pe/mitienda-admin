@@ -119,7 +119,12 @@ export const productsApi = {
               : null,
             stock: product.stock || 0,
             unlimited_stock: product.unlimited_stock === 1 || product.unlimited_stock === true,
-            has_variation_attributes: product.has_variation_attributes === true,
+            // El listado devuelve `has_variants` y la ficha `has_variation_attributes`:
+            // leer solo uno dejaba el flag SIEMPRE en false para los productos que
+            // vienen de una búsqueda, y con él los filtros que dependen de saber si
+            // el producto tiene variantes.
+            has_variation_attributes:
+              product.has_variation_attributes === true || product.has_variants === true,
             published: product.published || false,
             published_pos: product.published_pos !== false,
             featured: product.featured || false,

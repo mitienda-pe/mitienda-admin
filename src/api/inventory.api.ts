@@ -114,6 +114,27 @@ export interface TransferShortage {
   disponible: number
 }
 
+export interface WarehouseVariantStock {
+  productoatributo_id: number
+  nombre: string | null
+  stock: number
+  stock_ilimitado: boolean
+}
+
+export interface WarehouseProductStock {
+  almacen_id: number
+  producto: {
+    producto_id: number
+    nombre: string | null
+    sku: string | null
+    stock: number
+    stock_ilimitado: boolean
+    /** true = el saldo es del almacén; false = es el agregado de la tienda. */
+    por_almacen: boolean
+  } | null
+  variantes: WarehouseVariantStock[]
+}
+
 export interface KardexFilters {
   producto_id?: number | null
   almacen_id?: number | null
@@ -160,6 +181,16 @@ export const inventoryApi = {
     if (filters.per_page) qs.append('per_page', String(filters.per_page))
 
     const response = await apiClient.get(`/inventory/kardex?${qs.toString()}`)
+    const data = response.data?.data ?? response.data
+    return { success: true, data }
+  },
+
+  /** Saldo del producto y de sus variantes en un almacén. */
+  async stock(productoId: number, almacenId?: number | null): Promise<ApiResponse<WarehouseProductStock>> {
+    const qs = new URLSearchParams({ producto_id: String(productoId) })
+    if (almacenId) qs.append('almacen_id', String(almacenId))
+
+    const response = await apiClient.get(`/inventory/stock?${qs.toString()}`)
     const data = response.data?.data ?? response.data
     return { success: true, data }
   },

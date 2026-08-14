@@ -172,7 +172,11 @@ async function guardarMovimiento() {
       tipo: nuevoTipo.value,
       almacen_id: nuevoAlmacen.value,
       motivo: nuevoMotivo.value.trim() || undefined,
-      items: nuevasLineas.value.map((l) => ({ producto_id: l.producto_id, cantidad: l.cantidad }))
+      items: nuevasLineas.value.map((l) => ({
+        producto_id: l.producto_id,
+        productoatributo_id: l.productoatributo_id || undefined,
+        cantidad: l.cantidad
+      }))
     })
     const aplicados = res.data?.aplicados ?? 0
     const errores = res.data?.errores?.length ?? 0
@@ -447,7 +451,7 @@ onMounted(async () => {
 
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Productos</label>
-          <InventoryLineItems v-model="nuevasLineas" />
+          <InventoryLineItems v-model="nuevasLineas" :almacen-id="nuevoAlmacen" />
         </div>
       </div>
 
