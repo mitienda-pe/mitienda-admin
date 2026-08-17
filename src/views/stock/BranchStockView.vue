@@ -9,10 +9,9 @@ import FileUpload from 'primevue/fileupload'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppBadge from '@/components/ui/AppBadge.vue'
 import AppEmptyState from '@/components/ui/AppEmptyState.vue'
-import { storeApi } from '@/api/store.api'
 import { usePlanStore } from '@/stores/plan.store'
 import { branchStockApi, type BranchStockItem } from '@/api/branch-stock.api'
-import type { StoreAddress } from '@/types/store.types'
+import { inventoryApi, type Warehouse } from '@/api/inventory.api'
 
 const toast = useToast()
 const planStore = usePlanStore()
@@ -23,7 +22,7 @@ const activationLoading = ref(true)
 const activating = ref(false)
 const isActive = ref(false)
 
-const branches = ref<StoreAddress[]>([])
+const branches = ref<Warehouse[]>([])
 const selectedBranchId = ref<number | null>(null)
 
 const rows = ref<Array<BranchStockItem & { _original: number }>>([])
@@ -57,11 +56,19 @@ async function loadActivation() {
   }
 }
 
+/**
+ * Los almacenes salen de `/inventory/warehouses`, que es la lista canónica:
+ * TODAS las direcciones de la tienda. Antes se pedían a `/store-addresses` y se
+ * filtraban por `tiendadireccion_swpublicado === 1`, comparación estricta contra
+ * un valor que el API devuelve como string ("1"): el selector quedaba SIEMPRE
+ * vacío y con él toda la pantalla. Y filtrar por "publicada" tampoco
+ * correspondía: un almacén no tiene por qué mostrarse en la tienda online.
+ */
 async function loadBranches() {
-  const res = await storeApi.getAddresses()
-  branches.value = (res.data ?? []).filter((b) => b.tiendadireccion_swpublicado === 1)
+  const res = await inventoryApi.warehouses()
+  branches.value = res.data?.items ?? []
   if (branches.value.length && selectedBranchId.value === null) {
-    selectedBranchId.value = branches.value[0].tiendadireccion_id
+    selectedBranchId.value = res.data?.default_id || branches.value[0].id
   }
 }
 
@@ -209,12 +216,12 @@ onMounted(async () => {
     <div v-else class="space-y-4">
       <div class="bg-white rounded-lg shadow-sm p-4 flex flex-wrap items-end gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Sucursal</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Almacén</label>
           <Dropdown
             v-model="selectedBranchId"
             :options="branches"
-            optionLabel="tiendadireccion_nombresucursal"
-            optionValue="tiendadireccion_id"
+            optionLabel="nombre"
+            optionValue="id"
             placeholder="Selecciona un almacén"
             class="w-64"
             @change="onBranchChange"
@@ -303,8 +310,13 @@ onMounted(async () => {
         </DataTable>
       </div>
 
+      <p class="text-xs text-gray-500">
+        Aquí no se agregan productos: aparecen todos los de tu catálogo y editas cuántas unidades
+        tiene cada uno en el almacén elegido. Los que nunca cargaste figuran en 0.
+      </p>
       <p class="text-xs text-gray-400">
-        Productos con variantes: usa el import CSV con la columna <code>variante_sku</code> para fijar su stock por almacén.
+        Productos con variantes: usa el import CSV con la columna <code>variante_sku</code>, o
+        regístralos como ingreso en Catálogo → Inventario, que sí permite elegir la variante.
       </p>
     </div>
   </div>
