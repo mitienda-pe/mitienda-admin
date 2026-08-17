@@ -232,8 +232,8 @@ onMounted(async () => {
 
     <AppEmptyState
       v-else-if="warehouses.length < 2"
-      title="Necesitas al menos dos almacenes"
-      description="Marca como almacén al menos dos de tus direcciones para poder transferir mercadería entre ellas."
+      title="Necesitas al menos dos direcciones"
+      description="Cada dirección de tu tienda es un almacén. Registra al menos dos en Tu Tienda → Direcciones para poder transferir mercadería entre ellas."
       icon="pi-map-marker"
     />
 

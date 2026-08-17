@@ -18,7 +18,8 @@ export type MovementType =
 export interface Warehouse {
   id: number
   nombre: string
-  es_almacen: boolean
+  /** Marcado como punto de recojo en Direcciones. Informativo: todo almacén cuenta. */
+  punto_recojo: boolean
   publicado: boolean
   productos: number
 }
