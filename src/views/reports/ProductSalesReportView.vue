@@ -10,6 +10,26 @@
       </p>
     </div>
 
+    <!-- Modo del reporte -->
+    <div class="mb-4 flex flex-wrap items-center gap-3">
+      <SelectButton
+        v-model="view"
+        :options="viewOptions"
+        optionLabel="label"
+        optionValue="value"
+        :allowEmpty="false"
+        aria-labelledby="modo-reporte"
+        @change="handleViewChange"
+      />
+      <span class="text-sm text-secondary-600">
+        {{
+          view === 'summary'
+            ? 'Ranking de productos: una fila por producto, con lo vendido acumulado.'
+            : 'Detalle: una fila por cada línea de pedido.'
+        }}
+      </span>
+    </div>
+
     <!-- Filters Card -->
     <ReportFiltersCard
       :filters="filters"
@@ -38,8 +58,62 @@
       </template>
       <template #content>
         <div class="overflow-x-auto">
+          <!-- Ranking agregado por producto -->
           <DataTable
-            :value="previewData"
+            v-if="view === 'summary'"
+            :value="summaryRows"
+            stripedRows
+            responsiveLayout="scroll"
+            :loading="loadingPreview"
+            class="text-sm"
+          >
+            <Column field="sku" header="SKU" style="min-width: 130px">
+              <template #body="{ data }">
+                <span v-if="data.sku">{{ data.sku }}</span>
+                <span v-else class="text-secondary-400">-</span>
+              </template>
+            </Column>
+            <Column field="product_name" header="Producto" style="min-width: 240px"></Column>
+            <Column field="product_quantity" header="Cantidad Vendida" style="min-width: 130px">
+              <template #body="{ data }">
+                <span class="font-medium">{{ formatNumber(data.product_quantity) }}</span>
+              </template>
+            </Column>
+            <Column field="order_count" header="Pedidos" style="min-width: 90px"></Column>
+            <Column field="product_discount" header="Descuento" style="min-width: 110px">
+              <template #body="{ data }">
+                {{ data.currency }} {{ formatNumber(data.product_discount) }}
+              </template>
+            </Column>
+            <Column field="product_total" header="Monto Total" style="min-width: 130px">
+              <template #body="{ data }">
+                <span class="font-bold">{{ data.currency }} {{ formatNumber(data.product_total) }}</span>
+              </template>
+            </Column>
+            <Column field="product_cost_subtotal" header="Costo" style="min-width: 110px">
+              <template #body="{ data }">
+                {{ data.currency }} {{ formatNumber(data.product_cost_subtotal) }}
+              </template>
+            </Column>
+            <Column field="product_profit" header="Ganancia" style="min-width: 110px">
+              <template #body="{ data }">
+                <span class="font-medium" :class="data.product_profit >= 0 ? 'text-primary' : 'text-red-600'">
+                  {{ data.currency }} {{ formatNumber(data.product_profit) }}
+                </span>
+              </template>
+            </Column>
+            <Column field="product_margin_pct" header="Margen %" style="min-width: 100px">
+              <template #body="{ data }">
+                <span :class="data.product_profit >= 0 ? 'text-secondary-700' : 'text-red-600'">
+                  {{ formatNumber(data.product_margin_pct) }}%
+                </span>
+              </template>
+            </Column>
+          </DataTable>
+
+          <DataTable
+            v-else
+            :value="detailRows"
             stripedRows
             responsiveLayout="scroll"
             :loading="loadingPreview"
@@ -52,8 +126,20 @@
               </template>
             </Column>
             <Column field="customer_name" header="Cliente" style="min-width: 180px"></Column>
-            <Column field="product_code" header="Código Producto" style="min-width: 130px"></Column>
-            <Column field="product_name" header="Producto" style="min-width: 200px"></Column>
+            <Column field="sku" header="SKU" style="min-width: 130px">
+              <template #body="{ data }">
+                <span v-if="data.sku">{{ data.sku }}</span>
+                <span v-else class="text-secondary-400">-</span>
+              </template>
+            </Column>
+            <Column field="product_name" header="Producto" style="min-width: 200px">
+              <template #body="{ data }">
+                <div>{{ data.product_name }}</div>
+                <div v-if="data.product_variant" class="text-xs text-secondary-500">
+                  {{ data.product_variant }}
+                </div>
+              </template>
+            </Column>
             <Column field="product_quantity" header="Cantidad" style="min-width: 90px">
               <template #body="{ data }">
                 <span class="font-medium">{{ data.product_quantity }}</span>
@@ -143,11 +229,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import Card from 'primevue/card'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
+import SelectButton from 'primevue/selectbutton'
 import { AppBadge, AppEmptyState } from '@/components/ui'
 import ReportFiltersCard from '@/components/reports/ReportFiltersCard.vue'
 import ExportButton from '@/components/reports/ExportButton.vue'
@@ -155,6 +242,8 @@ import { reportsApi } from '@/api/reports.api'
 import type {
   ReportFilters,
   ProductSalesReportRow,
+  ProductSalesSummaryRow,
+  ProductSalesView,
   PaymentGateway,
   ExportFormat
 } from '@/types/report.types'
@@ -163,7 +252,14 @@ const toast = useToast()
 
 // State
 const filters = ref<ReportFilters>({})
-const previewData = ref<ProductSalesReportRow[]>([])
+const view = ref<ProductSalesView>('detail')
+const viewOptions = [
+  { label: 'Detalle por línea', value: 'detail' as const },
+  { label: 'Ranking por producto', value: 'summary' as const }
+]
+const previewData = ref<ProductSalesReportRow[] | ProductSalesSummaryRow[]>([])
+const detailRows = computed(() => previewData.value as ProductSalesReportRow[])
+const summaryRows = computed(() => previewData.value as ProductSalesSummaryRow[])
 const totalCount = ref(0)
 const hasMore = ref(false)
 const filtersApplied = ref(false)
@@ -198,12 +294,22 @@ const handleUpdateFilters = (newFilters: ReportFilters) => {
   filters.value = newFilters
 }
 
+// Cambiar de modo recarga la vista previa sólo si ya había una: si no, se deja
+// que el usuario aplique filtros como siempre.
+const handleViewChange = async () => {
+  previewData.value = []
+
+  if (filtersApplied.value) {
+    await handleApplyFilters()
+  }
+}
+
 const handleApplyFilters = async () => {
   try {
     loadingPreview.value = true
     filtersApplied.value = true
 
-    const response = await reportsApi.getProductSalesReportPreview(filters.value)
+    const response = await reportsApi.getProductSalesReportPreview(filters.value, view.value)
 
     previewData.value = response.data
     totalCount.value = response.total_count
@@ -239,13 +345,14 @@ const handleExport = async (format: ExportFormat) => {
       life: 3000
     })
 
-    const blob = await reportsApi.exportProductSalesReport(filters.value, format)
+    const blob = await reportsApi.exportProductSalesReport(filters.value, format, view.value)
 
     // Generate filename
     const dateFrom = filters.value.date_from?.replace(/-/g, '') || ''
     const dateTo = filters.value.date_to?.replace(/-/g, '') || ''
     const extension = format === 'csv' ? 'csv' : 'xlsx'
-    const filename = `reporte_ventas_productos_${dateFrom}_${dateTo}.${extension}`
+    const slug = view.value === 'summary' ? 'productos_vendidos' : 'ventas_productos'
+    const filename = `reporte_${slug}_${dateFrom}_${dateTo}.${extension}`
 
     reportsApi.downloadFile(blob, filename)
 

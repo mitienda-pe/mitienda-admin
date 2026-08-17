@@ -48,18 +48,33 @@ export interface PaymentGateway {
   name: string
 }
 
+/**
+ * Modo del reporte: `detail` es una fila por línea de pedido; `summary` es el
+ * ranking agregado por producto que traía el panel legacy.
+ */
+export type ProductSalesView = 'detail' | 'summary'
+
 export interface ProductSalesReportRow {
   order_id: number
   order_code: string
   order_date: string
+  document_type: string
+  document_number: string
+  origen: string
+  branch: string
+  cashier: string
   customer_name: string
   customer_email: string
   customer_document: string
   customer_phone: string
   customer_address: string
   product_id: number
+  /** SKU de lo vendido: el de la variante si la hay, si no el del producto. */
+  sku: string
   product_code: string
+  variant_sku: string | null
   product_name: string
+  product_variant: string | null
   product_quantity: number
   product_unit_price: number
   product_subtotal: number
@@ -73,6 +88,7 @@ export interface ProductSalesReportRow {
   promotion_type: string | null
   payment_status: string
   payment_method: string
+  payment_detail: string
   total: number
   currency: string
   shipping_status: string
@@ -85,8 +101,25 @@ export interface ProductSalesReportRow {
   tracking_code: string | null
 }
 
+/** Fila del ranking agregado por producto (`view=summary`). */
+export interface ProductSalesSummaryRow {
+  product_id: number
+  sku: string
+  product_name: string
+  order_count: number
+  product_quantity: number
+  product_subtotal: number
+  product_discount: number
+  product_total: number
+  product_cost_subtotal: number
+  product_profit: number
+  product_margin_pct: number
+  currency: string
+}
+
 export interface ProductSalesPreviewResponse {
-  data: ProductSalesReportRow[]
+  view: ProductSalesView
+  data: ProductSalesReportRow[] | ProductSalesSummaryRow[]
   total_count: number
   has_more: boolean
   filters_applied: ReportFilters

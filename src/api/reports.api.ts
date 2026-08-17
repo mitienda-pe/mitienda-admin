@@ -6,7 +6,9 @@ import {
   type OrderReportRow,
   type PaymentGateway,
   type ProductSalesReportRow,
+  type ProductSalesSummaryRow,
   type ProductSalesPreviewResponse,
+  type ProductSalesView,
   type ProductCatalogFilters,
   type ProductCatalogRow,
   type ProductCatalogPreviewResponse,
@@ -101,7 +103,8 @@ export const reportsApi = {
    * Get preview of product sales report (first 100 rows)
    */
   async getProductSalesReportPreview(
-    filters: ReportFilters
+    filters: ReportFilters,
+    view: ProductSalesView = 'detail'
   ): Promise<ProductSalesPreviewResponse> {
     const params = new URLSearchParams()
 
@@ -113,10 +116,12 @@ export const reportsApi = {
     if (filters.payment_gateway_id !== undefined) {
       params.append('payment_gateway_id', filters.payment_gateway_id.toString())
     }
+    params.append('view', view)
 
     const response = await apiClient.get<{
       success: boolean
-      data: ProductSalesReportRow[]
+      view: ProductSalesView
+      data: ProductSalesReportRow[] | ProductSalesSummaryRow[]
       total_count: number
       has_more: boolean
       filters_applied: ReportFilters
@@ -127,6 +132,7 @@ export const reportsApi = {
     }
 
     return {
+      view: response.data.view ?? view,
       data: response.data.data,
       total_count: response.data.total_count,
       has_more: response.data.has_more,
@@ -139,7 +145,8 @@ export const reportsApi = {
    */
   async exportProductSalesReport(
     filters: ReportFilters,
-    format: ExportFormat = ExportFormat.CSV
+    format: ExportFormat = ExportFormat.CSV,
+    view: ProductSalesView = 'detail'
   ): Promise<Blob> {
     const params = new URLSearchParams()
 
@@ -152,6 +159,7 @@ export const reportsApi = {
       params.append('payment_gateway_id', filters.payment_gateway_id.toString())
     }
     params.append('format', format)
+    params.append('view', view)
 
     const response = await apiClient.get(`/reports/product-sales/export?${params.toString()}`, {
       responseType: 'blob'
