@@ -39,7 +39,7 @@
               <h3 class="text-lg font-semibold text-secondary-800 mb-4">Métodos de pago</h3>
               <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div class="flex items-center gap-2">
-                  <Checkbox v-model="formData.payment_methods.card" inputId="m_card" :binary="true" disabled />
+                  <Checkbox v-model="formData.payment_methods.tarjeta" inputId="m_card" :binary="true" disabled />
                   <label for="m_card">Tarjeta</label>
                   <Tag value="Siempre activo" severity="info" />
                 </div>
@@ -48,7 +48,7 @@
                   <label for="m_yape">Yape</label>
                 </div>
                 <div class="flex items-center gap-2">
-                  <Checkbox v-model="formData.payment_methods.banca_movil" inputId="m_banca" :binary="true" />
+                  <Checkbox v-model="formData.payment_methods.bancaMovil" inputId="m_banca" :binary="true" />
                   <label for="m_banca">Banca Móvil</label>
                 </div>
                 <div class="flex items-center gap-2">
@@ -147,8 +147,11 @@ const formData = reactive({
   private_key: '',
   app_id: '',
   environment: 'integracion' as 'produccion' | 'integracion',
-  payment_methods: { card: true, yape: false, banca_movil: false, agente: false, billetera: false }
+  // Llaves de Culqi Checkout v4 (ver CulqiPaymentMethods): llegan al SDK tal cual.
+  payment_methods: { tarjeta: true, yape: false, bancaMovil: false, agente: false, billetera: false }
 })
+
+const PAYMENT_METHOD_KEYS = ['tarjeta', 'yape', 'bancaMovil', 'agente', 'billetera'] as const
 
 const { isDirty, reset: resetDirty } = useDirtyForm(() => formData)
 
@@ -161,8 +164,14 @@ watch(() => store.currentConfig, (config) => {
     formData.private_key = c.private_key ?? ''
     formData.app_id = c.app_id ?? ''
     formData.environment = c.environment ?? 'integracion'
+    // Llave por llave, no Object.assign: fusionar lo guardado sobre el formulario
+    // arrastraba al formulario las llaves que trajera la fila, y al reguardar se
+    // escribían las dos formas juntas y contradictorias en la misma columna.
     if (c.payment_methods && typeof c.payment_methods === 'object') {
-      Object.assign(formData.payment_methods, c.payment_methods)
+      const saved = c.payment_methods as Record<string, unknown>
+      for (const key of PAYMENT_METHOD_KEYS) {
+        if (key in saved) formData.payment_methods[key] = saved[key] === true
+      }
     }
   }
   resetDirty()

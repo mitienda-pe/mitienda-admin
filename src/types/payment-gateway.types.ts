@@ -61,12 +61,19 @@ export interface CulqiCredentials {
   payment_methods: CulqiPaymentMethods
 }
 
+/**
+ * Las llaves son las que exige Culqi Checkout v4, en español y camelCase.
+ * No son de nuestro dominio: viajan hasta el SDK tal cual, y con una llave que
+ * no reconozca (`card`, `banca_movil`) invalida TODAS sus opciones y el modal de
+ * pago no abre. Rompió el checkout de una tienda en producción; no renombrar.
+ */
 export interface CulqiPaymentMethods {
-  card: boolean
+  tarjeta: boolean
   yape: boolean
-  banca_movil: boolean
+  bancaMovil: boolean
   agente: boolean
   billetera: boolean
+  cuotealo?: boolean
 }
 
 // Mercado Pago
