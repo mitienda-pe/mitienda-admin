@@ -88,7 +88,9 @@ function mapPaymentToOrderStatus(pagado: string | number): OrderStatus {
   // 12 tiene etiqueta propia: se mostraba como "Rechazado", que es otra cosa
   // (el comprador nunca llegó a pagar vs. la pasarela le negó el cobro).
   if (statusStr === '12') return 'expired'
-  if (statusStr === '13') return 'chargeback'
+  // 5 = "Fraude" del catálogo legacy, sin uso desde 2020: se muestra como
+  // contracargo, que es donde terminan esos cobros.
+  if (statusStr === '5' || statusStr === '13') return 'chargeback'
   if (statusStr === '14') return 'refunded'
   return 'pending'
 }
@@ -100,7 +102,7 @@ function mapPaymentStatusText(pagado: string | number): string {
   if (statusStr === '0') return 'rechazado'
   if (statusStr === '4') return 'anulado'
   if (statusStr === '12') return 'expirado'
-  if (statusStr === '13') return 'contracargo'
+  if (statusStr === '5' || statusStr === '13') return 'contracargo'
   if (statusStr === '14') return 'reembolsado'
   return 'pendiente'
 }
