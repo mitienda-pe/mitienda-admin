@@ -1364,6 +1364,7 @@ const catalogMenuItemsSource = [
   { label: 'Nuevo Producto', icon: 'pi pi-plus', to: '/products/create' },
   { label: 'Precios', icon: 'pi pi-dollar', to: '/products/prices' },
   { label: 'Stock', icon: 'pi pi-warehouse', to: '/products/stock' },
+  { label: 'Stock por almacén', icon: 'pi pi-building', to: '/store/branch-stock' },
   { label: 'Inventario', icon: 'pi pi-book', to: '/inventory/movements' },
   { label: 'Transferencias', icon: 'pi pi-arrow-right-arrow-left', to: '/inventory/transfers' },
   { label: 'Orden', icon: 'pi pi-sort-alt', to: '/products/order' },

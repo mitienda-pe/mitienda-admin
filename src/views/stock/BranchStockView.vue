@@ -109,7 +109,7 @@ async function activate() {
     const res = await branchStockApi.setActivation(true)
     isActive.value = res.data?.enabled ?? false
     if (isActive.value) {
-      toast.add({ severity: 'success', summary: 'Activado', detail: 'Gestión de stock por sucursal activada', life: 3000 })
+      toast.add({ severity: 'success', summary: 'Activado', detail: 'Gestión de stock por almacén activada', life: 3000 })
       await loadBranches()
       await loadRows()
     }
@@ -176,9 +176,9 @@ onMounted(async () => {
 <template>
   <div class="p-6">
     <div class="mb-6">
-      <h1 class="text-2xl font-bold text-gray-800">Stock por sucursal</h1>
+      <h1 class="text-2xl font-bold text-gray-800">Stock por almacén</h1>
       <p class="text-sm text-gray-500 mt-1">
-        Gestiona el inventario de cada sucursal de forma independiente. El stock total se calcula como la suma de las sucursales.
+        Gestiona el stock de cada almacén de forma independiente. El total del producto se calcula como la suma de sus almacenes.
       </p>
     </div>
 
@@ -186,7 +186,7 @@ onMounted(async () => {
     <AppEmptyState
       v-if="!moduleEnabled"
       title="No disponible en tu plan"
-      description="La gestión de stock por sucursal está disponible en el plan Large o el plan Punto de Venta."
+      description="La gestión de stock por almacén está disponible en el plan Large y en el plan Punto de Venta. También puede agregarse a tu plan actual."
       icon="pi-lock"
     />
 
@@ -197,9 +197,9 @@ onMounted(async () => {
 
     <!-- Disponible pero no activado -->
     <div v-else-if="!isActive" class="bg-white rounded-lg shadow-sm p-6 max-w-2xl">
-      <h2 class="text-lg font-semibold text-gray-800 mb-2">Activar gestión nativa de stock por sucursal</h2>
+      <h2 class="text-lg font-semibold text-gray-800 mb-2">Activar el stock por almacén</h2>
       <p class="text-sm text-gray-600 mb-4">
-        Al activarla, el stock total de cada producto pasará a calcularse como la suma de sus sucursales.
+        Al activarlo, el stock total de cada producto pasará a calcularse como la suma de sus almacenes.
         Solo disponible para tiendas sin integración con ERP/NetSuite.
       </p>
       <AppButton :loading="activating" variant="primary" @click="activate">Activar</AppButton>
@@ -215,7 +215,7 @@ onMounted(async () => {
             :options="branches"
             optionLabel="tiendadireccion_nombresucursal"
             optionValue="tiendadireccion_id"
-            placeholder="Selecciona una sucursal"
+            placeholder="Selecciona un almacén"
             class="w-64"
             @change="onBranchChange"
           />
@@ -263,7 +263,7 @@ onMounted(async () => {
           @page="onPage"
         >
           <template #empty>
-            <div class="py-8 text-center text-gray-500">No hay productos para esta sucursal.</div>
+            <div class="py-8 text-center text-gray-500">No hay productos para este almacén.</div>
           </template>
           <Column field="producto_sku" header="SKU" style="min-width: 120px">
             <template #body="{ data }">
@@ -279,7 +279,7 @@ onMounted(async () => {
               </div>
             </template>
           </Column>
-          <Column header="Stock en sucursal" style="min-width: 160px">
+          <Column header="Stock en el almacén" style="min-width: 160px">
             <template #body="{ data }">
               <InputNumber
                 v-if="!data.tiene_variantes && !data.stock_ilimitado"
@@ -304,7 +304,7 @@ onMounted(async () => {
       </div>
 
       <p class="text-xs text-gray-400">
-        Productos con variantes: usa el import CSV con la columna <code>variante_sku</code> para fijar su stock por sucursal.
+        Productos con variantes: usa el import CSV con la columna <code>variante_sku</code> para fijar su stock por almacén.
       </p>
     </div>
   </div>
