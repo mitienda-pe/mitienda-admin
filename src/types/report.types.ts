@@ -64,6 +64,10 @@ export interface ProductSalesReportRow {
   branch: string
   cashier: string
   customer_name: string
+  /** Nombres y apellidos por separado, como los daba el panel legacy. */
+  customer_first_name: string
+  customer_last_name: string
+  customer_business_name: string
   customer_email: string
   customer_document: string
   customer_phone: string
