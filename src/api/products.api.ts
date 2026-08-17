@@ -119,6 +119,7 @@ export const productsApi = {
               : null,
             stock: product.stock || 0,
             unlimited_stock: product.unlimited_stock === 1 || product.unlimited_stock === true,
+            max_purchase_qty: product.max_purchase_qty ?? 0,
             // El listado devuelve `has_variants` y la ficha `has_variation_attributes`:
             // leer solo uno dejaba el flag SIEMPRE en false para los productos que
             // vienen de una búsqueda, y con él los filtros que dependen de saber si
@@ -238,6 +239,10 @@ export const productsApi = {
         has_variation_attributes: rawData.has_variation_attributes === true || rawData.has_variation_attributes === 1,
         stock: rawData.stock || 0,
         unlimited_stock: rawData.unlimited_stock === 1 || rawData.unlimited_stock === true,
+        // Se copia explícitamente o se pierde: esta normalización arma el Product
+        // campo por campo, y sin esta línea la ficha volvía a 0 al refrescar
+        // después de guardar aunque el tope sí estuviera guardado.
+        max_purchase_qty: rawData.max_purchase_qty ?? 0,
         sold_by_weight: rawData.sold_by_weight === true || rawData.sold_by_weight === 1,
         min_stock: rawData.min_stock || undefined,
         weight: rawData.weight !== undefined && rawData.weight !== null ? parseFloat(rawData.weight.toString()) : undefined,
@@ -306,6 +311,7 @@ export const productsApi = {
     // Map all defined fields to payload
     const directFields = [
       'name', 'sku', 'barcode', 'price', 'price_without_tax', 'cost', 'stock',
+      'max_purchase_qty',
       'description', 'description_html', 'description_short',
       'brand_id', 'gamma_id', 'order', 'igv_percent', 'tax_affectation',
       'meta_title', 'meta_description', 'meta_image', 'slug',
@@ -367,6 +373,10 @@ export const productsApi = {
         has_variation_attributes: rawData.has_variation_attributes === true || rawData.has_variation_attributes === 1,
         stock: rawData.stock || 0,
         unlimited_stock: rawData.unlimited_stock === 1 || rawData.unlimited_stock === true,
+        // Se copia explícitamente o se pierde: esta normalización arma el Product
+        // campo por campo, y sin esta línea la ficha volvía a 0 al refrescar
+        // después de guardar aunque el tope sí estuviera guardado.
+        max_purchase_qty: rawData.max_purchase_qty ?? 0,
         sold_by_weight: rawData.sold_by_weight === true || rawData.sold_by_weight === 1,
         min_stock: rawData.min_stock || undefined,
         weight: rawData.weight ? parseFloat(rawData.weight) : undefined,
