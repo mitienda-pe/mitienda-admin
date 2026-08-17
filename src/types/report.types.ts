@@ -1,11 +1,16 @@
 // Report Types and Interfaces
 
+// Códigos de `tiendaventa_pagado`. ALL trae todo menos el 9 = Creado (carrito
+// abandonado en la pasarela), que el backend excluye por defecto.
 export enum PaymentStatus {
   ALL = -1,
   APPROVED = 1,
   PENDING = 2,
   REJECTED = 0,
-  EXPIRED = 12
+  VOIDED = 4,
+  EXPIRED = 12,
+  CHARGEBACK = 13,
+  REFUNDED = 14
 }
 
 export enum ExportFormat {

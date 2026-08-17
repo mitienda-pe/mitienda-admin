@@ -25,13 +25,18 @@ const emit = defineEmits<{
 
 const localFilters = ref<OrderFiltersData>({ ...props.modelValue })
 
-// Solo estados de PAGO (no estados de envío)
-// 0 = rechazado, 1 = confirmado/pagado, 2 = pendiente
+// Solo estados de PAGO (no estados de envío).
+// "Todos los estados" trae todo menos el 9 = Creado, que es el carrito
+// abandonado en la pasarela y no una venta.
 const statusOptions = [
   { label: 'Todos los estados', value: 'all' },
-  { label: 'Pendiente', value: 'pending' },
-  { label: 'Pagado', value: 'paid' },
-  { label: 'Rechazado', value: 'cancelled' }
+  { label: 'Pendiente', value: 'pending' },       // 2
+  { label: 'Pagado', value: 'paid' },             // 1
+  { label: 'Rechazado', value: 'cancelled' },     // 0
+  { label: 'Anulado', value: 'voided' },          // 4
+  { label: 'Expirado', value: 'expired' },        // 12
+  { label: 'Contracargo', value: 'chargeback' },  // 13
+  { label: 'Reembolsado', value: 'refunded' }     // 14
 ]
 
 const billedOptions = [

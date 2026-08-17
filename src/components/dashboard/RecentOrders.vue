@@ -109,6 +109,12 @@ const statusConfig = (status: OrderStatus) => {
       textClass: 'text-green-800',
       iconClass: 'pi-check'
     },
+    expired: {
+      label: 'Expirado',
+      bgClass: 'bg-gray-100',
+      textClass: 'text-gray-800',
+      iconClass: 'pi-hourglass'
+    },
     chargeback: {
       label: 'Contracargo',
       bgClass: 'bg-orange-100',

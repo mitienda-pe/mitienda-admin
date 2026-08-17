@@ -120,6 +120,7 @@ const statusConfig = (status: OrderStatus) => {
     paid:       { label: 'Pagado',      severity: 'success',   icon: 'pi-check-circle' },
     cancelled:  { label: 'Rechazado',   severity: 'danger',    icon: 'pi-times-circle' },
     voided:     { label: 'Anulado',     severity: 'danger',    icon: 'pi-ban' },
+    expired:    { label: 'Expirado',    severity: 'secondary', icon: 'pi-hourglass' },
     chargeback: { label: 'Contracargo', severity: 'danger',    icon: 'pi-exclamation-triangle' },
     refunded:   { label: 'Reembolsado', severity: 'warn',      icon: 'pi-replay' },
     processing: { label: 'Procesando',  severity: 'info',      icon: 'pi-spin pi-spinner' },

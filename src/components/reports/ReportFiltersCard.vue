@@ -158,7 +158,10 @@ const paymentStatusOptions = [
   { label: 'Aprobado', value: PaymentStatus.APPROVED },
   { label: 'Pendiente', value: PaymentStatus.PENDING },
   { label: 'Rechazado', value: PaymentStatus.REJECTED },
-  { label: 'Expirado', value: PaymentStatus.EXPIRED }
+  { label: 'Anulado', value: PaymentStatus.VOIDED },
+  { label: 'Expirado', value: PaymentStatus.EXPIRED },
+  { label: 'Contracargo', value: PaymentStatus.CHARGEBACK },
+  { label: 'Reembolsado', value: PaymentStatus.REFUNDED }
 ]
 
 // Payment Gateway Options

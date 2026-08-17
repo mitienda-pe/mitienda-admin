@@ -597,6 +597,12 @@ const statusConfig = computed(() => {
       textClass: 'text-red-800',
       iconClass: 'pi-ban'
     },
+    expired: {
+      label: 'Expirado',
+      bgClass: 'bg-gray-100',
+      textClass: 'text-gray-800',
+      iconClass: 'pi-hourglass'
+    },
     chargeback: {
       label: 'Contracargo',
       bgClass: 'bg-red-100',

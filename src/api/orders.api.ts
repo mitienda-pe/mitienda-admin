@@ -85,7 +85,9 @@ function mapPaymentToOrderStatus(pagado: string | number): OrderStatus {
   if (statusStr === '1') return 'paid'
   if (statusStr === '0') return 'cancelled'
   if (statusStr === '4') return 'voided'
-  if (statusStr === '12') return 'cancelled'
+  // 12 tiene etiqueta propia: se mostraba como "Rechazado", que es otra cosa
+  // (el comprador nunca llegó a pagar vs. la pasarela le negó el cobro).
+  if (statusStr === '12') return 'expired'
   if (statusStr === '13') return 'chargeback'
   if (statusStr === '14') return 'refunded'
   return 'pending'
@@ -113,6 +115,7 @@ function statusToPaymentCode(status: OrderStatus): string {
     shipped: '1',     // enviado = ya está pagado
     delivered: '1',   // entregado = ya está pagado
     voided: '4',      // anulado
+    expired: '12',    // expirado
     chargeback: '13', // contracargo
     refunded: '14'    // reembolsado
   }
