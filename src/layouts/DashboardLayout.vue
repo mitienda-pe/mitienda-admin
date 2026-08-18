@@ -1080,24 +1080,37 @@ onMounted(() => {
   if (!storeConfigStore.isLoaded) {
     storeConfigStore.fetchConfig()
   }
-  // Decide si mostrar el ítem "Plugins": solo para tiendas con al menos un
-  // plugin asignado y activo (activación manual por tienda vía superadmin,
-  // store_plugin_assignments). Oculto por defecto para todos los planes.
-  loadPluginVisibility()
 })
 
-// Visibilidad del ítem de menú "Plugins".
+// Visibilidad del ítem de menú "Plugins": solo para tiendas con al menos un
+// plugin asignado y activo (activación manual por tienda vía superadmin,
+// store_plugin_assignments). Oculto por defecto para todos los planes.
+//
+// Se re-consulta ante CADA cambio de tienda, no solo al montar, por lo mismo
+// que "Reportes > Personalizados" (ver abajo): al cambiar de tienda —o al
+// impersonar desde el superadmin— el layout NO se remonta, así que resolverlo
+// en onMounted dejaba pegado el resultado de la tienda anterior y el ítem no
+// aparecía nunca al entrar a una tienda con plugins asignados.
 const hasActivePlugins = ref(false)
 
-async function loadPluginVisibility() {
-  try {
-    const plugins = await pluginsApi.list()
-    hasActivePlugins.value = Array.isArray(plugins) && plugins.length > 0
-  } catch {
-    // Si falla la carga, mantener el ítem oculto (comportamiento por defecto).
-    hasActivePlugins.value = false
-  }
-}
+watch(
+  () => authStore.selectedStore?.id,
+  async (storeId) => {
+    if (!storeId) {
+      hasActivePlugins.value = false
+      return
+    }
+
+    try {
+      const plugins = await pluginsApi.list()
+      hasActivePlugins.value = Array.isArray(plugins) && plugins.length > 0
+    } catch {
+      // Si falla la carga, mantener el ítem oculto (comportamiento por defecto).
+      hasActivePlugins.value = false
+    }
+  },
+  { immediate: true }
+)
 
 // Visibilidad del ítem de menú "Reportes > Personalizados".
 //

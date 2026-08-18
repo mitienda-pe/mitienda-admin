@@ -28,6 +28,18 @@ import { MODULE_ROUTE_MAP } from './plan-modules.config'
  */
 const { mod_analitica_web: _unpublished, ...GRANTABLE_PLAN_ROUTES } = MODULE_ROUTE_MAP
 
+/**
+ * `mod_plugins` NO gatea `/plugins`, aunque el nombre lo sugiera: ese código es
+ * del módulo "Avanzado" del panel legacy (el editor de HTML/scripts, ver
+ * `administrador/Avanzado.php`), y el sistema de plugins lo reusó por accidente.
+ * Mapearlo acá escondía el menú Plugins a todo invitado sin "Avanzado", pese a
+ * que la tienda sí tuviera el plugin asignado.
+ *
+ * La visibilidad real de Plugins la da la asignación por tienda
+ * (`store_plugin_assignments`, que concede el superadmin); no hay gating por
+ * plan ni por usuario. Si algún día hace falta uno, va con un módulo propio, no
+ * reusando el 10.
+ */
 export const USER_PERMISSION_ROUTE_MAP: Record<string, string[]> = {
   ...GRANTABLE_PLAN_ROUTES,
 
@@ -36,7 +48,6 @@ export const USER_PERMISSION_ROUTE_MAP: Record<string, string[]> = {
   mod_colores: ['/appearance/colors'],
   mod_tipografia: ['/appearance/typography'],
   mod_google: ['/store/google'],
-  mod_plugins: ['/plugins'],
   mod_formas_pago: ['/payment-gateways'],
   mod_pos: ['/pos'],
   mod_panel_despacho: ['/dispatch']
