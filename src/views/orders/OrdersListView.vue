@@ -116,6 +116,7 @@ const dispatchSeverity = (stateId: number) => {
 // Estado de pago
 const statusConfig = (status: OrderStatus) => {
   const configs: Record<OrderStatus, { label: string; severity: string; icon: string }> = {
+    created:    { label: 'Sin pago',    severity: 'secondary', icon: 'pi-circle' },
     pending:    { label: 'Pendiente',   severity: 'warn',      icon: 'pi-clock' },
     paid:       { label: 'Pagado',      severity: 'success',   icon: 'pi-check-circle' },
     cancelled:  { label: 'Rechazado',   severity: 'danger',    icon: 'pi-times-circle' },

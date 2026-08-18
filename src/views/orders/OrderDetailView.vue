@@ -72,12 +72,17 @@ const isRetryingOlva = ref(false)
 const isCheckingGateway = ref(false)
 const gatewayStatus = ref<GatewayStatusResult | null>(null)
 
+// 'created' (estado 9) también se puede confirmar: es donde quedan los cobros
+// asíncronos —PagoEfectivo, agentes, billeteras— cuyo webhook no llegó. El
+// dinero puede estar cobrado hace días; sin esto no habría forma de aprobarlos.
+const PAYABLE_STATUSES = ['pending', 'created']
+
 const canConfirmPayment = computed(() => {
-  return order.value?.status === 'pending'
+  return PAYABLE_STATUSES.includes(order.value?.status ?? '')
 })
 
 const canCheckGateway = computed(() => {
-  return order.value?.status === 'pending'
+  return PAYABLE_STATUSES.includes(order.value?.status ?? '')
 })
 
 const canRejectPayment = computed(() => {
@@ -573,6 +578,12 @@ const statusConfig = computed(() => {
   if (!order.value) return null
 
   const configs: Record<OrderStatus, { label: string; bgClass: string; textClass: string; iconClass: string }> = {
+    created: {
+      label: 'Sin pago iniciado',
+      bgClass: 'bg-gray-100',
+      textClass: 'text-gray-800',
+      iconClass: 'pi-circle'
+    },
     pending: {
       label: 'Pendiente',
       bgClass: 'bg-yellow-100',

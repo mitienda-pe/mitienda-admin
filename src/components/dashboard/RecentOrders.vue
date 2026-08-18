@@ -66,6 +66,12 @@ const { formatCurrency, formatDateTime } = useFormatters()
 // pending = 2 (pendiente), paid = 1 (confirmado), cancelled = 0 (rechazado)
 const statusConfig = (status: OrderStatus) => {
   const configs: Record<OrderStatus, { label: string; bgClass: string; textClass: string; iconClass: string }> = {
+    created: {
+      label: 'Sin pago iniciado',
+      bgClass: 'bg-gray-100',
+      textClass: 'text-gray-800',
+      iconClass: 'pi-circle'
+    },
     pending: {
       label: 'Pendiente',
       bgClass: 'bg-yellow-100',

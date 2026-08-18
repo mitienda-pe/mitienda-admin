@@ -348,7 +348,10 @@ export interface Address {
   reference?: string
 }
 
-export type OrderStatus = 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'voided' | 'expired' | 'chargeback' | 'refunded'
+// 'created' = tiendaventa_pagado 9: el comprador llegó al checkout pero el pago
+// nunca se confirmó. En las pasarelas asíncronas (PagoEfectivo, agentes) puede
+// pagarse horas o días después, así que NO es un estado final.
+export type OrderStatus = 'created' | 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'voided' | 'expired' | 'chargeback' | 'refunded'
 
 export interface OrderFilters {
   search: string

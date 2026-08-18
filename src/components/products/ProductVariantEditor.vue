@@ -234,7 +234,42 @@ function handleRemoveVariant(index: number) {
   isDirty.value = true
 }
 
+/**
+ * Variantes que se quedarían sin ninguna opción, por posición (empezando en 1).
+ *
+ * Una variante sin talla ni color no se puede nombrar: en la tienda sale como
+ * "Opción 1", "Opción 2" y el comprador no sabe qué está eligiendo.
+ *
+ * `option_id` 0 no basta para acusarla. Los productos antiguos guardan la opción
+ * en un formato que el editor no sabe representar y llegan siempre con 0, pero
+ * sí la tienen — y el guardado la conserva. Esas se reconocen porque traen
+ * `names` resuelto por el servidor.
+ */
+function variantesSinOpcion(): number[] {
+  const fallan: number[] = []
+  variants.value.forEach((v, i) => {
+    const tieneOpcion = v.details.some(d => Number(d.option_id) > 0)
+    if (tieneOpcion) return
+    if ((v.names ?? '').trim() !== '') return
+    fallan.push(i + 1)
+  })
+  return fallan
+}
+
 async function handleSave() {
+  const sinOpcion = variantesSinOpcion()
+  if (sinOpcion.length > 0) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Falta la opción de algunas variantes',
+      detail:
+        `Sin talla o color, el comprador las verá como "Opción 1", "Opción 2". ` +
+        `Complétalas: ${sinOpcion.map(n => `variante ${n}`).join(', ')}.`,
+      life: 6000,
+    })
+    return
+  }
+
   isSaving.value = true
 
   const payload: SaveVariantsPayload = {
@@ -278,8 +313,11 @@ async function handleSave() {
     toast.add({
       severity: 'error',
       summary: 'Error',
-      detail: err.response?.data?.messages?.error || 'Error al guardar las variantes',
-      life: 5000,
+      detail:
+        err.response?.data?.messages?.variants ||
+        err.response?.data?.messages?.error ||
+        'Error al guardar las variantes',
+      life: 6000,
     })
   } finally {
     isSaving.value = false

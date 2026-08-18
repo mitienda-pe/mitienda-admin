@@ -31,6 +31,10 @@ const localFilters = ref<OrderFiltersData>({ ...props.modelValue })
 const statusOptions = [
   { label: 'Todos los estados', value: 'all' },
   { label: 'Pendiente', value: 'pending' },       // 2
+  // 9: pagos asíncronos (PagoEfectivo, agentes) que se cobran después del
+  // checkout. El listado los esconde por defecto; este filtro es la única
+  // forma de revisarlos sin buscarlos uno por uno.
+  { label: 'Sin pago iniciado', value: 'created' }, // 9
   { label: 'Pagado', value: 'paid' },             // 1
   { label: 'Rechazado', value: 'cancelled' },     // 0
   { label: 'Anulado', value: 'voided' },          // 4

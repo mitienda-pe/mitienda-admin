@@ -92,6 +92,10 @@ function mapPaymentToOrderStatus(pagado: string | number): OrderStatus {
   // contracargo, que es donde terminan esos cobros.
   if (statusStr === '5' || statusStr === '13') return 'chargeback'
   if (statusStr === '14') return 'refunded'
+  // 9 = "Creado": nació en el checkout y el pago nunca se confirmó. Se mostraba
+  // como "Pendiente", que es otra cosa — pendiente es un cobro que el comercio
+  // espera conciliar, y estos ni siquiera aparecían en el listado.
+  if (statusStr === '9') return 'created'
   return 'pending'
 }
 
@@ -104,12 +108,14 @@ function mapPaymentStatusText(pagado: string | number): string {
   if (statusStr === '12') return 'expirado'
   if (statusStr === '5' || statusStr === '13') return 'contracargo'
   if (statusStr === '14') return 'reembolsado'
+  if (statusStr === '9') return 'sin pago iniciado'
   return 'pendiente'
 }
 
 // Helper para convertir OrderStatus del frontend a código de pago del backend
 function statusToPaymentCode(status: OrderStatus): string {
   const statusMap: Record<OrderStatus, string> = {
+    created: '9',     // sin pago iniciado
     cancelled: '0',   // rechazado
     paid: '1',        // confirmado/pagado
     pending: '2',     // pendiente
