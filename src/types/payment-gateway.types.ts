@@ -90,6 +90,7 @@ export interface OpenpayCredentials {
   public_key: string // Required for client-side tokenization (OpenPay JS)
   merchant_id: string
   enable_installments: boolean
+  enable_3ds: boolean
   environment: GatewayEnvironment
   webhook_url?: string
 }

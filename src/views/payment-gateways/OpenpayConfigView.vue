@@ -38,6 +38,18 @@
                   <Checkbox v-model="formData.enable_installments" inputId="installments" :binary="true" />
                   <label for="installments" class="cursor-pointer">Habilitar pagos en cuotas</label>
                 </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <Checkbox v-model="formData.enable_3ds" inputId="enable3ds" :binary="true" />
+                    <label for="enable3ds" class="cursor-pointer">Autenticación 3D Secure (3DS)</label>
+                  </div>
+                  <small class="text-secondary-600 block mt-1">
+                    Pide al comprador la verificación de su banco y traslada la responsabilidad
+                    por contracargos al emisor de la tarjeta.
+                    <strong>Actívalo solo si Openpay ya habilitó 3DS en tu cuenta</strong>: si no lo
+                    está, la pasarela rechaza todos los cobros.
+                  </small>
+                </div>
               </div>
             </div>
 
@@ -139,6 +151,7 @@ const formData = reactive({
   api_key: '',
   public_key: '',
   enable_installments: false,
+  enable_3ds: false,
   environment: 'integracion' as 'produccion' | 'integracion'
 })
 
@@ -161,6 +174,7 @@ watch(() => store.currentConfig, (config) => {
     formData.api_key = c.api_key ?? ''
     formData.public_key = c.public_key ?? ''
     formData.enable_installments = c.enable_installments ?? false
+    formData.enable_3ds = c.enable_3ds ?? false
     formData.environment = c.environment ?? 'integracion'
   }
   resetDirty()
