@@ -140,7 +140,7 @@ async function onDeleteFavicon() {
   }
 }
 
-function onCatalogFieldUpdate(field: keyof CatalogPreferences, value: number) {
+function onCatalogFieldUpdate(field: keyof CatalogPreferences, value: number | null) {
   store.updateCatalogField(field, value)
 }
 

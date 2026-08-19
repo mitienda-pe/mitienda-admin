@@ -221,6 +221,9 @@ export interface CatalogPreferences {
   pdp_layout: number // qué se fija: 0 = la info (default), 1 = las fotos, 2 = nada
   pdp_description: number // 0 = bajo las fotos (default), 1 = bajo la info
   pdp_gallery: number // 0 = miniaturas (default), 1 = apilada
+  pdp_recommended_count: number // cuantos productos muestra "Tambien te puede interesar" (0 = ocultar)
+  pdp_recommended_source: number // de donde salen: ver PDP_RECOMMENDED_SOURCE
+  pdp_recommended_list_id: number | null // solo con source = lista fija
 }
 
 export const DEFAULT_CATALOG_PREFERENCES: CatalogPreferences = {
@@ -235,6 +238,9 @@ export const DEFAULT_CATALOG_PREFERENCES: CatalogPreferences = {
   pdp_layout: 0,
   pdp_description: 0,
   pdp_gallery: 0,
+  pdp_recommended_count: 12,
+  pdp_recommended_source: 0,
+  pdp_recommended_list_id: null,
 }
 
 export interface LayoutWidthOption {
@@ -321,6 +327,70 @@ export const PDP_GALLERY_OPTIONS: PdpGalleryOption[] = [
     label: 'Apilada',
     description: 'Todas las fotos en grande, sin miniaturas',
     icon: 'pi pi-clone',
+  },
+]
+
+// ── Productos recomendados del PDP ("Tambien te puede interesar") ──
+
+export const PDP_RECOMMENDED_SOURCE = {
+  AUTO: 0,
+  CATEGORY: 1,
+  BRAND: 2,
+  GAMMA: 3,
+  LIST: 4,
+} as const
+
+export interface PdpRecommendedCountOption {
+  value: number
+  label: string
+  description: string
+}
+
+export const PDP_RECOMMENDED_COUNT_OPTIONS: PdpRecommendedCountOption[] = [
+  { value: 0, label: 'Ninguno', description: 'Oculta el bloque' },
+  { value: 4, label: '4', description: 'Una fila' },
+  { value: 6, label: '6', description: 'Bloque corto' },
+  { value: 8, label: '8', description: 'Dos filas' },
+  { value: 12, label: '12', description: 'Bloque largo' },
+]
+
+export interface PdpRecommendedSourceOption {
+  value: number
+  label: string
+  description: string
+  icon: string
+}
+
+export const PDP_RECOMMENDED_SOURCE_OPTIONS: PdpRecommendedSourceOption[] = [
+  {
+    value: PDP_RECOMMENDED_SOURCE.AUTO,
+    label: 'Automatico',
+    description: 'Mezcla categoria, marca, precio y lo que suelen comprar juntos',
+    icon: 'pi pi-sparkles',
+  },
+  {
+    value: PDP_RECOMMENDED_SOURCE.CATEGORY,
+    label: 'Misma categoria',
+    description: 'Solo productos que comparten categoria',
+    icon: 'pi pi-sitemap',
+  },
+  {
+    value: PDP_RECOMMENDED_SOURCE.BRAND,
+    label: 'Misma marca',
+    description: 'Solo productos de la misma marca',
+    icon: 'pi pi-tag',
+  },
+  {
+    value: PDP_RECOMMENDED_SOURCE.GAMMA,
+    label: 'Misma gama',
+    description: 'Solo productos de la misma gama',
+    icon: 'pi pi-tags',
+  },
+  {
+    value: PDP_RECOMMENDED_SOURCE.LIST,
+    label: 'Una lista fija',
+    description: 'La misma vitrina en todas las fichas',
+    icon: 'pi pi-list',
   },
 ]
 

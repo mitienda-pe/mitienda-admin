@@ -9,7 +9,7 @@ import type { CatalogPreferences } from '@/types/appearance.types'
 const toast = useToast()
 const store = useAppearanceConfigStore()
 
-function onCatalogFieldUpdate(field: keyof CatalogPreferences, value: number) {
+function onCatalogFieldUpdate(field: keyof CatalogPreferences, value: number | null) {
   store.updateCatalogField(field, value)
 }
 

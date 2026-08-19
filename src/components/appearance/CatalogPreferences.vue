@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import InputSwitch from 'primevue/inputswitch'
+import Dropdown from 'primevue/dropdown'
 import { AppButton } from '@/components/ui'
+import { productListApi } from '@/api/product-list.api'
+import type { ProductList } from '@/types/product-list.types'
 import {
   DESKTOP_COLUMN_OPTIONS,
   MOBILE_COLUMN_OPTIONS,
@@ -10,6 +13,9 @@ import {
   PDP_LAYOUT_OPTIONS,
   PDP_DESCRIPTION_OPTIONS,
   PDP_GALLERY_OPTIONS,
+  PDP_RECOMMENDED_COUNT_OPTIONS,
+  PDP_RECOMMENDED_SOURCE_OPTIONS,
+  PDP_RECOMMENDED_SOURCE,
   CART_ICON_OPTIONS,
   PRODUCT_ORDER_OPTIONS,
   PRICING_MODE_OPTIONS,
@@ -32,7 +38,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  'update:field': [field: keyof CatalogPreferences, value: number]
+  'update:field': [field: keyof CatalogPreferences, value: number | null]
   save: []
 }>()
 
@@ -63,6 +69,70 @@ const pdpSummary = computed(() => {
   const stickyText = sticky === 1 ? 'las fotos acompañan el scroll' : 'la info acompaña el scroll'
   return { text: `Resultado: ${stickyText} y ${descText}.`, muted: false }
 })
+
+// Las listas de productos se cargan acá y no vía props porque este componente
+// lo montan dos vistas distintas (Apariencia y Configuracion del catalogo) y
+// pasarlas desde ambas duplicaria el fetch y el estado por una lectura chica.
+const productLists = ref<ProductList[]>([])
+const productListsLoaded = ref(false)
+
+onMounted(async () => {
+  try {
+    const response = await productListApi.getAll()
+    if (response.success && response.data) {
+      productLists.value = response.data.filter((list) => list.productolista_estado === 1)
+    }
+  } catch {
+    // Sin listas el selector queda vacío y se avisa en la UI; no vale la pena
+    // romper toda la pantalla de apariencia por esto.
+  } finally {
+    productListsLoaded.value = true
+  }
+})
+
+const productListOptions = computed(() =>
+  productLists.value.map((list) => ({
+    value: list.productolista_id,
+    label: list.product_count
+      ? `${list.productolista_nombre} (${list.product_count} productos)`
+      : list.productolista_nombre,
+  }))
+)
+
+const recommendedEnabled = computed(() => props.preferences.pdp_recommended_count > 0)
+const recommendedUsesList = computed(
+  () => props.preferences.pdp_recommended_source === PDP_RECOMMENDED_SOURCE.LIST
+)
+
+// Con una fuente estricta el bloque puede quedar vacío (y ocultarse) si el
+// producto no tiene esa clasificacion. Se dice acá porque desde el panel no se
+// ve, y en el storefront ya no hay a quien avisarle.
+const recommendedNote = computed(() => {
+  if (!recommendedEnabled.value) {
+    return 'El bloque "También te puede interesar" no se muestra en ninguna ficha.'
+  }
+  switch (props.preferences.pdp_recommended_source) {
+    case PDP_RECOMMENDED_SOURCE.CATEGORY:
+      return 'En productos sin categoría el bloque se oculta, en vez de mostrar productos sin relación.'
+    case PDP_RECOMMENDED_SOURCE.BRAND:
+      return 'En productos sin marca el bloque se oculta, en vez de mostrar productos sin relación.'
+    case PDP_RECOMMENDED_SOURCE.GAMMA:
+      return 'En productos sin gama el bloque se oculta, en vez de mostrar productos sin relación.'
+    case PDP_RECOMMENDED_SOURCE.LIST:
+      return 'Todas las fichas muestran los mismos productos de la lista elegida.'
+    default:
+      return 'Mezcla categoría, marca, precio parecido y lo que suelen comprar junto. Si el producto no tiene con qué comparar, cae a los últimos publicados.'
+  }
+})
+
+function onRecommendedSourceChange(value: number) {
+  emit('update:field', 'pdp_recommended_source', value)
+  // Salir de "lista fija" deja el id colgando y el backend lo rechazaría al
+  // validar; se limpia acá para que el guardado no dependa del orden de clics.
+  if (value !== PDP_RECOMMENDED_SOURCE.LIST && props.preferences.pdp_recommended_list_id !== null) {
+    emit('update:field', 'pdp_recommended_list_id', null)
+  }
+}
 
 const hideOutOfStockBool = computed({
   get: () => props.preferences.hide_out_of_stock === 1,
@@ -433,6 +503,124 @@ const hideOutOfStockBool = computed({
           />
         </button>
       </div>
+    </div>
+
+    <!-- Divider -->
+    <hr class="border-gray-100" />
+
+    <!-- Productos recomendados en la ficha -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Productos recomendados en la ficha
+      </label>
+      <p class="text-xs text-gray-400 mb-3">
+        Cuántos productos muestra el bloque «También te puede interesar»
+      </p>
+      <div class="grid grid-cols-5 gap-2 max-w-lg">
+        <button
+          v-for="option in PDP_RECOMMENDED_COUNT_OPTIONS"
+          :key="option.value"
+          type="button"
+          class="relative p-3 border-2 rounded-lg text-center transition-all cursor-pointer"
+          :class="
+            preferences.pdp_recommended_count === option.value
+              ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+              : 'border-gray-200 bg-white hover:border-gray-300'
+          "
+          @click="emit('update:field', 'pdp_recommended_count', option.value)"
+        >
+          <div
+            class="text-sm font-medium"
+            :class="
+              preferences.pdp_recommended_count === option.value
+                ? 'text-primary'
+                : 'text-gray-600'
+            "
+          >
+            {{ option.label }}
+          </div>
+          <p class="text-xs text-gray-400 mt-1">{{ option.description }}</p>
+        </button>
+      </div>
+
+      <!-- De dónde salen -->
+      <div v-if="recommendedEnabled" class="mt-5">
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          De dónde salen
+        </label>
+        <p class="text-xs text-gray-400 mb-3">
+          Qué relación tienen con el producto que se está viendo
+        </p>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <button
+            v-for="option in PDP_RECOMMENDED_SOURCE_OPTIONS"
+            :key="option.value"
+            type="button"
+            class="relative p-4 border-2 rounded-lg text-left transition-all cursor-pointer"
+            :class="
+              preferences.pdp_recommended_source === option.value
+                ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                : 'border-gray-200 bg-white hover:border-gray-300'
+            "
+            @click="onRecommendedSourceChange(option.value)"
+          >
+            <i
+              :class="option.icon"
+              class="text-xl mb-2 block"
+              :style="{
+                color: preferences.pdp_recommended_source === option.value ? '#00b2a6' : '#6B7280',
+              }"
+            />
+            <div
+              class="text-sm font-medium"
+              :class="
+                preferences.pdp_recommended_source === option.value
+                  ? 'text-primary'
+                  : 'text-gray-600'
+              "
+            >
+              {{ option.label }}
+            </div>
+            <p class="text-xs text-gray-400 mt-1">{{ option.description }}</p>
+            <i
+              v-if="preferences.pdp_recommended_source === option.value"
+              class="pi pi-check-circle absolute top-2 right-2 text-primary text-sm"
+            />
+          </button>
+        </div>
+      </div>
+
+      <!-- Lista fija -->
+      <div v-if="recommendedEnabled && recommendedUsesList" class="mt-4 max-w-md">
+        <label for="pdp-recommended-list" class="block text-sm font-medium text-gray-700 mb-1">
+          Lista de productos
+        </label>
+        <Dropdown
+          id="pdp-recommended-list"
+          :modelValue="preferences.pdp_recommended_list_id"
+          :options="productListOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Elegí una lista"
+          class="w-full"
+          :loading="!productListsLoaded"
+          @update:modelValue="emit('update:field', 'pdp_recommended_list_id', $event)"
+        />
+        <p
+          v-if="productListsLoaded && productListOptions.length === 0"
+          class="text-xs text-amber-600 mt-2"
+        >
+          Todavía no tenés listas de productos activas. Creá una en Catálogo → Listas de productos.
+        </p>
+      </div>
+
+      <p class="text-xs mt-3" :class="recommendedEnabled ? 'text-gray-500' : 'text-gray-400'">
+        {{ recommendedNote }}
+      </p>
+      <p v-if="recommendedEnabled" class="text-xs text-gray-400 mt-1">
+        Cualquier producto puede tener sus propios recomendados, elegidos a mano desde su ficha:
+        eso manda por encima de esta configuración.
+      </p>
     </div>
 
     <!-- Divider -->

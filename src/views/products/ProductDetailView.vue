@@ -235,6 +235,19 @@
           </template>
         </Card>
 
+        <!-- Productos relacionados («También te puede interesar» del PDP) -->
+        <Card>
+          <template #title>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-link"></i>
+              Productos relacionados
+            </div>
+          </template>
+          <template #content>
+            <ProductRelatedEditor :product-id="product.id" />
+          </template>
+        </Card>
+
         <!-- SEO -->
         <Card>
           <template #title>
@@ -1116,6 +1129,7 @@ import ProductVideoUploader from '@/components/products/ProductVideoUploader.vue
 import ProductVideoPlayer from '@/components/products/ProductVideoPlayer.vue'
 import ProductDocumentUploader from '@/components/products/ProductDocumentUploader.vue'
 import ProductDocumentList from '@/components/products/ProductDocumentList.vue'
+import ProductRelatedEditor from '@/components/products/ProductRelatedEditor.vue'
 import ProductDescriptionEditor from '@/components/products/ProductDescriptionEditor.vue'
 import ProductVariantEditor from '@/components/products/ProductVariantEditor.vue'
 import ProductLotManager from '@/components/products/ProductLotManager.vue'

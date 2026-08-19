@@ -13,6 +13,18 @@ import type {
   WholesalePriceTier,
 } from '@/types/product.types'
 
+export interface RelatedProductItem {
+  id: number
+  sku: string | null
+  name: string
+  published: boolean
+}
+
+export interface RelatedProductsPayload {
+  max: number
+  items: RelatedProductItem[]
+}
+
 export interface ProductsFilters {
   page?: number
   limit?: number
@@ -443,6 +455,20 @@ export const productsApi = {
   // Eliminar video de producto
   async deleteVideo(id: number): Promise<ApiResponse<any>> {
     const response = await apiClient.delete(`/products/${id}/video`)
+    return response.data
+  },
+
+  // Productos relacionados manuales del PDP ("También te puede interesar").
+  // Tener vínculos acá anula la configuración automática de la tienda.
+  async getRelated(id: number): Promise<ApiResponse<RelatedProductsPayload>> {
+    const response = await apiClient.get(`/products/${id}/related`)
+    return response.data
+  },
+
+  // Reemplaza el set completo; el orden del arreglo es el orden final y un
+  // arreglo vacío devuelve el producto al modo automático.
+  async saveRelated(id: number, productIds: number[]): Promise<ApiResponse<RelatedProductsPayload>> {
+    const response = await apiClient.put(`/products/${id}/related`, { product_ids: productIds })
     return response.data
   },
 
