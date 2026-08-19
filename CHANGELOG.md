@@ -3,6 +3,19 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.69.0] - 2026-08-19
+
+### Novedades
+
+- **reportes:** agregar la vista del reporte SIRE ([`a0cdd63`](https://github.com/mitienda-pe/mitienda-admin/commit/a0cdd63ba77f9ec75b95916c04b45193ec1cbc2e))
+
+## [v2.68.0] - 2026-08-19
+
+### Novedades
+
+- **apariencia:** configurar los productos recomendados de la ficha ([`4c3b53c`](https://github.com/mitienda-pe/mitienda-admin/commit/4c3b53cc8d0446b56f1192e4dbb5cd13cfc257b1))
+- **apariencia:** separar que se fija de donde va la descripcion ([`ab14217`](https://github.com/mitienda-pe/mitienda-admin/commit/ab14217d72ea60d1c5bf8ee94fd67038744cb3f1))
+
 ## [v2.66.0] - 2026-08-19
 
 ### Novedades
