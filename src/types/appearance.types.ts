@@ -219,6 +219,7 @@ export interface CatalogPreferences {
   pricing_mode: number // 0 = con IGV (default), 1 = sin IGV
   layout_width: number // 0 = contained (1280px), 1 = fluid (100%)
   pdp_layout: number // 0 = info fija (default), 1 = galería fija
+  pdp_gallery: number // 0 = miniaturas (default), 1 = apilada
 }
 
 export const DEFAULT_CATALOG_PREFERENCES: CatalogPreferences = {
@@ -231,6 +232,7 @@ export const DEFAULT_CATALOG_PREFERENCES: CatalogPreferences = {
   pricing_mode: 0,
   layout_width: 0,
   pdp_layout: 0,
+  pdp_gallery: 0,
 }
 
 export interface LayoutWidthOption {
@@ -266,6 +268,29 @@ export const PDP_LAYOUT_OPTIONS: PdpLayoutOption[] = [
     label: 'Fotos fijas',
     description: 'La descripción va bajo el precio',
     icon: 'pi pi-align-left',
+  },
+]
+
+export interface PdpGalleryOption {
+  value: number
+  label: string
+  description: string
+  icon: string
+}
+
+// Galería de la ficha: tira de miniaturas o todas las fotos en grande.
+export const PDP_GALLERY_OPTIONS: PdpGalleryOption[] = [
+  {
+    value: 0,
+    label: 'Con miniaturas',
+    description: 'Una foto grande y el resto en miniatura',
+    icon: 'pi pi-images',
+  },
+  {
+    value: 1,
+    label: 'Apilada',
+    description: 'Todas las fotos en grande, sin miniaturas',
+    icon: 'pi pi-clone',
   },
 ]
 
