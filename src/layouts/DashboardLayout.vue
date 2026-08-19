@@ -1356,6 +1356,9 @@ const salesBadgeMap = computed<Record<string, number>>(() => ({
   '/marketing/abandoned-carts': badgeCountsStore.abandonedCartsCount
 }))
 
+// El SIRE es un registro de SUNAT: solo tiene sentido para tiendas peruanas.
+const isPeru = computed(() => storeConfigStore.countryConfig?.iso2 === 'PE')
+
 // Items del grupo Reportes. "Personalizados" solo aparece si la tienda tiene al
 // menos un reporte a medida asignado (hasCustomReports); son reportes hechos por
 // pedido para tenants puntuales, no una función de plan.
@@ -1365,6 +1368,9 @@ const reportsMenuItems = computed(() => visibleItems([
   { label: 'Catálogo de Productos', icon: 'pi pi-list', to: '/reports/product-catalog' },
   { label: 'Promociones', icon: 'pi pi-percentage', to: '/reports/promotions' },
   { label: 'Rechazos de Pago', icon: 'pi pi-exclamation-triangle', to: '/reports/payment-rejections' },
+  ...(isPeru.value
+    ? [{ label: 'SIRE', icon: 'pi pi-file-check', to: '/reports/sire' }]
+    : []),
   { label: 'Redondeo POS', icon: 'pi pi-money-bill', to: '/reports/rounding' },
   ...(hasCustomReports.value
     ? [{ label: 'Personalizados', icon: 'pi pi-file-excel', to: '/reports/custom' }]

@@ -316,6 +316,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/reports/PromotionsReportView.vue')
       },
       {
+        path: 'sire',
+        name: 'SireReport',
+        meta: { title: 'Reporte SIRE' },
+        component: () => import('@/views/reports/SireReportView.vue')
+      },
+      {
         path: 'payment-rejections',
         name: 'PaymentRejectionsReport',
         meta: { title: 'Rechazos de pago' },

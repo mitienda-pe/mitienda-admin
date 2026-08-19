@@ -18,7 +18,9 @@ import {
   type PaymentRejectionsFilters,
   type PaymentRejectionsResponse,
   type RoundingReportFilters,
-  type RoundingReportResponse
+  type RoundingReportResponse,
+  type SireReportFilters,
+  type SireReportPreviewResponse
 } from '@/types/report.types'
 
 export const reportsApi = {
@@ -339,6 +341,54 @@ export const reportsApi = {
     }
 
     return response.data.data
+  },
+
+  /**
+   * Vista previa del reporte SIRE (Registro de Ventas e Ingresos).
+   *
+   * Sin fechas la API abre en el mes anterior completo y devuelve el rango que
+   * aplicó en `filters_applied`; la vista lo usa para reflejarlo en el filtro.
+   */
+  async getSirePreview(filters: SireReportFilters = {}): Promise<SireReportPreviewResponse> {
+    const params = new URLSearchParams()
+    if (filters.date_from) params.append('date_from', filters.date_from)
+    if (filters.date_to) params.append('date_to', filters.date_to)
+
+    const response = await apiClient.get<{ success: boolean } & SireReportPreviewResponse>(
+      `/reports/sire/preview?${params.toString()}`
+    )
+
+    if (!response.data.success) {
+      throw new Error('Failed to fetch SIRE report preview')
+    }
+
+    return {
+      columns: response.data.columns,
+      data: response.data.data,
+      total_count: response.data.total_count,
+      has_more: response.data.has_more,
+      totals: response.data.totals,
+      filters_applied: response.data.filters_applied
+    }
+  },
+
+  /**
+   * Exporta el reporte SIRE completo (CSV o XLSX).
+   */
+  async exportSireReport(
+    filters: SireReportFilters = {},
+    format: ExportFormat = ExportFormat.XLSX
+  ): Promise<Blob> {
+    const params = new URLSearchParams()
+    if (filters.date_from) params.append('date_from', filters.date_from)
+    if (filters.date_to) params.append('date_to', filters.date_to)
+    params.append('format', format)
+
+    const response = await apiClient.get(`/reports/sire/export?${params.toString()}`, {
+      responseType: 'blob'
+    })
+
+    return response.data
   },
 
   /**

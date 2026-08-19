@@ -270,3 +270,59 @@ export interface RoundingReportResponse {
   summary: RoundingSummary
   by_day: RoundingByDay[]
 }
+
+// SIRE — Registro de Ventas e Ingresos (SUNAT)
+export interface SireReportFilters {
+  date_from?: string
+  date_to?: string
+}
+
+/** Metadatos de columna que manda la API; el orden lo fija el backend. */
+export interface SireReportColumn {
+  label: string
+  key: string
+  type?: 'text' | 'number' | 'string'
+  width?: number
+}
+
+export interface SireReportRow {
+  periodo: string
+  fecha_emision: string
+  tipo_cp: string
+  tipo_cp_nombre: string
+  serie: string
+  numero: string
+  cliente_tipo_doc: string
+  cliente_num_doc: string
+  cliente_nombre: string
+  base_gravada: number
+  igv: number
+  exonerado: number
+  inafecto: number
+  icbper: number
+  importe_total: number
+  moneda: string
+  estado: string
+  pedido: string
+  canal: string
+  sucursal: string
+}
+
+export interface SireReportTotals {
+  comprobantes: number
+  base_gravada: number
+  igv: number
+  exonerado: number
+  inafecto: number
+  icbper: number
+  importe_total: number
+}
+
+export interface SireReportPreviewResponse {
+  columns: SireReportColumn[]
+  data: SireReportRow[]
+  total_count: number
+  has_more: boolean
+  totals: SireReportTotals
+  filters_applied: SireReportFilters
+}
