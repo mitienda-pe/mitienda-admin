@@ -7,6 +7,7 @@ import {
   MOBILE_COLUMN_OPTIONS,
   LOGO_POSITION_OPTIONS,
   LAYOUT_WIDTH_OPTIONS,
+  PDP_LAYOUT_OPTIONS,
   CART_ICON_OPTIONS,
   PRODUCT_ORDER_OPTIONS,
   PRICING_MODE_OPTIONS,
@@ -245,6 +246,56 @@ const hideOutOfStockBool = computed({
           <p class="text-xs text-gray-400 mt-1">{{ option.description }}</p>
           <i
             v-if="preferences.layout_width === option.value"
+            class="pi pi-check-circle absolute top-2 right-2 text-primary text-sm"
+          />
+        </button>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <hr class="border-gray-100" />
+
+    <!-- Ficha de producto -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Ficha de producto
+      </label>
+      <p class="text-xs text-gray-400 mb-3">
+        En escritorio, qué columna queda fija al hacer scroll. En móvil no cambia nada.
+      </p>
+      <div class="grid grid-cols-2 gap-3 max-w-sm">
+        <button
+          v-for="option in PDP_LAYOUT_OPTIONS"
+          :key="option.value"
+          type="button"
+          class="relative p-4 border-2 rounded-lg text-center transition-all cursor-pointer"
+          :class="
+            preferences.pdp_layout === option.value
+              ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+              : 'border-gray-200 bg-white hover:border-gray-300'
+          "
+          @click="emit('update:field', 'pdp_layout', option.value)"
+        >
+          <i
+            :class="option.icon"
+            class="text-2xl mb-2 block"
+            :style="{
+              color: preferences.pdp_layout === option.value ? '#00b2a6' : '#6B7280',
+            }"
+          />
+          <div
+            class="text-sm font-medium"
+            :class="
+              preferences.pdp_layout === option.value
+                ? 'text-primary'
+                : 'text-gray-600'
+            "
+          >
+            {{ option.label }}
+          </div>
+          <p class="text-xs text-gray-400 mt-1">{{ option.description }}</p>
+          <i
+            v-if="preferences.pdp_layout === option.value"
             class="pi pi-check-circle absolute top-2 right-2 text-primary text-sm"
           />
         </button>

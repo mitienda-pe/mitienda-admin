@@ -218,6 +218,7 @@ export interface CatalogPreferences {
   hide_out_of_stock: number
   pricing_mode: number // 0 = con IGV (default), 1 = sin IGV
   layout_width: number // 0 = contained (1280px), 1 = fluid (100%)
+  pdp_layout: number // 0 = info fija (default), 1 = galería fija
 }
 
 export const DEFAULT_CATALOG_PREFERENCES: CatalogPreferences = {
@@ -229,6 +230,7 @@ export const DEFAULT_CATALOG_PREFERENCES: CatalogPreferences = {
   hide_out_of_stock: 1,
   pricing_mode: 0,
   layout_width: 0,
+  pdp_layout: 0,
 }
 
 export interface LayoutWidthOption {
@@ -241,6 +243,30 @@ export interface LayoutWidthOption {
 export const LAYOUT_WIDTH_OPTIONS: LayoutWidthOption[] = [
   { value: 0, label: 'Contenido', description: 'Ancho máximo de 1280px', icon: 'pi pi-align-center' },
   { value: 1, label: 'Fluido', description: 'Ocupa el 100% del ancho', icon: 'pi pi-arrows-h' },
+]
+
+export interface PdpLayoutOption {
+  value: number
+  label: string
+  description: string
+  icon: string
+}
+
+// Ficha de producto en escritorio: qué columna queda fija al hacer scroll y,
+// en consecuencia, dónde cae la descripción.
+export const PDP_LAYOUT_OPTIONS: PdpLayoutOption[] = [
+  {
+    value: 0,
+    label: 'Info fija',
+    description: 'La descripción va bajo las fotos',
+    icon: 'pi pi-align-right',
+  },
+  {
+    value: 1,
+    label: 'Fotos fijas',
+    description: 'La descripción va bajo el precio',
+    icon: 'pi pi-align-left',
+  },
 ]
 
 export interface PricingModeOption {
