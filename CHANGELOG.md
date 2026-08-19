@@ -3,10 +3,24 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
-## Sin publicar
+## [v2.66.0] - 2026-08-19
 
 ### Novedades
 
+- **apariencia:** selector de galeria de la ficha de producto ([`af0156a`](https://github.com/mitienda-pe/mitienda-admin/commit/af0156afa227b8e99ab3801c10420423e8bd9691))
+- **apariencia:** selector de disposicion de la ficha de producto ([`4591526`](https://github.com/mitienda-pe/mitienda-admin/commit/4591526dbed7f7deacd18f93cac0d9adeddd7e46))
+- **openpay:** interruptor de 3D Secure en la ficha de la pasarela ([`b79bee6`](https://github.com/mitienda-pe/mitienda-admin/commit/b79bee6749a8ab1a5810ac73e12d38f11f60428a))
+- **reportes:** selector de modo y columna SKU en ventas por producto ([`6a20ef9`](https://github.com/mitienda-pe/mitienda-admin/commit/6a20ef91e7fac3536ed5b0dc5ff31b34d3deefbb))
+- **inventario:** "Stock por almacén" en el menú y vocabulario unificado ([`452f308`](https://github.com/mitienda-pe/mitienda-admin/commit/452f30859c73f64949270db58bd72df4553357f0))
+- **inventario:** elegir variante al mover stock y transferir ([`7c9399d`](https://github.com/mitienda-pe/mitienda-admin/commit/7c9399d00494a92c7c5dd0b9faad95a97f1d9b27))
+- **inventario:** kardex, movimientos manuales y transferencias en el backoffice ([`b372085`](https://github.com/mitienda-pe/mitienda-admin/commit/b372085974ed64312ded3fa633036baad19a7a91))
+- **usuarios:** rol Administrador en la gestión de usuarios ([`4deef86`](https://github.com/mitienda-pe/mitienda-admin/commit/4deef865722b03b974d4ecc57ea230b83c492e3c))
+- **despacho:** ordenar el listado por fecha de pago ([`b87d291`](https://github.com/mitienda-pe/mitienda-admin/commit/b87d29126fcf8cf4c1ddd97c92715aacbf42b19d))
+- **productos:** cantidad maxima de compra por producto ([`4f413f7`](https://github.com/mitienda-pe/mitienda-admin/commit/4f413f7d9ff0e097d00dac8a5141461fed9864b3))
+- **pedidos:** columna Sync en el listado de ordenes ([`154b805`](https://github.com/mitienda-pe/mitienda-admin/commit/154b80507b2bccb9ceaa4242b8165a75d7e2f5d1))
+- **pedidos:** estado de las integraciones en el detalle y en el historial ([`834a9ed`](https://github.com/mitienda-pe/mitienda-admin/commit/834a9ed125ef00abdefab6ce145d3279b683da79))
+- **usuarios:** esconder del menú los módulos sin permiso ([`a449a24`](https://github.com/mitienda-pe/mitienda-admin/commit/a449a243fd90db756d7b4ad86da8432da3e98c1d))
+- **ar:** boton para insertar el shortcode del visor 3D/AR ([`5f82dfa`](https://github.com/mitienda-pe/mitienda-admin/commit/5f82dfaa05b75ba777747c35db13fe75308bd60a))
 - **admin:** buscar tiendas por id y mostrarlo en la tarjeta ([`fb71295`](https://github.com/mitienda-pe/mitienda-admin/commit/fb7129580856f6a19468b894b9fc49d3de0eda90))
 - **config:** selector del mapa de ubicacion en el checkout ([`00c00b9`](https://github.com/mitienda-pe/mitienda-admin/commit/00c00b9693111300be65b5342c7293618095e06c))
 - **contenido:** columna de uso y borrado de bloques sin usar ([`7384c9b`](https://github.com/mitienda-pe/mitienda-admin/commit/7384c9b6c0cfd1c0d10a1b974c3f0e3609f5ae6e))
@@ -14,6 +28,23 @@ No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
 ### Correcciones
 
+- **plugins:** el menú Plugins desaparecía al cambiar de tienda y por permisos ([`628b7fd`](https://github.com/mitienda-pe/mitienda-admin/commit/628b7fdcd4044ec1e6e0122198a2b77056dd9172))
+- **pedidos:** dar identidad propia al estado "Sin pago iniciado" (9) ([`e99b968`](https://github.com/mitienda-pe/mitienda-admin/commit/e99b9682bbedb9f9cf1dbf360de8a3d82ebfc65c))
+- **pedidos:** mostrar el estado 5 legacy como contracargo (v2.65.5) ([`214e672`](https://github.com/mitienda-pe/mitienda-admin/commit/214e672e1568bf802d19f64acd49143beb0044aa))
+- **pedidos:** filtrar y etiquetar expirados, contracargos y reembolsos ([`39bd17c`](https://github.com/mitienda-pe/mitienda-admin/commit/39bd17c4b75c73a8c6065b7b88d9d495a9f98d43))
+- **culqi:** usar las llaves de métodos de pago que exige Checkout v4 ([`1b1bf05`](https://github.com/mitienda-pe/mitienda-admin/commit/1b1bf05b32becdcf62bff5bd211ec8348337c087))
+- **productos:** la cantidad maxima de compra no se guardaba ([`87ab3f1`](https://github.com/mitienda-pe/mitienda-admin/commit/87ab3f16b0285f600082c2121b2cb2c7f83b93e7))
+- **reportes:** tipar nombres y apellidos separados en ventas por producto ([`d7f861e`](https://github.com/mitienda-pe/mitienda-admin/commit/d7f861e3305f0dbba61c3e67a7df71331e4bd142))
+- **inventario:** el selector de almacén de "Stock por almacén" estaba siempre vacío ([`8ef636c`](https://github.com/mitienda-pe/mitienda-admin/commit/8ef636cdf4284aaa3effda7357de57695b528184))
+- **inventario:** copy de almacenes acorde a lo que el comerciante ve ([`fa8206d`](https://github.com/mitienda-pe/mitienda-admin/commit/fa8206df0a7350b3a6a0892822caa3be380b3d03))
+- **clientes:** el detalle decia "Cliente no encontrado" mientras cargaba ([`00f6c53`](https://github.com/mitienda-pe/mitienda-admin/commit/00f6c539c4b0681d86a016cbb0e16efa854053e0))
+- **usuarios:** refrescar los permisos al impersonar y al salir ([`868328b`](https://github.com/mitienda-pe/mitienda-admin/commit/868328be3b345b65c5e07c6afda1ba673b024ad8))
+- **carrusel:** no declarar aspecto movil al crear un slide ([`edbe502`](https://github.com/mitienda-pe/mitienda-admin/commit/edbe5021954bb952248852dd88bcb7ba34d4d86a))
+- **pedidos:** no mostrar el card de NetSuite en tiendas que no lo usan ([`67947d0`](https://github.com/mitienda-pe/mitienda-admin/commit/67947d0946e7f8abf7cbb0ad0e0a4a46d1e28e4e))
+- **usuarios:** avisar en vez de fallar cuando no eres el dueño ([`09f5090`](https://github.com/mitienda-pe/mitienda-admin/commit/09f50901ec50b24688d0eac49d83908becfd2945))
+- **usuarios:** no repetir encabezados en la pantalla de permisos ([`daea66a`](https://github.com/mitienda-pe/mitienda-admin/commit/daea66a996148db40c5615deb62331b01f7fe501))
+- **pedidos:** mostrar el último envío y frenar el reenvío repetido al vendedor ([`efa961f`](https://github.com/mitienda-pe/mitienda-admin/commit/efa961f69d6d73dabbee3310756cb80e288af828))
+- **productos:** mostrar el precio de lista y la promo en el listado ([`109e868`](https://github.com/mitienda-pe/mitienda-admin/commit/109e8681f2d968aee2d19aa22019f72432b4e8ea))
 - **contenido:** "Solo lectura" no explicaba nada en los bloques legacy ([`770587c`](https://github.com/mitienda-pe/mitienda-admin/commit/770587ce834ccbfb64b100c224cee019183d7dc8))
 - **pedidos:** distinguir eventos del historial que caen en el mismo minuto ([`030961a`](https://github.com/mitienda-pe/mitienda-admin/commit/030961afad512c10220ef0999902cc4729b842dd))
 - **pedidos:** mostrar la hora real del pago en el historial del pedido ([`983721e`](https://github.com/mitienda-pe/mitienda-admin/commit/983721e9dea760dbd3650d2b09319ca0243325f6))
