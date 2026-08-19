@@ -8,6 +8,7 @@ import {
   LOGO_POSITION_OPTIONS,
   LAYOUT_WIDTH_OPTIONS,
   PDP_LAYOUT_OPTIONS,
+  PDP_DESCRIPTION_OPTIONS,
   PDP_GALLERY_OPTIONS,
   CART_ICON_OPTIONS,
   PRODUCT_ORDER_OPTIONS,
@@ -35,12 +36,33 @@ const emit = defineEmits<{
   save: []
 }>()
 
-// Fotos fijas + galería apilada no se pueden combinar: una galería con todas
-// las fotos en grande es más alta que la pantalla, así que el storefront no la
-// fija. Se avisa en vez de bloquear la combinación.
-const showsStackedStickyHint = computed(
-  () => props.preferences.pdp_layout === 1 && props.preferences.pdp_gallery === 1
-)
+// No toda combinación se puede honrar, así que en vez de warnings sueltos se
+// describe el resultado real. Dos casos degradan a "no se fija nada":
+//  - lo fijo comparte columna con la descripción → la taparía;
+//  - fotos fijas + galería apilada → la galería mide más que la pantalla.
+const pdpSummary = computed(() => {
+  const { pdp_layout: sticky, pdp_description: desc, pdp_gallery: gallery } = props.preferences
+  const descText = desc === 1 ? 'la descripción va bajo la info' : 'la descripción va bajo las fotos'
+
+  // La info vive en la columna derecha y las fotos en la izquierda: si lo fijo
+  // y la descripción caen en la misma, la descripción le pasaría por debajo.
+  if ((sticky === 0 && desc === 1) || (sticky === 1 && desc === 0)) {
+    return { text: `Resultado: no se fija nada, porque ${descText}, en esa misma columna.`, muted: true }
+  }
+  if (sticky === 1 && gallery === 1) {
+    return {
+      text: `Resultado: no se fija nada, porque la galería apilada es más alta que la pantalla. ${
+        descText.charAt(0).toUpperCase() + descText.slice(1)
+      }.`,
+      muted: true,
+    }
+  }
+  if (sticky === 2) {
+    return { text: `Resultado: las dos columnas hacen scroll y ${descText}.`, muted: false }
+  }
+  const stickyText = sticky === 1 ? 'las fotos acompañan el scroll' : 'la info acompaña el scroll'
+  return { text: `Resultado: ${stickyText} y ${descText}.`, muted: false }
+})
 
 const hideOutOfStockBool = computed({
   get: () => props.preferences.hide_out_of_stock === 1,
@@ -263,15 +285,15 @@ const hideOutOfStockBool = computed({
     <!-- Divider -->
     <hr class="border-gray-100" />
 
-    <!-- Ficha de producto -->
+    <!-- Ficha de producto: qué se queda fijo -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-1">
-        Ficha de producto
+        Ficha de producto: qué se queda fijo
       </label>
       <p class="text-xs text-gray-400 mb-3">
-        En escritorio, qué columna queda fija al hacer scroll. En móvil no cambia nada.
+        En escritorio, qué columna acompaña el scroll. En móvil no cambia nada.
       </p>
-      <div class="grid grid-cols-2 gap-3 max-w-sm">
+      <div class="grid grid-cols-3 gap-3 max-w-md">
         <button
           v-for="option in PDP_LAYOUT_OPTIONS"
           :key="option.value"
@@ -308,9 +330,58 @@ const hideOutOfStockBool = computed({
           />
         </button>
       </div>
-      <p v-if="showsStackedStickyHint" class="text-xs text-amber-600 mt-2">
-        Con la galería apilada las fotos no se quedan fijas: son más altas que la
-        pantalla. Se respeta la posición de la descripción.
+    </div>
+
+    <!-- Divider -->
+    <hr class="border-gray-100" />
+
+    <!-- Ficha de producto: dónde va la descripción -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Ficha de producto: dónde va la descripción
+      </label>
+      <p class="text-xs text-gray-400 mb-3">
+        En escritorio, en qué columna cae la descripción del producto
+      </p>
+      <div class="grid grid-cols-2 gap-3 max-w-sm">
+        <button
+          v-for="option in PDP_DESCRIPTION_OPTIONS"
+          :key="option.value"
+          type="button"
+          class="relative p-4 border-2 rounded-lg text-center transition-all cursor-pointer"
+          :class="
+            preferences.pdp_description === option.value
+              ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+              : 'border-gray-200 bg-white hover:border-gray-300'
+          "
+          @click="emit('update:field', 'pdp_description', option.value)"
+        >
+          <i
+            :class="option.icon"
+            class="text-2xl mb-2 block"
+            :style="{
+              color: preferences.pdp_description === option.value ? '#00b2a6' : '#6B7280',
+            }"
+          />
+          <div
+            class="text-sm font-medium"
+            :class="
+              preferences.pdp_description === option.value
+                ? 'text-primary'
+                : 'text-gray-600'
+            "
+          >
+            {{ option.label }}
+          </div>
+          <p class="text-xs text-gray-400 mt-1">{{ option.description }}</p>
+          <i
+            v-if="preferences.pdp_description === option.value"
+            class="pi pi-check-circle absolute top-2 right-2 text-primary text-sm"
+          />
+        </button>
+      </div>
+      <p class="text-xs mt-3" :class="pdpSummary.muted ? 'text-amber-600' : 'text-gray-500'">
+        {{ pdpSummary.text }}
       </p>
     </div>
 

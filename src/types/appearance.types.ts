@@ -218,7 +218,8 @@ export interface CatalogPreferences {
   hide_out_of_stock: number
   pricing_mode: number // 0 = con IGV (default), 1 = sin IGV
   layout_width: number // 0 = contained (1280px), 1 = fluid (100%)
-  pdp_layout: number // 0 = info fija (default), 1 = galería fija
+  pdp_layout: number // qué se fija: 0 = la info (default), 1 = las fotos, 2 = nada
+  pdp_description: number // 0 = bajo las fotos (default), 1 = bajo la info
   pdp_gallery: number // 0 = miniaturas (default), 1 = apilada
 }
 
@@ -232,6 +233,7 @@ export const DEFAULT_CATALOG_PREFERENCES: CatalogPreferences = {
   pricing_mode: 0,
   layout_width: 0,
   pdp_layout: 0,
+  pdp_description: 0,
   pdp_gallery: 0,
 }
 
@@ -254,20 +256,48 @@ export interface PdpLayoutOption {
   icon: string
 }
 
-// Ficha de producto en escritorio: qué columna queda fija al hacer scroll y,
-// en consecuencia, dónde cae la descripción.
+// Ficha de producto en escritorio, eje 1: qué columna se queda fija al scroll.
 export const PDP_LAYOUT_OPTIONS: PdpLayoutOption[] = [
   {
     value: 0,
-    label: 'Info fija',
-    description: 'La descripción va bajo las fotos',
+    label: 'La info',
+    description: 'Precio y botón acompañan el scroll',
     icon: 'pi pi-align-right',
   },
   {
     value: 1,
-    label: 'Fotos fijas',
-    description: 'La descripción va bajo el precio',
+    label: 'Las fotos',
+    description: 'La galería acompaña el scroll',
     icon: 'pi pi-align-left',
+  },
+  {
+    value: 2,
+    label: 'Nada',
+    description: 'Las dos columnas hacen scroll',
+    icon: 'pi pi-arrows-v',
+  },
+]
+
+export interface PdpDescriptionOption {
+  value: number
+  label: string
+  description: string
+  icon: string
+}
+
+// Eje 2: en qué columna cae la descripción.
+export const PDP_DESCRIPTION_OPTIONS: PdpDescriptionOption[] = [
+  {
+    value: 0,
+    label: 'Bajo las fotos',
+    description: 'Columna izquierda',
+    icon: 'pi pi-image',
+  },
+  {
+    value: 1,
+    label: 'Bajo la info',
+    description: 'Columna derecha, tras el precio',
+    icon: 'pi pi-tag',
   },
 ]
 
