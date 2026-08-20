@@ -74,6 +74,10 @@
 
             <Divider />
 
+            <GatewayWebhookUrl provider="Pay-Me" />
+
+            <Divider />
+
             <div>
               <h3 class="text-lg font-semibold text-secondary-800 mb-4">Ambiente</h3>
               <div class="flex items-center gap-4">
@@ -154,6 +158,7 @@ import RadioButton from 'primevue/radiobutton'
 import Divider from 'primevue/divider'
 import Message from 'primevue/message'
 import { UnsavedChangesBar } from '@/components/ui'
+import GatewayWebhookUrl from '@/components/payments/GatewayWebhookUrl.vue'
 
 const toast = useToast()
 const confirm = useConfirm()

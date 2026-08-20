@@ -64,6 +64,13 @@
 
             <Divider />
 
+            <GatewayWebhookUrl
+              provider="Culqi"
+              hint="En el panel de Culqi (Desarrolladores → Webhooks) activa charge.creation.succeeded, charge.capture.succeeded y order.status.changed: sin este último, los pagos en efectivo y billeteras nunca se confirman."
+            />
+
+            <Divider />
+
             <div>
               <h3 class="text-lg font-semibold text-secondary-800 mb-4">Ambiente</h3>
               <div class="flex items-center gap-4">
@@ -136,6 +143,7 @@ import Divider from 'primevue/divider'
 import Message from 'primevue/message'
 import Tag from 'primevue/tag'
 import { UnsavedChangesBar } from '@/components/ui'
+import GatewayWebhookUrl from '@/components/payments/GatewayWebhookUrl.vue'
 
 const toast = useToast()
 const confirm = useConfirm()

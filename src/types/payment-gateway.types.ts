@@ -16,6 +16,12 @@ export interface PaymentGateway {
 export interface GatewayConfig {
   gateway: PaymentGateway
   credentials: GatewayCredentials | null
+  /**
+   * URL del webhook de confirmación de pago que el comercio registra en el
+   * panel de la pasarela. null si la pasarela no tiene webhook (offline o
+   * confirmación síncrona) o si aún no hay credenciales guardadas.
+   */
+  webhook_url?: string | null
 }
 
 export interface GatewayCredentials {

@@ -128,18 +128,12 @@
         </template>
       </Card>
 
-      <Card v-if="webhookUrl && formData.mode === 'propio'" class="mt-4">
-        <template #title><div class="flex items-center gap-2"><i class="pi pi-link"></i><span>Webhook</span></div></template>
-        <template #content>
-          <div class="space-y-3 text-sm">
-            <p class="text-secondary-600">Configura esta URL en tu panel de Kasnet para recibir notificaciones de pago:</p>
-            <div class="flex items-center gap-2">
-              <InputText :modelValue="webhookUrl" readonly class="w-full text-xs" />
-              <Button icon="pi pi-copy" severity="secondary" outlined @click="copyWebhookUrl" v-tooltip.top="'Copiar'" />
-            </div>
-          </div>
-        </template>
-      </Card>
+      <GatewayWebhookUrl
+        v-if="formData.mode === 'propio'"
+        provider="Kasnet"
+        variant="card"
+        title="Webhook"
+      />
     </div>
 
     <UnsavedChangesBar
@@ -159,13 +153,13 @@ import { usePaymentGatewaysStore } from '@/stores/payment-gateways.store'
 import { useDirtyForm } from '@/composables/useDirtyForm'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
-import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import RadioButton from 'primevue/radiobutton'
 import Divider from 'primevue/divider'
 import Message from 'primevue/message'
 import { UnsavedChangesBar } from '@/components/ui'
 import logoKasnet from '@/assets/images/logo-kasnet.png'
+import GatewayWebhookUrl from '@/components/payments/GatewayWebhookUrl.vue'
 
 type KasnetMode = 'aggregator' | 'propio'
 
@@ -173,8 +167,6 @@ const toast = useToast()
 const confirm = useConfirm()
 const store = usePaymentGatewaysStore()
 const GATEWAY_CODE = 'kasnet-qr'
-
-const webhookUrl = computed(() => (store.currentConfig as any)?.webhook_url || null)
 
 const formData = reactive({
   mode: 'aggregator' as KasnetMode,
@@ -290,13 +282,6 @@ function handleDelete() {
       toast.add({ severity: result.success ? 'success' : 'error', summary: result.success ? 'Eliminadas' : 'Error', life: 3000 })
     },
   })
-}
-
-function copyWebhookUrl() {
-  if (webhookUrl.value) {
-    navigator.clipboard.writeText(webhookUrl.value)
-    toast.add({ severity: 'success', summary: 'URL copiada', life: 2000 })
-  }
 }
 
 function openKasnet() {

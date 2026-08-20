@@ -209,17 +209,7 @@
 
             <Divider />
 
-            <!-- Webhook URL -->
-            <div v-if="webhookUrl">
-              <h3 class="text-lg font-semibold text-secondary-800 mb-4">Configuracion de Webhook</h3>
-              <div class="bg-gray-100 p-4 rounded-lg">
-                <p class="text-sm text-secondary-700 mb-2">Configura este URL en tu panel de Izipay:</p>
-                <div class="flex items-center gap-2">
-                  <code class="text-xs bg-white px-3 py-2 rounded border flex-1 break-all select-all">{{ webhookUrl }}</code>
-                  <Button icon="pi pi-copy" text size="small" @click="copyWebhookUrl" v-tooltip="'Copiar'" />
-                </div>
-              </div>
-            </div>
+            <GatewayWebhookUrl provider="Izipay" />
 
             <Divider />
 
@@ -371,6 +361,7 @@ import Divider from 'primevue/divider'
 import Message from 'primevue/message'
 import Tag from 'primevue/tag'
 import { UnsavedChangesBar } from '@/components/ui'
+import GatewayWebhookUrl from '@/components/payments/GatewayWebhookUrl.vue'
 
 const toast = useToast()
 const confirm = useConfirm()
@@ -404,14 +395,6 @@ const errors = reactive({
 })
 
 const isConfigured = computed(() => store.currentConfig?.gateway?.configured || false)
-const webhookUrl = computed(() => (store.currentConfig as any)?.webhook_url || null)
-
-function copyWebhookUrl() {
-  if (webhookUrl.value) {
-    navigator.clipboard.writeText(webhookUrl.value)
-    toast.add({ severity: 'success', summary: 'URL copiada al portapapeles', life: 2000 })
-  }
-}
 
 watch(() => store.currentConfig, (config) => {
   if (config?.credentials) {
