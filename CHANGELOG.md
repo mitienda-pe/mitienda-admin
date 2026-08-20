@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.70.0] - 2026-08-20
+
+### Novedades
+
+- **pasarelas:** mostrar la URL del webhook en el formulario de cada pasarela ([`5417fd2`](https://github.com/mitienda-pe/mitienda-admin/commit/5417fd2122a1949784ec15bf1fcf2b54eb23a342))
+
 ## [v2.69.0] - 2026-08-19
 
 ### Novedades
