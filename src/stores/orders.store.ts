@@ -164,6 +164,33 @@ export const useOrdersStore = defineStore('orders', () => {
     }
   }
 
+  /**
+   * Anular una venta pagada. Requiere la contraseña del usuario logueado y un
+   * motivo: es irreversible y queda registrada en el detalle de la venta.
+   */
+  async function voidOrder(id: number, params: { motivo: string; password: string }) {
+    try {
+      isLoading.value = true
+      error.value = null
+
+      const response = await ordersApi.voidOrder(id, params)
+
+      if (!response.success) {
+        throw new Error('No se pudo anular la venta')
+      }
+
+      await fetchOrder(id)
+      await fetchOrders()
+
+      return response.data
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Error desconocido'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   function setFilters(newFilters: Partial<OrderFilters>) {
     filters.value = { ...filters.value, ...newFilters }
     pagination.value.page = 1
@@ -264,6 +291,7 @@ export const useOrdersStore = defineStore('orders', () => {
     fetchOrder,
     fetchStats,
     updateOrderStatus,
+    voidOrder,
     setFilters,
     setSearch,
     setStatus,

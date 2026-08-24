@@ -5,7 +5,8 @@ import type {
   OrderStatus,
   OrderNotificationsStatus,
   ResendNotificationChannel,
-  ResendNotificationsResult
+  ResendNotificationsResult,
+  VoidOrderResult
 } from '@/types/order.types'
 import type { ApiResponse, PaginatedResponse } from '@/types/api.types'
 
@@ -616,6 +617,29 @@ export const ordersApi = {
     channel: ResendNotificationChannel = 'both'
   ): Promise<ApiResponse<ResendNotificationsResult>> {
     const response = await apiClient.post(`/orders/${orderId}/resend-notifications`, { channel })
+    return {
+      success: response.data?.success === true,
+      data: response.data?.data
+    }
+  },
+
+  /**
+   * Anular una venta pagada: la deja en estado 4 (Anulado), repone el stock y
+   * pide la baja del comprobante ante SUNAT si se emitió.
+   *
+   * No devuelve el dinero en la pasarela ni cancela la orden en el WMS/ERP —
+   * eso sigue siendo manual. La contraseña es la del usuario logueado y el
+   * backend la exige en cada anulación: es una acción irreversible.
+   */
+  async voidOrder(
+    orderId: number,
+    params: { motivo: string; password: string }
+  ): Promise<ApiResponse<VoidOrderResult>> {
+    const response = await apiClient.post(`/orders/${orderId}/void`, {
+      auth_type: 'password',
+      auth_value: params.password,
+      motivo: params.motivo
+    })
     return {
       success: response.data?.success === true,
       data: response.data?.data

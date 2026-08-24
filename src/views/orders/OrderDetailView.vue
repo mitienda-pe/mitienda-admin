@@ -15,6 +15,7 @@ import Timeline from 'primevue/timeline'
 import Menu from 'primevue/menu'
 import Dialog from 'primevue/dialog'
 import Textarea from 'primevue/textarea'
+import AppInput from '@/components/ui/AppInput.vue'
 import EmitDocumentDialog from '@/components/billing/EmitDocumentDialog.vue'
 import DeliveryMap from '@/components/map/DeliveryMap.vue'
 import FraudRiskCard from '@/components/fraud/FraudRiskCard.vue'
@@ -93,13 +94,74 @@ const canMarkAsChargeback = computed(() => {
   return order.value?.status === 'paid' && order.value?.payment_method === 'credit_card'
 })
 
+// Anulación. El API solo acepta ventas pagadas (estado 1): las pendientes se
+// resuelven con "Rechazar" y las ya anuladas no se re-anulan.
+const showVoidDialog = ref(false)
+const voidMotivo = ref('')
+const voidPassword = ref('')
+const voidError = ref<string | null>(null)
+const isVoiding = ref(false)
+
+const canVoidOrder = computed(() => order.value?.status === 'paid')
+
+const canSubmitVoid = computed(() =>
+  voidMotivo.value.trim().length >= 3 && voidPassword.value.length > 0
+)
+
+function openVoidDialog() {
+  voidMotivo.value = ''
+  voidPassword.value = ''
+  voidError.value = null
+  showVoidDialog.value = true
+}
+
+async function handleVoidOrder() {
+  if (!order.value || isVoiding.value || !canSubmitVoid.value) return
+  isVoiding.value = true
+  voidError.value = null
+  try {
+    const result = await ordersStore.voidOrder(order.value.id, {
+      motivo: voidMotivo.value.trim(),
+      password: voidPassword.value
+    })
+    showVoidDialog.value = false
+    voidPassword.value = ''
+
+    // La venta ya quedó anulada; lo que puede haber fallado es la cancelación en
+    // el almacén (típicamente porque ya despachó). Eso se avisa como warning, no
+    // como error: no hay nada que reintentar acá, se resuelve con el proveedor.
+    const wmsFailed = result?.wms_cancel && !result.wms_cancel.success
+    const detalles = [
+      // Si había comprobante, el backend encola la baja ante SUNAT y devuelve
+      // el mensaje que corresponde mostrarle al vendedor.
+      result?.billing_void_message,
+      result?.wms_cancel?.message
+    ].filter(Boolean)
+
+    toast.add({
+      severity: wmsFailed ? 'warn' : 'success',
+      summary: wmsFailed ? 'Venta anulada, revisa el almacén' : 'Venta anulada',
+      detail: detalles.length ? detalles.join(' · ') : 'Se repuso el stock y la venta quedó anulada',
+      life: wmsFailed ? 12000 : 8000
+    })
+  } catch (err: any) {
+    voidError.value = err?.response?.data?.messages?.error
+      || err?.response?.data?.message
+      || err?.message
+      || 'No se pudo anular la venta'
+  } finally {
+    isVoiding.value = false
+  }
+}
+
 const voidInfo = computed(() => {
   if (order.value?.status !== 'voided') return null
   const raw = order.value?.gateway_error_user || order.value?.gateway_error_store
   if (!raw) return null
   try {
     const parsed = JSON.parse(raw)
-    if (parsed?.tipo === 'anulacion_pos') {
+    // 'anulacion_pos' (app POS) y 'anulacion_web' (este botón) comparten forma.
+    if (parsed?.tipo === 'anulacion_pos' || parsed?.tipo === 'anulacion_web') {
       return {
         motivo: parsed.motivo as string | undefined,
         fecha: parsed.fecha as string | undefined,
@@ -1275,6 +1337,15 @@ const handleDebugPayments = async () => {
           outlined
           :loading="isUpdatingPayment"
           @click="handleRejectPayment"
+        />
+        <Button
+          v-if="canVoidOrder"
+          label="Anular venta"
+          icon="pi pi-ban"
+          severity="danger"
+          outlined
+          v-tooltip.left="'Anula la venta y repone el stock. No devuelve el dinero en la pasarela.'"
+          @click="openVoidDialog"
         />
         <span
           v-if="statusConfig"
@@ -2796,6 +2867,82 @@ const handleDebugPayments = async () => {
           <pre class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs overflow-x-auto whitespace-pre-wrap break-words">{{ prettyJson(integrationDetail.payload) }}</pre>
         </div>
       </div>
+    </Dialog>
+
+    <!-- Anulación de la venta -->
+    <Dialog
+      v-model:visible="showVoidDialog"
+      modal
+      header="Anular venta"
+      :style="{ width: '32rem' }"
+      :breakpoints="{ '640px': '90vw' }"
+      :closable="!isVoiding"
+    >
+      <div class="space-y-4">
+        <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <p class="text-sm font-semibold text-amber-800 mb-1">
+            <i class="pi pi-exclamation-triangle mr-1"></i>
+            Esta acción no se puede deshacer
+          </p>
+          <ul class="text-sm text-amber-700 list-disc pl-5 space-y-0.5">
+            <li>La venta pasa a <strong>Anulada</strong> y deja de contar en tus reportes.</li>
+            <li>Se repone el stock de los productos.</li>
+            <li v-if="hasEmittedDocument">Se solicita la baja del comprobante ante SUNAT.</li>
+            <li><strong>No</strong> se devuelve el dinero: el reembolso se hace en la pasarela.</li>
+            <li v-if="order?.erp_sync?.status === 'synced'">
+              Se intenta cancelar el pedido en el almacén. Si ya fue despachado te avisamos:
+              eso se resuelve con el proveedor.
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-secondary-700 mb-2">
+            Motivo <span class="text-red-500">*</span>
+          </label>
+          <Textarea
+            v-model="voidMotivo"
+            rows="3"
+            maxlength="500"
+            class="w-full"
+            placeholder="Ej: el cliente canceló la compra antes del despacho"
+            :disabled="isVoiding"
+          />
+          <p class="text-xs text-gray-500 mt-1">Queda registrado en el detalle de la venta.</p>
+        </div>
+
+        <AppInput
+          v-model="voidPassword"
+          type="password"
+          label="Tu contraseña"
+          required
+          placeholder="Contraseña de tu usuario"
+          :disabled="isVoiding"
+          @keyup.enter="handleVoidOrder"
+        />
+
+        <p v-if="voidError" class="text-sm text-red-600">
+          <i class="pi pi-times-circle mr-1"></i>{{ voidError }}
+        </p>
+      </div>
+
+      <template #footer>
+        <Button
+          label="Cancelar"
+          severity="secondary"
+          text
+          :disabled="isVoiding"
+          @click="showVoidDialog = false"
+        />
+        <Button
+          label="Anular venta"
+          icon="pi pi-ban"
+          severity="danger"
+          :loading="isVoiding"
+          :disabled="!canSubmitVoid"
+          @click="handleVoidOrder"
+        />
+      </template>
     </Dialog>
   </div>
 </template>

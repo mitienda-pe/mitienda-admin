@@ -142,6 +142,36 @@ export interface OrderNotificationsStatus {
   }
 }
 
+/** Respuesta de `POST /orders/{id}/void`. */
+export interface VoidOrderResult {
+  order_id: number
+  /** Siempre 4 (Anulado). */
+  status: number
+  motivo: string
+  /** Movimientos de caja dados de baja (solo aplica a ventas POS). */
+  movimientos_eliminados: number
+  items_stock_restaurado: number
+  netsuite_jobs_eliminados: number
+  /**
+   * `'pending'` = hay comprobante y la baja ante SUNAT quedó encolada.
+   * `'unsupported'` = el proveedor de facturación no soporta baja automática.
+   * `null` = la venta no tenía comprobante emitido.
+   */
+  billing_void: 'pending' | 'unsupported' | null
+  billing_void_message: string | null
+  /**
+   * Resultado de cancelar el pedido en el WMS/3PL. `null` si la tienda no tiene
+   * proveedor de fulfillment activo. `success: false` incluye el caso "el
+   * almacén ya lo despachó": la venta queda anulada igual y hay que resolverlo
+   * con el proveedor.
+   */
+  wms_cancel: {
+    provider: string | null
+    success: boolean
+    message: string
+  } | null
+}
+
 export type ResendNotificationChannel = 'webhook' | 'email' | 'both'
 
 export interface ResendNotificationsResult {
