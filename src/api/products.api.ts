@@ -231,6 +231,10 @@ export const productsApi = {
       const product: Product = {
         id: rawData.id,
         sku: rawData.sku,
+        // Se copia explicitamente o se pierde: esta normalizacion arma el
+        // Product campo por campo, y sin esta linea la ficha mostraba el
+        // codigo de barras vacio aunque el API si lo devolviera.
+        barcode: rawData.barcode || undefined,
         name: rawData.name,
         product_type_id: rawData.product_type_id ?? rawData.productotipo_id ?? undefined,
         product_type: rawData.product_type ?? null,
