@@ -459,6 +459,12 @@ export function useBulkImport() {
     const productId = payload._id
     delete payload._id
 
+    // Para el reporte: el valor ya mapeado (respeta cabeceras tipo "Codigo SKU")
+    // antes que la cabecera literal. Si el CSV no trae esas columnas -- p. ej.
+    // un archivo id + codigo_barras -- se completan con lo que devuelve el API.
+    const csvSku = mapped.sku || raw.sku || ''
+    const csvName = mapped.name || raw.nombre || ''
+
     // Retry logic
     let lastError = ''
     for (let attempt = 0; attempt < 3; attempt++) {
@@ -468,8 +474,8 @@ export function useBulkImport() {
           if (res.success) {
             return {
               rowNumber: row.rowNumber,
-              sku: raw.sku || '',
-              productName: raw.nombre || '',
+              sku: csvSku || res.data?.sku || '',
+              productName: csvName || res.data?.name || '',
               success: true,
               action: 'created',
               productId: res.data?.id,
@@ -481,8 +487,8 @@ export function useBulkImport() {
           if (!productId) {
             return {
               rowNumber: row.rowNumber,
-              sku: raw.sku || '',
-              productName: raw.nombre || '',
+              sku: csvSku,
+              productName: csvName,
               success: false,
               action: 'skipped',
               error: 'No se pudo identificar el producto (falta ID)',
@@ -492,8 +498,8 @@ export function useBulkImport() {
           if (res.success) {
             return {
               rowNumber: row.rowNumber,
-              sku: raw.sku || '',
-              productName: raw.nombre || '',
+              sku: csvSku || res.data?.sku || '',
+              productName: csvName || res.data?.name || '',
               success: true,
               action: 'updated',
               productId,
@@ -518,8 +524,8 @@ export function useBulkImport() {
 
     return {
       rowNumber: row.rowNumber,
-      sku: raw.sku || '',
-      productName: raw.nombre || '',
+      sku: csvSku,
+      productName: csvName,
       success: false,
       action: mode.value === 'create' ? 'created' : 'updated',
       error: lastError,
