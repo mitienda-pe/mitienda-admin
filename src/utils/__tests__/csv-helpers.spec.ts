@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseCsvString, parseCsvNumber, detectCsvDelimiter } from '../csv-helpers'
+import { parseCsvString, parseCsvNumber, detectCsvDelimiter, findCsvColumn } from '../csv-helpers'
 
 describe('detectCsvDelimiter', () => {
   it('detecta coma', () => {
@@ -73,5 +73,33 @@ describe('parseCsvNumber', () => {
 
   it('devuelve NaN con texto', () => {
     expect(parseCsvNumber('abc', ';')).toBeNaN()
+  })
+})
+
+describe('findCsvColumn', () => {
+  it('reconoce la llave exacta', () => {
+    expect(findCsvColumn('codigo_barras')?.key).toBe('codigo_barras')
+  })
+
+  it('reconoce la etiqueta con tildes, espacios y mayusculas', () => {
+    expect(findCsvColumn('Código de barras')?.key).toBe('codigo_barras')
+    expect(findCsvColumn('CODIGO DE BARRAS')?.key).toBe('codigo_barras')
+    expect(findCsvColumn('Codigo de Barras')?.key).toBe('codigo_barras')
+  })
+
+  it('reconoce sinonimos habituales', () => {
+    expect(findCsvColumn('barcode')?.key).toBe('codigo_barras')
+    expect(findCsvColumn('EAN')?.key).toBe('codigo_barras')
+    expect(findCsvColumn('producto_id')?.key).toBe('id')
+  })
+
+  it('reconoce identificadores en mayusculas', () => {
+    expect(findCsvColumn('ID')?.key).toBe('id')
+    expect(findCsvColumn('SKU')?.key).toBe('sku')
+    expect(findCsvColumn('Nombre')?.key).toBe('nombre')
+  })
+
+  it('devuelve undefined con una cabecera desconocida', () => {
+    expect(findCsvColumn('columna_inventada')).toBeUndefined()
   })
 })

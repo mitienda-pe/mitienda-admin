@@ -9,10 +9,12 @@ import type { BulkCsvParsedRow } from '@/types/product.types'
 interface Props {
   mode: 'create' | 'edit'
   parsedRows: BulkCsvParsedRow[]
+  ignoredHeaders?: string[]
   isLoading?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  ignoredHeaders: () => [],
   isLoading: false,
 })
 const emit = defineEmits<{
@@ -79,6 +81,21 @@ function getRowClass(row: BulkCsvParsedRow): string {
     <div v-if="parseError" class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
       <i class="pi pi-exclamation-triangle mr-2" />
       {{ parseError }}
+    </div>
+
+    <div
+      v-if="ignoredHeaders.length > 0 && !isLoading"
+      class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-yellow-800"
+    >
+      <i class="pi pi-exclamation-triangle mr-2" />
+      <span class="font-semibold">
+        Estas columnas no se reconocieron y NO se van a importar:
+      </span>
+      <span>{{ ignoredHeaders.join(', ') }}</span>
+      <p class="text-sm mt-1">
+        Revisa que el nombre de la cabecera coincida con el de la plantilla
+        (por ejemplo <code>codigo_barras</code>) antes de procesar.
+      </p>
     </div>
 
     <div v-if="isLoading" class="flex items-center justify-center py-8">

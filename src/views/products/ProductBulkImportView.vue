@@ -20,6 +20,7 @@ const {
   step,
   selectedColumns,
   parsedRows,
+  ignoredHeaders,
   results,
   isProcessing,
   isPaused,
@@ -208,6 +209,7 @@ function handleGoToProducts() {
           v-else-if="step === 3"
           :mode="mode"
           :parsedRows="parsedRows"
+          :ignoredHeaders="ignoredHeaders"
           :isLoading="isParsing"
           @fileSelected="handleFileSelected"
         />

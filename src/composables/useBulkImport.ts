@@ -17,6 +17,7 @@ import {
   downloadCsv,
   downloadBlob,
   normalizeUnit,
+  findCsvColumn,
   type CsvColumnDef,
 } from '@/utils/csv-helpers'
 
@@ -26,6 +27,9 @@ export function useBulkImport() {
   const step = ref(1)
   const selectedColumns = ref<string[]>([...REQUIRED_COLUMNS])
   const parsedRows = ref<BulkCsvParsedRow[]>([])
+  // Cabeceras del CSV que no corresponden a ninguna columna conocida: se
+  // ignoran al importar, asi que hay que mostrarlas antes de procesar.
+  const ignoredHeaders = ref<string[]>([])
   const results = ref<BulkProcessingResult[]>([])
   const isProcessing = ref(false)
   const isPaused = ref(false)
@@ -232,6 +236,17 @@ export function useBulkImport() {
         try {
           const text = e.target?.result as string
           const { headers, rows, delimiter } = parseCsvString(text)
+          const columnByHeader = new Map<string, CsvColumnDef>()
+          const unknownHeaders: string[] = []
+          for (const header of headers) {
+            const colDef = findCsvColumn(header)
+            if (colDef) {
+              columnByHeader.set(header, colDef)
+            } else if (header) {
+              unknownHeaders.push(header)
+            }
+          }
+          ignoredHeaders.value = unknownHeaders
 
           if (rows.length === 0) {
             reject(new Error('El archivo CSV esta vacio'))
@@ -240,8 +255,9 @@ export function useBulkImport() {
 
           // Validate required headers for create mode
           if (mode.value === 'create') {
+            const resolvedKeys = new Set([...columnByHeader.values()].map(c => c.key))
             const missingHeaders = REQUIRED_COLUMNS.filter(
-              col => !headers.includes(col)
+              col => !resolvedKeys.has(col)
             )
             if (missingHeaders.length > 0) {
               reject(new Error(`Columnas requeridas faltantes: ${missingHeaders.join(', ')}`))
@@ -251,7 +267,8 @@ export function useBulkImport() {
 
           // Validate edit mode has id or sku
           if (mode.value === 'edit') {
-            if (!headers.includes('id') && !headers.includes('sku')) {
+            const resolvedKeys = new Set([...columnByHeader.values()].map(c => c.key))
+            if (!resolvedKeys.has('id') && !resolvedKeys.has('sku')) {
               reject(new Error(
                 'El CSV debe incluir la columna "id" o "sku" para identificar productos. ' +
                 `Columnas detectadas: ${headers.join(', ') || '(ninguna)'}`
@@ -268,7 +285,7 @@ export function useBulkImport() {
             const mapped: Record<string, any> = {}
 
             for (const header of headers) {
-              const colDef = CSV_COLUMNS.find(c => c.key === header)
+              const colDef = columnByHeader.get(header)
               if (!colDef) continue
 
               const value = raw[header] ?? ''
@@ -547,6 +564,7 @@ export function useBulkImport() {
     step.value = 1
     selectedColumns.value = [...REQUIRED_COLUMNS]
     parsedRows.value = []
+    ignoredHeaders.value = []
     results.value = []
     isProcessing.value = false
     isPaused.value = false
@@ -560,6 +578,7 @@ export function useBulkImport() {
     step,
     selectedColumns,
     parsedRows,
+    ignoredHeaders,
     results,
     isProcessing,
     isPaused,

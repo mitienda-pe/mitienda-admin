@@ -53,6 +53,64 @@ export const CSV_COLUMNS: CsvColumnDef[] = [
 
 export const REQUIRED_COLUMNS = CSV_COLUMNS.filter(c => c.required).map(c => c.key)
 
+// ── Header Matching ──
+
+/**
+ * Normaliza una cabecera del CSV para poder compararla: sin tildes, minusculas
+ * y con "_" en lugar de espacios/simbolos. Asi "Codigo de barras", "CÓDIGO DE
+ * BARRAS" y "codigo_barras" caen todas en la misma llave.
+ */
+export function normalizeCsvHeader(header: string): string {
+  return header
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+}
+
+/**
+ * Sinonimos frecuentes: cabeceras que traen los archivos armados a mano o
+ * exportados desde otras herramientas (Excel, ERP, el POS).
+ */
+const HEADER_ALIASES: Record<string, string> = {
+  codigo_de_barra: 'codigo_barras',
+  codigo_de_barras: 'codigo_barras',
+  codigo_barra: 'codigo_barras',
+  cod_barras: 'codigo_barras',
+  barcode: 'codigo_barras',
+  ean: 'codigo_barras',
+  producto_id: 'id',
+  id_producto: 'id',
+  producto_sku: 'sku',
+  nombre_del_producto: 'nombre',
+}
+
+// llave normalizada => definicion de columna (key, label y alias del apiField)
+const HEADER_LOOKUP: Map<string, CsvColumnDef> = (() => {
+  const map = new Map<string, CsvColumnDef>()
+  for (const col of CSV_COLUMNS) {
+    for (const candidate of [col.key, col.label, col.apiField]) {
+      const norm = normalizeCsvHeader(candidate)
+      if (norm && !map.has(norm)) map.set(norm, col)
+    }
+  }
+  for (const [alias, key] of Object.entries(HEADER_ALIASES)) {
+    const col = CSV_COLUMNS.find(c => c.key === key)
+    if (col && !map.has(alias)) map.set(alias, col)
+  }
+  return map
+})()
+
+/**
+ * Resuelve una cabecera del CSV a su columna. Devuelve undefined si no se
+ * reconoce (el llamador debe avisar: una cabecera ignorada en silencio hace
+ * que la importacion "funcione" sin escribir ese dato).
+ */
+export function findCsvColumn(header: string): CsvColumnDef | undefined {
+  return HEADER_LOOKUP.get(normalizeCsvHeader(header))
+}
+
 // ── Unit Normalization ──
 
 const WEIGHT_UNIT_MAP: Record<string, string> = {
