@@ -11,6 +11,7 @@ import type {
   ProductLotCreate,
   ProductLotMovement,
   WholesalePriceTier,
+  ProductImage,
 } from '@/types/product.types'
 
 export interface RelatedProductItem {
@@ -34,6 +35,156 @@ export interface ProductsFilters {
   product_type_id?: number | null
   published?: boolean | null
   stock_status?: 'all' | 'in_stock' | 'limited' | 'out_of_stock'
+}
+
+/**
+ * Normaliza las imagenes que devuelve el API: pueden venir como array de
+ * strings (URLs) o de objetos, y el front siempre espera objetos con
+ * `thumbnail` y una imagen principal.
+ */
+export function normalizeProductImages(rawImages: any): ProductImage[] {
+  return (rawImages || [])
+    .filter((img: any) => {
+      // Filtrar placeholders externos
+      const url = typeof img === 'string' ? img : (img.url || img)
+      return url && !url.includes('placeholder.com')
+    })
+    .map((img: any, index: number) => {
+      if (typeof img === 'string') {
+        return {
+          id: index,
+          url: img,
+          thumbnail: img,
+          position: index,
+          is_main: index === 0,
+        }
+      }
+      return {
+        id: img.id || index,
+        url: img.url || img,
+        cloudflare_url: img.cloudflare_url,
+        cloudflare_id: img.cloudflare_id,
+        cloudflare_imagen_id: img.cloudflare_imagen_id,
+        r2_imagen_id: img.r2_imagen_id,
+        r2_url: img.r2_url,
+        thumbnail: img.thumbnail || img.url || img,
+        position: img.position || index,
+        is_main: img.is_main || index === 0,
+        source: img.source,
+      }
+    })
+}
+
+// El API manda numeros como string ("12.50") y ausencias como null o "".
+const toFloat = (value: any): number | undefined =>
+  value === undefined || value === null || value === '' ? undefined : parseFloat(value.toString())
+
+const toInt = (value: any): number | undefined =>
+  value === undefined || value === null || value === '' ? undefined : parseInt(value.toString())
+
+// PHP serializa los flags como booleano o como 1/0 segun el endpoint.
+const toBool = (value: any): boolean => value === true || value === 1 || value === '1'
+
+/**
+ * Normaliza el producto que devuelve la ficha (`GET /products/{id}` y la
+ * respuesta del `PUT`, que reusa el mismo transformador del backend).
+ *
+ * Parte de un spread de la respuesta a proposito: antes esto se armaba campo
+ * por campo y cualquier dato que nadie hubiera listado a mano se perdia en
+ * silencio aunque el API lo enviara -- paso con `barcode` (el campo salia
+ * vacio en la ficha), con `max_purchase_qty` (volvia a 0 al refrescar) y con
+ * `has_variation_attributes`. Debajo del spread solo quedan los campos que
+ * necesitan conversion, valor por defecto o una forma distinta.
+ */
+export function normalizeProduct(rawData: any): Product {
+  return {
+    ...rawData,
+    // El listado usa `productotipo_id`; la ficha, `product_type_id`.
+    product_type_id: rawData.product_type_id ?? rawData.productotipo_id ?? undefined,
+    product_type: rawData.product_type ?? null,
+    description: rawData.description || '',
+    description_html: rawData.description_html || '',
+    description_short: rawData.description_short || '',
+    price: toFloat(rawData.price) ?? 0,
+    price_without_tax: toFloat(rawData.price_without_tax),
+    compare_price: rawData.compare_price ? toFloat(rawData.compare_price) : undefined,
+    cost: rawData.cost ? toFloat(rawData.cost) : undefined,
+    igv_percent: rawData.igv_percent !== undefined ? toInt(rawData.igv_percent) : 18,
+    tax_affectation: rawData.tax_affectation !== undefined ? toInt(rawData.tax_affectation) : 1,
+    // Bolsa plastica afecta a ICBPER (Ley 30884)
+    icbper: toBool(rawData.icbper),
+    // Indica si el producto usa variantes (precio/stock por variante): de el
+    // dependen el editor de variantes y el ocultado del precio/stock general.
+    has_variation_attributes: toBool(rawData.has_variation_attributes),
+    stock: rawData.stock || 0,
+    unlimited_stock: toBool(rawData.unlimited_stock),
+    // Tope de unidades por compra (0 = sin tope).
+    max_purchase_qty: rawData.max_purchase_qty ?? 0,
+    sold_by_weight: toBool(rawData.sold_by_weight),
+    min_stock: rawData.min_stock || undefined,
+    weight: toFloat(rawData.weight),
+    weight_unit: rawData.weight_unit || undefined,
+    height: toFloat(rawData.height),
+    width: toFloat(rawData.width),
+    length: toFloat(rawData.length),
+    dimensions_unit: rawData.dimensions_unit || undefined,
+    volumetric_weight: toFloat(rawData.volumetric_weight),
+    published: rawData.published || false,
+    // Visibilidad en el POS: solo es false si el API lo dice explicitamente.
+    published_pos: rawData.published_pos !== false,
+    featured: rawData.featured || false,
+    images: normalizeProductImages(rawData.images),
+    video: rawData.video
+      ? {
+          cloudflare_uid: rawData.video.cloudflare_uid || null,
+          stream_url: rawData.video.stream_url || null,
+          thumbnail_url: rawData.video.thumbnail_url || null,
+          duration: toFloat(rawData.video.duration) ?? null,
+          width: toInt(rawData.video.width) ?? null,
+          height: toInt(rawData.video.height) ?? null,
+          aspect_ratio: toFloat(rawData.video.aspect_ratio) ?? null,
+          status: rawData.video.status || null,
+          error: rawData.video.error || null,
+          created_at: rawData.video.created_at || null,
+        }
+      : null,
+    documents: rawData.documents || [],
+    categories: Array.isArray(rawData.categories)
+      ? rawData.categories.map((cat: any) => ({
+          id: cat.id,
+          name: cat.name,
+          slug: cat.slug || cat.name?.toLowerCase() || '',
+          parent_id: cat.parent_id,
+          image: cat.image,
+        }))
+      : undefined,
+    brand: rawData.brand
+      ? {
+          id: rawData.brand.id,
+          name: rawData.brand.name,
+          slug: rawData.brand.slug || rawData.brand.name?.toLowerCase() || '',
+          logo: rawData.brand.logo,
+        }
+      : undefined,
+    seo: rawData.seo
+      ? {
+          meta_title: rawData.seo.meta_title || undefined,
+          meta_description: rawData.seo.meta_description || undefined,
+          meta_image: rawData.seo.meta_image || undefined,
+          slug: rawData.seo.slug || undefined,
+        }
+      : undefined,
+    external_categories: rawData.external_categories
+      ? {
+          facebook: rawData.external_categories.facebook || undefined,
+          google: rawData.external_categories.google || undefined,
+          mercadolibre: rawData.external_categories.mercadolibre || undefined,
+        }
+      : undefined,
+    order: toInt(rawData.order),
+    created_at: rawData.created_at || new Date().toISOString(),
+    updated_at: rawData.updated_at || new Date().toISOString(),
+  }
 }
 
 export const productsApi = {
@@ -66,88 +217,50 @@ export const productsApi = {
     if (Array.isArray(rawData)) {
       return {
         success: true,
-        data: rawData.map((product: any) => {
-          // Normalizar imágenes: API devuelve array de strings (URLs completas)
-          const images = (product.images || [])
-            .filter((img: any) => {
-              // Filtrar placeholders externos
-              const url = typeof img === 'string' ? img : (img.url || img)
-              return url && !url.includes('placeholder.com')
-            })
-            .map((img: any, index: number) => {
-              if (typeof img === 'string') {
-                return {
-                  id: index,
-                  url: img,
-                  thumbnail: img,
-                  position: index,
-                  is_main: index === 0
-                }
+        data: rawData.map((product: any) => ({
+          // Spread primero: el listado tambien se armaba campo por campo y
+          // descartaba en silencio lo que nadie hubiera listado (barcode,
+          // tax_affectation...). Debajo solo lo que necesita conversion o una
+          // forma propia del listado.
+          ...product,
+          product_type_id: product.product_type_id ?? product.productotipo_id ?? undefined,
+          product_type: product.product_type ?? null,
+          description: product.description || '',
+          description_html: product.description_html || '',
+          price: toFloat(product.price) ?? 0,
+          price_without_tax: toFloat(product.price_without_tax),
+          // `price` viene con la promocion ya aplicada; sin estos dos campos la
+          // tarjeta mostraba el precio rebajado como si fuera el de lista y no
+          // cuadraba con el detalle (que muestra el precio sin promocion).
+          original_price: toFloat(product.original_price),
+          promotion: product.promotion
+            ? {
+                id: product.promotion.id,
+                name: product.promotion.name,
+                type: product.promotion.type,
+                value: product.promotion.value,
+                percentage: toFloat(product.promotion.percentage),
+                amount: toFloat(product.promotion.amount),
               }
-              return {
-                id: img.id || index,
-                url: img.url || img,
-                cloudflare_url: img.cloudflare_url,
-                cloudflare_id: img.cloudflare_id,
-                cloudflare_imagen_id: img.cloudflare_imagen_id,
-                r2_imagen_id: img.r2_imagen_id,
-                r2_url: img.r2_url,
-                thumbnail: img.thumbnail || img.url || img,
-                position: img.position || index,
-                is_main: img.is_main || index === 0,
-                source: img.source
-              }
-            })
-
-          return {
-            id: product.id,
-            sku: product.sku,
-            name: product.name,
-            product_type_id: product.product_type_id ?? product.productotipo_id ?? undefined,
-            product_type: product.product_type ?? null,
-            description: product.description || '',
-            description_html: product.description_html || '',
-            price: parseFloat(product.price || '0'),
-            price_without_tax: product.price_without_tax !== undefined && product.price_without_tax !== null ? parseFloat(product.price_without_tax) : undefined,
-            // `price` viene con la promoción ya aplicada; sin estos dos campos la
-            // tarjeta mostraba el precio rebajado como si fuera el de lista y no
-            // cuadraba con el detalle (que muestra el precio sin promoción).
-            original_price: product.original_price !== undefined && product.original_price !== null
-              ? parseFloat(product.original_price)
-              : undefined,
-            promotion: product.promotion
-              ? {
-                  id: product.promotion.id,
-                  name: product.promotion.name,
-                  type: product.promotion.type,
-                  value: product.promotion.value,
-                  percentage: product.promotion.percentage !== undefined && product.promotion.percentage !== null
-                    ? parseFloat(product.promotion.percentage)
-                    : undefined,
-                  amount: product.promotion.amount !== undefined && product.promotion.amount !== null
-                    ? parseFloat(product.promotion.amount)
-                    : undefined
-                }
-              : null,
-            stock: product.stock || 0,
-            unlimited_stock: product.unlimited_stock === 1 || product.unlimited_stock === true,
-            max_purchase_qty: product.max_purchase_qty ?? 0,
-            // El listado devuelve `has_variants` y la ficha `has_variation_attributes`:
-            // leer solo uno dejaba el flag SIEMPRE en false para los productos que
-            // vienen de una búsqueda, y con él los filtros que dependen de saber si
-            // el producto tiene variantes.
-            has_variation_attributes:
-              product.has_variation_attributes === true || product.has_variants === true,
-            published: product.published || false,
-            published_pos: product.published_pos !== false,
-            featured: product.featured || false,
-            images,
-            category: product.category || null,
-            brand: product.brand || null,
-            created_at: product.created_at || new Date().toISOString(),
-            updated_at: product.updated_at || new Date().toISOString()
-          }
-        }),
+            : null,
+          stock: product.stock || 0,
+          unlimited_stock: toBool(product.unlimited_stock),
+          max_purchase_qty: product.max_purchase_qty ?? 0,
+          // El listado devuelve `has_variants` y la ficha `has_variation_attributes`:
+          // leer solo uno dejaba el flag SIEMPRE en false para los productos que
+          // vienen de una busqueda, y con el los filtros que dependen de saber si
+          // el producto tiene variantes.
+          has_variation_attributes:
+            product.has_variation_attributes === true || product.has_variants === true,
+          published: product.published || false,
+          published_pos: product.published_pos !== false,
+          featured: product.featured || false,
+          images: normalizeProductImages(product.images),
+          category: product.category || null,
+          brand: product.brand || null,
+          created_at: product.created_at || new Date().toISOString(),
+          updated_at: product.updated_at || new Date().toISOString(),
+        })),
         meta: paginationData ? {
           page: paginationData.page,
           limit: paginationData.perPage || paginationData.limit || 20,
@@ -185,132 +298,9 @@ export const productsApi = {
     const rawData = response.data?.data || response.data
 
     if (rawData) {
-      // Normalizar imágenes: pueden venir como array de strings o array de objetos
-      const images = (rawData.images || [])
-        .filter((img: any) => {
-          // Filtrar placeholders externos
-          const url = typeof img === 'string' ? img : (img.url || img)
-          return url && !url.includes('placeholder.com')
-        })
-        .map((img: any, index: number) => {
-          if (typeof img === 'string') {
-            return {
-              id: index,
-              url: img,
-              thumbnail: img,
-              position: index,
-              is_main: index === 0
-            }
-          }
-          return {
-            id: img.id || index,
-            url: img.url || img,
-            cloudflare_url: img.cloudflare_url,
-            cloudflare_id: img.cloudflare_id,
-            cloudflare_imagen_id: img.cloudflare_imagen_id,
-            r2_imagen_id: img.r2_imagen_id,
-            r2_url: img.r2_url,
-            thumbnail: img.thumbnail || img.url || img,
-            position: img.position || index,
-            is_main: img.is_main || index === 0,
-            source: img.source
-          }
-        })
-
-      // Map categories array
-      const categories = rawData.categories && Array.isArray(rawData.categories)
-        ? rawData.categories.map((cat: any) => ({
-            id: cat.id,
-            name: cat.name,
-            slug: cat.slug || cat.name?.toLowerCase() || '',
-            parent_id: cat.parent_id,
-            image: cat.image
-          }))
-        : undefined
-
-      const product: Product = {
-        id: rawData.id,
-        sku: rawData.sku,
-        // Se copia explicitamente o se pierde: esta normalizacion arma el
-        // Product campo por campo, y sin esta linea la ficha mostraba el
-        // codigo de barras vacio aunque el API si lo devolviera.
-        barcode: rawData.barcode || undefined,
-        name: rawData.name,
-        product_type_id: rawData.product_type_id ?? rawData.productotipo_id ?? undefined,
-        product_type: rawData.product_type ?? null,
-        description: rawData.description || '',
-        description_html: rawData.description_html || '',
-        description_short: rawData.description_short || '',
-        price: parseFloat(rawData.price || '0'),
-        price_without_tax: rawData.price_without_tax !== undefined && rawData.price_without_tax !== null ? parseFloat(rawData.price_without_tax) : undefined,
-        compare_price: rawData.compare_price ? parseFloat(rawData.compare_price) : undefined,
-        cost: rawData.cost ? parseFloat(rawData.cost) : undefined,
-        igv_percent: rawData.igv_percent !== undefined ? parseInt(rawData.igv_percent) : 18,
-        tax_affectation: rawData.tax_affectation !== undefined ? parseInt(rawData.tax_affectation) : 1,
-        // Bolsa plástica afecta a ICBPER (Ley 30884)
-        icbper: rawData.icbper === true || rawData.icbper === 1,
-        // Indica si el producto usa variantes (precio/stock por variante). La
-        // normalización debe copiarlo explícitamente o se pierde: de él dependen
-        // el editor de variantes y el ocultado del precio/stock general.
-        has_variation_attributes: rawData.has_variation_attributes === true || rawData.has_variation_attributes === 1,
-        stock: rawData.stock || 0,
-        unlimited_stock: rawData.unlimited_stock === 1 || rawData.unlimited_stock === true,
-        // Se copia explícitamente o se pierde: esta normalización arma el Product
-        // campo por campo, y sin esta línea la ficha volvía a 0 al refrescar
-        // después de guardar aunque el tope sí estuviera guardado.
-        max_purchase_qty: rawData.max_purchase_qty ?? 0,
-        sold_by_weight: rawData.sold_by_weight === true || rawData.sold_by_weight === 1,
-        min_stock: rawData.min_stock || undefined,
-        weight: rawData.weight !== undefined && rawData.weight !== null ? parseFloat(rawData.weight.toString()) : undefined,
-        weight_unit: rawData.weight_unit || undefined,
-        height: rawData.height !== undefined && rawData.height !== null ? parseFloat(rawData.height.toString()) : undefined,
-        width: rawData.width !== undefined && rawData.width !== null ? parseFloat(rawData.width.toString()) : undefined,
-        length: rawData.length !== undefined && rawData.length !== null ? parseFloat(rawData.length.toString()) : undefined,
-        dimensions_unit: rawData.dimensions_unit || undefined,
-        volumetric_weight: rawData.volumetric_weight !== undefined && rawData.volumetric_weight !== null ? parseFloat(rawData.volumetric_weight.toString()) : undefined,
-        published: rawData.published || false,
-        published_pos: rawData.published_pos !== false,
-        featured: rawData.featured || false,
-        images,
-        video: rawData.video ? {
-          cloudflare_uid: rawData.video.cloudflare_uid || null,
-          stream_url: rawData.video.stream_url || null,
-          thumbnail_url: rawData.video.thumbnail_url || null,
-          duration: rawData.video.duration ? parseFloat(rawData.video.duration) : null,
-          width: rawData.video.width ? parseInt(rawData.video.width) : null,
-          height: rawData.video.height ? parseInt(rawData.video.height) : null,
-          aspect_ratio: rawData.video.aspect_ratio ? parseFloat(rawData.video.aspect_ratio) : null,
-          status: rawData.video.status || null,
-          error: rawData.video.error || null,
-          created_at: rawData.video.created_at || null
-        } : null,
-        documents: rawData.documents || [],
-        categories: categories,
-        brand: rawData.brand ? {
-          id: rawData.brand.id,
-          name: rawData.brand.name,
-          slug: rawData.brand.slug || rawData.brand.name.toLowerCase(),
-          logo: rawData.brand.logo
-        } : undefined,
-        seo: rawData.seo ? {
-          meta_title: rawData.seo.meta_title || undefined,
-          meta_description: rawData.seo.meta_description || undefined,
-          meta_image: rawData.seo.meta_image || undefined,
-          slug: rawData.seo.slug || undefined
-        } : undefined,
-        external_categories: rawData.external_categories ? {
-          facebook: rawData.external_categories.facebook || undefined,
-          google: rawData.external_categories.google || undefined,
-          mercadolibre: rawData.external_categories.mercadolibre || undefined
-        } : undefined,
-        order: rawData.order !== undefined && rawData.order !== null ? parseInt(rawData.order.toString()) : undefined,
-        created_at: rawData.created_at || new Date().toISOString(),
-        updated_at: rawData.updated_at || new Date().toISOString()
-      }
-
       return {
         success: true,
-        data: product
+        data: normalizeProduct(rawData),
       }
     }
 
@@ -360,59 +350,14 @@ export const productsApi = {
 
     const response = await apiClient.put(`/products/${id}`, payload)
 
-    // La API devuelve el producto actualizado
+    // La API devuelve el producto actualizado con el mismo transformador que
+    // la ficha, asi que se normaliza igual.
     const rawData = response.data?.data || response.data
 
     if (rawData) {
-      // Reutilizar la misma normalización que getProduct
-      const product: Product = {
-        id: rawData.id,
-        sku: rawData.sku,
-        barcode: rawData.barcode || undefined,
-        name: rawData.name,
-        product_type_id: rawData.product_type_id ?? rawData.productotipo_id ?? undefined,
-        product_type: rawData.product_type ?? null,
-        description: rawData.description || '',
-        description_html: rawData.description_html || '',
-        description_short: rawData.description_short || '',
-        price: parseFloat(rawData.price || '0'),
-        price_without_tax: rawData.price_without_tax !== undefined && rawData.price_without_tax !== null ? parseFloat(rawData.price_without_tax) : undefined,
-        compare_price: rawData.compare_price ? parseFloat(rawData.compare_price) : undefined,
-        cost: rawData.cost ? parseFloat(rawData.cost) : undefined,
-        igv_percent: rawData.igv_percent !== undefined ? parseInt(rawData.igv_percent) : 18,
-        tax_affectation: rawData.tax_affectation !== undefined ? parseInt(rawData.tax_affectation) : 1,
-        // Bolsa plástica afecta a ICBPER (Ley 30884)
-        icbper: rawData.icbper === true || rawData.icbper === 1,
-        // Indica si el producto usa variantes (precio/stock por variante). La
-        // normalización debe copiarlo explícitamente o se pierde: de él dependen
-        // el editor de variantes y el ocultado del precio/stock general.
-        has_variation_attributes: rawData.has_variation_attributes === true || rawData.has_variation_attributes === 1,
-        stock: rawData.stock || 0,
-        unlimited_stock: rawData.unlimited_stock === 1 || rawData.unlimited_stock === true,
-        // Se copia explícitamente o se pierde: esta normalización arma el Product
-        // campo por campo, y sin esta línea la ficha volvía a 0 al refrescar
-        // después de guardar aunque el tope sí estuviera guardado.
-        max_purchase_qty: rawData.max_purchase_qty ?? 0,
-        sold_by_weight: rawData.sold_by_weight === true || rawData.sold_by_weight === 1,
-        min_stock: rawData.min_stock || undefined,
-        weight: rawData.weight ? parseFloat(rawData.weight) : undefined,
-        published: rawData.published || false,
-        published_pos: rawData.published_pos !== false,
-        featured: rawData.featured || false,
-        images: rawData.images || [],
-        categories: rawData.categories,
-        brand: rawData.brand,
-        gamma: rawData.gamma || undefined,
-        seo: rawData.seo || undefined,
-        external_categories: rawData.external_categories || undefined,
-        order: rawData.order !== undefined && rawData.order !== null ? parseInt(rawData.order.toString()) : undefined,
-        created_at: rawData.created_at || new Date().toISOString(),
-        updated_at: rawData.updated_at || new Date().toISOString()
-      }
-
       return {
         success: true,
-        data: product
+        data: normalizeProduct(rawData),
       }
     }
 
