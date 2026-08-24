@@ -21,7 +21,7 @@ const options = [
     icon: 'pi pi-pencil',
     title: 'Editar productos existentes',
     description:
-      'Selecciona las columnas que deseas editar, descarga una plantilla con los datos actuales de tus productos, modifica los valores y vuelve a subir el archivo.',
+      'Selecciona las columnas que deseas editar, descarga una plantilla con los datos actuales de tus productos, modifica los valores y vuelve a subir el archivo. Tambien puedes subir un archivo propio: los productos se identifican por su ID o por su SKU.',
   },
 ]
 </script>

@@ -30,6 +30,8 @@ export function useBulkImport() {
   // Cabeceras del CSV que no corresponden a ninguna columna conocida: se
   // ignoran al importar, asi que hay que mostrarlas antes de procesar.
   const ignoredHeaders = ref<string[]>([])
+  // Catalogo SKU -> id, solo se descarga si un CSV de edicion no trae la columna id.
+  const skuIndexCache = ref<Map<string, number> | null>(null)
   const results = ref<BulkProcessingResult[]>([])
   const isProcessing = ref(false)
   const isPaused = ref(false)
@@ -227,188 +229,229 @@ export function useBulkImport() {
     downloadBlob(blob, `plantilla_productos_editar_${new Date().toISOString().slice(0, 10)}.csv`)
   }
 
+  /**
+   * Indice SKU -> id del catalogo de la tienda, para los CSV de edicion que
+   * identifican los productos por SKU en vez de por ID. Se arma con el mismo
+   * export que alimenta la plantilla de edicion (una sola descarga) y se
+   * cachea mientras dure la importacion.
+   *
+   * Los SKU repetidos se marcan como ambiguos: sin ID no hay forma de saber a
+   * cual de los dos productos apunta la fila, y elegir uno al azar seria
+   * escribir sobre el producto equivocado.
+   */
+  const SKU_AMBIGUO = -1
+
+  async function loadSkuIndex(): Promise<Map<string, number>> {
+    if (skuIndexCache.value) return skuIndexCache.value
+
+    const blob = await productManagementApi.exportBulk(['sku'])
+    const { headers, rows } = parseCsvString(await blob.text())
+
+    const idHeader = headers.find(h => findCsvColumn(h)?.key === 'id')
+    const skuHeader = headers.find(h => findCsvColumn(h)?.key === 'sku')
+    const index = new Map<string, number>()
+
+    if (idHeader && skuHeader) {
+      for (const row of rows) {
+        const sku = (row[skuHeader] || '').trim().toLowerCase()
+        const id = parseInt(row[idHeader] || '')
+        if (!sku || isNaN(id)) continue
+        index.set(sku, index.has(sku) ? SKU_AMBIGUO : id)
+      }
+    }
+
+    skuIndexCache.value = index
+    return index
+  }
+
   // ── CSV Parsing & Validation ──
 
-  function parseCsvFile(file: File): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = e => {
-        try {
-          const text = e.target?.result as string
-          const { headers, rows, delimiter } = parseCsvString(text)
-          const columnByHeader = new Map<string, CsvColumnDef>()
-          const unknownHeaders: string[] = []
-          for (const header of headers) {
-            const colDef = findCsvColumn(header)
-            if (colDef) {
-              columnByHeader.set(header, colDef)
-            } else if (header) {
-              unknownHeaders.push(header)
+  async function parseCsvFile(file: File): Promise<void> {
+    const text = await file.text()
+    const { headers, rows, delimiter } = parseCsvString(text)
+
+    const columnByHeader = new Map<string, CsvColumnDef>()
+    const unknownHeaders: string[] = []
+    for (const header of headers) {
+      const colDef = findCsvColumn(header)
+      if (colDef) {
+        columnByHeader.set(header, colDef)
+      } else if (header) {
+        unknownHeaders.push(header)
+      }
+    }
+    ignoredHeaders.value = unknownHeaders
+
+    if (rows.length === 0) {
+      throw new Error('El archivo CSV esta vacio')
+    }
+
+    const resolvedKeys = new Set([...columnByHeader.values()].map(c => c.key))
+
+    // Validate required headers for create mode
+    if (mode.value === 'create') {
+      const missingHeaders = REQUIRED_COLUMNS.filter(
+        col => !resolvedKeys.has(col)
+      )
+      if (missingHeaders.length > 0) {
+        throw new Error(`Columnas requeridas faltantes: ${missingHeaders.join(', ')}`)
+      }
+    }
+
+    // Validate edit mode has id or sku
+    if (mode.value === 'edit' && !resolvedKeys.has('id') && !resolvedKeys.has('sku')) {
+      throw new Error(
+        'El CSV debe incluir la columna "id" o "sku" para identificar productos. ' +
+        `Columnas detectadas: ${headers.join(', ') || '(ninguna)'}`
+      )
+    }
+
+    // El indice SKU -> id solo se descarga si hace falta: un CSV de edicion con
+    // columna id no necesita resolver nada.
+    const skuIndex =
+      mode.value === 'edit' && !resolvedKeys.has('id') ? await loadSkuIndex() : null
+
+    // Parse and validate each row
+    const skuSet = new Set<string>()
+    const parsed: BulkCsvParsedRow[] = rows.map((raw, index) => {
+      const errors: string[] = []
+      const warnings: string[] = []
+      const mapped: Record<string, any> = {}
+
+      for (const header of headers) {
+        const colDef = columnByHeader.get(header)
+        if (!colDef) continue
+
+        const value = raw[header] ?? ''
+
+        // Required check (create mode)
+        if (mode.value === 'create' && colDef.required && !value) {
+          errors.push(`Campo "${colDef.label}" es obligatorio`)
+          continue
+        }
+
+        if (!value) continue
+
+        // Type validation & mapping
+        if (colDef.key === 'precio') {
+          const num = parseCsvNumber(value, delimiter)
+          if (isNaN(num)) {
+            errors.push(`"${colDef.label}" debe ser un numero`)
+          } else if (num < 0) {
+            errors.push(`"${colDef.label}" debe ser mayor o igual a 0`)
+          } else {
+            // Map based on pricing_mode
+            if (pricingMode.value === 1) {
+              mapped.price_without_tax = num
+            } else {
+              mapped.price = num
             }
           }
-          ignoredHeaders.value = unknownHeaders
-
-          if (rows.length === 0) {
-            reject(new Error('El archivo CSV esta vacio'))
-            return
+        } else if (colDef.key === 'afectacion') {
+          // Afectacion IGV: texto (afecto/gravado/exonerado/inafecto) o numero (1/2/3, SUNAT 10/20/30)
+          const v = value.trim().toLowerCase()
+          let afect: number | null = null
+          // Ojo: "inafecto" contiene "afect"; evaluar inafecto/exonerado antes que afecto/gravado
+          if (v.includes('inafect')) afect = 3
+          else if (v.includes('exoner')) afect = 2
+          else if (v.includes('grav') || v.includes('afect')) afect = 1
+          else if (['1', '10'].includes(v)) afect = 1
+          else if (['2', '20'].includes(v)) afect = 2
+          else if (['3', '30'].includes(v)) afect = 3
+          if (afect === null) {
+            errors.push(`"${colDef.label}" invalida: "${value}". Use 1=Afecto, 2=Exonerado, 3=Inafecto`)
+          } else {
+            mapped.tax_affectation = afect
           }
-
-          // Validate required headers for create mode
-          if (mode.value === 'create') {
-            const resolvedKeys = new Set([...columnByHeader.values()].map(c => c.key))
-            const missingHeaders = REQUIRED_COLUMNS.filter(
-              col => !resolvedKeys.has(col)
-            )
-            if (missingHeaders.length > 0) {
-              reject(new Error(`Columnas requeridas faltantes: ${missingHeaders.join(', ')}`))
-              return
-            }
+        } else if (colDef.key === 'categorias') {
+          const { ids, warnings: catWarnings } = resolveCategories(value)
+          if (ids.length > 0) mapped.categories = ids
+          warnings.push(...catWarnings)
+        } else if (colDef.key === 'marca') {
+          const { id, warning } = resolveBrand(value)
+          if (id) mapped.brand_id = id
+          if (warning) warnings.push(warning)
+        } else if (colDef.key === 'gamma') {
+          // Will be resolved after brand is processed
+          mapped._gamma_name = value
+        } else if (colDef.key === 'id') {
+          mapped._id = parseInt(value)
+          if (isNaN(mapped._id)) errors.push('"ID" debe ser un numero')
+        } else if (colDef.key === 'unidad_peso') {
+          const normalized = normalizeUnit(value, 'weight')
+          if (normalized) {
+            mapped.weight_unit = normalized
+          } else {
+            errors.push(`Unidad de peso no valida: "${value}". Use: kilogramos, gramos, libras`)
           }
-
-          // Validate edit mode has id or sku
-          if (mode.value === 'edit') {
-            const resolvedKeys = new Set([...columnByHeader.values()].map(c => c.key))
-            if (!resolvedKeys.has('id') && !resolvedKeys.has('sku')) {
-              reject(new Error(
-                'El CSV debe incluir la columna "id" o "sku" para identificar productos. ' +
-                `Columnas detectadas: ${headers.join(', ') || '(ninguna)'}`
-              ))
-              return
-            }
+        } else if (colDef.key === 'unidad_dimensiones') {
+          const normalized = normalizeUnit(value, 'dimension')
+          if (normalized) {
+            mapped.dimensions_unit = normalized
+          } else {
+            errors.push(`Unidad de dimensiones no valida: "${value}". Use: centimetros, metros, pulgadas`)
           }
-
-          // Parse and validate each row
-          const skuSet = new Set<string>()
-          const parsed: BulkCsvParsedRow[] = rows.map((raw, index) => {
-            const errors: string[] = []
-            const warnings: string[] = []
-            const mapped: Record<string, any> = {}
-
-            for (const header of headers) {
-              const colDef = columnByHeader.get(header)
-              if (!colDef) continue
-
-              const value = raw[header] ?? ''
-
-              // Required check (create mode)
-              if (mode.value === 'create' && colDef.required && !value) {
-                errors.push(`Campo "${colDef.label}" es obligatorio`)
-                continue
-              }
-
-              if (!value) continue
-
-              // Type validation & mapping
-              if (colDef.key === 'precio') {
-                const num = parseCsvNumber(value, delimiter)
-                if (isNaN(num)) {
-                  errors.push(`"${colDef.label}" debe ser un numero`)
-                } else if (num < 0) {
-                  errors.push(`"${colDef.label}" debe ser mayor o igual a 0`)
-                } else {
-                  // Map based on pricing_mode
-                  if (pricingMode.value === 1) {
-                    mapped.price_without_tax = num
-                  } else {
-                    mapped.price = num
-                  }
-                }
-              } else if (colDef.key === 'afectacion') {
-                // Afectacion IGV: texto (afecto/gravado/exonerado/inafecto) o numero (1/2/3, SUNAT 10/20/30)
-                const v = value.trim().toLowerCase()
-                let afect: number | null = null
-                // Ojo: "inafecto" contiene "afect"; evaluar inafecto/exonerado antes que afecto/gravado
-                if (v.includes('inafect')) afect = 3
-                else if (v.includes('exoner')) afect = 2
-                else if (v.includes('grav') || v.includes('afect')) afect = 1
-                else if (['1', '10'].includes(v)) afect = 1
-                else if (['2', '20'].includes(v)) afect = 2
-                else if (['3', '30'].includes(v)) afect = 3
-                if (afect === null) {
-                  errors.push(`"${colDef.label}" invalida: "${value}". Use 1=Afecto, 2=Exonerado, 3=Inafecto`)
-                } else {
-                  mapped.tax_affectation = afect
-                }
-              } else if (colDef.key === 'categorias') {
-                const { ids, warnings: catWarnings } = resolveCategories(value)
-                if (ids.length > 0) mapped.categories = ids
-                warnings.push(...catWarnings)
-              } else if (colDef.key === 'marca') {
-                const { id, warning } = resolveBrand(value)
-                if (id) mapped.brand_id = id
-                if (warning) warnings.push(warning)
-              } else if (colDef.key === 'gamma') {
-                // Will be resolved after brand is processed
-                mapped._gamma_name = value
-              } else if (colDef.key === 'id') {
-                mapped._id = parseInt(value)
-                if (isNaN(mapped._id)) errors.push('"ID" debe ser un numero')
-              } else if (colDef.key === 'unidad_peso') {
-                const normalized = normalizeUnit(value, 'weight')
-                if (normalized) {
-                  mapped.weight_unit = normalized
-                } else {
-                  errors.push(`Unidad de peso no valida: "${value}". Use: kilogramos, gramos, libras`)
-                }
-              } else if (colDef.key === 'unidad_dimensiones') {
-                const normalized = normalizeUnit(value, 'dimension')
-                if (normalized) {
-                  mapped.dimensions_unit = normalized
-                } else {
-                  errors.push(`Unidad de dimensiones no valida: "${value}". Use: centimetros, metros, pulgadas`)
-                }
-              } else if (colDef.type === 'number') {
-                const num = parseCsvNumber(value, delimiter)
-                if (isNaN(num)) {
-                  errors.push(`"${colDef.label}" debe ser un numero`)
-                } else {
-                  mapped[colDef.apiField] = num
-                }
-              } else if (colDef.type === 'boolean') {
-                mapped[colDef.apiField] = value === '1' || value.toLowerCase() === 'true'
-              } else {
-                mapped[colDef.apiField] = value
-              }
-            }
-
-            // Resolve gamma after brand
-            if (mapped._gamma_name && mapped.brand_id) {
-              const { id, warning } = resolveGamma(mapped._gamma_name, mapped.brand_id)
-              if (id) mapped.gamma_id = id
-              if (warning) warnings.push(warning)
-            } else if (mapped._gamma_name && !mapped.brand_id) {
-              warnings.push(`Gamma "${mapped._gamma_name}" ignorada: se requiere una marca valida`)
-            }
-            delete mapped._gamma_name
-
-            // Duplicate SKU check (create mode)
-            if (mode.value === 'create' && mapped.sku) {
-              if (skuSet.has(mapped.sku.toLowerCase())) {
-                errors.push(`SKU "${mapped.sku}" duplicado en el archivo`)
-              } else {
-                skuSet.add(mapped.sku.toLowerCase())
-              }
-            }
-
-            return {
-              rowNumber: index + 2, // +2 for 1-indexed + header row
-              raw,
-              mapped,
-              errors,
-              warnings,
-              isValid: errors.length === 0,
-            }
-          })
-
-          parsedRows.value = parsed
-          resolve()
-        } catch (err) {
-          reject(err)
+        } else if (colDef.type === 'number') {
+          const num = parseCsvNumber(value, delimiter)
+          if (isNaN(num)) {
+            errors.push(`"${colDef.label}" debe ser un numero`)
+          } else {
+            mapped[colDef.apiField] = num
+          }
+        } else if (colDef.type === 'boolean') {
+          mapped[colDef.apiField] = value === '1' || value.toLowerCase() === 'true'
+        } else {
+          mapped[colDef.apiField] = value
         }
       }
-      reader.onerror = () => reject(new Error('Error al leer el archivo'))
-      reader.readAsText(file)
+
+      // Resolve gamma after brand
+      if (mapped._gamma_name && mapped.brand_id) {
+        const { id, warning } = resolveGamma(mapped._gamma_name, mapped.brand_id)
+        if (id) mapped.gamma_id = id
+        if (warning) warnings.push(warning)
+      } else if (mapped._gamma_name && !mapped.brand_id) {
+        warnings.push(`Gamma "${mapped._gamma_name}" ignorada: se requiere una marca valida`)
+      }
+      delete mapped._gamma_name
+
+      // Edicion por SKU: sin columna id, el producto se ubica por su SKU.
+      if (skuIndex && mapped._id === undefined) {
+        const sku = (mapped.sku || '').trim().toLowerCase()
+        if (!sku) {
+          errors.push('Falta el SKU para identificar el producto')
+        } else {
+          const id = skuIndex.get(sku)
+          if (id === undefined) {
+            errors.push(`SKU "${mapped.sku}" no existe en el catalogo`)
+          } else if (id === SKU_AMBIGUO) {
+            errors.push(`SKU "${mapped.sku}" esta repetido en el catalogo: usa la columna id`)
+          } else {
+            mapped._id = id
+          }
+        }
+      }
+
+      // Duplicate SKU check (create mode)
+      if (mode.value === 'create' && mapped.sku) {
+        if (skuSet.has(mapped.sku.toLowerCase())) {
+          errors.push(`SKU "${mapped.sku}" duplicado en el archivo`)
+        } else {
+          skuSet.add(mapped.sku.toLowerCase())
+        }
+      }
+
+      return {
+        rowNumber: index + 2, // +2 for 1-indexed + header row
+        raw,
+        mapped,
+        errors,
+        warnings,
+        isValid: errors.length === 0,
+      }
     })
+
+    parsedRows.value = parsed
   }
 
   // ── Processing ──
@@ -571,6 +614,7 @@ export function useBulkImport() {
     selectedColumns.value = [...REQUIRED_COLUMNS]
     parsedRows.value = []
     ignoredHeaders.value = []
+    skuIndexCache.value = null
     results.value = []
     isProcessing.value = false
     isPaused.value = false
