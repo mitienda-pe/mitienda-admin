@@ -6,6 +6,13 @@ export interface FraudMetric {
   risk_level: 'low' | 'medium' | 'high'
   suspicious_count: number
   total_compared: number
+  /**
+   * false when the order carries no data for this metric (no address, gateway
+   * without cardholder, ...). Those metrics are excluded from the score: an
+   * absence of data is not evidence of safety, so they must not be painted
+   * green either.
+   */
+  evaluated: boolean
   description: string
 }
 

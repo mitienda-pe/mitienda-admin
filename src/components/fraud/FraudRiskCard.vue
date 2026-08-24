@@ -72,6 +72,9 @@
                 <p class="text-xs text-secondary-500 mt-1">
                   de 100 puntos
                 </p>
+                <p v-if="unevaluatedCount > 0" class="text-xs text-secondary-400 mt-0.5">
+                  {{ evaluatedCount }} de {{ analysis.metrics.length }} métricas evaluadas
+                </p>
               </div>
             </div>
           </div>
@@ -101,6 +104,7 @@
             :risk-level="metric.risk_level"
             :count="metric.suspicious_count"
             :description="metric.description"
+            :evaluated="metric.evaluated !== false"
           />
         </div>
 
@@ -212,13 +216,25 @@ const overallRiskBarColor = computed(() => {
   }
 })
 
-// Sort metrics by risk level (high first) and then by suspicious count
+const evaluatedCount = computed(
+  () => analysis.value?.metrics.filter((m) => m.evaluated !== false).length ?? 0
+)
+
+const unevaluatedCount = computed(
+  () => (analysis.value?.metrics.length ?? 0) - evaluatedCount.value
+)
+
+// Sort metrics by risk level (high first), then by suspicious count.
+// Metrics we could not measure go last: they are not findings.
 const sortedMetrics = computed(() => {
   if (!analysis.value?.metrics) return []
 
   const riskOrder = { high: 0, medium: 1, low: 2 }
 
   return [...analysis.value.metrics].sort((a, b) => {
+    const evaluatedDiff = Number(a.evaluated === false) - Number(b.evaluated === false)
+    if (evaluatedDiff !== 0) return evaluatedDiff
+
     // First by risk level
     const riskDiff = riskOrder[a.risk_level] - riskOrder[b.risk_level]
     if (riskDiff !== 0) return riskDiff
@@ -239,7 +255,7 @@ const formattedLastUpdate = computed(() => {
 
 // Metric labels mapping
 const metricLabels: Record<string, string> = {
-  shipping_address: 'Dirección de envío',
+  shipping_address: 'Dirección de entrega',
   customer_name: 'Nombre del cliente',
   document_number: 'Número de documento',
   email_address: 'Correo electrónico',
@@ -248,6 +264,7 @@ const metricLabels: Record<string, string> = {
   time_pattern: 'Patrón temporal',
   amount_vs_average: 'Monto vs. promedio',
   device_fingerprint: 'Huella digital del dispositivo',
+  cardholder_match: 'Titular de la tarjeta',
 }
 
 function getMetricLabel(metric: string): string {

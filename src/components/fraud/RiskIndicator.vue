@@ -2,7 +2,7 @@
   <div class="risk-indicator">
     <div class="flex items-start gap-3">
       <!-- Icon based on risk level -->
-      <div class="risk-icon" :class="`risk-${riskLevel}`">
+      <div class="risk-icon" :class="`risk-${effectiveLevel}`">
         <i :class="riskIcon" class="text-lg"></i>
       </div>
 
@@ -13,7 +13,13 @@
             {{ label }}
           </span>
           <span
-            v-if="count !== null && count !== undefined"
+            v-if="!evaluated"
+            class="px-2 py-0.5 text-xs font-semibold rounded-full bg-secondary-100 text-secondary-600"
+          >
+            Sin datos
+          </span>
+          <span
+            v-else-if="count !== null && count !== undefined"
             class="px-2 py-0.5 text-xs font-semibold rounded-full"
             :class="countBadgeClass"
           >
@@ -40,14 +46,21 @@ export interface RiskIndicatorProps {
   riskLevel: 'low' | 'medium' | 'high'
   count?: number | null
   description?: string
+  /** false = the metric could not be measured, so it is neither green nor red */
+  evaluated?: boolean
 }
 
 const props = withDefaults(defineProps<RiskIndicatorProps>(), {
   count: null,
   description: '',
+  evaluated: true,
 })
 
+const effectiveLevel = computed(() => (props.evaluated ? props.riskLevel : 'unknown'))
+
 const riskIcon = computed(() => {
+  if (!props.evaluated) return 'pi pi-minus-circle'
+
   switch (props.riskLevel) {
     case 'low':
       return 'pi pi-check-circle'
@@ -93,5 +106,9 @@ const countBadgeClass = computed(() => {
 
 .risk-icon.risk-high {
   @apply bg-red-100 text-red-600;
+}
+
+.risk-icon.risk-unknown {
+  @apply bg-secondary-100 text-secondary-400;
 }
 </style>
