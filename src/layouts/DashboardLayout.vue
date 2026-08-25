@@ -1206,7 +1206,7 @@ const posExpandedRef = ref(false)
 
 // Computar dinámicamente qué menú debe estar expandido según la ruta
 const salesExpanded = computed({
-  get: () => salesExpandedRef.value || route.path.startsWith('/orders') || route.path.startsWith('/reviews') || route.path.startsWith('/complaints') || route.path.includes('abandoned-carts'),
+  get: () => salesExpandedRef.value || route.path.startsWith('/orders') || route.path.startsWith('/reviews') || route.path.startsWith('/complaints') || route.path.includes('abandoned-carts') || route.path.startsWith('/payment-links'),
   set: (val) => { salesExpandedRef.value = val }
 })
 
@@ -1343,7 +1343,8 @@ const salesMenuItemsSource = [
   { label: 'Despacho', icon: 'pi pi-truck', to: '/dispatch' },
   { label: 'Opiniones', icon: 'pi pi-star', to: '/reviews' },
   { label: 'Reclamaciones', icon: 'pi pi-book', to: '/complaints' },
-  { label: 'Carritos Abandonados', icon: 'pi pi-shopping-bag', to: '/marketing/abandoned-carts' }
+  { label: 'Carritos Abandonados', icon: 'pi pi-shopping-bag', to: '/marketing/abandoned-carts' },
+  { label: 'Links de Pago', icon: 'pi pi-link', to: '/payment-links' }
 ]
 
 const salesMenuItems = computed(() => visibleItems(salesMenuItemsSource))
@@ -1532,7 +1533,7 @@ const isAppearanceActive = computed(() => {
 
 // Detectar si estamos en alguna ruta de ventas
 const isSalesActive = computed(() => {
-  return route.path.startsWith('/orders') || route.path.startsWith('/dispatch') || route.path.startsWith('/reviews') || route.path.startsWith('/complaints') || route.path.includes('abandoned-carts')
+  return route.path.startsWith('/orders') || route.path.startsWith('/dispatch') || route.path.startsWith('/reviews') || route.path.startsWith('/complaints') || route.path.includes('abandoned-carts') || route.path.startsWith('/payment-links')
 })
 
 // Detectar si estamos en alguna ruta de reportes

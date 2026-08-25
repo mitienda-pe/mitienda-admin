@@ -46,6 +46,8 @@ export const MODULE_ROUTE_MAP: Record<string, string[]> = {
   mod_referidos: ['/marketing/referrals'],
   mod_fidelizacion: ['/marketing/loyalty'],
   mod_carrito_abandonado: ['/marketing/abandoned-carts'],
+  // Reusa el módulo del panel legacy, ya asignado a ~17.4k tiendas.
+  mod_link_pago: ['/payment-links'],
 
   // Content
   mod_paginas: ['/pages'],

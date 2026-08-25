@@ -654,6 +654,19 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    path: '/payment-links',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: '',
+        name: 'PaymentLinks',
+        meta: { title: 'Links de pago' },
+        component: () => import('@/views/payment-links/PaymentLinksListView.vue')
+      }
+    ]
+  },
+  {
     path: '/marketing',
     component: DashboardLayout,
     meta: { requiresAuth: true, requiresStore: true },
