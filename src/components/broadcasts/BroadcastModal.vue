@@ -40,10 +40,10 @@
         :href="current.cta_url!"
         target="_blank"
         rel="noopener"
-        class="p-button p-component"
+        class="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-white no-underline shadow-sm transition-colors hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-200"
         @click="handleCtaClick"
       >
-        <span class="p-button-label">{{ current.cta_label }}</span>
+        {{ current.cta_label }}
       </a>
     </template>
   </Dialog>
