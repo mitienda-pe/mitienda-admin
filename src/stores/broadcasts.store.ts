@@ -3,30 +3,22 @@ import { computed, ref } from 'vue'
 import { broadcastsApi } from '@/api/broadcasts.api'
 import type { Broadcast } from '@/types/broadcast.types'
 
-const LOCAL_DISMISSED_KEY = 'broadcast_dismissed_ids_v1'
-
-function readLocalDismissed(): number[] {
-  try {
-    const raw = localStorage.getItem(LOCAL_DISMISSED_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed.filter((n) => typeof n === 'number') : []
-  } catch {
-    return []
-  }
-}
-
-function writeLocalDismissed(ids: number[]) {
-  try {
-    localStorage.setItem(LOCAL_DISMISSED_KEY, JSON.stringify(Array.from(new Set(ids)).slice(-200)))
-  } catch {
-    // storage lleno / modo privado — seguimos sin bloquear
-  }
+// Limpieza de la clave que persistia los descartes en el navegador y dejaba
+// inutil el "Resetear" del superadmin. Se puede borrar en unos meses.
+try {
+  localStorage.removeItem('broadcast_dismissed_ids_v1')
+} catch {
+  // modo privado / storage bloqueado
 }
 
 export const useBroadcastsStore = defineStore('broadcasts', () => {
   const items = ref<Broadcast[]>([])
-  const dismissedIds = ref<number[]>(readLocalDismissed())
+  // Solo en memoria, a proposito: sirve para ocultar el aviso mientras el POST
+  // de dismiss viaja. La verdad la tiene el servidor — getActive() ya excluye
+  // los descartados. Si esto se persistiera en localStorage, el boton
+  // "Resetear" del superadmin no tendria efecto: el navegador seguiria
+  // filtrando el aviso aunque el backend volviera a mandarlo.
+  const dismissedIds = ref<number[]>([])
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
@@ -58,17 +50,19 @@ export const useBroadcastsStore = defineStore('broadcasts', () => {
     if (!broadcast || !broadcast.is_dismissible) return
 
     dismissedIds.value = [...dismissedIds.value, id]
-    writeLocalDismissed(dismissedIds.value)
 
     try {
       await broadcastsApi.dismiss(id)
     } catch {
-      // si falla, mantenemos el dismiss local para UX; se reintentará en próximo fetch
+      // Si falla, lo mantenemos oculto en esta vista por UX. Al recargar
+      // volvera a aparecer, que es lo correcto: el servidor nunca registro
+      // el descarte.
     }
   }
 
   function reset() {
     items.value = []
+    dismissedIds.value = []
     error.value = null
   }
 
