@@ -3,6 +3,13 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.71.1] - 2026-08-26
+
+### Correcciones
+
+- **cabify:** la lista de tipos de envío no se explicaba sola ([`dc73769`](https://github.com/mitienda-pe/mitienda-admin/commit/dc7376961d1e7a4018870d8a7398c56c652a955c))
+- **payment-links:** unificar los dos steppers del modal al patrón de la casa ([`afe2f4e`](https://github.com/mitienda-pe/mitienda-admin/commit/afe2f4e3bca4958aa8b81741ada5a584af9c35ff))
+
 ## [v2.71.0] - 2026-08-26
 
 ### Novedades
