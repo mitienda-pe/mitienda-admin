@@ -420,15 +420,16 @@ function anular(link: PaymentLink) {
             :key="item.product_id"
             class="flex items-center gap-3 px-3 py-2"
           >
-            <span class="flex-1 text-sm">{{ item.nombre }}</span>
+            <span class="min-w-0 flex-1 truncate text-sm" :title="item.nombre">{{ item.nombre }}</span>
             <InputNumber
               v-model="item.cantidad"
               :min="1"
               showButtons
               buttonLayout="horizontal"
-              :inputStyle="{ width: '3rem' }"
+              class="w-24 shrink-0"
+              inputClass="w-12 text-center"
             />
-            <span class="w-24 text-right text-sm">
+            <span class="w-24 shrink-0 text-right text-sm">
               {{ formatCurrency(item.precio * item.cantidad) }}
             </span>
             <Button icon="pi pi-times" text rounded severity="danger" @click="quitar(item.product_id)" />
@@ -446,7 +447,14 @@ function anular(link: PaymentLink) {
           </div>
           <div>
             <label class="block text-sm font-medium text-secondary-700 mb-1">Veces que se puede pagar</label>
-            <InputNumber v-model="form.maxUsos" :min="1" showButtons class="w-full" />
+            <InputNumber
+              v-model="form.maxUsos"
+              :min="1"
+              showButtons
+              buttonLayout="horizontal"
+              class="w-24"
+              inputClass="w-12 text-center"
+            />
             <p class="text-xs text-secondary-500 mt-1">Vacío = sin límite</p>
           </div>
         </div>
