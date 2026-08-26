@@ -38,6 +38,7 @@ const CATEGORY_MIN_PLAN: Record<string, string> = {
   chat: 'Medium',
   fulfillment: 'Large',
   erp: 'Large',
+  crm: 'Large',
 }
 
 const PLAN_RANK: Record<string, number> = {
@@ -87,12 +88,13 @@ const categoryConfig: Record<string, { label: string; icon: string; iconColor: s
   email_marketing:    { label: 'Email Marketing',               icon: 'pi pi-envelope',    iconColor: 'text-primary',    bgColor: 'bg-teal-50' },
   fulfillment:        { label: 'Fulfillment y Logística 3PL',   icon: 'pi pi-box',         iconColor: 'text-primary', bgColor: 'bg-primary/5' },
   erp:                { label: 'ERP y Contabilidad',             icon: 'pi pi-server',      iconColor: 'text-slate-600',  bgColor: 'bg-slate-50' },
+  crm:                { label: 'CRM',                          icon: 'pi pi-users',       iconColor: 'text-primary',    bgColor: 'bg-primary/5' },
   lead_capture:       { label: 'Captura de leads y popups',     icon: 'pi pi-megaphone',   iconColor: 'text-pink-600',   bgColor: 'bg-pink-50' },
   chat:               { label: 'Chat en vivo',                  icon: 'pi pi-comments',    iconColor: 'text-primary',   bgColor: 'bg-primary/5' },
   push_notifications: { label: 'Notificaciones push',           icon: 'pi pi-bell',        iconColor: 'text-orange-600', bgColor: 'bg-orange-50' },
 }
 
-const categoryOrder = ['payments', 'shipping', 'ads', 'analytics', 'email_marketing', 'fulfillment', 'erp', 'lead_capture', 'chat', 'push_notifications']
+const categoryOrder = ['payments', 'shipping', 'ads', 'analytics', 'crm', 'email_marketing', 'fulfillment', 'erp', 'lead_capture', 'chat', 'push_notifications']
 
 // Map payment gateways to IntegrationProvider shape
 const paymentProviders = computed<IntegrationProvider[]>(() =>
