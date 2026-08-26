@@ -3,6 +3,13 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.72.0] - 2026-08-26
+
+### Novedades
+
+- **payment-links:** cobrar por concepto libre desde el backoffice ([`f9c6638`](https://github.com/mitienda-pe/mitienda-admin/commit/f9c6638f4fe715b3a3e6683fdc04a6b290c9e868))
+- **apariencia:** opcion de galeria en mosaico ([`4a2e0db`](https://github.com/mitienda-pe/mitienda-admin/commit/4a2e0db984964dd417a18e9668fd8cb1150ac487))
+
 ## [v2.71.1] - 2026-08-26
 
 ### Correcciones
