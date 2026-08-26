@@ -75,7 +75,7 @@
                   outlined
                   :loading="isLoadingShippingTypes"
                   v-tooltip.top="'Consultar los tipos disponibles en tu cuenta Cabify'"
-                  @click="loadShippingTypes"
+                  @click="loadShippingTypes()"
                 />
               </div>
               <small class="text-secondary-400">
@@ -124,7 +124,7 @@
                   optionValue="id"
                   editable
                   class="flex-1"
-                  placeholder="Usa el tipo por defecto"
+                  :placeholder="shippingTypes.length ? 'Elige de la lista o pega el ID' : 'Pega el ID, o consúltalos con ↻'"
                 />
                 <Button
                   icon="pi pi-times"
@@ -136,6 +136,10 @@
                 />
               </div>
             </div>
+            <p v-if="!shippingTypes.length" class="text-sm text-secondary-400">
+              Todavía no consultamos tu cuenta: usa el botón ↻ del tipo por defecto para traer los
+              tipos disponibles, o pega el ID en el servicio que corresponda.
+            </p>
           </div>
           <p v-else class="text-sm text-secondary-400">
             No se pudieron cargar los tipos de servicio de envío.
@@ -327,26 +331,30 @@ const isLoadingShippingTypes = ref(false)
  * verdad es la API, así que los consultamos con las credenciales del form
  * (sirve incluso antes de guardar) y el origen configurado.
  */
-async function loadShippingTypes() {
+async function loadShippingTypes(silent = false) {
   if (!form.value.client_id.trim() || !form.value.client_secret.trim()) {
-    toast.add({
-      severity: 'warn',
-      summary: 'Faltan credenciales',
-      detail: 'Ingresa Client ID y Client Secret para consultar a Cabify',
-      life: 4000,
-    })
+    if (!silent) {
+      toast.add({
+        severity: 'warn',
+        summary: 'Faltan credenciales',
+        detail: 'Ingresa Client ID y Client Secret para consultar a Cabify',
+        life: 4000,
+      })
+    }
     return
   }
 
   const lat = Number(form.value.origin_lat)
   const lon = Number(form.value.origin_lon)
   if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat === 0 || lon === 0) {
-    toast.add({
-      severity: 'warn',
-      summary: 'Falta el origen',
-      detail: 'Los tipos disponibles dependen de la ubicación: completa latitud y longitud',
-      life: 4000,
-    })
+    if (!silent) {
+      toast.add({
+        severity: 'warn',
+        summary: 'Falta el origen',
+        detail: 'Los tipos disponibles dependen de la ubicación: completa latitud y longitud',
+        life: 4000,
+      })
+    }
     return
   }
 
@@ -360,28 +368,34 @@ async function loadShippingTypes() {
       lon,
     })
 
-    toast.add(
-      shippingTypes.value.length
-        ? {
-            severity: 'success',
-            summary: 'Tipos disponibles',
-            detail: `Cabify devolvió ${shippingTypes.value.length} tipo(s) para ese origen`,
-            life: 3000,
-          }
-        : {
-            severity: 'warn',
-            summary: 'Sin resultados',
-            detail: 'Cabify no devolvió tipos de envío para esa ubicación',
-            life: 4000,
-          },
-    )
+    if (!silent) {
+      toast.add(
+        shippingTypes.value.length
+          ? {
+              severity: 'success',
+              summary: 'Tipos disponibles',
+              detail: `Cabify devolvió ${shippingTypes.value.length} tipo(s) para ese origen`,
+              life: 3000,
+            }
+          : {
+              severity: 'warn',
+              summary: 'Sin resultados',
+              detail: 'Cabify no devolvió tipos de envío para esa ubicación',
+              life: 4000,
+            },
+      )
+    }
   } catch (err: any) {
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: err.response?.data?.messages?.error || 'No se pudieron obtener los tipos de envío',
-      life: 5000,
-    })
+    // En la consulta automática el fallo no interrumpe: los campos siguen
+    // aceptando el ID escrito a mano y el botón ↻ permite reintentar.
+    if (!silent) {
+      toast.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: err.response?.data?.messages?.error || 'No se pudieron obtener los tipos de envío',
+        life: 5000,
+      })
+    }
   } finally {
     isLoadingShippingTypes.value = false
   }
@@ -410,6 +424,12 @@ watch(() => store.currentConfig, (config) => {
   )
 
   resetDirty()
+
+  // Con la config ya guardada no tiene sentido exigir un clic en ↻ para ver la
+  // lista: se consulta sola, en silencio, y el botón queda para reintentar.
+  if (config?.credentials && !shippingTypes.value.length) {
+    loadShippingTypes(true)
+  }
 }, { immediate: true })
 
 async function handleSave() {
