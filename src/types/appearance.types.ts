@@ -224,6 +224,7 @@ export interface CatalogPreferences {
   pdp_recommended_count: number // cuantos productos muestra "Tambien te puede interesar" (0 = ocultar)
   pdp_recommended_source: number // de donde salen: ver PDP_RECOMMENDED_SOURCE
   pdp_recommended_list_id: number | null // solo con source = lista fija
+  pdp_recently_viewed_count: number // cuantos productos muestra "Vistos recientemente" (0 = ocultar)
 }
 
 export const DEFAULT_CATALOG_PREFERENCES: CatalogPreferences = {
@@ -241,6 +242,7 @@ export const DEFAULT_CATALOG_PREFERENCES: CatalogPreferences = {
   pdp_recommended_count: 12,
   pdp_recommended_source: 0,
   pdp_recommended_list_id: null,
+  pdp_recently_viewed_count: 6,
 }
 
 export interface LayoutWidthOption {
@@ -352,13 +354,21 @@ export interface PdpRecommendedCountOption {
   description: string
 }
 
+// La ficha dibuja estas vitrinas en una grilla de 6 columnas en escritorio
+// (2 en movil), asi que 6 es una fila justa y 12 son dos.
 export const PDP_RECOMMENDED_COUNT_OPTIONS: PdpRecommendedCountOption[] = [
   { value: 0, label: 'Ninguno', description: 'Oculta el bloque' },
-  { value: 4, label: '4', description: 'Una fila' },
-  { value: 6, label: '6', description: 'Bloque corto' },
-  { value: 8, label: '8', description: 'Dos filas' },
-  { value: 12, label: '12', description: 'Bloque largo' },
+  { value: 4, label: '4', description: 'Fila corta' },
+  { value: 6, label: '6', description: 'Una fila' },
+  { value: 8, label: '8', description: 'Fila y media' },
+  { value: 12, label: '12', description: 'Dos filas' },
 ]
+
+// "Vistos recientemente" comparte la grilla con el bloque de arriba, asi que
+// tambien comparte las opciones: emparejar las dos cantidades es justo para lo
+// que sirve esto.
+export const PDP_RECENTLY_VIEWED_COUNT_OPTIONS: PdpRecommendedCountOption[] =
+  PDP_RECOMMENDED_COUNT_OPTIONS
 
 export interface PdpRecommendedSourceOption {
   value: number

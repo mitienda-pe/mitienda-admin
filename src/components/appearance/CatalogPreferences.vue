@@ -14,6 +14,7 @@ import {
   PDP_DESCRIPTION_OPTIONS,
   PDP_GALLERY_OPTIONS,
   PDP_RECOMMENDED_COUNT_OPTIONS,
+  PDP_RECENTLY_VIEWED_COUNT_OPTIONS,
   PDP_RECOMMENDED_SOURCE_OPTIONS,
   PDP_RECOMMENDED_SOURCE,
   CART_ICON_OPTIONS,
@@ -125,6 +126,12 @@ const recommendedNote = computed(() => {
       return 'Mezcla categoría, marca, precio parecido y lo que suelen comprar junto. Si el producto no tiene con qué comparar, cae a los últimos publicados.'
   }
 })
+
+const recentlyViewedNote = computed(() =>
+  props.preferences.pdp_recently_viewed_count > 0
+    ? 'Cada visitante ve los productos que abrió él mismo, así que el bloque no aparece en la primera visita ni si rechazó las cookies de analítica.'
+    : 'El bloque «Vistos recientemente» no se muestra en ninguna ficha.'
+)
 
 function onRecommendedSourceChange(value: number) {
   emit('update:field', 'pdp_recommended_source', value)
@@ -622,6 +629,52 @@ const hideOutOfStockBool = computed({
       <p v-if="recommendedEnabled" class="text-xs text-gray-400 mt-1">
         Cualquier producto puede tener sus propios recomendados, elegidos a mano desde su ficha:
         eso manda por encima de esta configuración.
+      </p>
+    </div>
+
+    <!-- Divider -->
+    <hr class="border-gray-100" />
+
+    <!-- Vistos recientemente en la ficha -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Vistos recientemente en la ficha
+      </label>
+      <p class="text-xs text-gray-400 mb-3">
+        Cuántos productos muestra el bloque «Vistos recientemente», debajo de los recomendados
+      </p>
+      <div class="grid grid-cols-5 gap-2 max-w-lg">
+        <button
+          v-for="option in PDP_RECENTLY_VIEWED_COUNT_OPTIONS"
+          :key="option.value"
+          type="button"
+          class="relative p-3 border-2 rounded-lg text-center transition-all cursor-pointer"
+          :class="
+            preferences.pdp_recently_viewed_count === option.value
+              ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+              : 'border-gray-200 bg-white hover:border-gray-300'
+          "
+          @click="emit('update:field', 'pdp_recently_viewed_count', option.value)"
+        >
+          <div
+            class="text-sm font-medium"
+            :class="
+              preferences.pdp_recently_viewed_count === option.value
+                ? 'text-primary'
+                : 'text-gray-600'
+            "
+          >
+            {{ option.label }}
+          </div>
+          <p class="text-xs text-gray-400 mt-1">{{ option.description }}</p>
+        </button>
+      </div>
+
+      <p
+        class="text-xs mt-3"
+        :class="preferences.pdp_recently_viewed_count > 0 ? 'text-gray-500' : 'text-gray-400'"
+      >
+        {{ recentlyViewedNote }}
       </p>
     </div>
 
