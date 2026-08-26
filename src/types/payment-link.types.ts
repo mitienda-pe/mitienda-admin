@@ -31,10 +31,11 @@ export interface PaymentLinkTotales {
 }
 
 export interface PaymentLinkItem {
-  tipo: 'producto'
-  product_id: number
-  productoatributo_id: number | string | null
-  sku: string
+  /** `concepto` = cobro libre, sin producto de catálogo detrás. */
+  tipo: 'producto' | 'concepto'
+  product_id?: number
+  productoatributo_id?: number | string | null
+  sku?: string
   nombre: string
   cantidad: number
   precio: number
@@ -63,7 +64,7 @@ export interface PaymentLink {
   pasarela_id: number | null
   totales: PaymentLinkTotales
   requiere_envio: boolean
-  /** v1 siempre false: el checkout cobra el precio del catálogo, no el del snapshot. */
+  /** El comprador paga lo prometido al compartir el link, aunque cambie el catálogo. */
   precio_bloqueado: boolean
   documento_id_facturacion: number | null
   /** null = ilimitado. Es el cupo del LINK, no inventario. */
@@ -88,8 +89,16 @@ export interface PaymentLinkItemPayload {
   quantity: number
 }
 
+/** Cobro sin producto de catálogo detrás. El monto es final, con IGV incluido. */
+export interface PaymentLinkConceptoPayload {
+  concepto: string
+  monto: number | null
+  cantidad: number
+}
+
 export interface CreatePaymentLinkPayload {
   items: PaymentLinkItemPayload[]
+  conceptos?: PaymentLinkConceptoPayload[]
   cliente?: Partial<{
     nombres: string
     apellidos: string

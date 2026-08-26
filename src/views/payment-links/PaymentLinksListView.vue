@@ -126,6 +126,10 @@ const busqueda = ref('')
 const resultados = ref<any[]>([])
 const buscando = ref(false)
 const seleccionados = ref<Array<{ product_id: number; nombre: string; precio: number; cantidad: number }>>([])
+// Conceptos libres: cobro sin producto de catálogo detrás ("Consulta médica").
+// El monto que escribe el comerciante es final, con IGV incluido.
+const conceptos = ref<Array<{ concepto: string; monto: number | null; cantidad: number }>>([])
+const modoCobro = ref<'catalogo' | 'concepto'>('catalogo')
 const form = ref({
   mensaje: '',
   observacion: '',
@@ -141,6 +145,8 @@ function abrirCrear() {
   busqueda.value = ''
   resultados.value = []
   seleccionados.value = []
+  conceptos.value = []
+  modoCobro.value = 'catalogo'
   form.value = { mensaje: '', observacion: '', vence: null, maxUsos: 1, telefono: '', nombres: '' }
   createVisible.value = true
 }
@@ -178,16 +184,40 @@ function quitar(productId: number) {
   seleccionados.value = seleccionados.value.filter((s) => s.product_id !== productId)
 }
 
-const totalEstimado = computed(() =>
-  seleccionados.value.reduce((sum, s) => sum + s.precio * s.cantidad, 0),
+function agregarConcepto() {
+  conceptos.value.push({ concepto: '', monto: null, cantidad: 1 })
+}
+
+function quitarConcepto(i: number) {
+  conceptos.value.splice(i, 1)
+}
+
+/** Solo cuentan los conceptos completos: el backend rechaza los vacíos o en cero. */
+const conceptosValidos = computed(() =>
+  conceptos.value.filter((c) => c.concepto.trim() !== '' && (c.monto ?? 0) > 0),
+)
+
+const totalEstimado = computed(
+  () =>
+    seleccionados.value.reduce((sum, s) => sum + s.precio * s.cantidad, 0) +
+    conceptosValidos.value.reduce((sum, c) => sum + (c.monto ?? 0) * c.cantidad, 0),
+)
+
+const puedeCrear = computed(
+  () => seleccionados.value.length > 0 || conceptosValidos.value.length > 0,
 )
 
 async function crear() {
-  if (!seleccionados.value.length) return
+  if (!puedeCrear.value) return
   creating.value = true
   try {
     const link = await paymentLinksApi.create({
       items: seleccionados.value.map((s) => ({ product_id: s.product_id, quantity: s.cantidad })),
+      conceptos: conceptosValidos.value.map((c) => ({
+        concepto: c.concepto.trim(),
+        monto: c.monto,
+        cantidad: c.cantidad,
+      })),
       // `YYYY-MM-DD` — el backend lo extiende hasta el final de ese día.
       valido_hasta: form.value.vence ? form.value.vence.toISOString().slice(0, 10) : undefined,
       max_usos: form.value.maxUsos ?? null,
@@ -388,7 +418,66 @@ function anular(link: PaymentLink) {
       :style="{ width: '42rem' }"
     >
       <div class="space-y-4">
-        <div>
+        <div class="flex gap-2 border-b border-secondary-200">
+          <button
+            type="button"
+            class="px-3 py-2 text-sm font-medium border-b-2 -mb-px"
+            :class="modoCobro === 'catalogo' ? 'border-primary text-primary' : 'border-transparent text-secondary-500'"
+            @click="modoCobro = 'catalogo'"
+          >
+            Productos del catálogo
+          </button>
+          <button
+            type="button"
+            class="px-3 py-2 text-sm font-medium border-b-2 -mb-px"
+            :class="modoCobro === 'concepto' ? 'border-primary text-primary' : 'border-transparent text-secondary-500'"
+            @click="modoCobro = 'concepto'"
+          >
+            Concepto libre
+          </button>
+        </div>
+
+        <!-- Conceptos libres: cobro sin producto detrás. Se pueden combinar con
+             productos; por eso los seleccionados de cada pestaña se conservan. -->
+        <div v-if="modoCobro === 'concepto'" class="space-y-2">
+          <div
+            v-for="(c, i) in conceptos"
+            :key="i"
+            class="flex items-start gap-2"
+          >
+            <InputText
+              v-model="c.concepto"
+              placeholder="Ej.: Consulta médica"
+              class="flex-1"
+              maxlength="250"
+            />
+            <InputNumber
+              v-model="c.monto"
+              :min="0"
+              :minFractionDigits="2"
+              placeholder="0.00"
+              class="w-28"
+              inputClass="text-right"
+            />
+            <InputNumber
+              v-model="c.cantidad"
+              :min="1"
+              showButtons
+              buttonLayout="horizontal"
+              class="w-24 shrink-0"
+              inputClass="w-12 text-center"
+            />
+            <Button icon="pi pi-times" text rounded severity="danger" @click="quitarConcepto(i)" />
+          </div>
+
+          <Button label="Agregar concepto" icon="pi pi-plus" text @click="agregarConcepto" />
+
+          <p class="text-xs text-secondary-500">
+            El monto es final, con IGV incluido. Aparece así en el comprobante.
+          </p>
+        </div>
+
+        <div v-show="modoCobro === 'catalogo'">
           <label class="block text-sm font-medium text-secondary-700 mb-1">Productos</label>
           <InputText
             v-model="busqueda"
@@ -414,7 +503,7 @@ function anular(link: PaymentLink) {
           </ul>
         </div>
 
-        <div v-if="seleccionados.length" class="border rounded divide-y">
+        <div v-if="seleccionados.length" v-show="modoCobro === 'catalogo'" class="border rounded divide-y">
           <div
             v-for="item in seleccionados"
             :key="item.product_id"
@@ -434,10 +523,11 @@ function anular(link: PaymentLink) {
             </span>
             <Button icon="pi pi-times" text rounded severity="danger" @click="quitar(item.product_id)" />
           </div>
-          <div class="flex justify-between px-3 py-2 font-medium">
-            <span>Total</span>
-            <span>{{ formatCurrency(totalEstimado) }}</span>
-          </div>
+        </div>
+
+        <div v-if="puedeCrear" class="flex justify-between border-t pt-3 font-medium">
+          <span>Total del link</span>
+          <span>{{ formatCurrency(totalEstimado) }}</span>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
@@ -497,7 +587,7 @@ function anular(link: PaymentLink) {
           label="Crear y compartir"
           icon="pi pi-check"
           :loading="creating"
-          :disabled="!seleccionados.length"
+          :disabled="!puedeCrear"
           @click="crear"
         />
       </template>
