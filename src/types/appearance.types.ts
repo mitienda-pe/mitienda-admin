@@ -220,7 +220,7 @@ export interface CatalogPreferences {
   layout_width: number // 0 = contained (1280px), 1 = fluid (100%)
   pdp_layout: number // qué se fija: 0 = la info (default), 1 = las fotos, 2 = nada
   pdp_description: number // 0 = bajo las fotos (default), 1 = bajo la info
-  pdp_gallery: number // 0 = miniaturas (default), 1 = apilada
+  pdp_gallery: number // 0 = miniaturas (default), 1 = apilada, 2 = mosaico
   pdp_recommended_count: number // cuantos productos muestra "Tambien te puede interesar" (0 = ocultar)
   pdp_recommended_source: number // de donde salen: ver PDP_RECOMMENDED_SOURCE
   pdp_recommended_list_id: number | null // solo con source = lista fija
@@ -325,8 +325,14 @@ export const PDP_GALLERY_OPTIONS: PdpGalleryOption[] = [
   {
     value: 1,
     label: 'Apilada',
-    description: 'Todas las fotos en grande, sin miniaturas',
+    description: 'Todas las fotos en grande, una debajo de otra',
     icon: 'pi pi-clone',
+  },
+  {
+    value: 2,
+    label: 'En mosaico',
+    description: 'Todas las fotos en grande, en dos columnas',
+    icon: 'pi pi-th-large',
   },
 ]
 

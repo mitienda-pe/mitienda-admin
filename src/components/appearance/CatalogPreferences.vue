@@ -55,9 +55,10 @@ const pdpSummary = computed(() => {
   if ((sticky === 0 && desc === 1) || (sticky === 1 && desc === 0)) {
     return { text: `Resultado: no se fija nada, porque ${descText}, en esa misma columna.`, muted: true }
   }
-  if (sticky === 1 && gallery === 1) {
+  if (sticky === 1 && gallery !== 0) {
+    const galleryName = gallery === 2 ? 'el mosaico' : 'la galería apilada'
     return {
-      text: `Resultado: no se fija nada, porque la galería apilada es más alta que la pantalla. ${
+      text: `Resultado: no se fija nada, porque ${galleryName} es más alto que la pantalla. ${
         descText.charAt(0).toUpperCase() + descText.slice(1)
       }.`,
       muted: true,
@@ -464,9 +465,10 @@ const hideOutOfStockBool = computed({
         Galería de la ficha
       </label>
       <p class="text-xs text-gray-400 mb-3">
-        Cómo se muestran las fotos del producto
+        Cómo se muestran las fotos del producto. En móvil, apilada y mosaico se
+        ven igual: una foto debajo de otra.
       </p>
-      <div class="grid grid-cols-2 gap-3 max-w-sm">
+      <div class="grid grid-cols-3 gap-3 max-w-md">
         <button
           v-for="option in PDP_GALLERY_OPTIONS"
           :key="option.value"
