@@ -12,7 +12,9 @@ import ShippingLabelDialog from '@/components/orders/ShippingLabelDialog.vue'
 import type { DispatchOrderDetail, DispatchState, DispatchStateId } from '@/types/dispatch.types'
 import type { SenderInfo } from '@/types/store.types'
 import Button from 'primevue/button'
+import Dialog from 'primevue/dialog'
 import Dropdown from 'primevue/dropdown'
+import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import Checkbox from 'primevue/checkbox'
 import Timeline from 'primevue/timeline'
@@ -58,6 +60,9 @@ const olvaHasTracking = computed(() => !!order.value?.tracking.code)
 // Cabify manual dispatch
 const isRedispatchingCabify = ref(false)
 const CABIFY_COURIER_ID = 10
+
+const showCabifyRetryDialog = ref(false)
+const cabifyRetryShippingType = ref('')
 
 const isCabifyOrder = computed(() => order.value?.courier_id === CABIFY_COURIER_ID)
 const cabifyHasTracking = computed(() => !!order.value?.tracking.code)
@@ -308,12 +313,27 @@ async function redispatchOlva() {
   }
 }
 
-async function redispatchCabify() {
-  if (!confirm('¿Crear/reintentar el envío en Cabify para esta orden?')) return
+function openCabifyRetryDialog() {
+  cabifyRetryShippingType.value = ''
+  showCabifyRetryDialog.value = true
+}
+
+async function confirmCabifyRetry() {
+  showCabifyRetryDialog.value = false
+  await redispatchCabify(cabifyRetryShippingType.value.trim() || undefined)
+}
+
+/**
+ * `shippingTypeId` solo se manda en el reintento manual: fuerza un tipo de
+ * envío distinto al que resuelve la configuración de la tienda, que es la
+ * salida cuando Cabify rechaza el envío por falta de cobertura en el destino.
+ */
+async function redispatchCabify(shippingTypeId?: string) {
+  if (!shippingTypeId && !confirm('¿Crear/reintentar el envío en Cabify para esta orden?')) return
 
   isRedispatchingCabify.value = true
   try {
-    const response = await dispatchApi.redispatchCabify(orderId)
+    const response = await dispatchApi.redispatchCabify(orderId, shippingTypeId)
     if (response.success && response.data?.tracking_code) {
       toast.add({
         severity: 'success',
@@ -578,7 +598,7 @@ onMounted(() => {
             severity="primary"
             size="small"
             :loading="isRedispatchingCabify"
-            @click="redispatchCabify"
+            @click="redispatchCabify()"
           />
           <Button
             v-else-if="isCabifyOrder"
@@ -588,7 +608,7 @@ onMounted(() => {
             outlined
             size="small"
             :loading="isRedispatchingCabify"
-            @click="redispatchCabify"
+            @click="openCabifyRetryDialog"
           />
 
           <!-- Cabify: ver seguimiento (cuando ya hay tracking url) -->
@@ -976,6 +996,35 @@ onMounted(() => {
       :order="labelPrintable"
       :sender-info="senderInfo"
     />
+
+    <Dialog
+      v-model:visible="showCabifyRetryDialog"
+      modal
+      header="Reintentar envío en Cabify"
+      :style="{ width: '30rem' }"
+    >
+      <p class="text-sm text-secondary-500 mb-4">
+        Se volverá a crear el envío con la configuración de la tienda. Si Cabify lo rechazó
+        por cobertura, puedes forzar otro tipo de envío solo para este pedido.
+      </p>
+      <label class="block text-sm font-medium text-secondary-700 mb-1">
+        Tipo de envío (opcional)
+      </label>
+      <InputText
+        v-model="cabifyRetryShippingType"
+        class="w-full"
+        placeholder="Déjalo vacío para usar el configurado"
+      />
+      <template #footer>
+        <Button label="Cancelar" text severity="secondary" @click="showCabifyRetryDialog = false" />
+        <Button
+          label="Reintentar"
+          icon="pi pi-refresh"
+          :loading="isRedispatchingCabify"
+          @click="confirmCabifyRetry"
+        />
+      </template>
+    </Dialog>
   </div>
 </template>
 

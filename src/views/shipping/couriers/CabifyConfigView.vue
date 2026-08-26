@@ -58,7 +58,7 @@
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-secondary-700 mb-1">Tipo de envío</label>
+              <label class="block text-sm font-medium text-secondary-700 mb-1">Tipo de envío por defecto</label>
               <div class="flex gap-2">
                 <Dropdown
                   v-model="form.shipping_type_id"
@@ -80,7 +80,8 @@
               </div>
               <small class="text-secondary-400">
                 El ID es propio de tu cuenta Cabify. Completa credenciales y coordenadas de origen,
-                luego consulta los tipos disponibles para esa ubicación.
+                luego consulta los tipos disponibles para esa ubicación. Se usa en todos los envíos
+                que no tengan un tipo asignado más abajo.
               </small>
             </div>
             <div>
@@ -94,6 +95,51 @@
               />
             </div>
           </div>
+
+          <Divider />
+
+          <!-- Tipo de envío por servicio -->
+          <div>
+            <h3 class="text-lg font-semibold text-secondary-700">Tipo de envío por servicio</h3>
+            <p class="text-sm text-secondary-400 mt-1">
+              Opcional. Si tu tienda ofrece varios servicios de envío en el checkout, indica con qué
+              tipo de Cabify se despacha cada uno. Los que dejes vacíos salen con el tipo por defecto.
+            </p>
+          </div>
+
+          <div v-if="serviceTypes.length" class="space-y-3">
+            <div
+              v-for="serviceType in serviceTypes"
+              :key="serviceType.service_type_id"
+              class="grid grid-cols-1 md:grid-cols-3 gap-3 md:items-center"
+            >
+              <label class="text-sm font-medium text-secondary-700">
+                {{ serviceType.service_type_nombre }}
+              </label>
+              <div class="md:col-span-2 flex gap-2">
+                <Dropdown
+                  v-model="serviceTypeMap[serviceType.service_type_id]"
+                  :options="shippingTypes"
+                  optionLabel="name"
+                  optionValue="id"
+                  editable
+                  class="flex-1"
+                  placeholder="Usa el tipo por defecto"
+                />
+                <Button
+                  icon="pi pi-times"
+                  severity="secondary"
+                  outlined
+                  :disabled="!serviceTypeMap[serviceType.service_type_id]"
+                  v-tooltip.top="'Volver al tipo por defecto'"
+                  @click="serviceTypeMap[serviceType.service_type_id] = ''"
+                />
+              </div>
+            </div>
+          </div>
+          <p v-else class="text-sm text-secondary-400">
+            No se pudieron cargar los tipos de servicio de envío.
+          </p>
 
           <Divider />
 
@@ -183,6 +229,7 @@
             <li>Solicita tus credenciales OAuth (client_id / client_secret) a Cabify</li>
             <li>Ingresa la latitud/longitud y dirección de tu almacén de origen</li>
             <li>Consulta los tipos de envío disponibles con el botón de recarga y elige el tuyo</li>
+            <li>Si ofreces varios servicios de envío, asigna el tipo de Cabify de cada uno</li>
             <li>Usa el entorno de prueba (sandbox) antes de activar en producción</li>
           </ol>
 
@@ -206,13 +253,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCourierProvidersStore } from '@/stores/courier-providers.store'
 import { useDirtyForm } from '@/composables/useDirtyForm'
 import { useToast } from 'primevue/usetoast'
 import { courierProvidersApi } from '@/api/courier-providers.api'
+import { shippingServiceTypesApi } from '@/api/shipping.api'
 import type { CabifyShippingType, CourierEnvironment } from '@/types/courier-provider.types'
+import type { ShippingServiceType } from '@/types/shipping.types'
 import cabifyLogo from '@/assets/images/logo-cabify-logistics.svg'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -246,7 +295,26 @@ const form = ref({
   currency: 'PEN',
 })
 
-const { isDirty, reset: resetDirty } = useDirtyForm(() => form.value)
+/**
+ * Mapa tipo de servicio de la plataforma -> shipping_type_id de Cabify.
+ * Clave = service_type_id; valor vacío significa "usa el tipo por defecto".
+ */
+const serviceTypeMap = ref<Record<number, string>>({})
+const serviceTypes = ref<ShippingServiceType[]>([])
+
+const { isDirty, reset: resetDirty } = useDirtyForm(() => ({
+  ...form.value,
+  service_type_map: serviceTypeMap.value,
+}))
+
+onMounted(async () => {
+  try {
+    const response = await shippingServiceTypesApi.getAll()
+    serviceTypes.value = response.data ?? []
+  } catch {
+    serviceTypes.value = []
+  }
+})
 
 const isConfigured = computed(() => store.currentConfig?.courier?.configured ?? false)
 
@@ -335,6 +403,12 @@ watch(() => store.currentConfig, (config) => {
     form.value.default_weight_g = (c.default_weight_g as string) || '1000'
     form.value.currency = (c.currency as string) || 'PEN'
   }
+
+  const savedMap = config?.service_type_map ?? {}
+  serviceTypeMap.value = Object.fromEntries(
+    Object.entries(savedMap).map(([serviceTypeId, value]) => [Number(serviceTypeId), value]),
+  )
+
   resetDirty()
 }, { immediate: true })
 
@@ -350,11 +424,18 @@ async function handleSave() {
 
   const credentials = { ...form.value }
 
+  // Solo viajan los servicios con tipo propio: el resto se resuelve con el default.
+  const service_type_map = Object.fromEntries(
+    Object.entries(serviceTypeMap.value)
+      .map(([serviceTypeId, value]) => [serviceTypeId, (value ?? '').trim()])
+      .filter(([, value]) => value !== ''),
+  )
+
   try {
     if (isConfigured.value) {
-      await store.updateConfig('cabify', { credentials })
+      await store.updateConfig('cabify', { credentials, service_type_map })
     } else {
-      await store.saveConfig('cabify', { credentials })
+      await store.saveConfig('cabify', { credentials, service_type_map })
     }
     toast.add({ severity: 'success', summary: 'Guardado', detail: 'Configuración guardada correctamente', life: 3000 })
     resetDirty()

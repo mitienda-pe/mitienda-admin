@@ -89,14 +89,19 @@ export const dispatchApi = {
   /**
    * Crea/reintenta el envío en Cabify (createParcels + shipParcels).
    * Devuelve el tracking_code (parcel id) y la tracking_url de Cabify.
+   *
+   * `shippingTypeId` fuerza un tipo de envío puntual: sirve cuando el que
+   * resuelve la configuración no tiene cobertura para el destino. Sin él, el
+   * backend usa el mapa por tipo de servicio y, si no hay, el tipo por defecto.
    */
-  async redispatchCabify(orderId: number): Promise<ApiResponse<{
+  async redispatchCabify(orderId: number, shippingTypeId?: string): Promise<ApiResponse<{
     success: boolean
     parcel_id: string | null
     tracking_url: string | null
     tracking_code: string | null
   }>> {
-    const response = await apiClient.post(`/orders/${orderId}/cabify-redispatch`)
+    const payload = shippingTypeId ? { shipping_type_id: shippingTypeId } : {}
+    const response = await apiClient.post(`/orders/${orderId}/cabify-redispatch`, payload)
     return response.data
   },
 

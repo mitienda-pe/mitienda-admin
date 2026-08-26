@@ -17,11 +17,17 @@ export interface CourierProvider {
 export interface CourierProviderConfig {
   courier: CourierProvider
   credentials: Record<string, string | boolean | number | null> | null
+  /**
+   * Mapa service_type_id (plataforma) -> identificador del servicio en el
+   * courier. Vacío para los couriers que no lo soportan.
+   */
+  service_type_map?: Record<string, string>
 }
 
 export interface SaveCourierConfigRequest {
   credentials: Record<string, unknown>
   dispatch_mode?: CourierDispatchMode
+  service_type_map?: Record<string, string>
 }
 
 export interface CalculatePriceRequest {
