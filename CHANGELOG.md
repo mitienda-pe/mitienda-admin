@@ -3,6 +3,28 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.71.0] - 2026-08-26
+
+### Novedades
+
+- **cabify:** asignar el tipo de envío de Cabify por servicio del checkout ([`50b2b74`](https://github.com/mitienda-pe/mitienda-admin/commit/50b2b7468a628c5febe576a82b2432fa1c3e787a))
+- **payment-links:** pantalla para crear y compartir links de pago ([`2b183de`](https://github.com/mitienda-pe/mitienda-admin/commit/2b183de4caa52cfbb78ccca4ff57cf03ca5943df))
+- **ventas:** boton para anular una venta desde el detalle ([`a0db93f`](https://github.com/mitienda-pe/mitienda-admin/commit/a0db93f8cc53460b84f43d7730593a4720cd24b7))
+- **bulk-import:** permitir editar productos identificados por SKU ([`a7592d1`](https://github.com/mitienda-pe/mitienda-admin/commit/a7592d18a46ec809d58e287d7672ff195703463a))
+
+### Correcciones
+
+- **broadcasts:** el "Resetear" del superadmin no devolvía el aviso ([`c525163`](https://github.com/mitienda-pe/mitienda-admin/commit/c525163525a62a0da0b48256544bdb3d3050286d))
+- **broadcasts:** el CTA del modal usaba el azul del tema PrimeVue ([`b0f864a`](https://github.com/mitienda-pe/mitienda-admin/commit/b0f864a6704681b123c98c6c36db441f83290210))
+- **antifraude:** distinguir "sin datos" de "riesgo bajo" en la calificacion de riesgo ([`fa5f1ea`](https://github.com/mitienda-pe/mitienda-admin/commit/fa5f1ea6498112d9182ab984c847cea2a43478f6))
+- **bulk-import:** completar SKU y nombre en el reporte de importacion ([`1e8e4cd`](https://github.com/mitienda-pe/mitienda-admin/commit/1e8e4cd0c8d5356556cce6b1c83a157947130d85))
+- **productos:** devolver el codigo de barras en la ficha ([`7f8c683`](https://github.com/mitienda-pe/mitienda-admin/commit/7f8c6834c48ba1cfd3fad0dc703db93e30bf18f6))
+- **bulk-import:** reconocer cabeceras con tildes y avisar las ignoradas ([`f3bc612`](https://github.com/mitienda-pe/mitienda-admin/commit/f3bc612fb6dffda8cf149f51981a884e4d7a28c7))
+
+### Refactor
+
+- **productos:** normalizar la respuesta del API con spread ([`73f2d1e`](https://github.com/mitienda-pe/mitienda-admin/commit/73f2d1efe53ef0e7ef5460d26a45894956c5dedd))
+
 ## [v2.70.0] - 2026-08-20
 
 ### Novedades
