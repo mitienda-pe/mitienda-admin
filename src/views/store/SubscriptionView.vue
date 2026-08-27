@@ -111,7 +111,10 @@
         </div>
       </div>
 
-      <!-- Card 3: Historial de Pagos -->
+      <!-- Card 3: Metodo de pago -->
+      <PaymentMethodCard />
+
+      <!-- Card 4: Historial de Pagos -->
       <div class="bg-white rounded-lg shadow p-6">
         <h2 class="text-lg font-semibold text-secondary mb-4 flex items-center gap-2">
           <i class="pi pi-history text-primary"></i>
@@ -189,6 +192,7 @@ import { computed, onMounted, defineComponent } from 'vue'
 import { usePlanStore } from '@/stores/plan.store'
 import { useFormatters } from '@/composables/useFormatters'
 import { AppBadge, AppEmptyState, AppErrorState } from '@/components/ui'
+import PaymentMethodCard from './components/PaymentMethodCard.vue'
 import ProgressSpinner from 'primevue/progressspinner'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
