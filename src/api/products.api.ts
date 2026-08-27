@@ -35,6 +35,8 @@ export interface ProductsFilters {
   product_type_id?: number | null
   published?: boolean | null
   stock_status?: 'all' | 'in_stock' | 'limited' | 'out_of_stock'
+  /** Resuelve productos puntuales por ID, sin paginar el catálogo entero. */
+  ids?: number[]
 }
 
 /**
@@ -198,6 +200,7 @@ export const productsApi = {
     if (filters.category_id) params.append('category_id', filters.category_id.toString())
     if (filters.brand_id) params.append('brand_id', filters.brand_id.toString())
     if (filters.product_type_id) params.append('product_type_id', filters.product_type_id.toString())
+    if (filters.ids?.length) params.append('ids', filters.ids.join(','))
     if (filters.published !== null && filters.published !== undefined) {
       params.append('published', filters.published ? '1' : '0')
     }

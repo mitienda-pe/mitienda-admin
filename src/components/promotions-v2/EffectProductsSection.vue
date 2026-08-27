@@ -86,24 +86,27 @@
         <div class="rounded-lg border overflow-hidden">
           <div class="bg-gray-50 px-4 py-3 border-b">
             <h3 class="text-sm font-semibold text-gray-700">Productos disponibles</h3>
-            <p class="text-xs text-gray-400 mt-0.5">{{ unlinkedProducts.length }} productos sin vincular</p>
+            <p class="text-xs text-gray-400 mt-0.5">
+              {{ searchUnlinked ? `${unlinkedProducts.length} resultado(s)` : `${unlinkedProducts.length} productos más recientes` }}
+            </p>
           </div>
 
           <div class="p-3 border-b">
             <input
               v-model="searchUnlinked"
               type="text"
-              placeholder="Buscar productos..."
+              placeholder="Buscar por nombre, SKU o código de barras..."
               class="block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-primary focus:ring-primary"
+              @input="debouncedSearch"
             />
-            <div v-if="filteredUnlinked.length > 0" class="flex justify-end mt-2">
+            <div v-if="unlinkedProducts.length > 0" class="flex justify-end mt-2">
               <button
-                v-if="selectedUnlinked.length < filteredUnlinked.length"
+                v-if="selectedUnlinked.length < unlinkedProducts.length"
                 type="button"
                 class="text-xs text-primary hover:underline"
-                @click="selectedUnlinked = filteredUnlinked.map(p => p.id)"
+                @click="selectedUnlinked = unlinkedProducts.map(p => p.id)"
               >
-                Seleccionar todos ({{ filteredUnlinked.length }})
+                Seleccionar todos ({{ unlinkedProducts.length }})
               </button>
               <button
                 v-else
@@ -117,13 +120,16 @@
           </div>
 
           <div class="h-80 overflow-y-auto">
-            <div v-if="filteredUnlinked.length === 0" class="p-4 text-center text-gray-400">
+            <div v-if="isSearching" class="flex justify-center py-12">
+              <i class="pi pi-spinner pi-spin text-2xl text-primary"></i>
+            </div>
+            <div v-else-if="unlinkedProducts.length === 0" class="p-4 text-center text-gray-400">
               <i class="pi pi-inbox mb-2 text-2xl"></i>
               <p class="text-sm">{{ searchUnlinked ? 'Sin resultados' : 'No hay productos disponibles' }}</p>
             </div>
             <div v-else class="divide-y">
               <label
-                v-for="product in filteredUnlinked"
+                v-for="product in unlinkedProducts"
                 :key="product.id"
                 class="flex cursor-pointer items-center gap-3 p-3 hover:bg-gray-50"
               >
@@ -139,6 +145,10 @@
                 </div>
               </label>
             </div>
+
+            <p v-if="hasMoreResults" class="border-t bg-amber-50 px-3 py-2 text-xs text-amber-700">
+              Hay más productos que coinciden. Afina la búsqueda para verlos.
+            </p>
           </div>
 
           <div class="flex items-center justify-between border-t bg-gray-50 px-4 py-3">
@@ -157,7 +167,7 @@
         <div class="rounded-lg border overflow-hidden">
           <div class="bg-primary/5 px-4 py-3 border-b">
             <h3 class="text-sm font-semibold text-primary">Productos vinculados</h3>
-            <p class="text-xs text-primary/70 mt-0.5">{{ linkedProductsDialog.length }} productos en este efecto</p>
+            <p class="text-xs text-primary/70 mt-0.5">{{ linkedProducts.length }} productos en este efecto</p>
           </div>
 
           <div class="p-3 border-b">
@@ -288,10 +298,20 @@ const effectLabel = computed(() => {
   return props.effect.type
 })
 
+// Tope de resultados por búsqueda en el panel izquierdo. Es una página del API,
+// no el catálogo: si se llena avisamos que hay más (`hasMoreResults`).
+const SEARCH_LIMIT = 50
+
 const showDialog = ref(false)
 const isLoading = ref(false)
+const isSearching = ref(false)
 const isSaving = ref(false)
-const allProducts = ref<ProductItem[]>([])
+// Productos vinculados, resueltos por ID contra el API. Antes salían de filtrar
+// una página de 1000 productos, así que en catálogos grandes los más antiguos
+// no aparecían ni en el listado ni en el buscador.
+const linkedProducts = ref<ProductItem[]>([])
+// Resultados del panel izquierdo: una página del API, no el catálogo entero.
+const searchResults = ref<ProductItem[]>([])
 const searchUnlinked = ref('')
 const searchLinked = ref('')
 const selectedUnlinked = ref<number[]>([])
@@ -301,10 +321,7 @@ const productIds = computed<number[]>(() =>
   props.effect.config?.product_ids || []
 )
 
-// Products with full details for the preview card
-const linkedProducts = computed(() =>
-  allProducts.value.filter(p => productIds.value.includes(p.id))
-)
+const hasMoreResults = computed(() => searchResults.value.length >= SEARCH_LIMIT)
 
 // Elegibilidad de regalo: el motor (PromotionV2GiftResolver) NO entrega productos
 // con variantes ni sin stock. Solo aplica al efecto gift_product; en %/precio
@@ -326,7 +343,7 @@ function giftIneligibleReason(p: ProductItem): string {
 }
 
 // Solo evaluamos elegibilidad cuando ya cargaron los productos, para no mostrar
-// un falso "no entregable" mientras allProducts está vacío.
+// un falso "no entregable" mientras linkedProducts está vacío.
 const noDeliverableGift = computed(() =>
   isGiftEffect.value &&
   !isLoading.value &&
@@ -334,27 +351,18 @@ const noDeliverableGift = computed(() =>
   linkedProducts.value.every(p => !isDeliverableGift(p))
 )
 
-// Dialog-specific computed (uses allProducts loaded when dialog opens)
-const linkedProductsDialog = computed(() =>
-  allProducts.value.filter(p => productIds.value.includes(p.id))
-)
-
+// El panel izquierdo ya viene filtrado del servidor; aquí solo sacamos los que
+// ya están vinculados para que no aparezcan en ambas columnas.
 const unlinkedProducts = computed(() =>
-  allProducts.value.filter(p => !productIds.value.includes(p.id))
+  searchResults.value.filter(p => !productIds.value.includes(p.id))
 )
 
-const filteredUnlinked = computed(() => {
-  if (!searchUnlinked.value) return unlinkedProducts.value
-  const q = searchUnlinked.value.toLowerCase()
-  return unlinkedProducts.value.filter(p =>
-    p.name.toLowerCase().includes(q) || p.sku?.toLowerCase().includes(q)
-  )
-})
-
+// Los vinculados sí están completos en memoria (se piden por ID), así que el
+// buscador de la derecha puede filtrar en el cliente sin perder nada.
 const filteredLinked = computed(() => {
-  if (!searchLinked.value) return linkedProductsDialog.value
+  if (!searchLinked.value) return linkedProducts.value
   const q = searchLinked.value.toLowerCase()
-  return linkedProductsDialog.value.filter(p =>
+  return linkedProducts.value.filter(p =>
     p.name.toLowerCase().includes(q) || p.sku?.toLowerCase().includes(q)
   )
 })
@@ -368,24 +376,68 @@ function toggleSelection(list: number[], id: number) {
   }
 }
 
-async function loadAllProducts() {
+function toProductItem(p: any): ProductItem {
+  return {
+    id: p.id,
+    name: p.name,
+    sku: p.sku || '',
+    image: p.images?.[0]?.url || null,
+    stock: typeof p.stock === 'number' ? p.stock : Number(p.stock) || 0,
+    unlimitedStock: !!p.unlimited_stock,
+    hasVariants: !!p.has_variation_attributes,
+  }
+}
+
+// Los vinculados se piden por ID: el efecto puede apuntar a productos viejos que
+// no entran en ninguna primera página del catálogo.
+async function loadLinkedProducts() {
+  const ids = productIds.value
+  if (ids.length === 0) {
+    linkedProducts.value = []
+    return
+  }
+
   isLoading.value = true
   try {
-    const response = await productsApi.getProducts({ limit: 1000 })
-    allProducts.value = (response.data || []).map((p: any) => ({
-      id: p.id,
-      name: p.name,
-      sku: p.sku || '',
-      image: p.images?.[0]?.url || null,
-      stock: typeof p.stock === 'number' ? p.stock : Number(p.stock) || 0,
-      unlimitedStock: !!p.unlimited_stock,
-      hasVariants: !!p.has_variation_attributes,
-    }))
+    const response = await productsApi.getProducts({ ids, limit: ids.length })
+    linkedProducts.value = (response.data || []).map(toProductItem)
   } catch {
-    allProducts.value = []
+    linkedProducts.value = []
   } finally {
     isLoading.value = false
   }
+}
+
+// Token para descartar respuestas que llegan fuera de orden: con debounce corto
+// una búsqueda lenta puede aterrizar después de otra más nueva.
+let searchToken = 0
+
+async function searchAvailableProducts() {
+  const token = ++searchToken
+  const term = searchUnlinked.value.trim()
+
+  isSearching.value = true
+  try {
+    const response = await productsApi.getProducts({
+      search: term || undefined,
+      limit: SEARCH_LIMIT,
+      page: 1,
+    })
+    if (token !== searchToken) return
+    searchResults.value = (response.data || []).map(toProductItem)
+  } catch {
+    if (token !== searchToken) return
+    searchResults.value = []
+  } finally {
+    if (token === searchToken) isSearching.value = false
+  }
+}
+
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
+
+function debouncedSearch() {
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(searchAvailableProducts, 400)
 }
 
 async function updateProductIds(newIds: number[]) {
@@ -421,14 +473,15 @@ async function unlinkSelected() {
 // Load products when dialog opens
 watch(showDialog, (visible) => {
   if (visible) {
-    loadAllProducts()
     selectedUnlinked.value = []
     selectedLinked.value = []
     searchUnlinked.value = ''
     searchLinked.value = ''
+    searchAvailableProducts()
   }
 })
 
-// Load products on mount for the preview card
-loadAllProducts()
+// Los vinculados se recargan solos al montar y cada vez que cambia el efecto
+// (agregar, quitar, o una edición hecha desde otra parte de la pantalla).
+watch(productIds, loadLinkedProducts, { immediate: true, deep: true })
 </script>
