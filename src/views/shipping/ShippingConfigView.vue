@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useShippingConfigStore } from '@/stores/shipping-config.store'
+import { useShippingZonesStore } from '@/stores/shipping-zones.store'
 import { useStoreInfoStore } from '@/stores/store-info.store'
 import { storeToRefs } from 'pinia'
 import InputSwitch from 'primevue/inputswitch'
@@ -20,6 +21,8 @@ const store = useShippingConfigStore()
 const { draftConfig, isLoading, isSaving, error, hasChanges } = storeToRefs(store)
 const storeInfoStore = useStoreInfoStore()
 const { addresses } = storeToRefs(storeInfoStore)
+const zonesStore = useShippingZonesStore()
+const { zones, isLoading: zonesLoading } = storeToRefs(zonesStore)
 const toast = useToast()
 
 // "Recojo en tienda" sólo se puede habilitar si hay al menos una dirección
@@ -91,6 +94,41 @@ watch(() => draftConfig.value.swServiciosEnvio, (enabled) => {
   }
 })
 
+// El reparto gratis puede limitarse a una zona de reparto
+// (tiendageneral_zonarepartogratis): fuera de ella el envío se cobra aunque la
+// compra supere el monto mínimo. El panel legacy siempre expuso esta opción; el
+// backend (FreeShippingPolicy) y el storefront la respetan, pero aquí no se
+// veía, así que las tiendas migradas no podían leerla ni corregirla.
+// 0 / null = todos los distritos con cobertura.
+const zonesLoaded = ref(false)
+
+const freeShippingZone = computed({
+  get: () => draftConfig.value.zonaRepartoGratis ?? 0,
+  set: (value: number) => store.updateField('zonaRepartoGratis', value || null)
+})
+
+// Una zona eliminada (soft delete) deja la referencia colgando y el beneficio
+// apagado para todos, sin aviso. Se detecta para poder decirlo en pantalla.
+const missingFreeShippingZone = computed(() => {
+  const current = draftConfig.value.zonaRepartoGratis ?? 0
+  return zonesLoaded.value && current > 0 && !zones.value.some(z => z.id === current)
+})
+
+const freeShippingZoneOptions = computed(() => {
+  const options = [{ label: 'Todos los distritos con cobertura', value: 0 }]
+  for (const zone of zones.value) {
+    const count = zone.ubigeoCount === 1 ? '1 ubicación' : `${zone.ubigeoCount} ubicaciones`
+    options.push({ label: `${zone.name} (${count})`, value: zone.id })
+  }
+  if (missingFreeShippingZone.value) {
+    options.push({
+      label: `Zona eliminada (#${draftConfig.value.zonaRepartoGratis})`,
+      value: draftConfig.value.zonaRepartoGratis as number
+    })
+  }
+  return options
+})
+
 // Al apagar "Reparto gratis", limpiar el monto mínimo para no dejar un valor
 // huérfano que el storefront podría leer ignorando el switch (mostraba "Te
 // faltan S/ X para envío gratis" pese a estar desactivado). El backend también
@@ -134,6 +172,9 @@ onMounted(async () => {
   }
   // Cargar direcciones para saber si hay puntos de recojo configurados
   await storeInfoStore.fetchAddresses()
+  // Zonas de reparto: alimentan el selector de "¿dónde aplica el envío gratis?"
+  await zonesStore.fetchZones()
+  zonesLoaded.value = true
 })
 
 // Si dejan de existir puntos de recojo mientras la pantalla está abierta
@@ -262,18 +303,41 @@ watch(hasPickupPoint, (has) => {
             </div>
             <InputSwitch v-model="draftConfig.swRepartoGratis" />
           </div>
-          <div v-if="draftConfig.swRepartoGratis" class="mt-3 ml-4 max-w-xs">
-            <label class="block text-sm text-secondary-700 mb-1">Monto mínimo para envío gratis</label>
-            <InputNumber
-              v-model="draftConfig.montoRepartoGratis"
-              mode="currency"
-              :currency="currencyIso"
-              currencyDisplay="narrowSymbol"
-              locale="es-PE"
-              :minFractionDigits="2"
-              :min="0"
-              class="w-full"
-            />
+          <div v-if="draftConfig.swRepartoGratis" class="mt-3 ml-4 space-y-3">
+            <div class="max-w-xs">
+              <label class="block text-sm text-secondary-700 mb-1">Monto mínimo para envío gratis</label>
+              <InputNumber
+                v-model="draftConfig.montoRepartoGratis"
+                mode="currency"
+                :currency="currencyIso"
+                currencyDisplay="narrowSymbol"
+                locale="es-PE"
+                :minFractionDigits="2"
+                :min="0"
+                class="w-full"
+              />
+            </div>
+            <div class="max-w-xs">
+              <label class="block text-sm text-secondary-700 mb-1">¿Dónde aplica?</label>
+              <Dropdown
+                v-model="freeShippingZone"
+                :options="freeShippingZoneOptions"
+                optionLabel="label"
+                optionValue="value"
+                :loading="zonesLoading"
+                class="w-full"
+              />
+              <p class="text-xs text-gray-500 mt-1">
+                Limita el envío gratis a una
+                <router-link to="/shipping/zones" class="underline">zona de reparto</router-link>.
+                Fuera de esa zona el envío se cobra aunque la compra supere el monto mínimo.
+              </p>
+              <p v-if="missingFreeShippingZone" class="text-xs text-amber-700 mt-1">
+                <i class="pi pi-exclamation-triangle mr-1" />
+                La zona configurada ya no existe, así que nadie recibe envío gratis.
+                Elige una zona vigente o cámbialo a "Todos los distritos con cobertura".
+              </p>
+            </div>
           </div>
         </div>
 
