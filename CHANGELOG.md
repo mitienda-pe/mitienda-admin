@@ -3,6 +3,21 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.73.1] - 2026-08-27
+
+### Correcciones
+
+- **promociones:** el selector no mostraba productos fuera de los 1000 más nuevos ([`3f95024`](https://github.com/mitienda-pe/mitienda-admin/commit/3f950245b7df0f7c531793182d5497414b6dbf7a))
+
+## [v2.73.0] - 2026-08-27
+
+### Novedades
+
+- **suscripcion:** el comercio puede guardar su tarjeta para renovar el plan ([`d68e2e4`](https://github.com/mitienda-pe/mitienda-admin/commit/d68e2e4c0dccefa78ce82f6c3b6318b2cc01b70a))
+- **envio:** permitir elegir la zona donde aplica el reparto gratis ([`5ef001f`](https://github.com/mitienda-pe/mitienda-admin/commit/5ef001fa66c1d92c9f1143109e11497b31e3fc9e))
+- **apariencia:** cantidad configurable de "Vistos recientemente" en la ficha ([`390bf63`](https://github.com/mitienda-pe/mitienda-admin/commit/390bf63db9ddd6c636eb6371758fbc3b2114e4bf))
+- **integraciones:** categoría CRM en el listado de proveedores ([`42945d4`](https://github.com/mitienda-pe/mitienda-admin/commit/42945d49302bef6a95fdbe48deebb9aedbbff330))
+
 ## [v2.72.0] - 2026-08-26
 
 ### Novedades
