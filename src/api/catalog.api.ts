@@ -8,17 +8,17 @@ export const catalogApi = {
     const response = await apiClient.get('/categories')
     const rawData = response.data
 
-    // El API devuelve array directo sin transformar
+    // El API devuelve un árbol (padres con sus hijas en `sub`), sin transformar.
     if (Array.isArray(rawData)) {
-      // Aplanar categorías (extraer solo categorías padre, sin subcategorías por ahora)
-      const categories: Category[] = rawData.map((cat: any) => ({
+      const mapNode = (cat: any): Category => ({
         id: parseInt(cat.tiendacategoria_id),
         name: cat.tiendacategoria_nombre,
         slug: cat.tiendacategoria_nombreurl,
-        parent_id: parseInt(cat.parent_id || '0')
-      }))
+        parent_id: parseInt(cat.parent_id || '0'),
+        ...(Array.isArray(cat.sub) && cat.sub.length ? { sub: cat.sub.map(mapNode) } : {})
+      })
 
-      return { success: true, data: categories }
+      return { success: true, data: rawData.map(mapNode) }
     }
 
     return { success: false, data: [] }

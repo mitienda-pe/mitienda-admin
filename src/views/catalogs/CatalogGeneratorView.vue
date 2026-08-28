@@ -40,7 +40,7 @@
                 </button>
               </div>
 
-              <!-- Selector por categoría -->
+              <!-- Selector por categoría o subcategoría -->
               <div v-if="form.scope === 'category'" class="mt-3">
                 <Dropdown
                   v-model="form.category_id"
@@ -48,9 +48,23 @@
                   option-label="name"
                   option-value="id"
                   filter
-                  placeholder="Selecciona una categoría"
+                  placeholder="Selecciona una categoría o subcategoría"
                   class="w-full"
-                />
+                >
+                  <!-- Las subcategorías van indentadas bajo su categoría padre. -->
+                  <template #option="{ option }">
+                    <span
+                      :style="option.depth ? { paddingLeft: option.depth * 14 + 'px' } : undefined"
+                      :class="option.depth ? 'text-gray-600' : 'font-medium'"
+                    >
+                      <i v-if="option.depth" class="pi pi-angle-right text-xs text-gray-400 mr-1" />{{ option.name }}
+                    </span>
+                  </template>
+                </Dropdown>
+                <p class="text-xs text-gray-400 mt-1">
+                  Si eliges una categoría se incluyen también sus subcategorías; elige una
+                  subcategoría para acotar el catálogo solo a ella.
+                </p>
               </div>
 
               <!-- Selector por marca -->
@@ -97,7 +111,7 @@
                 <template v-if="scopeCount.truncated">
                   {{ scopeCount.matched_count }} productos publicados en este alcance —
                   se incluirán solo los primeros {{ scopeCount.included_count }}.
-                  Acota por categoría, marca o lista para controlar cuáles entran.
+                  Acota por subcategoría, marca o lista para controlar cuáles entran.
                 </template>
                 <template v-else>
                   {{ scopeCount.matched_count }}
@@ -243,6 +257,7 @@ import { catalogPdfApi } from '@/api/catalog-pdf.api'
 import { brandApi } from '@/api/brand.api'
 import { catalogApi } from '@/api/catalog.api'
 import { productListApi } from '@/api/product-list.api'
+import type { Category } from '@/types/product.types'
 import {
   CATALOG_MAX_PRODUCTS,
   type Catalog,
@@ -272,7 +287,7 @@ const submitting = ref(false)
 
 const scopeOptions: { value: CatalogScope; label: string; icon: string }[] = [
   { value: 'all', label: 'Todos los productos', icon: 'pi pi-box' },
-  { value: 'category', label: 'Por categoría', icon: 'pi pi-folder' },
+  { value: 'category', label: 'Por categoría o subcategoría', icon: 'pi pi-folder' },
   { value: 'brand', label: 'Por marca', icon: 'pi pi-tag' },
   { value: 'list', label: 'Lista de productos', icon: 'pi pi-list' }
 ]
@@ -284,12 +299,22 @@ const coverOptions: { value: CatalogCoverType; label: string }[] = [
 ]
 
 // ── Categorías / marcas ──────────────────────────────────────────
-const categories = ref<{ id: number; name: string }[]>([])
+// El API devuelve las categorías en árbol (`sub`). Se aplanan conservando la
+// profundidad para indentarlas en el dropdown: cualquier nodo es seleccionable,
+// así que se puede generar el catálogo de una subcategoría concreta.
+const categories = ref<{ id: number; name: string; depth: number }[]>([])
 const brands = ref<{ id: number; name: string }[]>([])
+
+function flattenCategories(nodes: Category[], depth = 0): { id: number; name: string; depth: number }[] {
+  return nodes.flatMap(node => [
+    { id: node.id, name: node.name, depth },
+    ...(node.sub?.length ? flattenCategories(node.sub, depth + 1) : [])
+  ])
+}
 
 async function loadCategories() {
   const res = await catalogApi.getCategories()
-  if (res.success && res.data) categories.value = res.data.map(c => ({ id: c.id, name: c.name }))
+  if (res.success && res.data) categories.value = flattenCategories(res.data)
 }
 async function loadBrands() {
   const res = await brandApi.getAll()
@@ -379,7 +404,7 @@ function validate(): boolean {
   errors.nombre = undefined
   errors.scope = undefined
   if (!form.nombre.trim()) errors.nombre = 'El nombre es obligatorio'
-  if (form.scope === 'category' && !form.category_id) errors.scope = 'Selecciona una categoría'
+  if (form.scope === 'category' && !form.category_id) errors.scope = 'Selecciona una categoría o subcategoría'
   if (form.scope === 'brand' && !form.brand_id) errors.scope = 'Selecciona una marca'
   if (form.scope === 'list' && !form.list_id) errors.scope = 'Selecciona una lista de productos'
   return !errors.nombre && !errors.scope
