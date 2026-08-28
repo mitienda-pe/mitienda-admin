@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.73.2] - 2026-08-28
+
+### Novedades
+
+- **catalogos:** elegir subcategoría al generar el catálogo PDF ([`1d14ffa`](https://github.com/mitienda-pe/mitienda-admin/commit/1d14ffa32158b3a1fabeccb3008e56fb5be9b045))
+
 ## [v2.73.1] - 2026-08-27
 
 ### Correcciones
