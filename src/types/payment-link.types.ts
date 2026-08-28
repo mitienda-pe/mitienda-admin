@@ -94,6 +94,8 @@ export interface PaymentLinkConceptoPayload {
   concepto: string
   monto: number | null
   cantidad: number
+  /** 1=gravado, 2=exonerado, 3=inafecto. */
+  afectacion: number
 }
 
 export interface CreatePaymentLinkPayload {

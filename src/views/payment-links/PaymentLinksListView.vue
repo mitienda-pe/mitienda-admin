@@ -14,6 +14,7 @@ import Column from 'primevue/column'
 import DataTable from 'primevue/datatable'
 import Dialog from 'primevue/dialog'
 import InputNumber from 'primevue/inputnumber'
+import Select from 'primevue/dropdown'
 import InputText from 'primevue/inputtext'
 import Calendar from 'primevue/calendar'
 import Textarea from 'primevue/textarea'
@@ -40,6 +41,7 @@ async function load() {
     const response = await paymentLinksApi.list({ page: 1, limit: 50 })
     links.value = response.data
     total.value = response.pagination?.total ?? response.data.length
+    afectacionPorDefecto.value = response.afectacionSugerida
   } catch (e: any) {
     toast.add({
       severity: 'error',
@@ -128,7 +130,22 @@ const buscando = ref(false)
 const seleccionados = ref<Array<{ product_id: number; nombre: string; precio: number; cantidad: number }>>([])
 // Conceptos libres: cobro sin producto de catálogo detrás ("Consulta médica").
 // El monto que escribe el comerciante es final, con IGV incluido.
-const conceptos = ref<Array<{ concepto: string; monto: number | null; cantidad: number }>>([])
+const conceptos = ref<Array<{ concepto: string; monto: number | null; cantidad: number; afectacion: number }>>([])
+
+/**
+ * Afectación de IGV del concepto. Se pide explícita porque asumirla sale caro:
+ * una universidad cobrando matrícula declararía IGV sobre un servicio educativo
+ * inafecto. El backend hereda la afectación con la que la tienda ya factura
+ * cuando no se manda, pero acá se muestra para que el comerciante la vea y la
+ * pueda cambiar.
+ */
+const afectacionPorDefecto = ref(1)
+
+const opcionesAfectacion = [
+  { label: 'Gravado (con IGV)', value: 1 },
+  { label: 'Exonerado', value: 2 },
+  { label: 'Inafecto', value: 3 },
+]
 const modoCobro = ref<'catalogo' | 'concepto'>('catalogo')
 const form = ref({
   mensaje: '',
@@ -185,7 +202,10 @@ function quitar(productId: number) {
 }
 
 function agregarConcepto() {
-  conceptos.value.push({ concepto: '', monto: null, cantidad: 1 })
+  // Arranca con lo que la tienda ya usa: el primer concepto hereda el default
+  // del backend y los siguientes copian lo que el comerciante acaba de elegir.
+  const ultima = conceptos.value.at(-1)?.afectacion ?? afectacionPorDefecto.value
+  conceptos.value.push({ concepto: '', monto: null, cantidad: 1, afectacion: ultima })
 }
 
 function quitarConcepto(i: number) {
@@ -217,6 +237,7 @@ async function crear() {
         concepto: c.concepto.trim(),
         monto: c.monto,
         cantidad: c.cantidad,
+        afectacion: c.afectacion,
       })),
       // `YYYY-MM-DD` — el backend lo extiende hasta el final de ese día.
       valido_hasta: form.value.vence ? form.value.vence.toISOString().slice(0, 10) : undefined,
@@ -467,13 +488,22 @@ function anular(link: PaymentLink) {
               class="w-24 shrink-0"
               inputClass="w-12 text-center"
             />
+            <Select
+              v-model="c.afectacion"
+              :options="opcionesAfectacion"
+              optionLabel="label"
+              optionValue="value"
+              class="w-36 shrink-0"
+            />
             <Button icon="pi pi-times" text rounded severity="danger" @click="quitarConcepto(i)" />
           </div>
 
           <Button label="Agregar concepto" icon="pi pi-plus" text @click="agregarConcepto" />
 
           <p class="text-xs text-secondary-500">
-            El monto es final, con IGV incluido. Aparece así en el comprobante.
+            El monto es el total que paga el cliente. Si el concepto es
+            <strong>gravado</strong>, el IGV va incluido en ese monto; si es exonerado o
+            inafecto, no lleva IGV. Aparece así en el comprobante.
           </p>
         </div>
 

@@ -17,13 +17,19 @@ export const paymentLinksApi = {
   /** Listado paginado. `estado` filtra por el estado GUARDADO, no por `bloqueo`. */
   async list(
     params: { page?: number; limit?: number; estado?: PaymentLinkEstado } = {},
-  ): Promise<{ data: PaymentLink[]; pagination: PaginationMeta }> {
+  ): Promise<{ data: PaymentLink[]; pagination: PaginationMeta; afectacionSugerida: number }> {
     const search = new URLSearchParams()
     if (params.page) search.append('page', String(params.page))
     if (params.limit) search.append('limit', String(params.limit))
     if (params.estado) search.append('estado', params.estado)
     const response = await apiClient.get(`/payment-links?${search.toString()}`)
-    return { data: response.data.data, pagination: response.data.pagination }
+    return {
+      data: response.data.data,
+      pagination: response.data.pagination,
+      // Afectación con la que la tienda ya factura: precarga el selector de
+      // conceptos para no imponerle "gravado" a quien vende exonerado.
+      afectacionSugerida: Number(response.data.afectacion_sugerida ?? 1),
+    }
   },
 
   async get(id: number): Promise<PaymentLink> {
