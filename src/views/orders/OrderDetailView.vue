@@ -7,6 +7,7 @@ import { useFormatters } from '@/composables/useFormatters'
 import { useOrderDownloads, printableFromOrder, type PrintableOrder } from '@/composables/useOrderDownloads'
 import ShippingLabelDialog from '@/components/orders/ShippingLabelDialog.vue'
 import { useToast } from 'primevue/usetoast'
+import { useConfirm } from 'primevue/useconfirm'
 import { useAuthStore } from '@/stores/auth.store'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
@@ -31,7 +32,7 @@ import type { BillingStatus } from '@/types/billing.types'
 import type { OrderItemReview } from '@/types/review.types'
 import type { FulfillmentProvider } from '@/types/fulfillment.types'
 import apiClient from '@/api/axios'
-import type { Order, OrderStatus, OrderIntegrationAttempt } from '@/types/order.types'
+import type { Order, OrderStatus, OrderIntegration, OrderIntegrationAttempt } from '@/types/order.types'
 import type { SenderInfo } from '@/types/store.types'
 
 const route = useRoute()
@@ -40,6 +41,7 @@ const ordersStore = useOrdersStore()
 const storeInfoStore = useStoreInfoStore()
 const authStore = useAuthStore()
 const toast = useToast()
+const confirm = useConfirm()
 const { formatCurrency, formatDate, formatTime, formatDateTime, formatDateTimeWithSeconds } = useFormatters()
 const { downloadPDF, downloadTicket, downloadPickingList, downloadCSV } = useOrderDownloads()
 
@@ -1097,6 +1099,75 @@ const openIntegrationDetail = (integration: { name: string; message: string | nu
     name: integration.name,
     message: integration.message,
     payload: integration.payload,
+  }
+}
+
+// ─── Reenvío manual a la integración ───────────────────────────────────────
+// `order.paid` se entrega una sola vez: si el ERP no contestó, la venta queda
+// sin sincronizar y hasta ahora solo se rescataba por CLI o esperando al cron
+// diario. El backend lo encola y contesta enseguida — un envío puede tardar
+// casi un minuto si el proveedor cuelga— así que acá se recarga la orden unas
+// veces hasta que aparece el intento nuevo.
+const retryingProvider = ref<string | null>(null)
+
+/** Cuándo volver a mirar, en segundos desde que se encoló. */
+const RETRY_POLL_SECONDS = [6, 15, 30, 50]
+
+const handleRetryIntegration = (integration: OrderIntegration) => {
+  confirm.require({
+    header: `Reenviar a ${integration.name}`,
+    message: `Se va a volver a enviar esta venta a ${integration.name}. Si el envío anterior había entrado a medias, la integración retoma desde donde se cortó.`,
+    icon: 'pi pi-refresh',
+    acceptLabel: 'Reenviar',
+    rejectLabel: 'Cancelar',
+    accept: async () => {
+      retryingProvider.value = integration.provider
+      const intentosAntes = order.value?.integration_attempts?.length ?? 0
+
+      try {
+        const response = await ordersApi.retryIntegration(orderId, integration.provider)
+        if (!response.success) throw new Error(response.message || 'No se pudo encolar el reenvío')
+
+        toast.add({
+          severity: 'info',
+          summary: 'Reenvío encolado',
+          detail: response.message || `La venta se está reenviando a ${integration.name}.`,
+          life: 5000
+        })
+
+        await esperarResultadoDelReenvio(intentosAntes)
+      } catch (err: any) {
+        toast.add({
+          severity: 'error',
+          summary: 'No se pudo reenviar',
+          detail: err.response?.data?.messages?.error
+            || err.response?.data?.message
+            || err.message
+            || 'No se pudo reenviar la orden',
+          life: 6000
+        })
+      } finally {
+        retryingProvider.value = null
+      }
+    }
+  })
+}
+
+/**
+ * Recarga la orden hasta que el worker registre el intento. Se corta al primer
+ * intento nuevo; si no aparece —el ERP tardando más que la última espera— la
+ * pantalla queda igual y basta recargarla, no se inventa un resultado.
+ */
+const esperarResultadoDelReenvio = async (intentosAntes: number) => {
+  let esperado = 0
+  for (const segundo of RETRY_POLL_SECONDS) {
+    await new Promise(resolve => setTimeout(resolve, (segundo - esperado) * 1000))
+    esperado = segundo
+
+    await ordersStore.fetchOrder(orderId)
+    if ((order.value?.integration_attempts?.length ?? 0) > intentosAntes) {
+      return
+    }
   }
 }
 
@@ -2285,14 +2356,28 @@ const handleDebugPayments = async () => {
                         <i :class="['pi', integrationChipIcon(integration.status)]"></i>
                         {{ integration.status_label }}
                       </span>
-                      <button
-                        v-if="integration.message || integration.payload"
-                        type="button"
-                        class="text-xs text-primary hover:underline"
-                        @click="openIntegrationDetail(integration)"
-                      >
-                        Ver detalle
-                      </button>
+                      <div class="flex items-center gap-3">
+                        <button
+                          v-if="integration.message || integration.payload"
+                          type="button"
+                          class="text-xs text-primary hover:underline"
+                          @click="openIntegrationDetail(integration)"
+                        >
+                          Ver detalle
+                        </button>
+                        <button
+                          v-if="integration.can_retry"
+                          type="button"
+                          class="text-xs text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                          :disabled="retryingProvider !== null"
+                          @click="handleRetryIntegration(integration)"
+                        >
+                          <i
+                            :class="['pi pi-refresh text-[10px]', { 'pi-spin': retryingProvider === integration.provider }]"
+                          ></i>
+                          {{ retryingProvider === integration.provider ? 'Reenviando…' : 'Reintentar' }}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

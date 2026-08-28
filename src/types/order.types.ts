@@ -250,6 +250,12 @@ export interface OrderIntegration {
   /** Número de documento que devolvió el ERP, cuando lo devuelve. */
   document: string | null
   last_attempt_at: string | null
+  /**
+   * Si el backend admite reenviar esta orden a mano. Lo decide él: el adapter
+   * tiene que implementar el envío, la orden estar pagada y no estar ya
+   * sincronizada (reenviar lo sincronizado duplica el pedido en el WMS).
+   */
+  can_retry?: boolean
 }
 
 export interface OrderIntegrationAttempt {

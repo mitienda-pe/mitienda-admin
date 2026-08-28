@@ -624,6 +624,25 @@ export const ordersApi = {
   },
 
   /**
+   * Reenviar la orden a su integración ERP/WMS (Contanet, Niux, Mintsoft…).
+   *
+   * El backend lo **encola** y contesta 202: un envío puede tardar casi un
+   * minuto si el proveedor no contesta, así que acá no se espera el resultado.
+   * Aparece después en `integration_attempts`, recargando el detalle.
+   */
+  async retryIntegration(
+    orderId: number,
+    provider: string
+  ): Promise<ApiResponse<{ order_id: number; provider: string; name: string }>> {
+    const response = await apiClient.post(`/orders/${orderId}/integrations/${provider}/retry`)
+    return {
+      success: response.data?.success === true,
+      message: response.data?.message,
+      data: response.data?.data
+    }
+  },
+
+  /**
    * Anular una venta pagada: la deja en estado 4 (Anulado), repone el stock y
    * pide la baja del comprobante ante SUNAT si se emitió.
    *
