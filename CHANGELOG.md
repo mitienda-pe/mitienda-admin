@@ -3,6 +3,18 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.74.0] - 2026-09-01
+
+### Novedades
+
+- **tienda:** mostrar el límite de 1600 caracteres en la descripción ([`1611818`](https://github.com/mitienda-pe/mitienda-admin/commit/1611818de0cfb6bd6ca745898360f6f99993c04b))
+- **payment-links:** selector de afectación de IGV en los conceptos ([`05b60ad`](https://github.com/mitienda-pe/mitienda-admin/commit/05b60ad6683101da470654db1666aabfd91404cc))
+- **ventas:** botón para reintentar el envío de la venta al ERP ([`0f30711`](https://github.com/mitienda-pe/mitienda-admin/commit/0f30711d3a3dc63107bd9b18ee09efc927626089))
+
+### Correcciones
+
+- **notificaciones:** permitir api.onesignal.com en la CSP ([`c4b8014`](https://github.com/mitienda-pe/mitienda-admin/commit/c4b801414eb3dc9db1befd5a272da1dfaf9a17e2))
+
 ## [v2.73.2] - 2026-08-28
 
 ### Novedades
