@@ -141,11 +141,11 @@
         <h3 class="text-sm font-semibold text-secondary-700">SEO</h3>
         <div>
           <label class="block text-sm font-medium text-secondary-700 mb-1">Descripción (meta)</label>
-          <Textarea v-model="settingsForm.description" class="w-full" rows="2" placeholder="Descripción para motores de búsqueda" />
+          <Textarea v-model="settingsForm.description" class="w-full" rows="2" maxlength="255" placeholder="Descripción para motores de búsqueda" />
         </div>
         <div>
           <label class="block text-sm font-medium text-secondary-700 mb-1">Extracto</label>
-          <Textarea v-model="settingsForm.excerpt" class="w-full" rows="2" placeholder="Resumen corto" />
+          <Textarea v-model="settingsForm.excerpt" class="w-full" rows="2" maxlength="255" placeholder="Resumen corto" />
         </div>
       </div>
       <template #footer>
@@ -171,6 +171,7 @@ import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import PageContentEditor from '@/components/pages/PageContentEditor.vue'
 import { imageGalleryApi } from '@/api/image-gallery.api'
+import { apiErrorMessage } from '@/utils/api-error'
 import type { BlogPost } from '@/types/blog.types'
 import type { PageEditorType } from '@/types/page.types'
 
@@ -250,7 +251,7 @@ const handleSave = async () => {
     post.value = updated
     toast.add({ severity: 'success', summary: 'Guardado', detail: 'Contenido guardado exitosamente', life: 3000 })
   } catch (error: any) {
-    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.message || 'Error al guardar', life: 5000 })
+    toast.add({ severity: 'error', summary: 'Error', detail: apiErrorMessage(error, 'Error al guardar'), life: 5000 })
   } finally {
     isSaving.value = false
   }
@@ -278,7 +279,7 @@ const handleSaveSettings = async () => {
     toast.add({ severity: 'success', summary: 'Guardado', detail: 'Configuración actualizada', life: 3000 })
     showSettings.value = false
   } catch (error: any) {
-    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.message || 'Error al guardar configuración', life: 5000 })
+    toast.add({ severity: 'error', summary: 'Error', detail: apiErrorMessage(error, 'Error al guardar configuración'), life: 5000 })
   } finally {
     isSavingSettings.value = false
   }

@@ -65,14 +65,14 @@
           <!-- Description (meta) -->
           <div>
             <label class="block text-sm font-medium text-secondary-700 mb-1">Descripción (SEO)</label>
-            <InputText v-model="form.description" class="w-full" placeholder="Descripción para motores de búsqueda" />
+            <InputText v-model="form.description" class="w-full" maxlength="255" placeholder="Descripción para motores de búsqueda" />
           </div>
         </div>
 
         <!-- Excerpt -->
         <div class="mb-4">
           <label class="block text-sm font-medium text-secondary-700 mb-1">Extracto</label>
-          <Textarea v-model="form.excerpt" class="w-full" rows="2" placeholder="Resumen corto de la entrada" />
+          <Textarea v-model="form.excerpt" class="w-full" rows="2" maxlength="255" placeholder="Resumen corto de la entrada" />
         </div>
 
         <!-- Featured Image -->
@@ -181,6 +181,7 @@ import Textarea from 'primevue/textarea'
 import Divider from 'primevue/divider'
 import Dropdown from 'primevue/dropdown'
 import { imageGalleryApi } from '@/api/image-gallery.api'
+import { apiErrorMessage } from '@/utils/api-error'
 import type { PageEditorType } from '@/types/page.types'
 
 const router = useRouter()
@@ -227,7 +228,7 @@ const handleCreate = async () => {
     toast.add({ severity: 'success', summary: 'Creada', detail: 'Entrada de blog creada exitosamente', life: 3000 })
     router.push({ name: 'blog-post-edit', params: { id: post.id } })
   } catch (error: any) {
-    const message = error.response?.data?.messages?.error || error.response?.data?.messages?.slug || error.message || 'Error al crear la entrada'
+    const message = apiErrorMessage(error, error.message || 'Error al crear la entrada')
     toast.add({ severity: 'error', summary: 'Error', detail: message, life: 5000 })
   } finally {
     isSubmitting.value = false
