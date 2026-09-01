@@ -92,8 +92,10 @@
                 v-model="formData.tienda_descripcion"
                 class="w-full"
                 rows="3"
+                maxlength="1600"
                 placeholder="Describe tu negocio brevemente"
               />
+              <small class="text-secondary-500">{{ (formData.tienda_descripcion?.length || 0) }}/1600 caracteres</small>
             </div>
           </div>
         </div>
