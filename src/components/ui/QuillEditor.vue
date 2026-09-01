@@ -11,6 +11,10 @@
       <span v-else>✎ Visual</span>
     </button>
     <div v-show="mode === 'visual'" ref="editorRef"></div>
+    <div v-if="uploadingImages > 0" class="upload-indicator">
+      <i class="pi pi-spin pi-spinner"></i>
+      {{ uploadingImages === 1 ? 'Subiendo imagen…' : `Subiendo ${uploadingImages} imágenes…` }}
+    </div>
     <textarea
       v-show="mode === 'source'"
       ref="textareaRef"
@@ -27,6 +31,7 @@
 import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import Quill from 'quill'
 import 'quill/dist/quill.snow.css'
+import { imageGalleryApi } from '@/api/image-gallery.api'
 
 const BlockEmbed = Quill.import('blots/block/embed') as any
 
@@ -151,6 +156,150 @@ function getToolbar(): unknown[] {
   return props.toolbar === 'compact' ? TOOLBAR_COMPACT : TOOLBAR_FULL
 }
 
+/**
+ * Sin un handler propio, el botón de imagen de Quill 2 incrusta el archivo como
+ * data URI base64 dentro del HTML. Las columnas de contenido son TEXT (65 535
+ * bytes), así que MySQL truncaba la entrada en silencio y dejaba el HTML cortado
+ * a la mitad. Todo lo que entre al editor como base64 (botón, pegado o
+ * arrastrado) se sube a R2 y se reemplaza por su URL.
+ */
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024
+
+const uploadingImages = ref(0)
+let fileInput: HTMLInputElement | null = null
+let pendingInsertIndex = 0
+/** Imágenes base64 que ya tienen una subida en curso, para no duplicarla. */
+const inFlightDataImages = new WeakSet<HTMLImageElement>()
+
+/**
+ * Sube el archivo a R2 vía la galería de imágenes de la tienda y devuelve su
+ * URL pública, o null si la validación o la subida fallaron (ya avisadas).
+ */
+async function uploadImageFile(file: File, failureMessage: string): Promise<string | null> {
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    window.alert('Formato de imagen no válido. Usa JPG, PNG o WebP.')
+    return null
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    window.alert('La imagen no debe superar 10MB.')
+    return null
+  }
+
+  uploadingImages.value++
+  try {
+    const result = await imageGalleryApi.uploadImage(file, file.name)
+    return result.url
+  } catch (error: any) {
+    window.alert(error?.response?.data?.message || failureMessage)
+    return null
+  } finally {
+    uploadingImages.value--
+  }
+}
+
+/**
+ * Decodifica un data URI a File. Se decodifica a mano en vez de con fetch()
+ * para no depender de que la CSP permita el esquema `data:` en connect-src.
+ */
+function dataUrlToFile(dataUrl: string): File | null {
+  const match = dataUrl.match(/^data:([^;,]+)(;base64)?,([\s\S]*)$/)
+  if (!match) return null
+
+  const [, mime, base64Flag, payload] = match
+  let buffer: ArrayBuffer
+  try {
+    if (base64Flag) {
+      const binary = atob(payload)
+      buffer = new ArrayBuffer(binary.length)
+      const view = new Uint8Array(buffer)
+      for (let i = 0; i < binary.length; i++) {
+        view[i] = binary.charCodeAt(i)
+      }
+    } else {
+      const encoded = new TextEncoder().encode(decodeURIComponent(payload))
+      buffer = new ArrayBuffer(encoded.length)
+      new Uint8Array(buffer).set(encoded)
+    }
+  } catch {
+    return null
+  }
+
+  const extension = (mime.split('/')[1] || 'png').replace('jpeg', 'jpg')
+  return new File([buffer], `imagen-${Date.now()}.${extension}`, { type: mime })
+}
+
+/** Abre el selector de archivos del botón de imagen del toolbar. */
+function pickImage() {
+  if (!quill || props.readOnly) return
+
+  const range = quill.getSelection(true)
+  pendingInsertIndex = range ? range.index : quill.getLength()
+
+  if (!fileInput) {
+    fileInput = document.createElement('input')
+    fileInput.type = 'file'
+    fileInput.accept = ALLOWED_IMAGE_TYPES.join(',')
+    fileInput.style.display = 'none'
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput?.files?.[0]
+      if (fileInput) fileInput.value = ''
+      if (!file) return
+
+      const url = await uploadImageFile(file, 'No se pudo subir la imagen.')
+      if (!url || !quill) return
+
+      const index = Math.min(pendingInsertIndex, quill.getLength())
+      quill.insertEmbed(index, 'image', url, Quill.sources.USER)
+      quill.setSelection(index + 1, Quill.sources.SILENT)
+    })
+    document.body.appendChild(fileInput)
+  }
+
+  fileInput.click()
+}
+
+/** Sube una imagen base64 ya insertada y la sustituye por la versión en R2. */
+async function replaceDataImage(node: HTMLImageElement, dataUrl: string) {
+  const file = dataUrlToFile(dataUrl)
+  const url = file
+    ? await uploadImageFile(file, 'No se pudo subir una imagen incrustada; se quitó del contenido.')
+    : null
+
+  if (!file) {
+    window.alert('No se pudo leer una imagen incrustada; se quitó del contenido.')
+  }
+
+  if (!quill || !quill.root.contains(node)) return
+
+  const blot = Quill.find(node)
+  if (!blot) return
+
+  const index = quill.getIndex(blot as any)
+  quill.deleteText(index, 1, Quill.sources.USER)
+  if (url) {
+    quill.insertEmbed(index, 'image', url, Quill.sources.USER)
+  }
+}
+
+/**
+ * Barre el editor buscando imágenes base64 (pegadas desde Word/Docs o soltadas
+ * sobre el editor, que Quill inserta como data URI) y las migra a R2.
+ */
+function sweepDataImages() {
+  if (!quill || props.readOnly) return
+
+  const images = Array.from(quill.root.querySelectorAll('img')) as HTMLImageElement[]
+  for (const node of images) {
+    const src = node.getAttribute('src') || ''
+    if (!src.startsWith('data:image/')) continue
+    if (inFlightDataImages.has(node)) continue
+
+    inFlightDataImages.add(node)
+    void replaceDataImage(node, src)
+  }
+}
+
 function loadIntoQuill(html: string) {
   if (!quill) return
   const clipboard = quill.getModule('clipboard') as any
@@ -186,6 +335,9 @@ onMounted(() => {
       toolbar: {
         container: getToolbar(),
         handlers: {
+          image: function () {
+            pickImage()
+          },
           table: function () {
             const tableModule = quill?.getModule('table') as any
             if (tableModule) {
@@ -255,6 +407,7 @@ onMounted(() => {
     const normalized = html === '<p><br></p>' ? '' : html
     rawHtml.value = normalized
     emit('update:modelValue', normalized)
+    sweepDataImages()
   })
 })
 
@@ -311,6 +464,8 @@ onBeforeUnmount(() => {
   if ((window as any).quillInstance === quill) {
     delete (window as any).quillInstance
   }
+  fileInput?.remove()
+  fileInput = null
   quill = null
 })
 </script>
@@ -375,6 +530,23 @@ onBeforeUnmount(() => {
   border: 1px solid #ccc;
   padding: 6px 10px;
   min-width: 50px;
+}
+
+.upload-indicator {
+  position: absolute;
+  bottom: 10px;
+  right: 12px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #ffffff;
+  background: rgba(0, 178, 166, 0.95);
+  border-radius: 4px;
+  pointer-events: none;
 }
 
 .source-toggle {
