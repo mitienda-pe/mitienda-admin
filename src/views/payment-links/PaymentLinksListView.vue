@@ -7,7 +7,7 @@
  * sin generar venta. Por eso el listado muestra "Ventas": es la columna que en
  * el legacy no podía existir.
  */
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Column from 'primevue/column'
@@ -212,6 +212,12 @@ function quitarConcepto(i: number) {
   conceptos.value.splice(i, 1)
 }
 
+// Entrar a la pestaña y encontrarla vacía se lee como "no hay dónde escribir el
+// monto": la primera fila se crea sola.
+watch(modoCobro, (modo) => {
+  if (modo === 'concepto' && conceptos.value.length === 0) agregarConcepto()
+})
+
 /** Solo cuentan los conceptos completos: el backend rechaza los vacíos o en cero. */
 const conceptosValidos = computed(() =>
   conceptos.value.filter((c) => c.concepto.trim() !== '' && (c.monto ?? 0) > 0),
@@ -300,14 +306,14 @@ function anular(link: PaymentLink) {
 
 <template>
   <div class="space-y-4">
-    <div class="flex justify-between items-center">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h1 class="text-2xl font-bold text-secondary-800">Links de pago</h1>
         <p class="text-secondary-600 mt-1">
           Cobra por WhatsApp. Cada pago genera una venta en tu tienda y descuenta stock.
         </p>
       </div>
-      <Button label="Nuevo link" icon="pi pi-plus" @click="abrirCrear" />
+      <Button label="Nuevo link" icon="pi pi-plus" class="w-full sm:w-auto" @click="abrirCrear" />
     </div>
 
     <Card>
@@ -400,6 +406,7 @@ function anular(link: PaymentLink) {
       modal
       header="Compartir enlace de pago"
       :style="{ width: '32rem' }"
+      :breakpoints="{ '640px': '95vw' }"
     >
       <div v-if="shareLink" class="space-y-4">
         <div>
@@ -437,12 +444,13 @@ function anular(link: PaymentLink) {
       modal
       header="Nuevo link de pago"
       :style="{ width: '42rem' }"
+      :breakpoints="{ '768px': '95vw' }"
     >
       <div class="space-y-4">
-        <div class="flex gap-2 border-b border-secondary-200">
+        <div class="flex gap-2 overflow-x-auto border-b border-secondary-200">
           <button
             type="button"
-            class="px-3 py-2 text-sm font-medium border-b-2 -mb-px"
+            class="whitespace-nowrap px-3 py-2 text-sm font-medium border-b-2 -mb-px"
             :class="modoCobro === 'catalogo' ? 'border-primary text-primary' : 'border-transparent text-secondary-500'"
             @click="modoCobro = 'catalogo'"
           >
@@ -450,7 +458,7 @@ function anular(link: PaymentLink) {
           </button>
           <button
             type="button"
-            class="px-3 py-2 text-sm font-medium border-b-2 -mb-px"
+            class="whitespace-nowrap px-3 py-2 text-sm font-medium border-b-2 -mb-px"
             :class="modoCobro === 'concepto' ? 'border-primary text-primary' : 'border-transparent text-secondary-500'"
             @click="modoCobro = 'concepto'"
           >
@@ -464,41 +472,79 @@ function anular(link: PaymentLink) {
           <div
             v-for="(c, i) in conceptos"
             :key="i"
-            class="flex items-start gap-2"
+            class="rounded-lg border border-secondary-200 p-3 sm:flex sm:items-start sm:gap-2 sm:rounded-none sm:border-0 sm:p-0"
           >
-            <InputText
-              v-model="c.concepto"
-              placeholder="Ej.: Consulta médica"
-              class="flex-1"
-              maxlength="250"
-            />
-            <InputNumber
-              v-model="c.monto"
-              :min="0"
-              :minFractionDigits="2"
-              placeholder="0.00"
-              class="w-28"
-              inputClass="text-right"
-            />
-            <InputNumber
-              v-model="c.cantidad"
-              :min="1"
-              showButtons
-              buttonLayout="horizontal"
-              class="w-24 shrink-0"
-              inputClass="w-12 text-center"
-            />
-            <Select
-              v-model="c.afectacion"
-              :options="opcionesAfectacion"
-              optionLabel="label"
-              optionValue="value"
-              class="w-36 shrink-0"
-            />
-            <Button icon="pi pi-times" text rounded severity="danger" @click="quitarConcepto(i)" />
+            <div class="min-w-0 flex-1">
+              <label class="mb-1 block text-xs font-medium text-secondary-600 sm:hidden">
+                Concepto
+              </label>
+              <InputText
+                v-model="c.concepto"
+                placeholder="Ej.: Consulta médica"
+                class="w-full"
+                maxlength="250"
+              />
+            </div>
+
+            <div class="mt-2 flex gap-2 sm:mt-0 sm:contents">
+              <div class="min-w-0 flex-1 sm:w-28 sm:flex-none">
+                <label class="mb-1 block text-xs font-medium text-secondary-600 sm:hidden">
+                  Monto
+                </label>
+                <InputNumber
+                  v-model="c.monto"
+                  :min="0"
+                  :minFractionDigits="2"
+                  placeholder="0.00"
+                  class="w-full"
+                  inputClass="text-right"
+                />
+              </div>
+              <div class="w-24 shrink-0">
+                <label class="mb-1 block text-xs font-medium text-secondary-600 sm:hidden">
+                  Cantidad
+                </label>
+                <InputNumber
+                  v-model="c.cantidad"
+                  :min="1"
+                  showButtons
+                  buttonLayout="horizontal"
+                  class="w-full"
+                  inputClass="w-12 text-center"
+                />
+              </div>
+            </div>
+
+            <div class="mt-2 flex items-end gap-2 sm:mt-0 sm:contents">
+              <div class="min-w-0 flex-1 sm:w-36 sm:flex-none sm:shrink-0">
+                <label class="mb-1 block text-xs font-medium text-secondary-600 sm:hidden">
+                  IGV
+                </label>
+                <Select
+                  v-model="c.afectacion"
+                  :options="opcionesAfectacion"
+                  optionLabel="label"
+                  optionValue="value"
+                  class="w-full"
+                />
+              </div>
+              <Button
+                icon="pi pi-times"
+                text
+                rounded
+                severity="danger"
+                class="shrink-0"
+                @click="quitarConcepto(i)"
+              />
+            </div>
           </div>
 
-          <Button label="Agregar concepto" icon="pi pi-plus" text @click="agregarConcepto" />
+          <Button
+            :label="conceptos.length ? 'Agregar otro concepto' : 'Agregar concepto'"
+            icon="pi pi-plus"
+            text
+            @click="agregarConcepto"
+          />
 
           <p class="text-xs text-secondary-500">
             El monto es el total que paga el cliente. Si el concepto es
@@ -522,24 +568,30 @@ function anular(link: PaymentLink) {
             <li
               v-for="p in resultados"
               :key="p.id ?? p.producto_id"
-              class="flex justify-between items-center px-3 py-2 hover:bg-secondary-50 cursor-pointer"
+              class="flex justify-between items-center gap-3 px-3 py-2 hover:bg-secondary-50 cursor-pointer"
               @click="agregar(p)"
             >
-              <span class="text-sm">{{ p.name ?? p.producto_titulo }}</span>
-              <span class="text-sm text-secondary-500">
+              <span class="min-w-0 flex-1 truncate text-sm">{{ p.name ?? p.producto_titulo }}</span>
+              <span class="shrink-0 text-sm text-secondary-500">
                 {{ formatCurrency(Number(p.price ?? p.producto_precio ?? 0)) }}
               </span>
             </li>
           </ul>
+
+          <!-- Sin este aviso, una búsqueda sin coincidencias se ve igual que un
+               buscador que no funciona. -->
+          <p v-else-if="busqueda.trim().length >= 2" class="mt-2 text-sm text-secondary-500">
+            Sin resultados para “{{ busqueda.trim() }}”.
+          </p>
         </div>
 
         <div v-if="seleccionados.length" v-show="modoCobro === 'catalogo'" class="border rounded divide-y">
           <div
             v-for="item in seleccionados"
             :key="item.product_id"
-            class="flex items-center gap-3 px-3 py-2"
+            class="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2"
           >
-            <span class="min-w-0 flex-1 truncate text-sm" :title="item.nombre">{{ item.nombre }}</span>
+            <span class="w-full min-w-0 truncate text-sm sm:flex-1" :title="item.nombre">{{ item.nombre }}</span>
             <InputNumber
               v-model="item.cantidad"
               :min="1"
@@ -548,7 +600,7 @@ function anular(link: PaymentLink) {
               class="w-24 shrink-0"
               inputClass="w-12 text-center"
             />
-            <span class="w-24 shrink-0 text-right text-sm">
+            <span class="ml-auto w-24 shrink-0 text-right text-sm sm:ml-0">
               {{ formatCurrency(item.precio * item.cantidad) }}
             </span>
             <Button icon="pi pi-times" text rounded severity="danger" @click="quitar(item.product_id)" />
@@ -560,7 +612,7 @@ function anular(link: PaymentLink) {
           <span>{{ formatCurrency(totalEstimado) }}</span>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label class="block text-sm font-medium text-secondary-700 mb-1">Vence el</label>
             <Calendar v-model="form.vence" dateFormat="dd/mm/yy" showIcon class="w-full" />
@@ -579,7 +631,7 @@ function anular(link: PaymentLink) {
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label class="block text-sm font-medium text-secondary-700 mb-1">Cliente (opcional)</label>
             <InputText v-model="form.nombres" placeholder="Nombre" class="w-full" />
