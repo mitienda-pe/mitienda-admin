@@ -82,6 +82,9 @@
                 El ID es propio de tu cuenta Cabify. Completa credenciales y coordenadas de origen,
                 luego consulta los tipos disponibles para esa ubicación. Se usa en todos los envíos
                 que no tengan un tipo asignado más abajo.
+                <strong class="text-secondary-500">Déjalo vacío si tienes una ruta contratada</strong>
+                (un vehículo que pasa por tu almacén a hora fija): en ese caso el envío se entrega
+                con solo crearlo y no hay que elegir tipo.
               </small>
             </div>
             <div>
@@ -435,10 +438,6 @@ watch(() => store.currentConfig, (config) => {
 async function handleSave() {
   if (!form.value.client_id.trim() || !form.value.client_secret.trim()) {
     toast.add({ severity: 'warn', summary: 'Requerido', detail: 'Client ID y Client Secret son obligatorios', life: 3000 })
-    return
-  }
-  if (!form.value.shipping_type_id.trim()) {
-    toast.add({ severity: 'warn', summary: 'Requerido', detail: 'Shipping Type ID es obligatorio', life: 3000 })
     return
   }
 
