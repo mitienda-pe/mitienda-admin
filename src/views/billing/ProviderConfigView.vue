@@ -29,6 +29,11 @@
       <DatilConfigView />
     </div>
 
+    <!-- Facturación MiTienda (SEE propio, sin PSE) -->
+    <div v-else-if="providerId === 7">
+      <SunatConfigView />
+    </div>
+
     <!-- Other providers (not yet implemented) -->
     <Card v-else>
       <template #content>
@@ -57,6 +62,7 @@ import Card from 'primevue/card'
 import NubefactConfigView from './NubefactConfigView.vue'
 import BizlinksConfigView from './BizlinksConfigView.vue'
 import DatilConfigView from './DatilConfigView.vue'
+import SunatConfigView from './SunatConfigView.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -68,6 +74,7 @@ const providerNames: Record<number, string> = {
   2: 'NubeFact',
   3: 'Bizlinks',
   6: 'Dátil (Ecuador)',
+  7: 'Facturación MiTienda',
 }
 
 const providerName = computed(() => providerNames[providerId.value] || 'Proveedor Desconocido')

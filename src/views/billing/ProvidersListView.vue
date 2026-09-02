@@ -82,6 +82,40 @@
         </template>
       </Card>
 
+      <!-- Facturación MiTienda: emisión directa a SUNAT, sin PSE -->
+      <Card
+        class="cursor-pointer hover:shadow-lg transition-shadow border-2 border-transparent hover:border-primary"
+        @click="goToProviderConfig(7)"
+      >
+        <template #header>
+          <div class="flex items-center justify-center p-6 bg-gradient-to-br from-primary/5 to-primary/10">
+            <i class="pi pi-receipt text-6xl text-primary"></i>
+          </div>
+        </template>
+        <template #title>
+          <div class="flex items-center justify-between">
+            <span>Facturación MiTienda</span>
+            <Tag
+              v-if="providersConfig[7]?.configured"
+              value="Configurado"
+              severity="success"
+              icon="pi pi-check"
+            />
+          </div>
+        </template>
+        <template #content>
+          <p class="text-sm text-gray-600">
+            Emite directo a SUNAT, sin contratar un proveedor externo. Para empresas
+            que facturan menos de S/ 1 260 000 al año, con el certificado digital
+            gratuito de SUNAT.
+          </p>
+          <div class="mt-4 flex items-center gap-2 text-sm">
+            <i class="pi pi-cog text-primary"></i>
+            <span class="text-primary font-medium">Configurar proveedor</span>
+          </div>
+        </template>
+      </Card>
+
       <!-- Factura en Una Card -->
       <Card
         class="cursor-pointer hover:shadow-lg transition-shadow border-2 border-transparent hover:border-primary opacity-60"
@@ -206,13 +240,15 @@ const providersConfig = ref<Record<number, { configured: boolean }>>({
   1: { configured: false }, // Factura en Una
   2: { configured: false }, // NubeFact
   3: { configured: false }, // Bizlinks
-  6: { configured: false }  // Dátil (Ecuador)
+  6: { configured: false }, // Dátil (Ecuador)
+  7: { configured: false }  // Facturación MiTienda (SEE propio)
 })
 
 onMounted(async () => {
   await checkNubefactConfig()
   await checkBizlinksConfig()
   await checkDatilConfig()
+  await checkSunatConfig()
 })
 
 async function checkNubefactConfig() {
@@ -242,8 +278,17 @@ async function checkDatilConfig() {
   }
 }
 
+async function checkSunatConfig() {
+  try {
+    await billingStore.fetchSunatConfig()
+    providersConfig.value[7].configured = billingStore.sunatConfig?.configured || false
+  } catch (error) {
+    console.error('Error checking Facturación MiTienda config:', error)
+  }
+}
+
 function goToProviderConfig(providerId: number) {
-  const availableProviders = [2, 3, 6] // NubeFact, Bizlinks, Dátil
+  const availableProviders = [2, 3, 6, 7] // NubeFact, Bizlinks, Dátil, Facturación MiTienda
   if (availableProviders.includes(providerId)) {
     router.push(`/billing/providers/${providerId}`)
   }

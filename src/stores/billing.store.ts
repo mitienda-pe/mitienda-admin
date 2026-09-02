@@ -14,6 +14,7 @@ export const useBillingStore = defineStore('billing', () => {
   const nubefactConfig = ref<NubefactConfigResponse | null>(null)
   const bizlinksConfig = ref<BizlinksConfigResponse | null>(null)
   const datilConfig = ref<any>(null)
+  const sunatConfig = ref<any>(null)
   const isLoading = ref(false)
   const isSaving = ref(false)
   const isTesting = ref(false)
@@ -353,11 +354,113 @@ export const useBillingStore = defineStore('billing', () => {
     successMessage.value = null
   }
 
+
+  // Actions para Facturación MiTienda (SEE propio, sin PSE)
+  async function fetchSunatConfig() {
+    try {
+      isLoading.value = true
+      error.value = null
+      const response = await billingApi.getSunatConfig()
+      if (response.success && response.data) {
+        sunatConfig.value = response.data
+      } else {
+        error.value = 'Error al cargar la configuración de Facturación MiTienda'
+      }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Error de conexión'
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Alta o actualización de la empresa emisora. Es idempotente en el backend, así
+   * que sirve igual para el alta inicial y para renovar el certificado cuando
+   * venza el CDT (que dura un año).
+   */
+  async function saveSunatCompany(data: any, isUpdate = false) {
+    try {
+      isSaving.value = true
+      error.value = null
+      successMessage.value = null
+      const response = isUpdate
+        ? await billingApi.updateSunatCompany(data)
+        : await billingApi.saveSunatCompany(data)
+      if (response.success) {
+        successMessage.value = 'Facturación MiTienda configurada correctamente'
+        await fetchSunatConfig()
+        return { success: true }
+      }
+      error.value = response.message || 'No se pudo guardar la configuración'
+      return { success: false, error: error.value }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'No se pudo guardar la configuración'
+      return { success: false, error: error.value }
+    } finally {
+      isSaving.value = false
+    }
+  }
+
+  async function deleteSunatConfig() {
+    try {
+      isSaving.value = true
+      error.value = null
+      const response = await billingApi.deleteSunatConfig()
+      if (response.success) {
+        sunatConfig.value = null
+        successMessage.value = 'Configuración eliminada'
+        return { success: true }
+      }
+      error.value = response.message || 'No se pudo eliminar la configuración'
+      return { success: false, error: error.value }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'No se pudo eliminar la configuración'
+      return { success: false, error: error.value }
+    } finally {
+      isSaving.value = false
+    }
+  }
+
+  async function testSunatConnection(): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+      isTesting.value = true
+      error.value = null
+      const response = await billingApi.testSunatConnection()
+      if (response.success && response.data) {
+        return { success: true, data: response.data }
+      }
+      error.value = response.message || 'No se pudo probar la conexión'
+      return { success: false, error: error.value ?? undefined }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'No se pudo probar la conexión'
+      return { success: false, error: error.value ?? undefined }
+    } finally {
+      isTesting.value = false
+    }
+  }
+
+  /** Valida el certificado sin guardarlo. Devuelve titular y vigencia. */
+  async function inspectSunatCertificate(certificado: string, certPassword?: string) {
+    try {
+      error.value = null
+      const response = await billingApi.inspectSunatCertificate(certificado, certPassword)
+      if (response.success && response.data) {
+        return { success: true, data: response.data }
+      }
+      error.value = response.message || 'No se pudo leer el certificado'
+      return { success: false, error: error.value }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'No se pudo leer el certificado'
+      return { success: false, error: error.value }
+    }
+  }
+
   return {
     // State
     nubefactConfig,
     bizlinksConfig,
     datilConfig,
+    sunatConfig,
     isLoading,
     isSaving,
     isTesting,
@@ -381,6 +484,11 @@ export const useBillingStore = defineStore('billing', () => {
     updateDatilCredentials,
     deleteDatilCredentials,
     testDatilConnection,
+    fetchSunatConfig,
+    saveSunatCompany,
+    deleteSunatConfig,
+    testSunatConnection,
+    inspectSunatCertificate,
     clearMessages
   }
 })
