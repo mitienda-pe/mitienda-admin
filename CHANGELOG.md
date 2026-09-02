@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.75.0] - 2026-09-02
+
+### Novedades
+
+- **facturación:** asistente para activar la emisión propia SUNAT ([`917a77c`](https://github.com/mitienda-pe/mitienda-admin/commit/917a77cf3953576f36b0965ce0cca6b1e348201e))
+
 ## [v2.74.1] - 2026-09-02
 
 ### Novedades
