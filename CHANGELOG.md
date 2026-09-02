@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.75.1] - 2026-09-02
+
+### Correcciones
+
+- **facturación:** mostrar la emisión propia solo a las tiendas habilitadas ([`1210be0`](https://github.com/mitienda-pe/mitienda-admin/commit/1210be0c9a299a7464b1ae6a1c3256c6d4407da2))
+
 ## [v2.75.0] - 2026-09-02
 
 ### Novedades
