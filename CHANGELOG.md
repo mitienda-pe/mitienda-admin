@@ -3,6 +3,20 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.74.1] - 2026-09-02
+
+### Novedades
+
+- **cabify:** el tipo de envío deja de ser obligatorio en la configuración ([`0f71cd4`](https://github.com/mitienda-pe/mitienda-admin/commit/0f71cd4ec9a53b6cbc0558b40436bd4b6e7f800a))
+- **fulfillment:** sincronizar stock de Flexy desde el backoffice ([`1295801`](https://github.com/mitienda-pe/mitienda-admin/commit/12958016f3fd396537d47afabfd895cfbd0d1956))
+- **netsuite:** vista de promociones sincronizadas ([`a55744c`](https://github.com/mitienda-pe/mitienda-admin/commit/a55744c20d45592578f2b315085daf7d8b93b252))
+
+### Correcciones
+
+- **links de pago:** el formulario de creación cabe en un móvil ([`efdf8a4`](https://github.com/mitienda-pe/mitienda-admin/commit/efdf8a4ed4f7ca61036c0999551108ca062968a1))
+- **blog:** mostrar el error real cuando la API rechaza el guardado ([`037e9d6`](https://github.com/mitienda-pe/mitienda-admin/commit/037e9d68531b6685ff8c0f59d47f7be0f2c2a160))
+- **editor:** las imágenes del contenido se suben a R2 en vez de incrustarse en base64 ([`632387a`](https://github.com/mitienda-pe/mitienda-admin/commit/632387aed4ac36d18aff6076a796afde47cc111d))
+
 ## [v2.74.0] - 2026-09-01
 
 ### Novedades
