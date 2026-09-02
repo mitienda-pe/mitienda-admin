@@ -82,8 +82,11 @@
         </template>
       </Card>
 
-      <!-- Facturación MiTienda: emisión directa a SUNAT, sin PSE -->
+      <!-- Facturación MiTienda: emisión directa a SUNAT, sin PSE.
+           Solo visible para las tiendas habilitadas (SUNAT_SERVICE_ALLOWED_STORES);
+           el backend además rechaza la escritura si no lo están. -->
       <Card
+        v-if="providersConfig[7]?.available"
         class="cursor-pointer hover:shadow-lg transition-shadow border-2 border-transparent hover:border-primary"
         @click="goToProviderConfig(7)"
       >
@@ -236,12 +239,12 @@ import Tag from 'primevue/tag'
 const router = useRouter()
 const billingStore = useBillingStore()
 
-const providersConfig = ref<Record<number, { configured: boolean }>>({
+const providersConfig = ref<Record<number, { configured: boolean; available?: boolean }>>({
   1: { configured: false }, // Factura en Una
   2: { configured: false }, // NubeFact
   3: { configured: false }, // Bizlinks
   6: { configured: false }, // Dátil (Ecuador)
-  7: { configured: false }  // Facturación MiTienda (SEE propio)
+  7: { configured: false, available: false }  // Facturación MiTienda (SEE propio)
 })
 
 onMounted(async () => {
@@ -282,6 +285,7 @@ async function checkSunatConfig() {
   try {
     await billingStore.fetchSunatConfig()
     providersConfig.value[7].configured = billingStore.sunatConfig?.configured || false
+    providersConfig.value[7].available = billingStore.sunatConfig?.available || false
   } catch (error) {
     console.error('Error checking Facturación MiTienda config:', error)
   }
@@ -289,6 +293,7 @@ async function checkSunatConfig() {
 
 function goToProviderConfig(providerId: number) {
   const availableProviders = [2, 3, 6, 7] // NubeFact, Bizlinks, Dátil, Facturación MiTienda
+  if (providerId === 7 && !providersConfig.value[7]?.available) return
   if (availableProviders.includes(providerId)) {
     router.push(`/billing/providers/${providerId}`)
   }

@@ -1,6 +1,15 @@
 <template>
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <div class="lg:col-span-2 space-y-6">
+      <!-- La tienda no está habilitada: se llegó por URL directa. El backend
+           rechaza igual la escritura; esto solo evita un formulario que no
+           serviría de nada. -->
+      <Message v-if="loaded && !isAvailable" severity="warn" :closable="false">
+        La Facturación MiTienda todavía no está habilitada para esta tienda.
+        Escríbenos si quieres activarla.
+      </Message>
+
+      <template v-if="!loaded || isAvailable">
       <!-- Estado -->
       <div
         class="flex items-center gap-3 p-4 rounded-lg"
@@ -221,10 +230,11 @@
           />
         </div>
       </div>
+      </template>
     </div>
 
     <!-- Panel lateral -->
-    <div class="space-y-6">
+    <div v-if="!loaded || isAvailable" class="space-y-6">
       <Card>
         <template #title>Cómo funciona</template>
         <template #content>
@@ -321,6 +331,8 @@ const form = reactive({
   blocked: true, // blocked = true significa auto-emisión APAGADA
 })
 
+const loaded = ref(false)
+const isAvailable = computed(() => billingStore.sunatConfig?.available !== false)
 const isConfigured = computed(() => billingStore.sunatConfig?.configured || false)
 const credentials = computed(() => billingStore.sunatConfig?.credentials || null)
 
@@ -347,6 +359,7 @@ function formatDate(value?: string | null): string {
 
 onMounted(async () => {
   await billingStore.fetchSunatConfig()
+  loaded.value = true
   const creds = billingStore.sunatConfig?.credentials
   if (creds) {
     form.ruc_emisor = creds.ruc_emisor || ''
