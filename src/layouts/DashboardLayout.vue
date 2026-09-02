@@ -1465,7 +1465,8 @@ const integrationMenuItems = computed(() => {
 // Items del grupo NetSuite
 const configMenuItemsSource = [
   { label: 'Configuración', icon: 'pi pi-cog', to: '/configuracion/netsuite' },
-  { label: 'Stock', icon: 'pi pi-box', to: '/configuracion/netsuite/stock' }
+  { label: 'Stock', icon: 'pi pi-box', to: '/configuracion/netsuite/stock' },
+  { label: 'Promociones', icon: 'pi pi-tags', to: '/configuracion/netsuite/promociones' }
 ]
 
 const configMenuItems = computed(() => visibleItems(configMenuItemsSource))

@@ -18,7 +18,10 @@ import type {
   SaveNetsuiteCashierAccountRequest,
   NetsuiteGatewayAccount,
   SaveNetsuiteGatewayAccountRequest,
-  AvailableGateway
+  AvailableGateway,
+  NetsuiteSyncedPromotion,
+  NetsuitePromotionProduct,
+  NetsuitePromotionDiagnosis
 } from '@/types/netsuite.types'
 
 export const netsuiteApi = {
@@ -368,6 +371,98 @@ export const netsuiteApi = {
     if (limit && limit > 0) params.append('limit', String(limit))
     const qs = params.toString() ? `?${params.toString()}` : ''
     const response = await apiClient.post(`/tienda/sync-products${qs}`, {}, { timeout: 600000 })
+    return response.data
+  },
+
+  // ========== NetSuite Promotions API ==========
+
+  /**
+   * Promociones actualmente sincronizadas desde NetSuite.
+   * Solo lee la base: es la foto de lo que el storefront aplica ahora mismo.
+   */
+  async getNetsuitePromotions(params?: {
+    search?: string
+    soloVacias?: boolean
+    page?: number
+    limit?: number
+  }): Promise<{
+    success: boolean
+    data: NetsuiteSyncedPromotion[]
+    config: {
+      customer_category_id: string | null
+      price_level_id: string | null
+    }
+    resumen: {
+      total: number
+      inertes: number
+      last_sync: string | null
+    }
+    pagination: {
+      page: number
+      limit: number
+      total: number
+      pages: number
+    }
+    message?: string
+  }> {
+    const qs = new URLSearchParams()
+    if (params?.search) qs.append('search', params.search)
+    if (params?.soloVacias) qs.append('solo_vacias', '1')
+    if (params?.page) qs.append('page', String(params.page))
+    if (params?.limit) qs.append('limit', String(params.limit))
+
+    const response = await apiClient.get(`/netsuite-promotions?${qs.toString()}`)
+    return response.data
+  },
+
+  /**
+   * Productos alcanzados por una promoción (para expandir la fila del listado).
+   */
+  async getNetsuitePromotionProducts(promotionId: number): Promise<{
+    success: boolean
+    data: NetsuitePromotionProduct[]
+  }> {
+    const response = await apiClient.get(`/netsuite-promotions/${promotionId}/productos`)
+    return response.data
+  },
+
+  /**
+   * Consulta NetSuite en vivo y explica qué promoción entra al canal y cuál no.
+   * Lento: va contra NetSuite. Se dispara a pedido.
+   */
+  async diagnoseNetsuitePromotions(): Promise<{
+    success: boolean
+    data: NetsuitePromotionDiagnosis
+    checked_at: string
+  }> {
+    const response = await apiClient.get('/netsuite-promotions/diagnostico', { timeout: 600000 })
+    return response.data
+  },
+
+  /**
+   * Dispara el sync de promociones (equivale a spark sync:promotions).
+   */
+  async syncTiendaPromotions(dryRun = false): Promise<{
+    success: boolean
+    dry_run: boolean
+    data: {
+      promotions_deleted?: number
+      promotions_created?: number
+      promotions_updated?: number
+      promotions_skipped?: number
+      activators_linked?: number
+      bonifications_linked?: number
+      skus_not_found?: string[]
+      items_before_filter?: number
+      items_after_filter?: number
+      filtered_by_category?: string
+      errors?: string[]
+    }
+    finished_at: string
+    message?: string
+  }> {
+    const qs = dryRun ? '?dry_run=1' : ''
+    const response = await apiClient.post(`/tienda/sync-promotions${qs}`, {}, { timeout: 900000 })
     return response.data
   },
 

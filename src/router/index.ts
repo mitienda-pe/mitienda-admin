@@ -1214,6 +1214,12 @@ const routes: RouteRecordRaw[] = [
         name: 'NetsuiteStock',
         meta: { title: 'Stock NetSuite' },
         component: () => import('@/views/configuracion/NetsuiteStockView.vue')
+      },
+      {
+        path: 'netsuite/promociones',
+        name: 'NetsuitePromotions',
+        meta: { title: 'Promociones NetSuite' },
+        component: () => import('@/views/configuracion/NetsuitePromotionsView.vue')
       }
     ]
   },

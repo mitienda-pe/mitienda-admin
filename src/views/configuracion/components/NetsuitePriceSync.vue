@@ -371,6 +371,7 @@
 import { ref, onMounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import apiClient from '@/api/axios'
+import { netsuiteApi } from '@/api/netsuite.api'
 
 // PrimeVue components
 import Button from 'primevue/button'
@@ -584,18 +585,14 @@ const syncPromotions = async () => {
       life: 3000
     })
 
-    const response = await apiClient.post(`/netsuite-prices/sync-promotions`, {
-      tienda_id: props.tiendaId,
-      dry_run: false
-    }, {
-      timeout: 300000 // 5 minutos
-    })
+    // La tienda sale del token, no de props: el endpoint es tienda/sync-promotions
+    const response = await netsuiteApi.syncTiendaPromotions(false)
 
-    if (response.data.success) {
-      lastPromotionSyncResult.value = response.data.result
+    if (response.success) {
+      lastPromotionSyncResult.value = response.data
 
-      const created = response.data.result.promotions_created || 0
-      const updated = response.data.result.promotions_updated || 0
+      const created = response.data.promotions_created || 0
+      const updated = response.data.promotions_updated || 0
 
       toast.add({
         severity: 'success',
@@ -604,7 +601,8 @@ const syncPromotions = async () => {
         life: 5000
       })
     } else {
-      throw new Error(response.data.error || 'Error en la sincronización')
+      // El sync puede responder 200 sin éxito (ej: falta la customer category del canal)
+      throw new Error(response.data.errors?.[0] || 'Error en la sincronización')
     }
   } catch (error: any) {
     console.error('Error syncing promotions:', error)
@@ -612,8 +610,11 @@ const syncPromotions = async () => {
     let errorMessage = 'No se pudo completar la sincronización de promociones'
     if (error.code === 'ECONNABORTED') {
       errorMessage = 'La sincronización está tardando más de lo esperado. El proceso puede seguir ejecutándose en segundo plano.'
-    } else if (error.response?.data?.error) {
-      errorMessage = error.response.data.error
+    } else if (error.response?.data?.messages?.error) {
+      // Shape de CI4 ResourceController::fail
+      errorMessage = error.response.data.messages.error
+    } else if (error.response?.data?.messages?.message) {
+      errorMessage = error.response.data.messages.message
     }
 
     toast.add({

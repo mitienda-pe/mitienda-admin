@@ -300,3 +300,91 @@ export interface CsvUploadResponse {
   inventory_numbers_created: number
   errors: CsvUploadError[]
 }
+
+// ========== Promociones sincronizadas desde NetSuite ==========
+
+/**
+ * Una promoción tal como quedó sincronizada en MiTienda.
+ *
+ * `inerte` es el campo que importa: una promoción vigente pero sin productos
+ * vinculados existe en la tabla y no descuenta nada.
+ */
+export interface NetsuiteSyncedPromotion {
+  promocion_id: number
+  codigo: string
+  nombre: string
+  netsuite_id: string | null
+  netsuite_code: string | null
+  tipo: 'descuento' | 'bonificacion'
+  tipo_descuento: 'porcentaje' | 'monto'
+  valor: number
+  inicio: string | null
+  fin: string | null
+  estado: number
+  vigente: boolean
+  audience_type: string | null
+  last_sync: string | null
+  productos_vinculados: number
+  bonificaciones_vinculadas: number
+  inerte: boolean
+}
+
+export interface NetsuitePromotionProduct {
+  producto_id: number
+  sku: string | null
+  netsuite_item_id: string | null
+  titulo: string | null
+  publicado: boolean
+  precio: number
+  descuento: number | null
+  precio_con_descuento: number | null
+  cantidad_minima: number
+  rol: 'activador' | 'bonificacion'
+}
+
+export interface NetsuitePromotionDiagnosisItem {
+  codigo: string
+  netsuite_id: string | null
+  tipo: string | null
+  tasa: number | string | null
+  customercategory: string | null
+  inicio: string | null
+  fin: string | null
+  productos: Array<{
+    producto_id: number
+    netsuite_item_id: string
+    sku: string | null
+    titulo: string | null
+    precio: number | null
+    cantidad: number
+    rol: 'activador' | 'bonificacion'
+  }>
+  items_sin_mapear: Array<{
+    netsuite_item_id: string
+    rol: 'activador' | 'bonificacion'
+  }>
+}
+
+export interface NetsuitePromotionDiscarded {
+  codigo: string
+  tipo: string | null
+  tasa: number | string | null
+  customercategory: string | null
+  motivo: string
+}
+
+export interface NetsuitePromotionDiagnosis {
+  success: boolean
+  tienda_id: number
+  customer_category_id: string | null
+  price_level_id: string | null
+  aplican: NetsuitePromotionDiagnosisItem[]
+  descartadas: NetsuitePromotionDiscarded[]
+  resumen: {
+    netsuite_activas: number
+    aplican: number
+    descartadas_por_segmento: number
+    items_sin_mapear: number
+  }
+  errors: string[]
+}
