@@ -47,3 +47,17 @@ export interface FulfillmentOrdersFilters {
   page?: number
   per_page?: number
 }
+
+/**
+ * Fila del snapshot de stock de Flexy WMS (Sharf).
+ *
+ * Forma distinta a la de Urbano: Flexy devuelve una cantidad plana por código,
+ * sin desglose de disponible/reservado. Y **no incluye los agotados** — saca del
+ * feed lo que está en cero en vez de reportarlo con 0, así que la ausencia de un
+ * código no significa que Sharf no lo despache.
+ */
+export interface FlexyStockItem {
+  codigo_producto: string
+  producto?: string
+  cantidad: number
+}

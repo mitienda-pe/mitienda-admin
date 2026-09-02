@@ -6,7 +6,8 @@ import type {
   FulfillmentBulkResult,
   FulfillmentOrder,
   FulfillmentOrdersFilters,
-  FulfillmentInfo
+  FulfillmentInfo,
+  FlexyStockItem
 } from '@/types/fulfillment.types'
 
 export const fulfillmentApi = {
@@ -61,6 +62,26 @@ export const fulfillmentApi = {
   /** Sync stock from WMS to products */
   async syncStock(storage = 'MTZ'): Promise<ApiResponse<{ updated: number; total: number; not_found: number }>> {
     const response = await apiClient.post('/urbano-wms/sync-stock', { storage })
+    return response.data
+  },
+
+  /** Current stock snapshot in Flexy WMS (Sharf) */
+  async getFlexyStock(fecha?: string): Promise<ApiResponse<FlexyStockItem[]>> {
+    const response = await apiClient.get('/flexy-wms/stock', { params: fecha ? { fecha } : undefined })
+    return response.data
+  },
+
+  /**
+   * Sync stock from Flexy WMS (Sharf) to products.
+   *
+   * Timeout largo a propósito: además del snapshot, el backend pide el catálogo
+   * de Flexy para poder poner en cero lo que se agotó — Flexy saca del feed los
+   * productos sin stock en vez de reportarlos con 0. Son dos llamadas a una API
+   * que limita a 1 request cada 60 s, así que puede tardar bastante más que el
+   * default de axios.
+   */
+  async syncFlexyStock(): Promise<ApiResponse<{ updated: number; total: number; not_found: number }>> {
+    const response = await apiClient.post('/flexy-wms/sync-stock', {}, { timeout: 180000 })
     return response.data
   },
 

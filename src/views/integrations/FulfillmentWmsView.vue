@@ -172,10 +172,16 @@ const handleSyncTracking = async () => {
 }
 
 // Stock
+//
+// Cada WMS tiene su endpoint y su forma de respuesta; el proveedor activo decide
+// a cuál se llama. Antes esto iba fijo a Urbano, así que en una tienda Flexy el
+// botón habría consultado el almacén equivocado.
 const loadStock = async () => {
   isLoadingStock.value = true
   try {
-    const response = await fulfillmentApi.getWmsStock()
+    const response = isFlexySharf.value
+      ? await fulfillmentApi.getFlexyStock()
+      : await fulfillmentApi.getWmsStock()
     stock.value = response.data || []
   } catch (err: any) {
     toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo cargar el stock', life: 4000 })
@@ -187,13 +193,22 @@ const loadStock = async () => {
 const handleSyncStock = async () => {
   isSyncingStock.value = true
   try {
-    const response = await fulfillmentApi.syncStock()
+    const response = isFlexySharf.value
+      ? await fulfillmentApi.syncFlexyStock()
+      : await fulfillmentApi.syncStock()
+
     if (response.data) {
+      const { updated, total } = response.data
       toast.add({
-        severity: 'success',
-        summary: 'Stock sincronizado',
-        detail: `${response.data.updated} productos actualizados`,
-        life: 4000
+        severity: updated > 0 ? 'success' : 'info',
+        summary: updated > 0 ? 'Stock sincronizado' : 'Stock ya estaba al día',
+        // Un "0 actualizados" es un resultado legítimo y frecuente: significa que
+        // el WMS reporta lo mismo que tenemos. Decir solo "0 productos" se lee
+        // como que el botón falló, así que se muestra contra cuántos se comparó.
+        detail: updated > 0
+          ? `${updated} de ${total} productos actualizados`
+          : `Sin cambios: los ${total} productos del almacén ya coinciden`,
+        life: 5000
       })
       await loadStock()
     }
@@ -216,6 +231,11 @@ const getStatusLabel = (status: string) => {
 }
 
 const isUrbanoWms = computed(() => provider.value?.code === 'urbano_wms')
+const isFlexySharf = computed(() => provider.value?.code === 'flexy_sharf')
+
+// Los dos WMS que saben responder stock. Mintsoft no tiene endpoint de consulta,
+// así que para esas tiendas el tab sigue sin aparecer.
+const hasStockTab = computed(() => isUrbanoWms.value || isFlexySharf.value)
 
 // Stock display helpers
 const getAvailableStock = (item: any): number => {
@@ -463,10 +483,16 @@ const getReservedStock = (item: any): number => {
         </DataTable>
       </TabPanel>
 
-      <!-- Tab 2: Stock (only for Urbano WMS) -->
-      <TabPanel v-if="isUrbanoWms" header="Stock WMS">
+      <!-- Tab 2: Stock (Urbano WMS y Flexy/Sharf) -->
+      <TabPanel v-if="hasStockTab" header="Stock WMS">
         <div class="flex justify-between items-center mb-4">
-          <p class="text-sm text-gray-500">Stock disponible en el almacén WMS</p>
+          <p class="text-sm text-gray-500">
+            Stock disponible en el almacén WMS
+            <span v-if="isFlexySharf" class="block text-xs text-gray-400 mt-1">
+              Flexy no lista los productos agotados: si un código no aparece, está en cero
+              — no significa que Sharf no lo despache.
+            </span>
+          </p>
           <div class="flex gap-2">
             <Button
               label="Consultar Stock"
@@ -495,22 +521,36 @@ const getReservedStock = (item: any): number => {
           :paginator="stock.length > 20"
           :rows="20"
         >
-          <Column field="sku_codigo" header="SKU" sortable />
-          <Column field="sku_nombre" header="Nombre" />
-          <Column header="Disponible">
-            <template #body="{ data }">
-              <span class="font-mono">
-                {{ getAvailableStock(data) }}
-              </span>
-            </template>
-          </Column>
-          <Column header="Reservado">
-            <template #body="{ data }">
-              <span class="font-mono text-gray-500">
-                {{ getReservedStock(data) }}
-              </span>
-            </template>
-          </Column>
+          <!-- Flexy: cantidad plana por código, sin desglose de reservado -->
+          <template v-if="isFlexySharf">
+            <Column field="codigo_producto" header="SKU" sortable />
+            <Column field="producto" header="Nombre" />
+            <Column header="Cantidad" sortable field="cantidad">
+              <template #body="{ data }">
+                <span class="font-mono">{{ data.cantidad }}</span>
+              </template>
+            </Column>
+          </template>
+
+          <template v-else>
+            <Column field="sku_codigo" header="SKU" sortable />
+            <Column field="sku_nombre" header="Nombre" />
+            <Column header="Disponible">
+              <template #body="{ data }">
+                <span class="font-mono">
+                  {{ getAvailableStock(data) }}
+                </span>
+              </template>
+            </Column>
+            <Column header="Reservado">
+              <template #body="{ data }">
+                <span class="font-mono text-gray-500">
+                  {{ getReservedStock(data) }}
+                </span>
+              </template>
+            </Column>
+          </template>
+
           <template #empty>
             <div class="text-center py-8 text-gray-400">
               <i class="pi pi-box text-3xl mb-2"></i>
