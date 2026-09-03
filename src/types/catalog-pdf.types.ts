@@ -24,6 +24,7 @@ export interface Catalog {
   per_page: CatalogPerPage
   cover_type: CatalogCoverType
   show_description: boolean
+  include_out_of_stock: boolean
   status: CatalogStatus
   r2_url: string | null
   product_count: number | null
@@ -45,6 +46,8 @@ export interface CreateCatalogPayload {
   per_page: CatalogPerPage
   cover_type: CatalogCoverType
   show_description: boolean
+  /** Incluir productos agotados. Por defecto el catálogo solo trae lo que hay en stock. */
+  include_out_of_stock: boolean
   cover_url?: string
   category_id?: number
   brand_id?: number

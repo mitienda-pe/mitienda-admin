@@ -109,13 +109,12 @@
               >
                 <i :class="scopeCount.truncated ? 'pi pi-exclamation-triangle' : 'pi pi-check-circle'" class="mr-1" />
                 <template v-if="scopeCount.truncated">
-                  {{ scopeCount.matched_count }} productos publicados en este alcance —
+                  {{ scopeCount.matched_count }} {{ countNoun }} en este alcance —
                   se incluirán solo los primeros {{ scopeCount.included_count }}.
                   Acota por subcategoría, marca o lista para controlar cuáles entran.
                 </template>
                 <template v-else>
-                  {{ scopeCount.matched_count }}
-                  {{ scopeCount.matched_count === 1 ? 'producto publicado' : 'productos publicados' }} en este alcance.
+                  {{ scopeCount.matched_count }} {{ countNoun }} en este alcance.
                 </template>
               </p>
             </div>
@@ -175,6 +174,19 @@
                 </span>
                 <img v-if="form.cover_url" :src="form.cover_url" class="mt-2 h-24 rounded border object-cover" />
               </div>
+            </div>
+
+            <!-- Productos incluidos -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Productos incluidos</label>
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input type="checkbox" v-model="form.include_out_of_stock" class="accent-primary w-4 h-4" />
+                <span class="text-sm text-gray-700">Incluir productos agotados</span>
+              </label>
+              <p class="text-xs text-gray-400 mt-1">
+                Por defecto el catálogo trae solo productos con stock, para no ofrecer
+                lo que no puedes vender. Actívalo si el PDF es un muestrario.
+              </p>
             </div>
 
             <!-- Contenido de la viñeta -->
@@ -248,7 +260,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import Card from 'primevue/card'
 import Dropdown from 'primevue/dropdown'
@@ -276,6 +288,7 @@ const form = reactive({
   per_page: 4 as CatalogPerPage,
   cover_type: 'auto' as CatalogCoverType,
   show_description: true,
+  include_out_of_stock: false,
   cover_url: '' as string,
   category_id: undefined as number | undefined,
   brand_id: undefined as number | undefined,
@@ -339,6 +352,14 @@ async function loadProductLists() {
 // de generar. `countSeq` descarta respuestas que llegan fuera de orden.
 const scopeCount = ref<CatalogScopeCount | null>(null)
 const countingScope = ref(false)
+
+// El conteo dice "con stock" cuando el catálogo excluye agotados, para que el
+// número del formulario y el del PDF se lean como lo mismo.
+const countNoun = computed(() => {
+  const singular = scopeCount.value?.matched_count === 1
+  const noun = singular ? 'producto publicado' : 'productos publicados'
+  return form.include_out_of_stock ? noun : `${noun} con stock`
+})
 let countSeq = 0
 let countTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -361,7 +382,8 @@ async function refreshScopeCount() {
       scope: form.scope,
       category_id: form.scope === 'category' ? form.category_id : undefined,
       brand_id: form.scope === 'brand' ? form.brand_id : undefined,
-      list_id: form.scope === 'list' ? form.list_id : undefined
+      list_id: form.scope === 'list' ? form.list_id : undefined,
+      include_out_of_stock: form.include_out_of_stock
     })
     if (seq !== countSeq) return
     scopeCount.value = res
@@ -375,7 +397,7 @@ async function refreshScopeCount() {
 }
 
 watch(
-  () => [form.scope, form.category_id, form.brand_id, form.list_id],
+  () => [form.scope, form.category_id, form.brand_id, form.list_id, form.include_out_of_stock],
   () => {
     scopeCount.value = null
     clearTimeout(countTimer)
@@ -419,7 +441,8 @@ async function onSubmit() {
       scope: form.scope,
       per_page: form.per_page,
       cover_type: form.cover_type,
-      show_description: form.show_description
+      show_description: form.show_description,
+      include_out_of_stock: form.include_out_of_stock
     }
     if (form.scope === 'category') payload.category_id = form.category_id
     if (form.scope === 'brand') payload.brand_id = form.brand_id

@@ -31,12 +31,21 @@ export const catalogPdfApi = {
    * truncado a 100 en el formulario en vez de descubrirlo con el PDF ya hecho.
    */
   async previewCount(
-    params: { scope: string; category_id?: number; brand_id?: number; list_id?: number }
+    params: {
+      scope: string
+      category_id?: number
+      brand_id?: number
+      list_id?: number
+      include_out_of_stock?: boolean
+    }
   ): Promise<CatalogScopeCount> {
     const search = new URLSearchParams({ scope: params.scope })
     if (params.category_id) search.append('category_id', String(params.category_id))
     if (params.brand_id) search.append('brand_id', String(params.brand_id))
     if (params.list_id) search.append('list_id', String(params.list_id))
+    // El conteo debe usar el mismo criterio de stock que la generación, o el
+    // formulario anuncia un número y el PDF trae otro.
+    if (params.include_out_of_stock) search.append('include_out_of_stock', '1')
     const response = await apiClient.get(`/catalogs/preview-count?${search.toString()}`)
     return response.data.data
   },
