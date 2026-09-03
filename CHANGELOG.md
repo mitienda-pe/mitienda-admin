@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.75.4] - 2026-09-03
+
+### Correcciones
+
+- **catalogos:** el PDF incluía productos agotados ([`eae82d2`](https://github.com/mitienda-pe/mitienda-admin/commit/eae82d22c7b45fa3c69ff3f3cd032be4eea0b27e))
+
 ## [v2.75.3] - 2026-09-03
 
 ### Novedades
