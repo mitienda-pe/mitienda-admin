@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.75.2] - 2026-09-03
+
+### Correcciones
+
+- **integraciones:** mostrar el botón Activar en providers sin credenciales ([`c32cacb`](https://github.com/mitienda-pe/mitienda-admin/commit/c32cacb485af27599db6c3992a80fe09d80a62e7))
+
 ## [v2.75.1] - 2026-09-02
 
 ### Correcciones
