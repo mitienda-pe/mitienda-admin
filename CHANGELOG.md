@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.75.3] - 2026-09-03
+
+### Novedades
+
+- **integraciones:** avisar que el Asistente IA está indexando antes de aparecer ([`80d2f86`](https://github.com/mitienda-pe/mitienda-admin/commit/80d2f8668c7b4211ee906f01b22b3aa8c24b334d))
+
 ## [v2.75.2] - 2026-09-03
 
 ### Correcciones
