@@ -86,6 +86,14 @@ const isFrontendOnly = computed(() => provider.value?.frontend_only === true)
 const hasEvents = computed(() => (provider.value?.supported_events?.length ?? 0) > 0)
 const hasCredentialFields = computed(() => (provider.value?.config_fields?.length ?? 0) > 0)
 
+/**
+ * El Asistente IA no pide credenciales: sin formulario no hay "Guardar", y sin guardar
+ * nunca quedaba `configured`, así que el botón Activar —que solo se mostraba ya
+ * configurado— tampoco aparecía. La pantalla no tenía una sola acción. Para estos
+ * providers el toggle es el alta, y el backend lo resuelve creando la fila prendida.
+ */
+const canToggle = computed(() => isConfigured.value || !hasCredentialFields.value)
+
 async function handleSave() {
   if (!code.value || !provider.value) return
 
@@ -211,11 +219,11 @@ async function handleDelete() {
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <h1 class="text-2xl font-bold text-gray-800">{{ provider.name }}</h1>
-            <AppBadge v-if="isConfigured" :variant="isEnabled ? 'success' : 'warning'">
+            <AppBadge v-if="isConfigured || !hasCredentialFields" :variant="isEnabled ? 'success' : 'warning'">
               {{ isEnabled ? 'Activo' : 'Pausado' }}
             </AppBadge>
           </div>
-          <div v-if="isConfigured" class="flex gap-2">
+          <div v-if="canToggle" class="flex gap-2">
             <AppButton
               :variant="isEnabled ? 'secondary' : 'primary'"
               size="small"
@@ -252,9 +260,15 @@ async function handleDelete() {
         >
           <div class="flex items-start gap-2">
             <i class="pi pi-info-circle text-primary/80 mt-0.5" />
-            <p class="text-sm text-primary">
+            <p v-if="hasCredentialFields" class="text-sm text-primary">
               Este widget se carga automáticamente en tu tienda online cuando está activado.
               Para verificar que funciona, visita tu tienda después de guardar la configuración.
+            </p>
+            <p v-else class="text-sm text-primary">
+              Este widget no necesita configuración: se carga automáticamente en tu tienda
+              online cuando está activado. Usá el botón
+              <strong>{{ isEnabled ? 'Pausar' : 'Activar' }}</strong> de arriba y visitá tu
+              tienda para verificar que funciona.
             </p>
           </div>
         </div>
