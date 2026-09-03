@@ -173,6 +173,20 @@ export interface CategoryFormData {
   meta_description?: string
 }
 
+/**
+ * Lo que se perdería al borrar una categoría. `products_orphaned` es el dato
+ * que importa: productos que se quedarían sin ninguna categoría — siguen en el
+ * buscador y en el listado general, pero ya no se llega a ellos navegando.
+ */
+export interface CategoryDeleteImpact {
+  category: { id: number; name: string }
+  subcategories: Array<{ id: number; name: string }>
+  products_affected: number
+  products_orphaned: number
+  /** Categoría padre propuesta como destino. null si es una categoría raíz. */
+  reassign_target: { id: number; name: string } | null
+}
+
 export interface Brand {
   id: number
   name: string

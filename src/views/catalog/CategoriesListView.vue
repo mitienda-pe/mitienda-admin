@@ -143,9 +143,72 @@
       :style="{ width: '400px' }"
     >
       <p>¿Estás seguro de eliminar la categoría <strong>{{ categoryToDelete?.name }}</strong>?</p>
-      <p class="text-sm text-secondary-500 mt-2">
-        Esta acción eliminará también las subcategorías. No se puede deshacer.
-      </p>
+
+      <div v-if="isLoadingImpact" class="flex items-center gap-2 mt-3 text-sm text-secondary-500">
+        <i class="pi pi-spin pi-spinner"></i>
+        <span>Revisando qué se verá afectado...</span>
+      </div>
+
+      <template v-else>
+        <ul v-if="deleteImpact" class="mt-3 space-y-1 text-sm text-secondary-600 list-disc list-inside">
+          <li v-if="deleteImpact.subcategories.length">
+            Se eliminarán también
+            <strong>{{ deleteImpact.subcategories.length }}</strong>
+            {{ deleteImpact.subcategories.length === 1 ? 'subcategoría' : 'subcategorías' }}:
+            {{ deleteImpact.subcategories.map(s => s.name).join(', ') }}.
+          </li>
+          <li v-if="deleteImpact.products_affected">
+            <strong>{{ deleteImpact.products_affected }}</strong>
+            {{ deleteImpact.products_affected === 1 ? 'producto perderá' : 'productos perderán' }}
+            esta categoría.
+          </li>
+          <li v-if="!deleteImpact.subcategories.length && !deleteImpact.products_affected">
+            No tiene subcategorías ni productos vinculados.
+          </li>
+        </ul>
+
+        <!-- El aviso que faltaba: sin categoría el producto no desaparece, se vuelve
+             inalcanzable navegando. Aquí se ofrece a dónde moverlo. -->
+        <div
+          v-if="deleteImpact && deleteImpact.products_orphaned > 0"
+          class="mt-3 rounded border border-amber-200 bg-amber-50 p-3 text-sm"
+        >
+          <p class="text-amber-800">
+            <i class="pi pi-exclamation-triangle mr-1"></i>
+            <strong>{{ deleteImpact.products_orphaned }}</strong>
+            {{ deleteImpact.products_orphaned === 1 ? 'quedaría' : 'quedarían' }}
+            sin ninguna categoría: {{ deleteImpact.products_orphaned === 1 ? 'seguirá' : 'seguirán' }}
+            en el buscador y en el listado de productos, pero no se
+            {{ deleteImpact.products_orphaned === 1 ? 'llegará' : 'llegarán' }} a ellos navegando por la tienda.
+          </p>
+
+          <div v-if="deleteImpact.reassign_target" class="mt-3 flex items-start gap-2">
+            <Checkbox v-model="reassignToParent" :binary="true" inputId="reassign-to-parent" />
+            <label for="reassign-to-parent" class="cursor-pointer text-secondary-700">
+              Moverlos a <strong>{{ deleteImpact.reassign_target.name }}</strong>
+            </label>
+          </div>
+
+          <div v-else class="mt-3">
+            <label class="block mb-1 text-secondary-700">Moverlos a:</label>
+            <Dropdown
+              v-model="reassignToId"
+              :options="reassignOptions"
+              optionLabel="name"
+              optionValue="id"
+              placeholder="Dejarlos sin categoría"
+              class="w-full"
+              showClear
+            />
+          </div>
+        </div>
+
+        <p v-if="impactError" class="mt-3 text-sm text-secondary-500">
+          No se pudo calcular el impacto. Al eliminar se borrarán también las subcategorías.
+        </p>
+      </template>
+
+      <p class="text-sm text-secondary-500 mt-3">Esta acción no se puede deshacer.</p>
 
       <template #footer>
         <Button label="Cancelar" text @click="showDeleteDialog = false" />
@@ -153,6 +216,7 @@
           label="Eliminar"
           severity="danger"
           :loading="isDeleting"
+          :disabled="isLoadingImpact"
           @click="deleteCategory"
         />
       </template>
@@ -179,9 +243,11 @@ import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import TreeTable from 'primevue/treetable'
 import Column from 'primevue/column'
+import Checkbox from 'primevue/checkbox'
+import Dropdown from 'primevue/dropdown'
 import SearchBar from '@/components/common/SearchBar.vue'
 import ProductLinkDialog from '@/components/catalog/ProductLinkDialog.vue'
-import type { Category } from '@/types/product.types'
+import type { Category, CategoryDeleteImpact } from '@/types/product.types'
 
 interface TreeNode {
   key: string
@@ -196,6 +262,13 @@ const searchQuery = ref('')
 const showDeleteDialog = ref(false)
 const categoryToDelete = ref<Category | null>(null)
 const isDeleting = ref(false)
+
+// Impacto del borrado: subcategorías en cascada y productos que quedarían huérfanos
+const deleteImpact = ref<CategoryDeleteImpact | null>(null)
+const isLoadingImpact = ref(false)
+const impactError = ref(false)
+const reassignToParent = ref(true)
+const reassignToId = ref<number | null>(null)
 
 // Link products dialog
 const showLinkDialog = ref(false)
@@ -275,9 +348,46 @@ const filteredTreeNodes = computed(() => {
   return filterTreeNodes(treeNodes.value, searchQuery.value.toLowerCase())
 })
 
-const confirmDelete = (category: Category) => {
+// Destinos posibles cuando no hay padre al que subir los huérfanos: cualquier
+// categoría de la tienda que no se esté borrando en esta misma operación.
+const reassignOptions = computed(() => {
+  if (!deleteImpact.value) return []
+  const excluded = new Set<number>([
+    deleteImpact.value.category.id,
+    ...deleteImpact.value.subcategories.map(s => s.id)
+  ])
+  return catalogStore.flatCategories.filter(c => !excluded.has(c.id))
+})
+
+// Categoría a la que mudar los huérfanos, o undefined para dejarlos sin categoría.
+const reassignTo = computed<number | undefined>(() => {
+  if (!deleteImpact.value || deleteImpact.value.products_orphaned === 0) return undefined
+  if (deleteImpact.value.reassign_target) {
+    return reassignToParent.value ? deleteImpact.value.reassign_target.id : undefined
+  }
+  return reassignToId.value ?? undefined
+})
+
+const confirmDelete = async (category: Category) => {
   categoryToDelete.value = category
+  deleteImpact.value = null
+  impactError.value = false
+  reassignToParent.value = true
+  reassignToId.value = null
   showDeleteDialog.value = true
+
+  try {
+    isLoadingImpact.value = true
+    const impact = await catalogStore.fetchCategoryDeleteImpact(category.id)
+    // El diálogo pudo cerrarse o cambiar de categoría mientras cargaba
+    if (categoryToDelete.value?.id !== category.id) return
+    deleteImpact.value = impact
+    impactError.value = impact === null
+  } catch {
+    if (categoryToDelete.value?.id === category.id) impactError.value = true
+  } finally {
+    isLoadingImpact.value = false
+  }
 }
 
 const openLinkDialog = (category: Category) => {
@@ -295,17 +405,27 @@ const deleteCategory = async () => {
 
   try {
     isDeleting.value = true
-    await catalogStore.deleteCategory(categoryToDelete.value.id)
+    const moved = reassignTo.value
+    const movedCount = moved ? deleteImpact.value?.products_orphaned ?? 0 : 0
+    const movedTo = moved
+      ? deleteImpact.value?.reassign_target?.name
+        ?? catalogStore.flatCategories.find(c => c.id === moved)?.name
+        ?? ''
+      : ''
+    await catalogStore.deleteCategory(categoryToDelete.value.id, moved)
 
     toast.add({
       severity: 'success',
       summary: 'Eliminado',
-      detail: 'La categoría ha sido eliminada correctamente',
+      detail: movedCount
+        ? `Categoría eliminada. ${movedCount} ${movedCount === 1 ? 'producto pasó' : 'productos pasaron'} a ${movedTo}.`
+        : 'La categoría ha sido eliminada correctamente',
       life: 3000
     })
 
     showDeleteDialog.value = false
     categoryToDelete.value = null
+    deleteImpact.value = null
   } catch (error: any) {
     toast.add({
       severity: 'error',

@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { brandApi } from '@/api/brand.api'
 import { categoryApi } from '@/api/category.api'
-import type { Category, Brand, CategoryFormData, BrandFormData } from '@/types/product.types'
+import type { Category, Brand, CategoryDeleteImpact, CategoryFormData, BrandFormData } from '@/types/product.types'
 
 export const useCatalogStore = defineStore('catalog', () => {
   // State
@@ -91,9 +91,19 @@ export const useCatalogStore = defineStore('catalog', () => {
     }
   }
 
-  async function deleteCategory(id: number): Promise<void> {
+  async function fetchCategoryDeleteImpact(id: number): Promise<CategoryDeleteImpact | null> {
     try {
-      await categoryApi.delete(id)
+      const response = await categoryApi.getDeleteImpact(id)
+      return response.success && response.data ? response.data : null
+    } catch (err: any) {
+      console.error('Error al calcular el impacto del borrado:', err)
+      throw err
+    }
+  }
+
+  async function deleteCategory(id: number, reassignTo?: number): Promise<void> {
+    try {
+      await categoryApi.delete(id, reassignTo)
       await fetchCategories() // Refresh list
     } catch (err: any) {
       console.error('Error al eliminar categoría:', err)
@@ -224,6 +234,7 @@ export const useCatalogStore = defineStore('catalog', () => {
     fetchCategoryById,
     createCategory,
     updateCategory,
+    fetchCategoryDeleteImpact,
     deleteCategory,
     uploadCategoryImage,
     deleteCategoryImage,

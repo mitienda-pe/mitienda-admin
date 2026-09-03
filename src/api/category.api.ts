@@ -1,6 +1,6 @@
 import apiClient from './axios'
 import type { ApiResponse } from '@/types/api.types'
-import type { Category, CategoryFormData } from '@/types/product.types'
+import type { Category, CategoryDeleteImpact, CategoryFormData } from '@/types/product.types'
 
 // Transform raw API response to Category (recursive for subcategories)
 const transformCategory = (raw: any): Category => ({
@@ -104,9 +104,18 @@ export const categoryApi = {
     return { success: true, data: category }
   },
 
-  // Delete category
-  async delete(id: number): Promise<ApiResponse<void>> {
-    await apiClient.delete(`/categories/${id}`)
+  // Preview de lo que se lleva por delante el borrado (subcategorías, productos huérfanos)
+  async getDeleteImpact(id: number): Promise<ApiResponse<CategoryDeleteImpact>> {
+    const response = await apiClient.get(`/categories/${id}/delete-impact`)
+    return { success: true, data: response.data }
+  },
+
+  // Delete category. reassignTo mueve a esa categoría los productos que
+  // quedarían sin ninguna; sin él se borran los vínculos y punto.
+  async delete(id: number, reassignTo?: number): Promise<ApiResponse<void>> {
+    await apiClient.delete(`/categories/${id}`, {
+      params: reassignTo ? { reassign_to: reassignTo } : undefined
+    })
     return { success: true }
   },
 
