@@ -48,6 +48,24 @@ export const useIntegrationProvidersStore = defineStore('integration-providers',
     }
   }
 
+  /**
+   * Recarga la configuración sin pasar por el estado de carga.
+   *
+   * `fetchConfig` anula `currentConfig` y prende `isLoading`, lo que en pantalla
+   * es un spinner a página completa: sirve para entrar a la vista, no para
+   * refrescar cada pocos segundos mientras se indexa el catálogo del Asistente IA.
+   */
+  async function refreshConfig(code: string) {
+    try {
+      const response = await integrationProvidersApi.getConfig(code)
+      if (response.success && response.data) {
+        currentConfig.value = response.data
+      }
+    } catch {
+      // Silencioso a propósito: es un sondeo de fondo. El siguiente reintenta.
+    }
+  }
+
   async function saveConfig(code: string, data: SaveIntegrationProviderRequest): Promise<boolean> {
     isSaving.value = true
     try {
@@ -155,6 +173,7 @@ export const useIntegrationProvidersStore = defineStore('integration-providers',
     error,
     testResult,
     fetchProviders,
+    refreshConfig,
     fetchConfig,
     saveConfig,
     updateConfig,

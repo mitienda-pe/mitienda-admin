@@ -11,7 +11,23 @@ export interface IntegrationProviderField {
   options?: { label: string; value: string }[]
 }
 
-export interface IntegrationProvider {
+/**
+ * Estado del índice del Asistente IA (`shopping_chat`), el único proveedor que lo
+ * tiene. Su catálogo se indexa en el backend RAG, y hasta que eso termina la API
+ * no publica el widget en la tienda: `enabled` sin `indexed` es el estado
+ * intermedio que hay que explicarle al comerciante.
+ */
+export interface IntegrationIndexingStatus {
+  indexed?: boolean
+  indexed_at?: string | null
+  indexed_products?: number | null
+  /** El sync corrió y la tienda no tiene productos publicados que indexar */
+  index_empty?: boolean
+  /** El plan de la tienda habilita el indexado; si es false no va a indexarse nunca */
+  index_eligible?: boolean
+}
+
+export interface IntegrationProvider extends IntegrationIndexingStatus {
   code: string
   name: string
   description: string
@@ -28,7 +44,7 @@ export interface IntegrationProvider {
   last_error?: string | null
 }
 
-export interface IntegrationProviderConfig {
+export interface IntegrationProviderConfig extends IntegrationIndexingStatus {
   provider: IntegrationProvider
   credentials: Record<string, string | null> | null
   config: IntegrationProviderEventConfig | null

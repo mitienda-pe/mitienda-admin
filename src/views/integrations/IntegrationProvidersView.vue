@@ -244,8 +244,30 @@ function planPillClass(plan: string | null): string {
   return plan ? (PLAN_PILL_STYLES[plan] ?? 'bg-gray-100 text-gray-700') : 'bg-gray-100 text-gray-700'
 }
 
+/**
+ * El Asistente IA tiene un estado intermedio: activado pero con el catálogo
+ * todavía indexándose en el backend RAG, y hasta que termina la API no publica el
+ * widget en la tienda. Decir "Activo" ahí manda al comerciante a buscar un chat
+ * que aún no está.
+ */
+function awaitsIndex(provider: IntegrationProvider): boolean {
+  return provider.indexed !== undefined && provider.enabled && !provider.indexed
+}
+
+/** Activado pero el indexado no va a ocurrir: plan que no lo habilita, o catálogo vacío. */
+function indexBlocked(provider: IntegrationProvider): boolean {
+  return awaitsIndex(provider)
+    && (provider.index_eligible === false || provider.index_empty === true)
+}
+
+function isIndexing(provider: IntegrationProvider): boolean {
+  return awaitsIndex(provider) && !indexBlocked(provider)
+}
+
 function getStatusLabel(provider: IntegrationProvider): string {
   if (!provider.configured) return 'Sin configurar'
+  if (indexBlocked(provider)) return 'Sin publicar'
+  if (isIndexing(provider)) return 'Indexando'
   if (provider.enabled) return 'Activo'
   return 'Pausado'
 }
@@ -254,6 +276,8 @@ type BadgeVariant = 'success' | 'warning' | 'danger' | 'info' | 'neutral'
 
 function getStatusVariant(provider: IntegrationProvider): BadgeVariant {
   if (!provider.configured) return 'neutral'
+  if (indexBlocked(provider)) return 'warning'
+  if (isIndexing(provider)) return 'info'
   if (provider.enabled) return 'success'
   return 'warning'
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useIntegrationProvidersStore } from '@/stores/integration-providers.store'
 import { useToast } from 'primevue/usetoast'
@@ -93,6 +93,72 @@ const hasCredentialFields = computed(() => (provider.value?.config_fields?.lengt
  * providers el toggle es el alta, y el backend lo resuelve creando la fila prendida.
  */
 const canToggle = computed(() => isConfigured.value || !hasCredentialFields.value)
+
+/**
+ * El Asistente IA indexa el catálogo en el backend RAG, y la API no publica el
+ * widget hasta que termina — un chat de compras que no encuentra nada se lee como
+ * una tienda vacía. Entre activar e indexar hay una espera que hay que contar,
+ * porque el comerciante visita su tienda, no ve el chat y asume que falló.
+ */
+const needsIndexing = computed(() => store.currentConfig?.indexed !== undefined)
+const isIndexed = computed(() => store.currentConfig?.indexed === true)
+const indexedProducts = computed(() => store.currentConfig?.indexed_products ?? null)
+
+/**
+ * Dos formas de quedar activo sin llegar nunca a indexarse, y las dos merecen un
+ * mensaje propio: sin plan habilitado la tienda no entra al sync, y con el
+ * catálogo vacío no hay nada que indexar. Contarlas como "Indexando" deja un
+ * spinner girando para siempre.
+ */
+const indexBlocked = computed(() => {
+  if (!needsIndexing.value || !isEnabled.value || isIndexed.value) return null
+  if (store.currentConfig?.index_eligible === false) return 'plan'
+  if (store.currentConfig?.index_empty === true) return 'empty'
+  return null
+})
+
+const isIndexing = computed(
+  () => needsIndexing.value && isEnabled.value && !isIndexed.value && indexBlocked.value === null
+)
+
+const indexedAtLabel = computed(() => {
+  const raw = store.currentConfig?.indexed_at
+  if (!raw) return null
+  const parsed = new Date(raw)
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toLocaleString('es-PE')
+})
+
+/**
+ * Mientras se indexa, sondear para que el aviso se resuelva solo.
+ *
+ * El indexado lo hace un backend aparte y puede tardar minutos en un catálogo
+ * grande; sin esto el cartel "Indexando productos" se queda fijo hasta que el
+ * comerciante recarga a mano, que es justo la duda que el cartel viene a evitar.
+ * Se usa `refreshConfig` y no `fetchConfig` porque este último vacía la vista y
+ * muestra el spinner de página completa en cada vuelta.
+ */
+const INDEXING_POLL_MS = 15000
+let indexingPoll: ReturnType<typeof setInterval> | null = null
+
+function stopIndexingPoll() {
+  if (indexingPoll !== null) {
+    clearInterval(indexingPoll)
+    indexingPoll = null
+  }
+}
+
+watch(isIndexing, (indexing) => {
+  if (!indexing) {
+    stopIndexingPoll()
+    return
+  }
+  if (indexingPoll !== null) return
+  indexingPoll = setInterval(() => {
+    if (code.value) store.refreshConfig(code.value)
+  }, INDEXING_POLL_MS)
+})
+
+onUnmounted(stopIndexingPoll)
 
 async function handleSave() {
   if (!code.value || !provider.value) return
@@ -219,7 +285,12 @@ async function handleDelete() {
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <h1 class="text-2xl font-bold text-gray-800">{{ provider.name }}</h1>
-            <AppBadge v-if="isConfigured || !hasCredentialFields" :variant="isEnabled ? 'success' : 'warning'">
+            <AppBadge v-if="indexBlocked !== null" variant="warning">Sin publicar</AppBadge>
+            <AppBadge v-else-if="isIndexing" variant="warning">Indexando</AppBadge>
+            <AppBadge
+              v-else-if="isConfigured || !hasCredentialFields"
+              :variant="isEnabled ? 'success' : 'warning'"
+            >
               {{ isEnabled ? 'Activo' : 'Pausado' }}
             </AppBadge>
           </div>
@@ -253,9 +324,62 @@ async function handleDelete() {
           </div>
         </div>
 
+        <!-- Activado pero el indexado no va a ocurrir: decirlo, no dejar un spinner -->
+        <div
+          v-if="indexBlocked === 'plan'"
+          class="bg-amber-50 border border-amber-200 rounded-lg p-4"
+        >
+          <div class="flex items-start gap-2">
+            <i class="pi pi-lock text-amber-500 mt-0.5" />
+            <div>
+              <p class="text-sm font-medium text-amber-800">Tu plan no incluye el Asistente IA</p>
+              <p class="text-sm text-amber-700 mt-1">
+                La integración está activada, pero tu plan actual no permite indexar el
+                catálogo, así que el widget no se va a mostrar en tu tienda. Cambia de plan
+                para usarlo.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div
+          v-else-if="indexBlocked === 'empty'"
+          class="bg-amber-50 border border-amber-200 rounded-lg p-4"
+        >
+          <div class="flex items-start gap-2">
+            <i class="pi pi-inbox text-amber-500 mt-0.5" />
+            <div>
+              <p class="text-sm font-medium text-amber-800">No hay productos para indexar</p>
+              <p class="text-sm text-amber-700 mt-1">
+                No encontramos productos publicados en tu catálogo. El asistente necesita
+                productos para poder recomendarlos: publica al menos uno y el widget
+                aparecerá solo en tu tienda.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Indexando: el widget todavía no se ve en la tienda -->
+        <div
+          v-else-if="isIndexing"
+          class="bg-amber-50 border border-amber-200 rounded-lg p-4"
+        >
+          <div class="flex items-start gap-2">
+            <i class="pi pi-spinner pi-spin text-amber-500 mt-0.5" />
+            <div>
+              <p class="text-sm font-medium text-amber-800">Indexando productos</p>
+              <p class="text-sm text-amber-700 mt-1">
+                Estamos preparando tu catálogo para el asistente. El widget aparecerá en tu
+                tienda online en cuanto termine — no hace falta que hagas nada. Puedes cerrar
+                esta pantalla; el proceso sigue en segundo plano.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <!-- Frontend-only info banner -->
         <div
-          v-if="isFrontendOnly"
+          v-else-if="isFrontendOnly"
           class="bg-primary/5 border border-primary/20 rounded-lg p-4"
         >
           <div class="flex items-start gap-2">
@@ -264,10 +388,15 @@ async function handleDelete() {
               Este widget se carga automáticamente en tu tienda online cuando está activado.
               Para verificar que funciona, visita tu tienda después de guardar la configuración.
             </p>
+            <p v-else-if="isIndexed" class="text-sm text-primary">
+              Tu catálogo está indexado{{ indexedProducts ? ` (${indexedProducts} productos)` : '' }}
+              y el widget se carga en tu tienda online. Se actualiza solo cuando editas tus
+              productos.
+            </p>
             <p v-else class="text-sm text-primary">
               Este widget no necesita configuración: se carga automáticamente en tu tienda
-              online cuando está activado. Usá el botón
-              <strong>{{ isEnabled ? 'Pausar' : 'Activar' }}</strong> de arriba y visitá tu
+              online cuando está activado. Usa el botón
+              <strong>{{ isEnabled ? 'Pausar' : 'Activar' }}</strong> de arriba y visita tu
               tienda para verificar que funciona.
             </p>
           </div>
@@ -422,6 +551,13 @@ async function handleDelete() {
             <div class="text-sm text-gray-500 flex items-center gap-2">
               <i class="pi pi-globe text-xs" />
               Widget cargado en la tienda online
+            </div>
+            <div v-if="needsIndexing && isIndexed" class="text-sm text-gray-500 flex items-center gap-2 mt-2">
+              <i class="pi pi-database text-xs text-green-500" />
+              <span>
+                {{ indexedProducts ?? 0 }} productos indexados
+                <span v-if="indexedAtLabel" class="text-gray-400">· {{ indexedAtLabel }}</span>
+              </span>
             </div>
           </template>
         </div>
