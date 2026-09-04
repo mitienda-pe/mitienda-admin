@@ -32,8 +32,31 @@
       </div>
     </template>
 
+    <!--
+      Dos formas de resolver una duda, no una que reemplaza a la otra: la
+      documentación de esta pantalla aparece al instante y sin costo, y el
+      asistente queda al lado para lo que un documento no puede responder.
+    -->
+    <div v-if="isAvailable" class="flex gap-1 border-b border-gray-200 mb-4 -mt-1">
+      <button
+        v-for="t in TABS"
+        :key="t.id"
+        class="px-3 py-2 text-sm font-medium border-b-2 -mb-px transition-colors"
+        :class="tab === t.id
+          ? 'border-primary text-primary'
+          : 'border-transparent text-gray-500 hover:text-gray-700'"
+        @click="tab = t.id"
+      >
+        <i :class="t.icon" class="mr-1.5 text-xs"></i>{{ t.label }}
+      </button>
+    </div>
+
+    <div v-if="isAvailable && tab === 'asistente'" class="assistant-tab">
+      <AssistantPanel />
+    </div>
+
     <!-- Loading -->
-    <div v-if="loading" class="flex items-center justify-center py-20">
+    <div v-else-if="loading" class="flex items-center justify-center py-20">
       <i class="pi pi-spin pi-spinner text-2xl text-gray-400"></i>
     </div>
 
@@ -62,15 +85,37 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import Sidebar from 'primevue/sidebar'
 import { useHelpDocs } from '@/composables/useHelpDocs'
+import { useAssistant } from '@/composables/useAssistant'
+import AssistantPanel from '@/components/assistant/AssistantPanel.vue'
 
 const { html, loading, error, isOpen, fetchDoc } = useHelpDocs()
+const { isAvailable } = useAssistant()
+
+const TABS = [
+  { id: 'doc', label: 'Esta pantalla', icon: 'pi pi-book' },
+  { id: 'asistente', label: 'Preguntar', icon: 'pi pi-comments' },
+] as const
+
+// Abre en la documentación: es lo que la mayoría viene a buscar y no cuesta nada.
+const tab = ref<'doc' | 'asistente'>('doc')
 </script>
 
 <style scoped>
 .help-drawer :deep(.p-sidebar-content) {
   padding: 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* La conversación ocupa lo que queda del panel: el input queda abajo, fijo. */
+.assistant-tab {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .support-pill {
