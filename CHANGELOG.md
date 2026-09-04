@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.75.7] - 2026-09-04
+
+### Novedades
+
+- **ayuda:** aprobar en el panel los cambios que el asistente propone ([`138ba7c`](https://github.com/mitienda-pe/mitienda-admin/commit/138ba7c7e5b216e190a64f403b937f61e47c76bf))
+
 ## [v2.75.6] - 2026-09-04
 
 ### Novedades
