@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick, watch } from 'vue'
+import { ref, nextTick, watch, onMounted } from 'vue'
 import { marked } from 'marked'
 import { sanitizeHtml } from '@/utils/sanitize'
 import { useAssistant } from '@/composables/useAssistant'
@@ -12,7 +12,15 @@ const {
   hasConversation,
   send,
   reset,
+  pendingChanges,
+  resolvingChange,
+  loadPendingChanges,
+  approveChange,
+  rejectChange,
 } = useAssistant()
+
+// Puede haber quedado algo esperando de una conversación anterior.
+onMounted(loadPendingChanges)
 
 const draft = ref('')
 const scroller = ref<HTMLElement | null>(null)
@@ -114,6 +122,45 @@ watch(() => messages.value.length, scrollAlFinal)
 
       <div v-if="lastError" class="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
         {{ lastError }}
+      </div>
+    </div>
+
+    <!--
+      Lo que el asistente dejó preparado.
+      Vive fuera de la conversación a propósito: aprobar es una decisión del
+      comerciante, no un turno más del chat, y tiene que verse aunque el hilo haya
+      seguido de largo.
+    -->
+    <div v-if="pendingChanges.length" class="border-t border-amber-200 bg-amber-50 -mx-1 px-3 py-3 mt-2">
+      <p class="text-xs font-semibold text-amber-800 mb-2 flex items-center gap-1.5">
+        <i class="pi pi-exclamation-circle text-xs"></i>
+        Esperando tu aprobación
+      </p>
+      <div
+        v-for="c in pendingChanges"
+        :key="c.cambio_id"
+        class="bg-white border border-amber-200 rounded-lg px-3 py-2 mb-2 last:mb-0"
+      >
+        <p class="text-sm text-gray-800 mb-2">{{ c.resumen }}</p>
+        <div class="flex gap-2">
+          <button
+            class="text-xs px-3 py-1 rounded-md bg-primary text-white hover:opacity-90
+                   disabled:opacity-40 transition-opacity"
+            :disabled="resolvingChange === c.cambio_id"
+            @click="approveChange(c.cambio_id)"
+          >
+            <i v-if="resolvingChange === c.cambio_id" class="pi pi-spin pi-spinner text-[10px] mr-1"></i>
+            Aplicar
+          </button>
+          <button
+            class="text-xs px-3 py-1 rounded-md border border-gray-300 text-gray-600
+                   hover:bg-gray-50 disabled:opacity-40 transition-colors"
+            :disabled="resolvingChange === c.cambio_id"
+            @click="rejectChange(c.cambio_id)"
+          >
+            Descartar
+          </button>
+        </div>
       </div>
     </div>
 

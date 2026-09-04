@@ -3,6 +3,7 @@ import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAdminStore } from '@/stores/admin.store'
 import { getDocSlugForRoute } from '@/config/help-docs.config'
+import { assistantChangesApi, type PendingChange } from '@/api/assistant-changes.api'
 
 /**
  * El asistente del panel: conversación con el agente del comerciante.
@@ -35,6 +36,8 @@ const isLoading = ref(false)
 const progressLabel = ref<string | null>(null)
 const sessionId = ref(generateId())
 const lastError = ref<string | null>(null)
+const pendingChanges = ref<PendingChange[]>([])
+const resolvingChange = ref<number | null>(null)
 
 export function useAssistant() {
   const route = useRoute()
@@ -61,6 +64,46 @@ export function useAssistant() {
    * que explicar desde dónde se pregunta.
    */
   const currentScreen = computed(() => getDocSlugForRoute(route.path))
+
+  /**
+   * Qué dejó preparado el asistente y sigue esperando.
+   *
+   * Se consulta al abrir y después de cada respuesta: si el asistente acaba de
+   * proponer algo, aparece sin que haya que recargar nada.
+   */
+  async function loadPendingChanges() {
+    if (!isAvailable.value) return
+    try {
+      pendingChanges.value = await assistantChangesApi.list()
+    } catch {
+      // Que no se pueda leer la lista no debería romper la conversación.
+      pendingChanges.value = []
+    }
+  }
+
+  async function approveChange(cambioId: number) {
+    resolvingChange.value = cambioId
+    try {
+      await assistantChangesApi.approve(cambioId)
+      pendingChanges.value = pendingChanges.value.filter((c) => c.cambio_id !== cambioId)
+    } catch (err: any) {
+      lastError.value = err?.response?.data?.messages?.error || 'No se pudo aplicar el cambio.'
+    } finally {
+      resolvingChange.value = null
+    }
+  }
+
+  async function rejectChange(cambioId: number) {
+    resolvingChange.value = cambioId
+    try {
+      await assistantChangesApi.reject(cambioId)
+      pendingChanges.value = pendingChanges.value.filter((c) => c.cambio_id !== cambioId)
+    } catch {
+      lastError.value = 'No se pudo descartar el cambio.'
+    } finally {
+      resolvingChange.value = null
+    }
+  }
 
   function reset() {
     messages.value = []
@@ -171,6 +214,9 @@ export function useAssistant() {
 
       const msg = actual()
       if (msg) msg.streaming = false
+
+      // Puede haber quedado algo esperando aprobación.
+      await loadPendingChanges()
     } catch (err) {
       console.error('[Asistente] Falló la consulta:', err)
       const msg = actual()
@@ -196,5 +242,10 @@ export function useAssistant() {
     currentScreen,
     send,
     reset,
+    pendingChanges,
+    resolvingChange,
+    loadPendingChanges,
+    approveChange,
+    rejectChange,
   }
 }
