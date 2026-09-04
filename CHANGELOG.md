@@ -3,6 +3,18 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.75.5] - 2026-09-04
+
+### Novedades
+
+- **catalogos:** el diálogo de borrar categoría dice qué se pierde ([`bfc60f2`](https://github.com/mitienda-pe/mitienda-admin/commit/bfc60f25f3b6143aa98702092d2aa097a5c04179))
+
+### Correcciones
+
+- **admin:** el banner de impersonación tapaba el contenido ([`b941332`](https://github.com/mitienda-pe/mitienda-admin/commit/b9413322d569e4c428061f92ad546ae1ce57c7c6))
+- **seguridad:** permitir en la CSP el backend del asistente ([`44af777`](https://github.com/mitienda-pe/mitienda-admin/commit/44af7773494620a5b1062e1ae51dd85fb65e6974))
+- **ayuda:** los 13 módulos que abrían la introducción genérica ([`04ddd6d`](https://github.com/mitienda-pe/mitienda-admin/commit/04ddd6d88e07da669077921b3c98c5b38968be30))
+
 ## [v2.75.4] - 2026-09-03
 
 ### Correcciones
