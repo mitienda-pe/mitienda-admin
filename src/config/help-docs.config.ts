@@ -27,6 +27,9 @@ export const routeToDocMap: [string, string][] = [
   // Dispatch (Ventas > Panel de Despacho)
   ['/dispatch', '03-ventas/05-despacho'],
 
+  // Payment Links (Ventas > Links de Pago)
+  ['/payment-links', '03-ventas/06-links-de-pago'],
+
   // Reports (Reportes)
   ['/reports', '04-reportes'],
 
@@ -38,16 +41,25 @@ export const routeToDocMap: [string, string][] = [
   ['/catalog/product-tags', '05-catalogo/06-etiquetas'],
   ['/catalog/product-lists', '05-catalogo/07-listas'],
   ['/catalog/config', '05-catalogo/08-config-catalogo'],
+  ['/catalog/pdf', '05-catalogo/10-catalogos-pdf'],
+
+  // Inventario multi-almacén: kardex, transferencias y stock por almacén
+  // comparten artículo porque son tres vistas del mismo módulo.
+  ['/inventory', '05-catalogo/09-inventario'],
+  ['/store/branch-stock', '05-catalogo/09-inventario'],
 
   // Marketing
   ['/marketing/promotions-v2', '06-marketing/02-promociones-avanzadas'],
   ['/marketing/promotions', '06-marketing/01-promociones'],
+  // Los cupones se documentan dentro del artículo de Promociones.
+  ['/marketing/coupons', '06-marketing/01-promociones'],
   ['/marketing/upsales', '06-marketing/03-upsales'],
   ['/marketing/combos', '06-marketing/04-combos'],
   ['/marketing/announcement-bars', '06-marketing/05-barras-anuncio'],
   ['/marketing/referrals', '06-marketing/06-referidos'],
   ['/marketing/loyalty', '06-marketing/08-fidelizacion-contabilidad'],
   ['/marketing/abandoned-carts', '03-ventas/04-carritos-abandonados'],
+  ['/marketing/cart-recovery', '06-marketing/09-recuperacion-carritos'],
 
   // Pages (Contenido > Páginas)
   ['/pages', '07-contenido/01-paginas'],
@@ -63,6 +75,9 @@ export const routeToDocMap: [string, string][] = [
   ['/content/images', '07-contenido/05-galeria'],
   ['/content/components', '07-contenido/06-componentes'],
   ['/content/messages', '07-contenido/07-mensajes'],
+  // El builder de plantillas se documenta junto a Apariencia, que es donde
+  // vive en el menú del panel.
+  ['/content/template', '08-apariencia/07-plantilla'],
 
   // Appearance
   ['/appearance/config', '08-apariencia/01-general'],
@@ -70,6 +85,7 @@ export const routeToDocMap: [string, string][] = [
   ['/appearance/typography', '08-apariencia/03-tipografia'],
   ['/appearance/product-card', '08-apariencia/04-tarjeta-producto'],
   ['/appearance/menu', '08-apariencia/05-menu'],
+  ['/appearance/css', '08-apariencia/06-css-personalizado'],
 
   // Payment Gateways
   ['/payment-gateways', '09-formas-pago'],
@@ -91,6 +107,7 @@ export const routeToDocMap: [string, string][] = [
   ['/store/tiktok', '12-configuracion/07-tiktok'],
   ['/store/users', '12-configuracion/08-usuarios-equipo'],
   ['/store/subscription', '12-configuracion/10-suscripcion'],
+  ['/store/doppler', '13-integraciones/04-email-marketing'],
 
   // Notifications
   ['/notifications', '12-configuracion/09-notificaciones'],
@@ -103,6 +120,10 @@ export const routeToDocMap: [string, string][] = [
   ['/integrations', '13-integraciones/01-overview'],
   ['/configuracion/netsuite', '14-netsuite'],
   ['/api', '15-api'],
+  ['/plugins', '13-integraciones/07-plugins'],
+
+  // POS
+  ['/pos', '16-pos'],
 ]
 
 export function getDocSlugForRoute(path: string): string {
