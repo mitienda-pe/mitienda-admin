@@ -1,21 +1,12 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Banner de Impersonación -->
-    <ImpersonationBanner
-      :show="adminStore.isImpersonating"
-      :store-name="adminStore.impersonatedStore?.name"
-      :loading="exitingImpersonation"
-      @exit="handleExitImpersonation"
-    />
-
     <!-- Broadcasts del superadmin (barras) -->
     <BroadcastBar />
 
     <!-- Header -->
     <header
       data-tour="header"
-      class="bg-white shadow-sm border-b border-gray-200 sticky z-40"
-      :class="adminStore.isImpersonating ? 'top-[52px]' : 'top-0'"
+      class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40"
     >
       <div class="px-4 py-3 flex items-center justify-between">
         <!-- Logo y menú móvil -->
@@ -31,7 +22,15 @@
         </div>
 
         <!-- Tienda actual y usuario -->
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
+          <!-- Pastilla de impersonación (super-admin) -->
+          <ImpersonationPill
+            :show="adminStore.isImpersonating"
+            :store-name="adminStore.impersonatedStore?.name"
+            :loading="exitingImpersonation"
+            @exit="handleExitImpersonation"
+          />
+
           <!-- Tienda seleccionada -->
           <div v-if="authStore.selectedStore" class="hidden md:flex items-center gap-2">
             <i class="pi pi-shop text-secondary-400"></i>
@@ -71,8 +70,7 @@
       <!-- Sidebar Desktop -->
       <aside
         data-tour="sidebar"
-        class="hidden lg:block w-64 bg-white border-r border-gray-200 sticky overflow-y-auto flex flex-col"
-        :class="adminStore.isImpersonating ? 'top-[112px] h-[calc(100vh-112px)]' : 'top-[60px] h-[calc(100vh-60px)]'"
+        class="hidden lg:block w-64 bg-white border-r border-gray-200 sticky top-[60px] h-[calc(100vh-60px)] overflow-y-auto flex flex-col"
         role="navigation"
         aria-label="Navegación principal"
       >
@@ -1037,7 +1035,7 @@ import { useBadgeCountsStore } from '@/stores/badge-counts.store'
 import Button from 'primevue/button'
 import Sidebar from 'primevue/sidebar'
 import Menu from 'primevue/menu'
-import ImpersonationBanner from '@/components/admin/ImpersonationBanner.vue'
+import ImpersonationPill from '@/components/admin/ImpersonationPill.vue'
 import BroadcastBar from '@/components/broadcasts/BroadcastBar.vue'
 import BroadcastModal from '@/components/broadcasts/BroadcastModal.vue'
 import { useBroadcasts } from '@/composables/useBroadcasts'
