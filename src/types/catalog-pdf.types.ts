@@ -24,6 +24,8 @@ export interface Catalog {
   per_page: CatalogPerPage
   cover_type: CatalogCoverType
   show_description: boolean
+  show_promotions: boolean
+  show_promo_expiry: boolean
   include_out_of_stock: boolean
   status: CatalogStatus
   r2_url: string | null
@@ -46,6 +48,10 @@ export interface CreateCatalogPayload {
   per_page: CatalogPerPage
   cover_type: CatalogCoverType
   show_description: boolean
+  /** Imprimir precios con promoción. Apagado, el catálogo va a precio de lista. */
+  show_promotions: boolean
+  /** Imprimir el "Precio válido hasta el ...". Solo aplica con `show_promotions`. */
+  show_promo_expiry: boolean
   /** Incluir productos agotados. Por defecto el catálogo solo trae lo que hay en stock. */
   include_out_of_stock: boolean
   cover_url?: string

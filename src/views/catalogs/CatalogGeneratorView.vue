@@ -192,12 +192,42 @@
             <!-- Contenido de la viñeta -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Contenido de la viñeta</label>
+
               <label class="flex items-center gap-2 cursor-pointer select-none">
                 <input type="checkbox" v-model="form.show_description" class="accent-primary w-4 h-4" />
                 <span class="text-sm text-gray-700">Incluir descripción corta</span>
               </label>
               <p class="text-xs text-gray-400 mt-1">
                 Muestra un extracto de la descripción del producto (no aplica en el layout de 9 por página).
+              </p>
+
+              <label class="flex items-center gap-2 cursor-pointer select-none mt-3">
+                <input type="checkbox" v-model="form.show_promotions" class="accent-primary w-4 h-4" />
+                <span class="text-sm text-gray-700">Aplicar promociones vigentes</span>
+              </label>
+              <p class="text-xs text-gray-400 mt-1">
+                Imprime el precio con descuento, el precio de lista tachado y cuánto es el
+                descuento. Apagado, el catálogo sale a precio de lista.
+              </p>
+
+              <!-- La vigencia solo tiene sentido si hay promociones impresas que fechar. -->
+              <label
+                class="flex items-center gap-2 select-none mt-3"
+                :class="form.show_promotions ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'"
+              >
+                <input
+                  type="checkbox"
+                  v-model="form.show_promo_expiry"
+                  :disabled="!form.show_promotions"
+                  class="accent-primary w-4 h-4"
+                />
+                <span class="text-sm text-gray-700">Mostrar hasta cuándo vale la promoción</span>
+              </label>
+              <p class="text-xs text-gray-400 mt-1">
+                Imprime «Precio válido hasta el …». Déjalo activo si manejas campañas con
+                fecha real: el PDF sobrevive a la promoción y sin la fecha sigue prometiendo
+                un precio vencido. Apágalo si fechas las promociones a futuro lejano y las
+                prendes y apagas a mano.
               </p>
             </div>
 
@@ -288,6 +318,8 @@ const form = reactive({
   per_page: 4 as CatalogPerPage,
   cover_type: 'auto' as CatalogCoverType,
   show_description: true,
+  show_promotions: true,
+  show_promo_expiry: true,
   include_out_of_stock: false,
   cover_url: '' as string,
   category_id: undefined as number | undefined,
@@ -442,6 +474,9 @@ async function onSubmit() {
       per_page: form.per_page,
       cover_type: form.cover_type,
       show_description: form.show_description,
+      show_promotions: form.show_promotions,
+      // El backend la fuerza a false sin promociones; se manda coherente igual.
+      show_promo_expiry: form.show_promotions && form.show_promo_expiry,
       include_out_of_stock: form.include_out_of_stock
     }
     if (form.scope === 'category') payload.category_id = form.category_id
