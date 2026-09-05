@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.75.8] - 2026-09-04
+
+### Novedades
+
+- **catalogos:** elegir si el PDF muestra promociones y su vigencia ([`0bff9f8`](https://github.com/mitienda-pe/mitienda-admin/commit/0bff9f8f5f73038096de358b1e680d902c686cf3))
+
 ## [v2.75.7] - 2026-09-04
 
 ### Novedades
