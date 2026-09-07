@@ -588,6 +588,7 @@
                     id="edit-order"
                     v-model="form.order"
                     :min="0"
+                    :max="2147483647"
                     :useGrouping="false"
                     class="w-20"
                   />
