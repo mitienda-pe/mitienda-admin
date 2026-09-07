@@ -1,23 +1,26 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <div class="bg-white border-b border-gray-200">
+    <!-- Header. Va pegado bajo la barra superior del dashboard (60px) porque los
+         campos que más se editan -- posicion, colores, orden -- quedan por debajo
+         del pliegue: si la cabecera se va con el scroll, el boton Guardar
+         desaparece justo cuando hace falta. -->
+    <div class="bg-white border-b border-gray-200 sticky top-[60px] z-20 -mx-4 -mt-4 lg:-mx-6 lg:-mt-6">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-4">
-            <Button icon="pi pi-arrow-left" text rounded @click="handleBack" />
-            <div>
-              <h1 class="text-2xl font-bold text-secondary">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-4 min-w-0">
+            <Button icon="pi pi-arrow-left" text rounded class="shrink-0" @click="handleBack" />
+            <div class="min-w-0">
+              <h1 class="text-xl sm:text-2xl font-bold text-secondary">
                 {{ editingTag ? 'Editar Etiqueta' : 'Nueva Etiqueta' }}
               </h1>
-              <p class="text-sm text-secondary-500 mt-1">
+              <p class="text-sm text-secondary-500 mt-1 truncate">
                 {{ editingTag ? `Editando: ${editingTag.nombre}` : 'Crear una nueva etiqueta para productos' }}
               </p>
             </div>
           </div>
-          <div class="flex gap-2">
-            <Button label="Cancelar" severity="secondary" outlined @click="handleBack" size="large" />
-            <Button label="Guardar" icon="pi pi-check" :loading="tagsStore.isLoading" @click="saveTag" size="large" />
+          <div class="flex gap-2 w-full sm:w-auto shrink-0">
+            <Button label="Cancelar" severity="secondary" outlined class="flex-1 sm:flex-none" @click="handleBack" />
+            <Button label="Guardar" icon="pi pi-check" :loading="tagsStore.isLoading" class="flex-1 sm:flex-none" @click="saveTag" />
           </div>
         </div>
       </div>
