@@ -46,13 +46,20 @@ const adsLabelError = computed(() => {
 // configuración que parece completa y no registra ni una venta. Se avisa.
 const adsMissingLabel = computed(() => adsId.value !== '' && adsLabel.value === '' && !adsIdError.value)
 
+const hasContainer = computed(() => (store.draftSettings.tienda_google_tagmanager || '').trim() !== '')
+
+// Mismo riesgo que con Ads, un piso más arriba: medir la misma propiedad de GA4
+// por los dos caminos —el nuestro y un tag adentro del contenedor— la cuenta dos
+// veces.
+const analyticsDuplicateWarning = computed(() => {
+  const ga = (store.draftSettings.tienda_codigo_google_analytics || '').trim()
+  return ga !== '' && hasContainer.value
+})
+
 // La trampa clásica: el contenedor de GTM casi siempre ya trae su propia
 // etiqueta de conversión, puesta por la agencia. Configurar Ads también acá
 // manda la misma venta dos veces y Google la reporta como transacción duplicada.
-const adsDuplicateWarning = computed(() => {
-  const gtm = (store.draftSettings.tienda_google_tagmanager || '').trim()
-  return gtm !== '' && adsId.value !== ''
-})
+const adsDuplicateWarning = computed(() => hasContainer.value && adsId.value !== '')
 
 const hasValidationErrors = computed(
   () => analyticsError.value || gtmError.value || !!adsIdError.value || !!adsLabelError.value
@@ -168,6 +175,36 @@ onMounted(() => {
               format-hint="Formato no válido. Usa GTM-XXXXXXX"
               @update:model-value="store.updateField('tienda_google_tagmanager', $event)"
             />
+          </div>
+
+          <div
+            v-if="hasContainer"
+            class="flex gap-2 rounded-md border border-gray-200 bg-gray-50 p-3 text-xs text-gray-600"
+          >
+            <i class="pi pi-check-circle mt-0.5 text-primary" />
+            <span>
+              Tu tienda publica los eventos de ecommerce de GA4 en la capa de datos, con la
+              estructura estándar: <strong>view_item</strong>, <strong>add_to_cart</strong>,
+              <strong>begin_checkout</strong>, <strong>purchase</strong> y
+              <strong>add_to_wishlist</strong>, cada uno con su monto y sus productos. Quien
+              administre el contenedor solo tiene que crear los disparadores de evento
+              personalizado con esos nombres. Si hoy dispara la conversión por la URL de la página
+              de confirmación, conviene reemplazarlo: esa forma no trae el monto y se repite si el
+              comprador recarga.
+            </span>
+          </div>
+
+          <div
+            v-if="analyticsDuplicateWarning"
+            class="flex gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800"
+          >
+            <i class="pi pi-exclamation-triangle mt-0.5" />
+            <span>
+              Tienes Analytics y Tag Manager configurados a la vez. Si dentro del contenedor
+              también hay un tag de GA4 para esta misma propiedad, cada evento se va a contar
+              <strong>dos veces</strong>. Deja la medición de GA4 en un solo lugar: acá o en el
+              contenedor.
+            </span>
           </div>
         </div>
       </div>
