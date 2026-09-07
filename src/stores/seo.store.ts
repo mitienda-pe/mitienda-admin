@@ -10,6 +10,8 @@ function deepClone<T>(obj: T): T {
 const DEFAULT_SETTINGS: StoreSeoSettings = {
   tienda_codigo_google_analytics: null,
   tienda_google_tagmanager: null,
+  tienda_google_ads_id: null,
+  tienda_google_ads_label_compra: null,
   tienda_tag_google_site_verification: null,
   tienda_metadata_titulo: null,
   tienda_slogan: null,
@@ -32,6 +34,8 @@ export const useSeoStore = defineStore('seo', () => {
     const editableKeys: (keyof StoreSeoUpdate)[] = [
       'tienda_codigo_google_analytics',
       'tienda_google_tagmanager',
+      'tienda_google_ads_id',
+      'tienda_google_ads_label_compra',
       'tienda_tag_google_site_verification',
       'tienda_metadata_titulo',
       'tienda_slogan'
@@ -64,6 +68,8 @@ export const useSeoStore = defineStore('seo', () => {
       const update: StoreSeoUpdate = {
         tienda_codigo_google_analytics: draftSettings.value.tienda_codigo_google_analytics,
         tienda_google_tagmanager: draftSettings.value.tienda_google_tagmanager,
+        tienda_google_ads_id: draftSettings.value.tienda_google_ads_id,
+        tienda_google_ads_label_compra: draftSettings.value.tienda_google_ads_label_compra,
         tienda_tag_google_site_verification: draftSettings.value.tienda_tag_google_site_verification,
         tienda_metadata_titulo: draftSettings.value.tienda_metadata_titulo,
         tienda_slogan: draftSettings.value.tienda_slogan

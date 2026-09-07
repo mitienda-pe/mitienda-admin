@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
 import { useSeoStore } from '@/stores/seo.store'
-import { AppButton, UnsavedChangesBar } from '@/components/ui'
+import { AppButton, AppInput, UnsavedChangesBar } from '@/components/ui'
 import IdPillsInput from '@/components/ui/IdPillsInput.vue'
 import ProgressSpinner from 'primevue/progressspinner'
 import { useToast } from 'primevue/usetoast'
@@ -11,6 +11,8 @@ const toast = useToast()
 
 const analyticsPattern = /^(G-[A-Z0-9]+|UA-\d+-\d+)$/i
 const gtmPattern = /^GTM-[A-Z0-9]+$/i
+const adsIdPattern = /^AW-\d{6,15}$/i
+const adsLabelPattern = /^[A-Za-z0-9_-]{5,50}$/
 
 const analyticsError = computed(() => {
   const val = store.draftSettings.tienda_codigo_google_analytics
@@ -24,7 +26,37 @@ const gtmError = computed(() => {
   return val.split(',').some(id => !gtmPattern.test(id.trim()))
 })
 
-const hasValidationErrors = computed(() => analyticsError.value || gtmError.value)
+const adsId = computed(() => (store.draftSettings.tienda_google_ads_id || '').trim())
+const adsLabel = computed(() => (store.draftSettings.tienda_google_ads_label_compra || '').trim())
+
+const adsIdError = computed(() => {
+  if (adsId.value === '') return ''
+  return adsIdPattern.test(adsId.value) ? '' : 'Formato no válido. Usa AW-XXXXXXXXX'
+})
+
+const adsLabelError = computed(() => {
+  if (adsLabel.value === '') return ''
+  if (!adsLabelPattern.test(adsLabel.value)) {
+    return 'Es el texto que sigue a la barra, por ejemplo AbC-D_efG-h12_34-567'
+  }
+  return adsId.value === '' ? 'Falta el ID de conversión de Google Ads' : ''
+})
+
+// Un ID sin etiqueta no es un error —el remarketing igual funciona— pero sí una
+// configuración que parece completa y no registra ni una venta. Se avisa.
+const adsMissingLabel = computed(() => adsId.value !== '' && adsLabel.value === '' && !adsIdError.value)
+
+// La trampa clásica: el contenedor de GTM casi siempre ya trae su propia
+// etiqueta de conversión, puesta por la agencia. Configurar Ads también acá
+// manda la misma venta dos veces y Google la reporta como transacción duplicada.
+const adsDuplicateWarning = computed(() => {
+  const gtm = (store.draftSettings.tienda_google_tagmanager || '').trim()
+  return gtm !== '' && adsId.value !== ''
+})
+
+const hasValidationErrors = computed(
+  () => analyticsError.value || gtmError.value || !!adsIdError.value || !!adsLabelError.value
+)
 
 async function save() {
   if (hasValidationErrors.value) {
@@ -140,7 +172,81 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- Card 2: Google Search Console & Feeds -->
+      <!-- Card 2: Google Ads -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-secondary mb-4 flex items-center gap-2">
+          <i class="pi pi-megaphone text-primary" />
+          Google Ads
+        </h2>
+
+        <p class="text-xs text-gray-400 mb-5">
+          Va aparte de Analytics: son cuentas distintas y miden cosas distintas. Con esto
+          configurado, cada compra de tu tienda se registra como conversión en Google Ads.
+        </p>
+
+        <div class="space-y-5">
+          <!-- ID de conversión -->
+          <div>
+            <label class="block text-sm font-medium text-secondary-700 mb-1">
+              ID de conversión
+            </label>
+            <p class="text-xs text-gray-400 mb-2">
+              Lo encuentras en <strong>Google Ads &gt; Objetivos &gt; Conversiones &gt;
+              Configuración de etiqueta</strong>. Empieza con <strong>AW-</strong>.
+            </p>
+            <AppInput
+              :model-value="store.draftSettings.tienda_google_ads_id ?? ''"
+              placeholder="AW-XXXXXXXXX"
+              :error="adsIdError"
+              @update:model-value="store.updateField('tienda_google_ads_id', $event)"
+            />
+          </div>
+
+          <!-- Etiqueta de conversión de compra -->
+          <div>
+            <label class="block text-sm font-medium text-secondary-700 mb-1">
+              Etiqueta de la conversión de compra
+            </label>
+            <p class="text-xs text-gray-400 mb-2">
+              En la misma pantalla, es el texto que va después de la barra en
+              <strong>send_to</strong>. Sin esta etiqueta se instala el remarketing pero
+              <strong>no se registra ninguna venta</strong>.
+            </p>
+            <AppInput
+              :model-value="store.draftSettings.tienda_google_ads_label_compra ?? ''"
+              placeholder="AbC-D_efG-h12_34-567"
+              :error="adsLabelError"
+              @update:model-value="store.updateField('tienda_google_ads_label_compra', $event)"
+            />
+          </div>
+
+          <div
+            v-if="adsMissingLabel"
+            class="flex gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800"
+          >
+            <i class="pi pi-info-circle mt-0.5" />
+            <span>
+              Con el ID pero sin etiqueta, Google Ads arma audiencias de remarketing pero no va a
+              contar ninguna venta. Agrega la etiqueta para medir conversiones.
+            </span>
+          </div>
+
+          <div
+            v-if="adsDuplicateWarning"
+            class="flex gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800"
+          >
+            <i class="pi pi-exclamation-triangle mt-0.5" />
+            <span>
+              También tienes un contenedor de Tag Manager. Si adentro ya hay una etiqueta de
+              conversión de Google Ads, la venta se va a contar <strong>dos veces</strong> y Google
+              la va a reportar como transacción duplicada. Deja la conversión en un solo lugar:
+              acá o en el contenedor.
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Google Search Console & Feeds -->
       <div class="bg-white rounded-lg shadow p-6">
         <h2 class="text-lg font-semibold text-secondary mb-4 flex items-center gap-2">
           <i class="pi pi-search text-primary" />

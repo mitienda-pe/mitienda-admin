@@ -2,6 +2,8 @@ export interface StoreSeoSettings {
   // Google
   tienda_codigo_google_analytics: string | null
   tienda_google_tagmanager: string | null
+  tienda_google_ads_id: string | null
+  tienda_google_ads_label_compra: string | null
   tienda_tag_google_site_verification: string | null
   // SEO
   tienda_metadata_titulo: string | null
@@ -16,6 +18,8 @@ export interface StoreSeoSettings {
 export interface StoreSeoUpdate {
   tienda_codigo_google_analytics?: string | null
   tienda_google_tagmanager?: string | null
+  tienda_google_ads_id?: string | null
+  tienda_google_ads_label_compra?: string | null
   tienda_tag_google_site_verification?: string | null
   tienda_metadata_titulo?: string | null
   tienda_slogan?: string | null
