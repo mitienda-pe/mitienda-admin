@@ -78,4 +78,23 @@ export const paymentLinksApi = {
     )
     return response.data.data ?? []
   },
+
+  /**
+   * Variaciones de un producto, para que el comerciante elija cuál cobra.
+   *
+   * Sin esto el link se armaba con el producto base: quien pagaba recibía "la
+   * talla que sea" y el precio salía del producto, no de la variación —que
+   * pueden diferir—.
+   */
+  async getVariants(productId: number): Promise<Array<{
+    id: number | null
+    names: string
+    sku: string
+    price: number
+    stock: number
+    unlimited_stock: boolean
+  }>> {
+    const response = await apiClient.get(`/products/${productId}/variants`)
+    return response.data?.data?.variants ?? []
+  },
 }

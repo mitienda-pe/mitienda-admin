@@ -127,7 +127,19 @@ const creating = ref(false)
 const busqueda = ref('')
 const resultados = ref<any[]>([])
 const buscando = ref(false)
-const seleccionados = ref<Array<{ product_id: number; nombre: string; precio: number; cantidad: number }>>([])
+type LineaSeleccionada = {
+  product_id: number
+  nombre: string
+  precio: number
+  cantidad: number
+  /** Variaciones disponibles; vacío si el producto no tiene. */
+  variantes: Array<{ id: number | null; names: string; sku: string; price: number }>
+  /** `productoatributo_id` elegido. null mientras el comerciante no elige. */
+  productoatributo_id: number | null
+  cargandoVariantes: boolean
+}
+
+const seleccionados = ref<LineaSeleccionada[]>([])
 // Conceptos libres: cobro sin producto de catálogo detrás ("Consulta médica").
 // El monto que escribe el comerciante es final, con IGV incluido.
 const conceptos = ref<Array<{ concepto: string; monto: number | null; cantidad: number; afectacion: number }>>([])
@@ -186,16 +198,49 @@ function onBuscar() {
   }, 300)
 }
 
-function agregar(producto: any) {
+async function agregar(producto: any) {
   const id = Number(producto.id ?? producto.producto_id)
   if (!id || seleccionados.value.some((s) => s.product_id === id)) return
-  seleccionados.value.push({
+
+  const linea: LineaSeleccionada = {
     product_id: id,
     nombre: producto.name ?? producto.producto_titulo ?? `Producto ${id}`,
     precio: Number(producto.price ?? producto.producto_precio ?? 0),
     cantidad: 1,
-  })
+    variantes: [],
+    productoatributo_id: null,
+    cargandoVariantes: true,
+  }
+  seleccionados.value.push(linea)
+
+  // Si el producto tiene variaciones hay que cobrar UNA, no el producto base:
+  // el precio y el stock viven en la variación, y el comprador tiene que
+  // recibir la talla o el color que pagó.
+  try {
+    const variantes = await paymentLinksApi.getVariants(id)
+    linea.variantes = variantes.filter((v) => v.id !== null) as LineaSeleccionada['variantes']
+    // Con una sola variación no hay nada que elegir.
+    if (linea.variantes.length === 1) {
+      linea.productoatributo_id = linea.variantes[0]!.id
+      linea.precio = Number(linea.variantes[0]!.price) || linea.precio
+    }
+  } catch {
+    linea.variantes = []
+  } finally {
+    linea.cargandoVariantes = false
+  }
 }
+
+/** Al elegir variación manda su precio, que puede diferir del producto base. */
+function elegirVariante(linea: LineaSeleccionada) {
+  const v = linea.variantes.find((x) => x.id === linea.productoatributo_id)
+  if (v) linea.precio = Number(v.price) || linea.precio
+}
+
+/** Producto con variaciones y ninguna elegida: no se puede crear el link. */
+const faltaElegirVariante = computed(() =>
+  seleccionados.value.some((s) => s.variantes.length > 1 && s.productoatributo_id === null),
+)
 
 function quitar(productId: number) {
   seleccionados.value = seleccionados.value.filter((s) => s.product_id !== productId)
@@ -230,7 +275,9 @@ const totalEstimado = computed(
 )
 
 const puedeCrear = computed(
-  () => seleccionados.value.length > 0 || conceptosValidos.value.length > 0,
+  () =>
+    (seleccionados.value.length > 0 || conceptosValidos.value.length > 0) &&
+    !faltaElegirVariante.value,
 )
 
 async function crear() {
@@ -238,7 +285,11 @@ async function crear() {
   creating.value = true
   try {
     const link = await paymentLinksApi.create({
-      items: seleccionados.value.map((s) => ({ product_id: s.product_id, quantity: s.cantidad })),
+      items: seleccionados.value.map((s) => ({
+        product_id: s.product_id,
+        quantity: s.cantidad,
+        productoatributo_id: s.productoatributo_id ?? 0,
+      })),
       conceptos: conceptosValidos.value.map((c) => ({
         concepto: c.concepto.trim(),
         monto: c.monto,
@@ -591,7 +642,27 @@ function anular(link: PaymentLink) {
             :key="item.product_id"
             class="flex flex-wrap items-center gap-x-3 gap-y-2 px-3 py-2"
           >
-            <span class="w-full min-w-0 truncate text-sm sm:flex-1" :title="item.nombre">{{ item.nombre }}</span>
+            <div class="w-full min-w-0 sm:flex-1">
+              <p class="truncate text-sm" :title="item.nombre">{{ item.nombre }}</p>
+
+              <span v-if="item.cargandoVariantes" class="text-xs text-secondary-400">
+                Buscando variaciones…
+              </span>
+
+              <!-- Con variaciones hay que elegir CUÁL se cobra: el precio y el
+                   stock viven en la variación, y el comprador tiene que recibir
+                   la que pagó. Antes el link se armaba con el producto base. -->
+              <Select
+                v-else-if="item.variantes.length > 1"
+                v-model="item.productoatributo_id"
+                :options="item.variantes"
+                optionLabel="names"
+                optionValue="id"
+                placeholder="Elige la variación"
+                class="mt-1 w-full"
+                @change="elegirVariante(item)"
+              />
+            </div>
             <InputNumber
               v-model="item.cantidad"
               :min="1"
@@ -606,6 +677,10 @@ function anular(link: PaymentLink) {
             <Button icon="pi pi-times" text rounded severity="danger" @click="quitar(item.product_id)" />
           </div>
         </div>
+
+        <p v-if="faltaElegirVariante" class="text-sm text-orange-600">
+          Elige la variación de los productos que la tengan antes de crear el link.
+        </p>
 
         <div v-if="puedeCrear" class="flex justify-between border-t pt-3 font-medium">
           <span>Total del link</span>
