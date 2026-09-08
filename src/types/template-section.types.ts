@@ -1,5 +1,8 @@
 export interface BlockConfig {
   titulo?: string
+  /** Bajada bajo el título del bloque. Vacío = el storefront usa la suya por
+   *  defecto (o ninguna, en los bloques que no traen bajada). */
+  subtitulo?: string
   bg_color?: string
   /** Cuántos elementos se muestran en la grilla del bloque. En `listas` son los
    *  productos de cada lista (la grilla que ve el comprador). */

@@ -415,6 +415,20 @@
           </p>
         </div>
 
+        <!-- Subtitle. El carrusel no dibuja encabezado, así que ahí el campo
+             prometería un texto que nunca sale. -->
+        <div v-if="blockConfigCode !== 'carrusel'">
+          <label class="block text-sm font-medium text-secondary mb-1.5">Subtítulo</label>
+          <InputText
+            v-model="blockConfigForm.subtitulo"
+            class="w-full"
+            placeholder="Texto bajo el título"
+          />
+          <p class="text-xs text-secondary-400 mt-1">
+            Dejar vacío para usar el subtítulo por defecto de la tienda.
+          </p>
+        </div>
+
         <!-- Bg Color -->
         <div>
           <label class="block text-sm font-medium text-secondary mb-1.5">Color de fondo</label>
@@ -749,7 +763,7 @@ function applyComponent(componentId: number) {
 const blockConfigVisible = ref(false)
 const blockConfigTarget = ref<{ ubicacion: 'header' | 'footer'; sIdx: number; cIdx: number } | null>(null)
 const blockConfigCode = ref('')
-const blockConfigForm = ref<BlockConfig>({ titulo: '', bg_color: '', limite: 0, limite_listas: 0, items: [] })
+const blockConfigForm = ref<BlockConfig>({ titulo: '', subtitulo: '', bg_color: '', limite: 0, limite_listas: 0, items: [] })
 const blockConfigItems = ref<{ id: number; name: string }[]>([])
 const blockConfigItemsLoading = ref(false)
 
@@ -774,6 +788,7 @@ function openBlockConfig(ubicacion: 'header' | 'footer', sIdx: number, cIdx: num
   blockConfigCode.value = col.bloque_codigo!
   blockConfigForm.value = {
     titulo: col.config?.titulo ?? '',
+    subtitulo: col.config?.subtitulo ?? '',
     bg_color: col.config?.bg_color ?? '',
     limite: col.config?.limite ?? 0,
     limite_listas: col.config?.limite_listas ?? 0,
@@ -845,6 +860,7 @@ function saveBlockConfig() {
   const { ubicacion, sIdx, cIdx } = blockConfigTarget.value
   const config: BlockConfig = {}
   if (blockConfigForm.value.titulo) config.titulo = blockConfigForm.value.titulo
+  if (blockConfigForm.value.subtitulo) config.subtitulo = blockConfigForm.value.subtitulo
   if (blockConfigForm.value.bg_color) config.bg_color = blockConfigForm.value.bg_color
   if (blockConfigForm.value.limite && blockConfigForm.value.limite > 0) config.limite = blockConfigForm.value.limite
   if (blockConfigCode.value === 'listas' && blockConfigForm.value.limite_listas && blockConfigForm.value.limite_listas > 0) {
