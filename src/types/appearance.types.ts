@@ -221,6 +221,7 @@ export interface CatalogPreferences {
   pdp_layout: number // qué se fija: 0 = la info (default), 1 = las fotos, 2 = nada
   pdp_description: number // 0 = bajo las fotos (default), 1 = bajo la info
   pdp_gallery: number // 0 = miniaturas (default), 1 = apilada, 2 = mosaico
+  pdp_ar: number // visor 3D/AR: 0 = en la descripcion (default), 1 = bajo las fotos
   pdp_recommended_count: number // cuantos productos muestra "Tambien te puede interesar" (0 = ocultar)
   pdp_recommended_source: number // de donde salen: ver PDP_RECOMMENDED_SOURCE
   pdp_recommended_list_id: number | null // solo con source = lista fija
@@ -239,6 +240,7 @@ export const DEFAULT_CATALOG_PREFERENCES: CatalogPreferences = {
   pdp_layout: 0,
   pdp_description: 0,
   pdp_gallery: 0,
+  pdp_ar: 0,
   pdp_recommended_count: 12,
   pdp_recommended_source: 0,
   pdp_recommended_list_id: null,
@@ -515,5 +517,30 @@ export const PRODUCT_ORDER_OPTIONS: ProductOrderOption[] = [
     label: 'Marcas y Gammas',
     description: 'Agrupados por marca y gama',
     icon: 'pi pi-tags',
+  },
+]
+
+export interface PdpArOption {
+  value: number
+  label: string
+  description: string
+  icon: string
+}
+
+// Dónde se pinta el visor 3D/AR. Qué productos lo tienen se sigue decidiendo
+// producto por producto con el shortcode [ar] en la descripción: cada modelo
+// generado se paga, así que no hay opción de "todo el catálogo".
+export const PDP_AR_OPTIONS: PdpArOption[] = [
+  {
+    value: 0,
+    label: 'En la descripción',
+    description: 'Donde escribiste el shortcode',
+    icon: 'pi pi-align-left',
+  },
+  {
+    value: 1,
+    label: 'Bajo las fotos',
+    description: 'Al final de la galería, junto al video',
+    icon: 'pi pi-box',
   },
 ]

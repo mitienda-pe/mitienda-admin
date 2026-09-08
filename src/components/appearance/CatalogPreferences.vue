@@ -4,6 +4,7 @@ import InputSwitch from 'primevue/inputswitch'
 import Dropdown from 'primevue/dropdown'
 import { AppButton } from '@/components/ui'
 import { productListApi } from '@/api/product-list.api'
+import { useStoreConfigStore } from '@/stores/store-config.store'
 import type { ProductList } from '@/types/product-list.types'
 import {
   DESKTOP_COLUMN_OPTIONS,
@@ -12,6 +13,7 @@ import {
   LAYOUT_WIDTH_OPTIONS,
   PDP_LAYOUT_OPTIONS,
   PDP_DESCRIPTION_OPTIONS,
+  PDP_AR_OPTIONS,
   PDP_GALLERY_OPTIONS,
   PDP_RECOMMENDED_COUNT_OPTIONS,
   PDP_RECENTLY_VIEWED_COUNT_OPTIONS,
@@ -70,6 +72,21 @@ const pdpSummary = computed(() => {
   }
   const stickyText = sticky === 1 ? 'las fotos acompañan el scroll' : 'la info acompaña el scroll'
   return { text: `Resultado: ${stickyText} y ${descText}.`, muted: false }
+})
+
+// El visor 3D/AR es un add-on que activa MiTienda (el proveedor lo licencia por
+// dominio), así que la tienda promedio no debe ver esta opción.
+const storeConfig = useStoreConfigStore()
+const ar3dEnabled = computed(() => storeConfig.savedConfig.tiendageneral_sw_ar_3d === 1)
+
+// Fotos fijas + visor bajo las fotos se anulan, igual que fotos fijas + galería
+// apilada: la columna mide más que la pantalla.
+const arDisablesSticky = computed(
+  () => props.preferences.pdp_ar === 1 && props.preferences.pdp_layout === 1,
+)
+
+onMounted(() => {
+  if (!storeConfig.isLoaded) storeConfig.fetchConfig()
 })
 
 // Las listas de productos se cargan acá y no vía props porque este componente
@@ -512,6 +529,63 @@ const hideOutOfStockBool = computed({
           />
         </button>
       </div>
+    </div>
+
+    <!-- Divider -->
+    <hr class="border-gray-100" />
+
+    <!-- Visor 3D/AR: solo para tiendas con el add-on activo -->
+    <div v-if="ar3dEnabled">
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Visor 3D y Realidad Aumentada
+      </label>
+      <p class="text-xs text-gray-400 mb-3">
+        Dónde aparece el visor en la ficha. Qué productos lo tienen lo seguís
+        eligiendo producto por producto, escribiendo <code>[ar]</code> en la
+        descripción.
+      </p>
+      <div class="grid grid-cols-2 gap-3 max-w-md">
+        <button
+          v-for="option in PDP_AR_OPTIONS"
+          :key="option.value"
+          type="button"
+          class="relative p-4 border-2 rounded-lg text-center transition-all cursor-pointer"
+          :class="
+            preferences.pdp_ar === option.value
+              ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+              : 'border-gray-200 bg-white hover:border-gray-300'
+          "
+          @click="emit('update:field', 'pdp_ar', option.value)"
+        >
+          <i
+            :class="option.icon"
+            class="text-2xl mb-2 block"
+            :style="{
+              color: preferences.pdp_ar === option.value ? '#00b2a6' : '#6B7280',
+            }"
+          />
+          <div
+            class="text-sm font-medium"
+            :class="
+              preferences.pdp_ar === option.value
+                ? 'text-primary'
+                : 'text-gray-600'
+            "
+          >
+            {{ option.label }}
+          </div>
+          <p class="text-xs text-gray-400 mt-1">{{ option.description }}</p>
+          <i
+            v-if="preferences.pdp_ar === option.value"
+            class="pi pi-check-circle absolute top-2 right-2 text-primary text-sm"
+          />
+        </button>
+      </div>
+      <p v-if="arDisablesSticky" class="text-xs text-gray-500 mt-2">
+        Con el visor bajo las fotos, las fotos dejan de acompañar el scroll: la
+        galería mide más que la pantalla y las de abajo quedarían fuera de
+        alcance.
+      </p>
     </div>
 
     <!-- Divider -->
