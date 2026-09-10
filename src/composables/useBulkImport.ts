@@ -45,6 +45,9 @@ export function useBulkImport() {
   const brandNameMap = ref<Map<string, number>>(new Map())
   const gammasByBrand = ref<Map<number, { id: number; name: string }[]>>(new Map())
   const pricingMode = ref(0) // 0 = con IGV, 1 = sin IGV
+  // Codigos validos de presentacion (unidad, caja, blister...). Se cargan del
+  // API junto al resto de los catalogos; 'unidad' queda como piso por si falla.
+  const saleUnitCodes = ref<Set<string>>(new Set(['unidad']))
 
   // ── Computed ──
   const validRows = computed(() => parsedRows.value.filter(r => r.isValid))
@@ -71,11 +74,16 @@ export function useBulkImport() {
     if (refDataLoaded.value) return
     isLoadingRef.value = true
     try {
-      const [catRes, brandRes, gammaRes] = await Promise.all([
+      const [catRes, brandRes, gammaRes, unitRes] = await Promise.all([
         categoryApi.getAll(),
         brandApi.getAll(),
         gammaApi.getAll(),
+        productsApi.getSaleUnits().catch(() => null),
       ])
+
+      if (unitRes?.data?.length) {
+        saleUnitCodes.value = new Set(unitRes.data.map(u => u.code))
+      }
 
       // Build category path map
       if (catRes.success && catRes.data) {
@@ -383,6 +391,19 @@ export function useBulkImport() {
             mapped.weight_unit = normalized
           } else {
             errors.push(`Unidad de peso no valida: "${value}". Use: kilogramos, gramos, libras`)
+          }
+        } else if (colDef.key === 'unidad_venta') {
+          // Se valida acá y no en el servidor a propósito: el backend normaliza
+          // lo que no reconoce a NULL (= unidad), que en una carga de miles de
+          // filas sería un fallo silencioso — el vendedor creería que quedaron
+          // en "caja" y la tienda seguiría diciendo "unidades".
+          const code = value.trim().toLowerCase()
+          if (saleUnitCodes.value.has(code)) {
+            mapped.unit_code = code
+          } else {
+            errors.push(
+              `Unidad de venta no valida: "${value}". Use: ${[...saleUnitCodes.value].join(', ')}`
+            )
           }
         } else if (colDef.key === 'unidad_dimensiones') {
           const normalized = normalizeUnit(value, 'dimension')

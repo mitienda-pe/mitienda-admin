@@ -98,6 +98,14 @@ export interface Product {
   producto_sw_lotes?: number
   // Venta al peso: la cantidad vendida es el peso (kg) y el precio es por unidad de peso
   sold_by_weight?: boolean
+  /**
+   * Presentación en la que se vende: código del catálogo de plataforma
+   * ('unidad', 'caja', 'blister'…). Es solo una etiqueta — no cambia el precio,
+   * el stock ni la cantidad de la línea, que sigue siendo un entero.
+   */
+  unit_code?: string
+  /** Unidades base que trae la presentación ("caja x 12"). null si no aplica. */
+  unit_content?: number | null
   weight?: number
   weight_unit?: string
   height?: number
@@ -405,6 +413,9 @@ export interface ProductCreatePayload {
   slug?: string
   // Venta al peso: la cantidad vendida es el peso (kg) y el precio es por unidad de peso
   sold_by_weight?: boolean
+  // Presentación en la que se vende (unidad, caja, blíster…) y su contenido.
+  unit_code?: string
+  unit_content?: number | null
   // Dimensiones y peso
   height?: number | null
   width?: number | null
@@ -504,6 +515,25 @@ export interface SaveVariantsPayload {
     }[]
   }[]
   deleted_ids: number[]
+}
+
+// ── Presentaciones (unidad de venta) ──
+
+/**
+ * Una presentación del catálogo de plataforma: unidad, caja, blíster, docena.
+ *
+ * El singular y el plural vienen del backend porque el español no los deriva
+ * con una regla ("blíster" → "blísteres"), y el storefront los usa tal cual
+ * para rotular cantidades. El backoffice solo muestra el singular en el
+ * selector.
+ */
+export interface SaleUnitOption {
+  code: string
+  singular: string
+  plural: string
+  short: string
+  /** Género del sustantivo. Lo usa el storefront para concordar adjetivos. */
+  gender?: 'f' | 'm'
 }
 
 // ── Precios por mayor (descuentos por volumen) ──

@@ -130,6 +130,8 @@
           :product-id="product.id"
           :base-price="form.price ?? product.price"
           :has-variants="product.has_variation_attributes || false"
+          :unit-singular="saleUnitSingularLabel"
+          :unit-plural="saleUnitPluralLabel"
         />
 
         <!-- Control por lotes y vencimiento (perecibles) -->
@@ -806,6 +808,43 @@
                   </p>
                 </div>
 
+                <!-- Presentación (unidad de venta). Solo aplica cuando el producto
+                     se vende por piezas: en venta al peso la unidad ya es el kilo. -->
+                <div v-if="!form.sold_by_weight" class="mt-4">
+                  <label class="block text-sm text-secondary-700 mb-1">Se vende por</label>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <Dropdown
+                      id="edit-unit-code"
+                      v-model="form.unit_code"
+                      :options="saleUnitOptions"
+                      optionLabel="label"
+                      optionValue="value"
+                      class="w-44"
+                    />
+                    <template v-if="hasCustomSaleUnit">
+                      <span class="text-sm text-secondary-700">de</span>
+                      <InputNumber
+                        id="edit-unit-content"
+                        v-model="form.unit_content"
+                        :min="2"
+                        :max="100000"
+                        :useGrouping="false"
+                        placeholder="12"
+                        inputClass="w-24"
+                      />
+                      <span class="text-sm text-secondary-700">unidades (opcional)</span>
+                    </template>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-2">
+                    <template v-if="hasCustomSaleUnit">
+                      La tienda dirá "a partir de 5 {{ saleUnitPluralLabel }}" en vez de "5 unidades". El precio y el stock siguen siendo por {{ saleUnitSingularLabel }}: no cambia ningún cálculo.
+                    </template>
+                    <template v-else>
+                      Cambia cómo se cuentan las cantidades en la tienda y en el carrito. Útil si el producto se vende por caja, blíster o docena.
+                    </template>
+                  </p>
+                </div>
+
                 <!-- NetSuite sync (solo si la tienda tiene ERP) -->
                 <div v-if="hasErpIntegration" class="flex flex-wrap items-center gap-2 mt-3">
                   <Button
@@ -1139,7 +1178,7 @@ import { AiFieldGenerator, UnsavedChangesBar } from '@/components/ui'
 import { AI_BUTTON_IDS } from '@/config/ai-buttons.config'
 import ProductTagAssignment from '@/components/ProductTagAssignment.vue'
 import ProductReviewsCard from '@/components/reviews/ProductReviewsCard.vue'
-import type { ProductUpdatePayload, ExternalCategoryOption } from '@/types/product.types'
+import type { ProductUpdatePayload, ExternalCategoryOption, SaleUnitOption } from '@/types/product.types'
 import { useShippingConfigStore } from '@/stores/shipping-config.store'
 import { useProductCardStore } from '@/stores/product-card.store'
 import { useStoreConfigStore } from '@/stores/store-config.store'
@@ -1286,6 +1325,9 @@ const form = ref<FormState>({
   dimensions_unit: 'centimetros',
   weight: null,
   weight_unit: 'kilogramos',
+  // Presentación en la que se vende. 'unidad' es el default de siempre.
+  unit_code: 'unidad',
+  unit_content: null,
   // External categories
   facebook_category_id: null,
   google_category_id: null,
@@ -1331,6 +1373,44 @@ const weightUnitOptions = [
   { label: 'Gramos (g)', value: 'gramos' },
   { label: 'Libras (lb)', value: 'libras' },
 ]
+
+/**
+ * Presentaciones (unidad, caja, blíster…). Vienen del API y no de una constante
+ * local: el singular/plural que usa el storefront para rotular cantidades sale
+ * del mismo catálogo, y duplicarlo acá los dejaría desincronizados.
+ *
+ * Si la carga falla se ofrece solo "unidad": es preferible un selector pobre a
+ * uno vacío que impida guardar el producto.
+ */
+const saleUnits = ref<SaleUnitOption[]>([
+  { code: 'unidad', singular: 'unidad', plural: 'unidades', short: 'unid.' },
+])
+
+async function loadSaleUnits() {
+  try {
+    const res = await productsApi.getSaleUnits()
+    if (res.data?.length) saleUnits.value = res.data
+  } catch {
+    // El default local ya está cargado.
+  }
+}
+
+const saleUnitOptions = computed(() =>
+  saleUnits.value.map(u => ({
+    label: u.singular.charAt(0).toUpperCase() + u.singular.slice(1),
+    value: u.code,
+  })),
+)
+
+const selectedSaleUnit = computed(() =>
+  saleUnits.value.find(u => u.code === form.value.unit_code) ?? saleUnits.value[0],
+)
+
+const saleUnitSingularLabel = computed(() => selectedSaleUnit.value?.singular ?? 'unidad')
+const saleUnitPluralLabel = computed(() => selectedSaleUnit.value?.plural ?? 'unidades')
+
+/** El producto no se vende por unidad: recién ahí tiene sentido pedir contenido. */
+const hasCustomSaleUnit = computed(() => form.value.unit_code !== 'unidad')
 
 // Etiqueta corta de la unidad de venta al peso para los textos de ayuda.
 const saleUnitShortLabel = computed(() => {
@@ -1440,6 +1520,9 @@ const populateForm = async () => {
     dimensions_unit: p.dimensions_unit || 'centimetros',
     weight: p.weight ?? null,
     weight_unit: p.weight_unit || 'kilogramos',
+    // Presentación en la que se vende.
+    unit_code: p.unit_code || 'unidad',
+    unit_content: p.unit_content ?? null,
     // External categories
     facebook_category_id: p.external_categories?.facebook?.id || null,
     google_category_id: p.external_categories?.google?.id || null,
@@ -1544,6 +1627,13 @@ const handleSave = async () => {
   }
   if (!payload.meta_description && payload.description_short) {
     payload.meta_description = payload.description_short.substring(0, 160)
+  }
+
+  // El contenido solo existe dentro de una presentación agrupada: volver a
+  // "unidad" lo borra, en vez de dejar un "x 12" invisible esperando a que
+  // alguien reactive la caja.
+  if (!hasCustomSaleUnit.value) {
+    payload.unit_content = null
   }
 
   const result = await productsStore.updateProduct(product.value.id, payload)
@@ -2008,6 +2098,9 @@ onMounted(async () => {
   if (!shippingConfigStore.isLoaded) {
     shippingConfigStore.fetchConfig()
   }
+
+  // Catálogo de presentaciones para el selector de unidad de venta.
+  loadSaleUnits()
 })
 </script>
 

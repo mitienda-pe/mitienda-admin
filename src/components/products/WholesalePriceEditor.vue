@@ -2,9 +2,9 @@
 /**
  * Editor de precios por mayor (descuentos por volumen) de un producto.
  *
- * Cada fila es un TRAMO: "a partir de N unidades, S/X por unidad". No es un
- * porcentaje — es el precio final por unidad, igual que en el panel legacy, que
- * escribe la misma tabla (`productospreciosxmayor`).
+ * Cada fila es un TRAMO: "a partir de N cajas, S/X por caja". No es un
+ * porcentaje — es el precio final por unidad de venta, igual que en el panel
+ * legacy, que escribe la misma tabla (`productospreciosxmayor`).
  *
  * Guarda contra su propio endpoint (`PUT /products/{id}/wholesale-prices`), que
  * reemplaza el set completo. Deliberadamente NO se engancha al submit del
@@ -29,9 +29,20 @@ const props = defineProps<{
   /** Precio base con IGV, para calcular el descuento de cada tramo. */
   basePrice?: number | null
   hasVariants?: boolean
+  /**
+   * Presentación en la que se vende el producto ("caja", "blíster"). El editor
+   * la usa solo para rotular: el vendedor tiene que leer acá la misma frase que
+   * va a ver el comprador en la tienda, o carga los tramos pensando en unidades
+   * sueltas cuando en realidad está cotizando cajas.
+   */
+  unitSingular?: string
+  unitPlural?: string
 }>()
 
 const toast = useToast()
+
+const unitSingular = computed(() => props.unitSingular || 'unidad')
+const unitPlural = computed(() => props.unitPlural || 'unidades')
 
 const tiers = ref<WholesalePriceTier[]>([])
 const loading = ref(false)
@@ -201,8 +212,8 @@ async function save() {
 
     <template #content>
       <p class="text-sm text-secondary-600 mb-4">
-        Define un precio unitario menor a partir de cierta cantidad. Se aplica automáticamente
-        en la tienda cuando el cliente llega a esa cantidad de <em>ese</em> producto.
+        Define un precio por {{ unitSingular }} menor a partir de cierta cantidad. Se aplica
+        automáticamente en la tienda cuando el cliente llega a esa cantidad de <em>ese</em> producto.
       </p>
 
       <div v-if="loading" class="text-sm text-secondary-500 py-4">
@@ -232,7 +243,7 @@ async function save() {
             </div>
 
             <div class="w-28">
-              <label class="block text-xs font-medium text-secondary-600 mb-1">Desde</label>
+              <label class="block text-xs font-medium text-secondary-600 mb-1">Desde ({{ unitPlural }})</label>
               <InputNumber
                 v-model="tier.quantity"
                 :min="2"
@@ -242,7 +253,7 @@ async function save() {
             </div>
 
             <div class="w-40">
-              <label class="block text-xs font-medium text-secondary-600 mb-1">Precio unitario</label>
+              <label class="block text-xs font-medium text-secondary-600 mb-1">Precio por {{ unitSingular }}</label>
               <InputNumber
                 v-model="tier.price"
                 mode="currency"

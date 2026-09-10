@@ -11,6 +11,7 @@ import type {
   ProductLotCreate,
   ProductLotMovement,
   WholesalePriceTier,
+  SaleUnitOption,
   ProductImage,
 } from '@/types/product.types'
 
@@ -123,6 +124,11 @@ export function normalizeProduct(rawData: any): Product {
     // Tope de unidades por compra (0 = sin tope).
     max_purchase_qty: rawData.max_purchase_qty ?? 0,
     sold_by_weight: toBool(rawData.sold_by_weight),
+    // Presentación en la que se vende (unidad, caja, blíster…). El API responde
+    // el descriptor completo en `unit`; el formulario solo edita el código y el
+    // contenido, así que se aplanan acá.
+    unit_code: rawData.unit?.code || 'unidad',
+    unit_content: rawData.unit?.content ?? null,
     min_stock: rawData.min_stock || undefined,
     weight: toFloat(rawData.weight),
     weight_unit: rawData.weight_unit || undefined,
@@ -325,6 +331,7 @@ export const productsApi = {
       'brand_id', 'gamma_id', 'order', 'igv_percent', 'tax_affectation',
       'meta_title', 'meta_description', 'meta_image', 'slug',
       'height', 'width', 'length', 'dimensions_unit', 'weight', 'weight_unit',
+      'unit_code', 'unit_content',
       'facebook_category_id', 'google_category_id',
       'shipping_conversion_factor', 'product_type_id'
     ] as const
@@ -582,6 +589,16 @@ export const productsApi = {
     if (params.lote_id) qs.append('lote_id', String(params.lote_id))
     if (params.page) qs.append('page', String(params.page))
     const response = await apiClient.get(`/products/${productId}/lots/kardex?${qs.toString()}`)
+    return response.data
+  },
+
+  // ─── Presentaciones (unidad de venta) ──────────────────────────
+  // Catálogo de plataforma, igual para todas las tiendas. Se pide al API en vez
+  // de hardcodearlo acá para que agregar una presentación no exija un deploy del
+  // backoffice, y para que el singular/plural sean los mismos que usa el
+  // storefront al rotular cantidades.
+  async getSaleUnits(): Promise<ApiResponse<SaleUnitOption[]>> {
+    const response = await apiClient.get('/products/sale-units')
     return response.data
   },
 

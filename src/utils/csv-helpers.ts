@@ -49,6 +49,10 @@ export const CSV_COLUMNS: CsvColumnDef[] = [
   { key: 'ancho', apiField: 'width', label: 'Ancho', required: false, type: 'number', group: 'Dimensiones' },
   { key: 'largo', apiField: 'length', label: 'Largo', required: false, type: 'number', group: 'Dimensiones' },
   { key: 'unidad_dimensiones', apiField: 'dimensions_unit', label: 'Unidad Dimensiones', required: false, type: 'string', group: 'Dimensiones' },
+  // Presentacion en la que se vende. Va en su propio grupo y no en "Dimensiones"
+  // porque no es una medida fisica: es como se cuenta la cantidad de la linea.
+  { key: 'unidad_venta', apiField: 'unit_code', label: 'Unidad de Venta', required: false, type: 'string', group: 'Presentacion' },
+  { key: 'contenido_unidad', apiField: 'unit_content', label: 'Contenido (unidades)', required: false, type: 'number', group: 'Presentacion' },
 ]
 
 export const REQUIRED_COLUMNS = CSV_COLUMNS.filter(c => c.required).map(c => c.key)
