@@ -12,13 +12,41 @@
           </span>
         </p>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-3">
         <Dropdown
           v-model="selectedPeriod"
           :options="periodOptions"
           optionLabel="label"
           optionValue="value"
           class="w-48"
+        />
+        <Calendar
+          v-if="selectedPeriod === 'custom'"
+          v-model="customRange"
+          selectionMode="range"
+          :showIcon="true"
+          :manualInput="false"
+          :maxDate="today"
+          dateFormat="dd/mm/yy"
+          placeholder="Elige el rango"
+          class="w-64"
+        />
+        <Button
+          icon="pi pi-download"
+          :label="exporting ? 'Exportando...' : 'Exportar'"
+          severity="secondary"
+          outlined
+          :loading="exporting"
+          :disabled="loading || exporting || notConfigured"
+          @click="toggleExportMenu"
+          aria-haspopup="true"
+          aria-controls="analytics_export_menu"
+        />
+        <Menu
+          ref="exportMenu"
+          id="analytics_export_menu"
+          :model="exportMenuItems"
+          :popup="true"
         />
       </div>
     </div>
@@ -148,6 +176,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import Dropdown from 'primevue/dropdown'
+import Calendar from 'primevue/calendar'
+import Button from 'primevue/button'
+import Menu from 'primevue/menu'
+import { useToast } from 'primevue/usetoast'
+import { downloadBlob } from '@/utils/csv-helpers'
 import VChart from 'vue-echarts'
 import { use } from 'echarts/core'
 import { LineChart } from 'echarts/charts'
@@ -176,45 +209,146 @@ const error = ref<string | null>(null)
 const notConfigured = ref(false)
 let activeInterval: ReturnType<typeof setInterval> | null = null
 
+const toast = useToast()
+const exporting = ref(false)
+const exportMenu = ref<any>(null)
+const today = new Date()
+
 const selectedPeriod = ref('30d')
+const customRange = ref<Date[] | null>(null)
 const periodOptions = [
   { label: 'Hoy', value: 'today' },
   { label: 'Ayer', value: 'yesterday' },
   { label: 'Últimos 7 días', value: '7d' },
   { label: 'Últimos 30 días', value: '30d' },
-  { label: 'Últimos 90 días', value: '90d' }
+  { label: 'Este mes', value: 'this_month' },
+  { label: 'Mes anterior', value: 'last_month' },
+  { label: 'Últimos 90 días', value: '90d' },
+  { label: 'Rango personalizado', value: 'custom' }
 ]
+
+const DAY_MS = 24 * 60 * 60 * 1000
+
+const hasCompleteCustomRange = computed(() =>
+  Array.isArray(customRange.value) &&
+  customRange.value.length === 2 &&
+  customRange.value[0] instanceof Date &&
+  customRange.value[1] instanceof Date
+)
+
+const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+const endOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999).getTime()
+
+// La granularidad sale del ancho del rango, no del preset: un rango libre de
+// seis meses graficado por día son 180 puntos ilegibles.
+function unitForSpan(spanMs: number): string {
+  if (spanMs <= 2 * DAY_MS) return 'hour'
+  if (spanMs <= 60 * DAY_MS) return 'day'
+  if (spanMs <= 365 * DAY_MS) return 'week'
+  return 'month'
+}
 
 function getDateRange(period: string) {
   const now = new Date()
-  const endAt = now.getTime()
+  // Los períodos cerrados (ayer, mes anterior) terminan cuando terminan: usar
+  // `now` como fin haría que "Ayer" abarcara también lo que va de hoy.
   let startAt: number
-  let unit = 'day'
+  let endAt = now.getTime()
 
   switch (period) {
     case 'today':
-      startAt = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
-      unit = 'hour'
+      startAt = startOfDay(now)
       break
     case 'yesterday': {
       const y = new Date(now)
       y.setDate(y.getDate() - 1)
-      startAt = new Date(y.getFullYear(), y.getMonth(), y.getDate()).getTime()
-      unit = 'hour'
+      startAt = startOfDay(y)
+      endAt = endOfDay(y)
       break
     }
     case '7d':
-      startAt = endAt - 7 * 24 * 60 * 60 * 1000
+      startAt = endAt - 7 * DAY_MS
       break
     case '90d':
-      startAt = endAt - 90 * 24 * 60 * 60 * 1000
-      unit = 'week'
+      startAt = endAt - 90 * DAY_MS
       break
+    case 'this_month':
+      startAt = new Date(now.getFullYear(), now.getMonth(), 1).getTime()
+      break
+    case 'last_month': {
+      startAt = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime()
+      // Día 0 del mes actual = último día del mes anterior.
+      endAt = endOfDay(new Date(now.getFullYear(), now.getMonth(), 0))
+      break
+    }
+    case 'custom': {
+      if (!hasCompleteCustomRange.value) {
+        // Sin rango elegido todavía; se mantiene el default de 30 días.
+        startAt = endAt - 30 * DAY_MS
+        break
+      }
+      const [from, to] = customRange.value as Date[]
+      startAt = startOfDay(from)
+      endAt = Math.min(endOfDay(to), now.getTime())
+      break
+    }
     default:
-      startAt = endAt - 30 * 24 * 60 * 60 * 1000
+      startAt = endAt - 30 * DAY_MS
   }
 
-  return { startAt, endAt, unit }
+  return { startAt, endAt, unit: unitForSpan(endAt - startAt) }
+}
+
+const exportMenuItems = [
+  {
+    label: 'Excel (.xlsx)',
+    icon: 'pi pi-file-excel',
+    command: () => handleExport('xlsx')
+  },
+  {
+    label: 'CSV',
+    icon: 'pi pi-file',
+    command: () => handleExport('csv')
+  }
+]
+
+// Hora local a propósito: `toISOString()` es UTC y en Perú (UTC-5) un rango que
+// termina a las 23:00 quedaría fechado al día siguiente en el nombre del archivo.
+function stamp(ms: number): string {
+  const d = new Date(ms)
+  return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`
+}
+
+function toggleExportMenu(event: Event) {
+  exportMenu.value?.toggle(event)
+}
+
+async function handleExport(format: 'csv' | 'xlsx') {
+  exporting.value = true
+
+  const { startAt, endAt, unit } = getDateRange(selectedPeriod.value)
+
+  try {
+    const blob = await webAnalyticsApi.exportReport(startAt, endAt, unit, format)
+
+    downloadBlob(blob, `analitica_web_${stamp(startAt)}_${stamp(endAt)}.${format}`)
+
+    toast.add({
+      severity: 'success',
+      summary: 'Exportado',
+      detail: `Analítica web descargada como ${format.toUpperCase()}`,
+      life: 3000
+    })
+  } catch (e: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error al exportar',
+      detail: e?.response?.data?.message || 'No se pudo generar el archivo',
+      life: 5000
+    })
+  } finally {
+    exporting.value = false
+  }
 }
 
 const bounceRate = computed(() => {
@@ -419,5 +553,13 @@ onUnmounted(() => {
   if (activeInterval) clearInterval(activeInterval)
 })
 
-watch(selectedPeriod, () => fetchData())
+watch(selectedPeriod, (period) => {
+  // Con "Rango personalizado" recién elegido no hay fechas: se espera al Calendar.
+  if (period === 'custom' && !hasCompleteCustomRange.value) return
+  fetchData()
+})
+
+watch(customRange, () => {
+  if (selectedPeriod.value === 'custom' && hasCompleteCustomRange.value) fetchData()
+})
 </script>

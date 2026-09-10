@@ -48,5 +48,28 @@ export const webAnalyticsApi = {
   async getFunnel(startAt: number, endAt: number) {
     const res = await apiClient.get(`/web-analytics/funnel?start_at=${startAt}&end_at=${endAt}`)
     return res.data
+  },
+
+  /**
+   * Descarga el panel completo del período. El backend arma una hoja por
+   * sección (resumen, serie, páginas, fuentes, campañas, embudo…).
+   */
+  async exportReport(
+    startAt: number,
+    endAt: number,
+    unit: string,
+    format: 'csv' | 'xlsx'
+  ): Promise<Blob> {
+    const params = new URLSearchParams({
+      start_at: String(startAt),
+      end_at: String(endAt),
+      unit,
+      format
+    })
+
+    const res = await apiClient.get(`/web-analytics/export?${params.toString()}`, {
+      responseType: 'blob'
+    })
+    return res.data
   }
 }
