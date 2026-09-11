@@ -192,6 +192,16 @@ export interface ResendNotificationsResult {
       response_body: string | null
       duration_ms: number | null
     }>
+    /**
+     * Webhook legacy (`tiendaswebhooks`), canal aparte de las suscripciones v2.
+     * `null` cuando la tienda no lo tiene configurado. Es la contingencia que
+     * antes solo existía como "API - Notificar" en la plataforma 1.0.
+     */
+    legacy?: {
+      url: string
+      status: 'success' | 'failed' | 'skipped_not_paid' | 'missing_credentials' | 'unknown'
+      response_code: number | null
+    } | null
   }
   email?: {
     ok: boolean

@@ -110,8 +110,30 @@ function summarizeResult(channel: ResendNotificationChannel, result: ResendNotif
 
   if ((channel === 'webhook' || channel === 'both') && result.webhook) {
     const w = result.webhook
+
+    // Webhook legacy (`tiendaswebhooks`). Se informa aparte de las suscripciones
+    // v2 porque son dos canales distintos y una tienda puede tener solo uno. Es
+    // la contingencia que antes vivía como "API - Notificar" en la 1.0.
+    if (w.legacy) {
+      if (w.legacy.status === 'success') {
+        parts.push('Webhook legacy: entregado')
+        anyOk = true
+      } else if (w.legacy.status === 'skipped_not_paid') {
+        parts.push('Webhook legacy: no se envió — el pedido no está pagado')
+      } else if (w.legacy.status === 'missing_credentials') {
+        anyFail = true
+        parts.push('Webhook legacy: falta la credencial de API de la tienda')
+      } else {
+        anyFail = true
+        parts.push('Webhook legacy: falló la entrega')
+      }
+    }
+
     if (w.error === 'subscriptions_unavailable') {
       parts.push('Webhook: sin suscripciones v2')
+    } else if (w.legacy && (w.subscriptions ?? 0) === 0 && (w.subscriptions_total ?? 0) === 0) {
+      // Tienda solo-legacy: no tener suscripciones v2 es lo esperado, no una
+      // observación que valga la pena mostrarle al comerciante.
     } else if ((w.subscriptions ?? 0) === 0) {
       // No enviado. Distinguimos "no hay suscripciones" (estado normal para
       // una tienda que no usa webhooks) de "las hay pero ninguna escucha
@@ -225,7 +247,8 @@ onUnmounted(() => {
           <div class="min-w-0">
             <p class="text-sm font-medium text-gray-800">Webhook al comercio (v2)</p>
             <p v-if="!hasSubscriptions" class="text-xs text-gray-500 mt-0.5">
-              La tienda no tiene suscripciones v2 activas. El webhook legacy no se rastrea aquí.
+              La tienda no tiene suscripciones v2 activas. Si usa el webhook legacy, el botón
+              de reenvío lo entrega igual.
             </p>
             <p v-else-if="listensToOrderPaid === false" class="text-xs text-amber-700 mt-0.5">
               {{ webhook?.active_subscriptions }} suscripción(es) activa(s), pero ninguna escucha
