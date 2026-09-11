@@ -3,6 +3,25 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.76.0] - 2026-09-11
+
+### Novedades
+
+- **pedidos:** enlace a la ficha del cliente y badge de segmento en el detalle ([`ad70bfd`](https://github.com/mitienda-pe/mitienda-admin/commit/ad70bfdfbe12c572e4c74e96d49ea09986158107))
+- **pedidos:** el reenvío de notificaciones informa el webhook legacy ([`e34415b`](https://github.com/mitienda-pe/mitienda-admin/commit/e34415b3ce48b519cc682a66d0001cbf5bf4ed3d))
+- **analitica-web:** rango de fechas libre, "Mes anterior" y exportar a Excel ([`2df7188`](https://github.com/mitienda-pe/mitienda-admin/commit/2df71885aa0501f38bd33c0a01dac97f994b6277))
+- **productos:** elegir la unidad de venta (caja, blíster, docena) del producto ([`0fcd10f`](https://github.com/mitienda-pe/mitienda-admin/commit/0fcd10f668bd3301cda41befcd249d5b065bba61))
+- **ar:** selector de ubicacion del visor 3D/AR ([`b5f98b2`](https://github.com/mitienda-pe/mitienda-admin/commit/b5f98b2a641969f06701c27e5212b29325e782ee))
+- **plantillas:** dejar editar el subtítulo de los bloques predefinidos ([`cdf564f`](https://github.com/mitienda-pe/mitienda-admin/commit/cdf564f4494ec3b341fc89c63988370e94f0f3ad))
+- **google:** decir qué eventos recibe el contenedor y avisar del doble conteo ([`7ed48e3`](https://github.com/mitienda-pe/mitienda-admin/commit/7ed48e3c77d7e9651f07f64d82b533237214753b))
+- **google:** sección propia para Google Ads en la configuración ([`d80ee89`](https://github.com/mitienda-pe/mitienda-admin/commit/d80ee897f6f44baf438a28ef9036398dd6776698))
+
+### Correcciones
+
+- **productos:** topar el campo Orden al máximo que acepta la columna ([`f520889`](https://github.com/mitienda-pe/mitienda-admin/commit/f5208891317eb860e876d05dcbcfc6b8a4091766))
+- **etiquetas:** dejar el botón Guardar a la vista al editar la etiqueta ([`c4e2372`](https://github.com/mitienda-pe/mitienda-admin/commit/c4e237252141a957a5136c5dfbd19252140a5147))
+- **payment-links:** elegir la variación al armar el link ([`b57f4f5`](https://github.com/mitienda-pe/mitienda-admin/commit/b57f4f57d447626394d73a9fbfb434a7b245a07e))
+
 ## [v2.75.8] - 2026-09-04
 
 ### Novedades
