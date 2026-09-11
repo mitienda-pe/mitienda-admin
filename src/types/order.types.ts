@@ -3,6 +3,11 @@ export interface Order {
   id: number
   order_number: string
   customer: Customer
+  /**
+   * Clasificación del comprador por número de compras pagadas en esta tienda.
+   * La calcula el backend en el detalle; null cuando la venta no tiene ficha.
+   */
+  customer_segment?: CustomerSegment | null
   items: OrderItem[]
   subtotal: number
   discount: number
@@ -368,7 +373,12 @@ export interface OrderItem {
 }
 
 export interface Customer {
-  id: number
+  /**
+   * Ficha de cliente (`tiendacliente_id`). Es null con frecuencia: la ficha se
+   * crea recién al confirmarse el pago y el POS vende casi siempre a "Cliente
+   * General", así que no se puede enlazar a /customers/:id sin comprobarlo.
+   */
+  id: number | null
   name: string
   email: string
   phone?: string
@@ -383,6 +393,18 @@ export interface Customer {
     department?: string
   }
   created_at: string
+}
+
+export type CustomerSegmentCode = 'nuevo' | 'recurrente' | 'frecuente'
+
+export interface CustomerSegment {
+  code: CustomerSegmentCode
+  label: string
+  /**
+   * Solo ventas con `tiendaventa_pagado = 1`. NO coincide con el `total_orders`
+   * del detalle de cliente, que suma también los pedidos sin pagar.
+   */
+  paid_orders: number
 }
 
 export interface Address {

@@ -17,6 +17,7 @@ import Menu from 'primevue/menu'
 import Dialog from 'primevue/dialog'
 import Textarea from 'primevue/textarea'
 import AppInput from '@/components/ui/AppInput.vue'
+import AppBadge from '@/components/ui/AppBadge.vue'
 import EmitDocumentDialog from '@/components/billing/EmitDocumentDialog.vue'
 import DeliveryMap from '@/components/map/DeliveryMap.vue'
 import FraudRiskCard from '@/components/fraud/FraudRiskCard.vue'
@@ -1021,6 +1022,19 @@ const requestedDocumentType = computed<1 | 2>(() => {
 const requestedDocumentLabel = computed(() => requestedDocumentType.value === 1 ? 'Factura' : 'Boleta')
 const requestedHasValidRuc = computed(() => /^\d{11}$/.test((order.value?.customer?.document_number || '').trim()))
 
+// Color del badge de cliente. El backend manda el code; acá solo se elige el
+// tono, de menos a más fidelidad: gris → turquesa → verde.
+const customerSegmentVariant = computed<'neutral' | 'info' | 'success'>(() => {
+  switch (order.value?.customer_segment?.code) {
+    case 'frecuente':
+      return 'success'
+    case 'recurrente':
+      return 'info'
+    default:
+      return 'neutral'
+  }
+})
+
 // El botón se deshabilita cuando la facturación está delegada al ERP (NetSuite
 // emite por su sync) o no hay proveedor configurado. En modo auto o manual con
 // proveedor queda habilitado (la emisión manual sirve también de override).
@@ -1572,6 +1586,35 @@ const handleDebugPayments = async () => {
                     {{ [order.customer.billing_address.district, order.customer.billing_address.province, order.customer.billing_address.department].filter(Boolean).join(', ') }}
                   </p>
                 </div>
+              </div>
+
+              <!-- Ficha del cliente: solo cuando la venta quedó asociada a una.
+                   Sin ficha no hay historial que enlazar ni que clasificar. -->
+              <div
+                v-if="order.customer?.id || order.customer_segment"
+                class="pt-3 mt-1 border-t border-gray-100 space-y-2"
+              >
+                <div v-if="order.customer_segment" class="flex items-center gap-2 flex-wrap">
+                  <AppBadge
+                    :label="order.customer_segment.label"
+                    :variant="customerSegmentVariant"
+                    size="small"
+                  />
+                  <span class="text-xs text-gray-500">
+                    {{ order.customer_segment.paid_orders }}
+                    {{ order.customer_segment.paid_orders === 1 ? 'compra pagada' : 'compras pagadas' }}
+                  </span>
+                </div>
+                <router-link
+                  v-if="order.customer?.id"
+                  :to="{ name: 'CustomerDetail', params: { id: order.customer.id } }"
+                  target="_blank"
+                  rel="noopener"
+                  class="text-sm font-medium text-primary hover:underline inline-flex items-center gap-1"
+                >
+                  Ver ficha y compras anteriores
+                  <i class="pi pi-external-link text-xs"></i>
+                </router-link>
               </div>
             </div>
           </template>

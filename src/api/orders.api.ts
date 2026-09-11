@@ -292,7 +292,7 @@ export const ordersApi = {
         id: rawData.id,
         order_number: rawData.code || '',
         customer: {
-          id: 0,
+          id: rawData.customer_id ?? null,
           name: `${billingInfo.name || ''} ${billingInfo.last_name || ''}`.trim(),
           email: billingInfo.email || '',
           phone: billingInfo.phone_number || '',
@@ -308,6 +308,7 @@ export const ordersApi = {
           } : undefined,
           created_at: rawData.date_created || ''
         },
+        customer_segment: rawData.customer_segment ?? null,
         items: (rawData.order_items || []).map((item: any) => {
           return {
             id: item.id,
