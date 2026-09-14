@@ -104,6 +104,7 @@
             :key="effect.effect_id"
             :promotion-id="promotion.promotions_v2_id"
             :effect="effect"
+            :conditions="promotion.conditions || []"
           />
 
           <!-- Constraints -->

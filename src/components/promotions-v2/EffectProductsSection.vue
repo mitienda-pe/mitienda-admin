@@ -18,6 +18,31 @@
       </button>
     </div>
 
+    <!-- Aviso: productos rebajados en la tienda que no activan la promoción -->
+    <div v-if="uncoveredIds.length > 0" class="border-b border-amber-200 bg-amber-50 px-5 py-3">
+      <div class="flex items-start gap-2 text-xs text-amber-700">
+        <i class="pi pi-exclamation-triangle mt-0.5"></i>
+        <div class="flex-1">
+          <p>
+            <strong>{{ uncoveredIds.length }} producto(s)</strong> se muestran con descuento en la tienda,
+            pero no están en la condición "El carrito contiene productos". Si el cliente compra solo
+            esos, el checkout cobra el precio completo.
+          </p>
+          <p v-if="uncoveredNames.length > 0" class="mt-1 text-amber-600">
+            {{ uncoveredNames.join(', ') }}{{ uncoveredIds.length > uncoveredNames.length ? '…' : '' }}
+          </p>
+          <button
+            class="mt-2 inline-flex items-center rounded-md bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 disabled:opacity-50"
+            :disabled="isSyncingCondition"
+            @click="addUncoveredToConditions"
+          >
+            <i class="pi mr-1" :class="isSyncingCondition ? 'pi-spinner pi-spin' : 'pi-plus'"></i>
+            Agregarlos a la condición
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Aviso: regalo no entregable (todos los productos con variantes/sin stock) -->
     <div v-if="noDeliverableGift" class="border-b border-amber-200 bg-amber-50 px-5 py-3">
       <p class="flex items-start gap-2 text-xs text-amber-700">
@@ -254,6 +279,7 @@ import Dialog from 'primevue/dialog'
 import { productsApi } from '@/api/products.api'
 import { usePromotionV2Store } from '@/stores/promotion-v2.store'
 import { useFormatters } from '@/composables/useFormatters'
+import type { PromotionV2Condition } from '@/types/promotion-v2.types'
 
 const { currencySymbol } = useFormatters()
 
@@ -274,6 +300,7 @@ const props = defineProps<{
     type: string
     config: Record<string, any> | null
   }
+  conditions: PromotionV2Condition[]
 }>()
 
 const store = usePromotionV2Store()
@@ -322,6 +349,56 @@ const productIds = computed<number[]>(() =>
 )
 
 const hasMoreResults = computed(() => searchResults.value.length >= SEARCH_LIMIT)
+
+// Productos rebajados que no activan la promo. La vitrina rebaja todo producto
+// del efecto, pero el checkout exige además cada condición "El carrito contiene
+// productos": un producto ausente de una de ellas se cobra a precio de lista si
+// va solo en el carrito (venta WEB113996401BE, tienda 11399). El API ya arrastra
+// la condición cuando es espejo del efecto; esto cubre las que ya divergieron.
+// El regalo queda fuera: la vitrina no lo muestra como rebaja.
+const productConditions = computed(() =>
+  props.conditions.filter(c => c.type === 'cart_contains_product')
+)
+
+function conditionProductIds(condition: PromotionV2Condition): number[] {
+  const config = condition.config || {}
+  const ids = config.product_ids ?? (config.product_id ? [config.product_id] : [])
+  return (ids as unknown[]).map(Number)
+}
+
+const uncoveredIds = computed<number[]>(() => {
+  if (isGiftEffect.value) return []
+  return productIds.value.filter(id =>
+    productConditions.value.some(c => !conditionProductIds(c).includes(Number(id)))
+  )
+})
+
+const uncoveredNames = computed(() =>
+  linkedProducts.value
+    .filter(p => uncoveredIds.value.includes(p.id))
+    .slice(0, 5)
+    .map(p => p.name)
+)
+
+const isSyncingCondition = ref(false)
+
+async function addUncoveredToConditions() {
+  isSyncingCondition.value = true
+  try {
+    for (const condition of productConditions.value) {
+      const current = conditionProductIds(condition)
+      const missing = productIds.value.map(Number).filter(id => !current.includes(id))
+      if (missing.length === 0) continue
+      const { product_id: _legacy, ...config } = condition.config || {}
+      await store.editRule(props.promotionId, 'conditions', condition.condition_id, {
+        type: condition.type,
+        config: { ...config, product_ids: [...current, ...missing] },
+      })
+    }
+  } finally {
+    isSyncingCondition.value = false
+  }
+}
 
 // Elegibilidad de regalo: el motor (PromotionV2GiftResolver) NO entrega productos
 // con variantes ni sin stock. Solo aplica al efecto gift_product; en %/precio
