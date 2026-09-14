@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { permissionsApi } from '@/api/permissions.api'
+import type { UserPermissions } from '@/types/permissions.types'
 import {
   moduleForRoute,
   routeMatchesPrefix,
@@ -28,10 +29,13 @@ export const usePermissionsStore = defineStore('permissions', () => {
   /** Acceso total: propietario, administrador o superadmin impersonando. */
   const isOwner = ref(false)
   const moduleCodes = ref<string[]>([])
+  /** Módulos concedidos en solo lectura: se ven, no se modifican. */
+  const readOnlyCodes = ref<string[]>([])
   const isLoaded = ref(false)
   const isLoading = ref(false)
 
   const grantedModules = computed(() => new Set(moduleCodes.value))
+  const readOnlyModules = computed(() => new Set(readOnlyCodes.value))
 
   /**
    * ¿Este usuario tiene concedido el módulo?
@@ -40,6 +44,36 @@ export const usePermissionsStore = defineStore('permissions', () => {
     if (!enforced.value || !isLoaded.value) return true
     if (isOwner.value) return true
     return grantedModules.value.has(moduleCode)
+  }
+
+  /**
+   * ¿Puede MODIFICAR este módulo?
+   *
+   * Falla abierto igual que el resto del store, y en un caso más: un módulo que
+   * no figura en la lista de solo lectura se puede editar. La restricción es
+   * siempre explícita — el default de `usuariomodulo_nivel` es edición.
+   */
+  function canEdit(moduleCode: string): boolean {
+    if (!enforced.value || !isLoaded.value) return true
+    if (isOwner.value) return true
+    return !readOnlyModules.value.has(moduleCode)
+  }
+
+  /**
+   * ¿Puede modificar lo que hay en esta ruta?
+   *
+   * Resuelve el módulo con el mismo criterio de prefijo más largo que
+   * `canAccessRoute`, así `/appearance/colors` responde por `mod_colores` y no
+   * por `mod_apariencia`.
+   */
+  function canEditRoute(routePath: string): boolean {
+    if (!enforced.value || !isLoaded.value) return true
+    if (isOwner.value) return true
+
+    const code = moduleForRoute(routePath)
+    if (!code) return true
+
+    return canEdit(code)
   }
 
   /**
@@ -60,10 +94,11 @@ export const usePermissionsStore = defineStore('permissions', () => {
     return grantedModules.value.has(code)
   }
 
-  function apply(data: { enforced: boolean; is_owner: boolean; modules: string[] }) {
+  function apply(data: UserPermissions) {
     enforced.value = data.enforced
     isOwner.value = data.is_owner
     moduleCodes.value = data.modules ?? []
+    readOnlyCodes.value = data.readonly_modules ?? []
     isLoaded.value = true
   }
 
@@ -102,6 +137,7 @@ export const usePermissionsStore = defineStore('permissions', () => {
     enforced.value = false
     isOwner.value = false
     moduleCodes.value = []
+    readOnlyCodes.value = []
     isLoaded.value = false
     localStorage.removeItem(STORAGE_KEY)
   }
@@ -110,10 +146,14 @@ export const usePermissionsStore = defineStore('permissions', () => {
     enforced,
     isOwner,
     moduleCodes,
+    readOnlyCodes,
     isLoaded,
     isLoading,
     grantedModules,
+    readOnlyModules,
     hasModule,
+    canEdit,
+    canEditRoute,
     canAccessRoute,
     fetchPermissions,
     restorePermissions,

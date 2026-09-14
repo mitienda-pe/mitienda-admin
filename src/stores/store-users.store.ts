@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { storeUsersApi } from '@/api/store-users.api'
 import type { ApiResponse } from '@/types/api.types'
 import type {
+  ModuleLevel,
   StoreUser,
   StoreUserDetail,
   UserModule,
@@ -87,8 +88,12 @@ export const useStoreUsersStore = defineStore('storeUsers', () => {
     return null
   }
 
-  async function updateModules(userId: number, moduleIds: number[]) {
-    const response = await storeUsersApi.updateModules(userId, moduleIds)
+  async function updateModules(
+    userId: number,
+    moduleIds: number[],
+    moduleLevels: Record<number, ModuleLevel> = {}
+  ) {
+    const response = await storeUsersApi.updateModules(userId, moduleIds, moduleLevels)
     if (response.success) {
       await fetchUser(userId)
     }

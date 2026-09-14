@@ -1,6 +1,7 @@
 import apiClient from './axios'
 import type { ApiResponse } from '@/types/api.types'
 import type {
+  ModuleLevel,
   StoreUser,
   StoreUserDetail,
   UserModule,
@@ -31,10 +32,12 @@ export const storeUsersApi = {
 
   async updateModules(
     userId: number,
-    moduleIds: number[]
+    moduleIds: number[],
+    moduleLevels: Record<number, ModuleLevel> = {}
   ): Promise<ApiResponse<void>> {
     const response = await apiClient.put(`/store-users/${userId}/modules`, {
-      module_ids: moduleIds
+      module_ids: moduleIds,
+      module_levels: moduleLevels
     })
     return response.data
   },

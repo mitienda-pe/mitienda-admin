@@ -7,6 +7,7 @@ import { useFormatters } from '@/composables/useFormatters'
 import { useOrderDownloads, printableFromOrder, type PrintableOrder } from '@/composables/useOrderDownloads'
 import ShippingLabelDialog from '@/components/orders/ShippingLabelDialog.vue'
 import { useToast } from 'primevue/usetoast'
+import { useReadOnly } from '@/composables/useReadOnly'
 import { useConfirm } from 'primevue/useconfirm'
 import { useAuthStore } from '@/stores/auth.store'
 import Button from 'primevue/button'
@@ -42,6 +43,14 @@ const ordersStore = useOrdersStore()
 const storeInfoStore = useStoreInfoStore()
 const authStore = useAuthStore()
 const toast = useToast()
+
+/**
+ * Un usuario con Ventas en solo lectura consulta el pedido pero no lo mueve:
+ * nada de confirmar o rechazar el pago, anular, emitir comprobante, reenviar
+ * correos ni tocar la nota interna. La API rechaza igual (WriteAccessGuard);
+ * esto es para no ofrecer botones que van a rebotar.
+ */
+const { readOnly, canEdit } = useReadOnly()
 const confirm = useConfirm()
 const { formatCurrency, formatDate, formatTime, formatDateTime, formatDateTimeWithSeconds } = useFormatters()
 const { downloadPDF, downloadTicket, downloadPickingList, downloadCSV } = useOrderDownloads()
@@ -82,7 +91,7 @@ const gatewayStatus = ref<GatewayStatusResult | null>(null)
 const PAYABLE_STATUSES = ['pending', 'created']
 
 const canConfirmPayment = computed(() => {
-  return PAYABLE_STATUSES.includes(order.value?.status ?? '')
+  return canEdit.value && PAYABLE_STATUSES.includes(order.value?.status ?? '')
 })
 
 const canCheckGateway = computed(() => {
@@ -90,11 +99,11 @@ const canCheckGateway = computed(() => {
 })
 
 const canRejectPayment = computed(() => {
-  return order.value?.status === 'pending'
+  return canEdit.value && order.value?.status === 'pending'
 })
 
 const canMarkAsChargeback = computed(() => {
-  return order.value?.status === 'paid' && order.value?.payment_method === 'credit_card'
+  return canEdit.value && order.value?.status === 'paid' && order.value?.payment_method === 'credit_card'
 })
 
 // Anulación. El API solo acepta ventas pagadas (estado 1): las pendientes se
@@ -105,7 +114,7 @@ const voidPassword = ref('')
 const voidError = ref<string | null>(null)
 const isVoiding = ref(false)
 
-const canVoidOrder = computed(() => order.value?.status === 'paid')
+const canVoidOrder = computed(() => canEdit.value && order.value?.status === 'paid')
 
 const canSubmitVoid = computed(() =>
   voidMotivo.value.trim().length >= 3 && voidPassword.value.length > 0
@@ -1006,7 +1015,8 @@ const hasEmittedDocument = computed(() => {
 
 const canEmitDocument = computed(() => {
   // Can emit if order exists, is paid, has customer info, and NO document emitted yet
-  return order.value &&
+  return canEdit.value &&
+         order.value &&
          order.value.status === 'paid' &&
          order.value.customer &&
          !hasEmittedDocument.value
@@ -1054,7 +1064,8 @@ const emitDisabledReason = computed(() => {
 
 const canSendEmail = computed(() => {
   // Can send email if order is paid and has a valid customer email
-  return order.value &&
+  return canEdit.value &&
+         order.value &&
          order.value.status === 'paid' &&
          order.value.customer?.email &&
          order.value.customer.email.includes('@')
@@ -1341,6 +1352,20 @@ const handleDebugPayments = async () => {
 
 <template>
   <div class="space-y-6">
+    <div
+      v-if="readOnly"
+      class="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3"
+    >
+      <i class="pi pi-eye mt-0.5 text-amber-600"></i>
+      <div class="text-sm text-amber-800">
+        <p class="font-medium">Solo lectura</p>
+        <p>
+          Puedes consultar el pedido pero no aprobar pagos, anularlo ni emitir
+          comprobantes. Pídele acceso de edición al dueño de la tienda.
+        </p>
+      </div>
+    </div>
+
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-4">
@@ -1916,7 +1941,7 @@ const handleDebugPayments = async () => {
                 <div class="flex items-center justify-between mb-2">
                   <p class="text-sm text-gray-500 font-medium">Tienda (Interno)</p>
                   <Button
-                    v-if="!isEditingStoreNotes"
+                    v-if="!isEditingStoreNotes && canEdit"
                     :label="order.store_notes ? 'Editar' : 'Agregar'"
                     icon="pi pi-pencil"
                     text

@@ -30,11 +30,27 @@ export interface StoreUser {
   fecha_ultimo_ingreso: string | null
 }
 
+/**
+ * Nivel de acceso a un módulo concedido (`usuariosmodulos.usuariomodulo_nivel`).
+ *
+ * LECTURA deja entrar a la pantalla y rechaza cualquier escritura; EDICION es
+ * el default de la columna y el comportamiento de siempre, así que un permiso
+ * sin nivel explícito sigue pudiendo modificar.
+ */
+export const MODULE_LEVEL = {
+  LECTURA: 1,
+  EDICION: 2
+} as const
+
+export type ModuleLevel = (typeof MODULE_LEVEL)[keyof typeof MODULE_LEVEL]
+
 export interface UserModule {
   id: number
   name: string
   code: string
   group: string
+  /** Solo lo traen los módulos concedidos, no el catálogo de disponibles. */
+  level?: ModuleLevel
 }
 
 export interface StoreUserDetail {
@@ -48,6 +64,8 @@ export interface InviteUserData {
   nombres: string
   apellidos: string
   module_ids: number[]
+  /** modulo_id => nivel. Lo que no venga se concede en EDICION. */
+  module_levels?: Record<number, ModuleLevel>
   /** Rol con el que se invita. Por omisión, invitado. */
   tipo_id?: number
 }

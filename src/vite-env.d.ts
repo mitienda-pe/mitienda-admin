@@ -16,3 +16,22 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }
+
+/**
+ * PrimeVue 3 no publica tipos para su bus de toasts.
+ *
+ * Es el mismo canal al que `useToast()` emite por dentro y al que el `<Toast />`
+ * de App.vue está suscrito; lo usamos desde el interceptor de axios, que no vive
+ * en ningún componente y no puede llamar a `useToast()`. Ver src/utils/toast.ts.
+ */
+declare module 'primevue/toasteventbus' {
+  import type { ToastMessageOptions } from 'primevue/toast'
+
+  const ToastEventBus: {
+    emit(event: 'add' | 'remove' | 'remove-group' | 'remove-all-groups', payload?: ToastMessageOptions): void
+    on(event: string, listener: (payload?: ToastMessageOptions) => void): void
+    off(event: string, listener: (payload?: ToastMessageOptions) => void): void
+  }
+
+  export default ToastEventBus
+}

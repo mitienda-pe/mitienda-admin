@@ -12,6 +12,8 @@ import ShippingLabelDialog from '@/components/orders/ShippingLabelDialog.vue'
 import type { DispatchOrderDetail, DispatchState, DispatchStateId } from '@/types/dispatch.types'
 import type { SenderInfo } from '@/types/store.types'
 import Button from 'primevue/button'
+import ReadOnlyGuard from '@/components/ui/ReadOnlyGuard.vue'
+import { useReadOnly } from '@/composables/useReadOnly'
 import Dialog from 'primevue/dialog'
 import Dropdown from 'primevue/dropdown'
 import InputText from 'primevue/inputtext'
@@ -42,6 +44,13 @@ const labelPrintable = ref<PrintableOrder | null>(null)
 const storeName = computed(() => authStore.selectedStore?.name || 'Mi Tienda')
 
 // Status change form
+/**
+ * Con Despacho en solo lectura el panel se consulta pero no mueve nada: ni
+ * cambio de estado ni alta de envíos en el courier. Imprimir picking y etiquetas
+ * sí queda disponible — son GET y no cambian nada del pedido.
+ */
+const { canEdit } = useReadOnly()
+
 const statusForm = ref({
   state_id: null as DispatchStateId | null,
   comentario_cliente: '',
@@ -561,7 +570,7 @@ onMounted(() => {
 
           <!-- Olva: crear/reintentar envío -->
           <Button
-            v-if="isOlvaOrder && !olvaHasTracking"
+            v-if="isOlvaOrder && !olvaHasTracking && canEdit"
             label="Crear envío en Olva"
             icon="pi pi-send"
             severity="primary"
@@ -570,7 +579,7 @@ onMounted(() => {
             @click="redispatchOlva"
           />
           <Button
-            v-else-if="isOlvaOrder"
+            v-else-if="isOlvaOrder && canEdit"
             label="Reintentar envío"
             icon="pi pi-refresh"
             severity="secondary"
@@ -592,7 +601,7 @@ onMounted(() => {
 
           <!-- Cabify: crear/reintentar envío -->
           <Button
-            v-if="isCabifyOrder && !cabifyHasTracking"
+            v-if="isCabifyOrder && !cabifyHasTracking && canEdit"
             label="Crear envío en Cabify"
             icon="pi pi-send"
             severity="primary"
@@ -601,7 +610,7 @@ onMounted(() => {
             @click="redispatchCabify()"
           />
           <Button
-            v-else-if="isCabifyOrder"
+            v-else-if="isCabifyOrder && canEdit"
             label="Reintentar envío"
             icon="pi pi-refresh"
             severity="secondary"
@@ -623,7 +632,7 @@ onMounted(() => {
 
           <!-- Home Delivery: crear/reintentar pedido -->
           <Button
-            v-if="isHomeDeliveryOrder && !hdHasTracking"
+            v-if="isHomeDeliveryOrder && !hdHasTracking && canEdit"
             label="Crear envío en Home Delivery"
             icon="pi pi-send"
             severity="primary"
@@ -632,7 +641,7 @@ onMounted(() => {
             @click="redispatchHomeDelivery"
           />
           <Button
-            v-else-if="isHomeDeliveryOrder"
+            v-else-if="isHomeDeliveryOrder && canEdit"
             label="Reintentar envío"
             icon="pi pi-refresh"
             severity="secondary"
@@ -871,6 +880,7 @@ onMounted(() => {
           <div class="bg-white rounded-lg shadow-sm border p-5">
             <h3 class="font-semibold text-gray-900 mb-4">Cambiar estado</h3>
 
+            <ReadOnlyGuard>
             <div v-if="availableStates.length === 0" class="text-sm text-gray-500 text-center py-4">
               <i class="pi pi-check-circle text-green-500 text-2xl mb-2"></i>
               <p>No hay transiciones disponibles desde el estado actual.</p>
@@ -927,6 +937,7 @@ onMounted(() => {
                 :disabled="!statusForm.state_id"
               />
             </div>
+            </ReadOnlyGuard>
           </div>
 
           <!-- Timeline -->

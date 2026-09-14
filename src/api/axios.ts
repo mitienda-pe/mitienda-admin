@@ -1,5 +1,6 @@
 import axios, { type AxiosInstance, type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import type { ApiResponse } from '@/types/api.types'
+import { notify } from '@/utils/toast'
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -83,13 +84,27 @@ apiClient.interceptors.response.use(
 
     // Handle 403 module access errors - show upgrade modal
     //
-    // El filtro `moduleaccess` de la API devuelve 403 con `module` por dos
-    // motivos distintos y los distingue con `reason`: 'plan' (la tienda no lo
-    // contrató → subir de plan lo resuelve) y 'permission' (el dueño no se lo
-    // concedió a este usuario → el upgrade no tiene nada que ver). El modal de
-    // upgrade solo aplica al primero.
+    // La API devuelve 403 con `module` por tres motivos distintos y los
+    // distingue con `reason`: 'plan' (la tienda no lo contrató → subir de plan
+    // lo resuelve), 'permission' (el dueño no le concedió el módulo a este
+    // usuario → el upgrade no tiene nada que ver) y 'readonly' (lo tiene, pero
+    // solo para mirar). El modal de upgrade solo aplica al primero.
     const responseData = error.response?.data as Record<string, unknown> | undefined
     if (error.response?.status === 403 && responseData?.module) {
+      // Red de seguridad de los usuarios de solo lectura: las pantallas
+      // esconden lo que pueden, pero son ~190 vistas con botones de borrar,
+      // subidas de imagen y drag & drop. Lo que se escape llega acá y el
+      // usuario recibe un motivo en vez de un fallo mudo.
+      if (responseData.reason === 'readonly') {
+        notify({
+          severity: 'warn',
+          summary: 'Solo lectura',
+          detail: (responseData.message as string) ??
+            'Tu usuario tiene acceso de solo lectura a este módulo.'
+        })
+        return Promise.reject(error)
+      }
+
       if (responseData.reason === 'permission') {
         return Promise.reject(error)
       }

@@ -7,8 +7,8 @@ import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Checkbox from 'primevue/checkbox'
 import RadioButton from 'primevue/radiobutton'
-import type { UserModule } from '@/types/store-users.types'
-import { STORE_ROLE } from '@/types/store-users.types'
+import type { ModuleLevel, UserModule } from '@/types/store-users.types'
+import { MODULE_LEVEL, STORE_ROLE } from '@/types/store-users.types'
 
 const route = useRoute()
 const router = useRouter()
@@ -23,6 +23,12 @@ const email = ref('')
 const nombres = ref('')
 const apellidos = ref('')
 const selectedModuleIds = ref<Set<number>>(new Set())
+/**
+ * Nivel por módulo concedido. Lo que no esté acá va en EDICION, igual que el
+ * default de la columna: marcar un módulo nunca lo deja en solo lectura sin que
+ * alguien lo haya elegido.
+ */
+const moduleLevels = ref<Record<number, ModuleLevel>>({})
 /**
  * Rol con el que se invita. Un administrador ve todos los módulos del plan y no
  * usa `usuariosmodulos`, así que al elegirlo la lista de permisos deja de
@@ -96,6 +102,34 @@ function toggleModule(id: number) {
   selectedModuleIds.value = newSet
 }
 
+function levelOf(id: number): ModuleLevel {
+  return moduleLevels.value[id] ?? MODULE_LEVEL.EDICION
+}
+
+function setLevel(id: number, level: ModuleLevel) {
+  moduleLevels.value = { ...moduleLevels.value, [id]: level }
+}
+
+/**
+ * Deja TODOS los módulos marcados en un nivel.
+ *
+ * Sin esto, dejar a alguien en solo lectura es clic por clic sobre cuarenta y
+ * pico de módulos, que es justo el caso más común ("quiero un usuario que solo
+ * mire"). Solo toca lo seleccionado: un módulo no concedido no tiene nivel.
+ */
+function setAllLevels(level: ModuleLevel) {
+  const next: Record<number, ModuleLevel> = { ...moduleLevels.value }
+  for (const id of selectedModuleIds.value) {
+    next[id] = level
+  }
+  moduleLevels.value = next
+}
+
+/** Cuántos de los módulos marcados están en solo lectura. */
+const readOnlyCount = computed(
+  () => Array.from(selectedModuleIds.value).filter(id => levelOf(id) === MODULE_LEVEL.LECTURA).length
+)
+
 async function loadUserData() {
   if (!userId.value) return
 
@@ -109,6 +143,9 @@ async function loadUserData() {
       apellidos.value = user.apellidos
       availableModules.value = available_modules
       selectedModuleIds.value = new Set(modules.map(m => m.id))
+      moduleLevels.value = Object.fromEntries(
+        modules.map(m => [m.id, m.level ?? MODULE_LEVEL.EDICION])
+      )
     }
   } catch (e: any) {
     toast.add({
@@ -175,6 +212,7 @@ async function handleInvite() {
       apellidos: apellidos.value.trim(),
       // Un administrador no lleva módulos: los tiene todos por definición.
       module_ids: invitaComoAdministrador.value ? [] : Array.from(selectedModuleIds.value),
+      module_levels: invitaComoAdministrador.value ? {} : moduleLevels.value,
       tipo_id: tipoId.value
     })
 
@@ -207,7 +245,11 @@ async function handleUpdateModules() {
 
   isSaving.value = true
   try {
-    await store.updateModules(userId.value, Array.from(selectedModuleIds.value))
+    await store.updateModules(
+      userId.value,
+      Array.from(selectedModuleIds.value),
+      moduleLevels.value
+    )
     toast.add({
       severity: 'success',
       summary: 'Permisos actualizados',
@@ -381,8 +423,40 @@ onMounted(() => {
         </div>
 
         <p class="text-sm text-gray-500">
-          Selecciona los módulos a los que el usuario tendrá acceso en esta tienda.
+          Selecciona los módulos a los que el usuario tendrá acceso y con qué
+          nivel: <strong>Ver</strong> deja consultar la pantalla sin poder
+          modificar nada, <strong>Editar</strong> es el acceso completo.
         </p>
+
+        <!-- Nivel en bloque: el caso común es "que solo mire" -->
+        <div
+          v-if="selectedModuleIds.size > 0"
+          class="flex flex-wrap items-center gap-3 rounded-lg bg-gray-50 px-3 py-2"
+        >
+          <span class="text-sm text-gray-600">
+            Aplicar a los {{ selectedModuleIds.size }} módulos marcados:
+          </span>
+          <div class="flex gap-2">
+            <Button
+              label="Solo ver"
+              text
+              size="small"
+              severity="secondary"
+              @click="setAllLevels(MODULE_LEVEL.LECTURA)"
+            />
+            <Button
+              label="Permitir editar"
+              text
+              size="small"
+              severity="secondary"
+              @click="setAllLevels(MODULE_LEVEL.EDICION)"
+            />
+          </div>
+          <span v-if="readOnlyCount > 0" class="text-sm text-amber-700">
+            <i class="pi pi-eye text-xs" />
+            {{ readOnlyCount }} en solo lectura
+          </span>
+        </div>
 
         <!-- No modules available -->
         <div
@@ -400,28 +474,65 @@ onMounted(() => {
               {{ group.name }}
             </h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              <label
+              <div
                 v-for="mod in group.modules"
                 :key="mod.id"
-                class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
+                class="flex items-center gap-3 p-3 rounded-lg border transition-colors"
                 :class="
                   selectedModuleIds.has(mod.id)
                     ? 'border-primary/30 bg-primary/5'
                     : 'border-gray-200 hover:bg-gray-50'
                 "
               >
-                <Checkbox
-                  :modelValue="selectedModuleIds.has(mod.id)"
-                  :binary="true"
-                  @update:modelValue="toggleModule(mod.id)"
-                />
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm font-medium text-gray-700 truncate">
-                    {{ mod.name }}
-                  </p>
-                  <p class="text-xs text-gray-400 truncate">{{ mod.code }}</p>
+                <!--
+                  El <label> abarca solo la casilla y el nombre: si envolviera
+                  también el selector de nivel, cada clic en "Ver" o "Editar"
+                  desmarcaría el módulo.
+                -->
+                <label class="flex flex-1 min-w-0 items-center gap-3 cursor-pointer">
+                  <Checkbox
+                    :modelValue="selectedModuleIds.has(mod.id)"
+                    :binary="true"
+                    @update:modelValue="toggleModule(mod.id)"
+                  />
+                  <span class="flex-1 min-w-0">
+                    <span class="block text-sm font-medium text-gray-700 truncate">
+                      {{ mod.name }}
+                    </span>
+                    <span class="block text-xs text-gray-400 truncate">{{ mod.code }}</span>
+                  </span>
+                </label>
+
+                <div
+                  v-if="selectedModuleIds.has(mod.id)"
+                  class="flex shrink-0 overflow-hidden rounded-md border border-gray-200 bg-white text-xs"
+                >
+                  <button
+                    type="button"
+                    class="px-2 py-1 transition-colors"
+                    :class="
+                      levelOf(mod.id) === MODULE_LEVEL.LECTURA
+                        ? 'bg-amber-100 font-medium text-amber-800'
+                        : 'text-gray-500 hover:bg-gray-50'
+                    "
+                    @click="setLevel(mod.id, MODULE_LEVEL.LECTURA)"
+                  >
+                    Ver
+                  </button>
+                  <button
+                    type="button"
+                    class="px-2 py-1 border-l border-gray-200 transition-colors"
+                    :class="
+                      levelOf(mod.id) === MODULE_LEVEL.EDICION
+                        ? 'bg-primary/10 font-medium text-primary'
+                        : 'text-gray-500 hover:bg-gray-50'
+                    "
+                    @click="setLevel(mod.id, MODULE_LEVEL.EDICION)"
+                  >
+                    Editar
+                  </button>
                 </div>
-              </label>
+              </div>
             </div>
           </div>
         </div>

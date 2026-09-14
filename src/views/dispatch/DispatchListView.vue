@@ -14,6 +14,7 @@ import SearchBar from '@/components/common/SearchBar.vue'
 import DataTable, { type DataTablePageEvent, type DataTableRowClickEvent } from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
+import { useReadOnly } from '@/composables/useReadOnly'
 import Dropdown from 'primevue/dropdown'
 import Calendar from 'primevue/calendar'
 import Dialog from 'primevue/dialog'
@@ -23,6 +24,13 @@ import Tag from 'primevue/tag'
 
 const router = useRouter()
 const toast = useToast()
+
+/**
+ * El cambio de estado en bloque es la acción más pesada del panel: mueve N
+ * pedidos de una vez y puede disparar N emails al cliente. Con Despacho en solo
+ * lectura ni se ofrece.
+ */
+const { canEdit } = useReadOnly()
 const { formatDate } = useFormatters()
 
 // ─── State ────────────────────────────────────────────────────
@@ -464,11 +472,15 @@ onMounted(() => {
           {{ selectedOrders.length }} pedido{{ selectedOrders.length > 1 ? 's' : '' }} seleccionado{{ selectedOrders.length > 1 ? 's' : '' }}
         </span>
         <Button
+          v-if="canEdit"
           label="Cambiar estado"
           icon="pi pi-arrow-right"
           size="small"
           @click="openBatchStatusDialog"
         />
+        <span v-else class="text-sm text-primary-800">
+          <i class="pi pi-eye text-xs" /> Solo lectura
+        </span>
       </div>
 
       <!-- Tabla -->
