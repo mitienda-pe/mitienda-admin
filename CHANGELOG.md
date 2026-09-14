@@ -3,6 +3,16 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.77.0] - 2026-09-14
+
+### Novedades
+
+- **usuarios:** usuarios de solo lectura por módulo ([`e82800b`](https://github.com/mitienda-pe/mitienda-admin/commit/e82800be3ccbc2868781cdfece855fc4ca9d0bd9))
+
+### Correcciones
+
+- **promociones:** avisar productos rebajados que no activan la promoción ([`04b222b`](https://github.com/mitienda-pe/mitienda-admin/commit/04b222b87b0c52d6740a3d69e60b79b2c42a336d))
+
 ## [v2.76.0] - 2026-09-11
 
 ### Novedades
