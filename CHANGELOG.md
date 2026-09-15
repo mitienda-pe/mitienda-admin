@@ -3,6 +3,13 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.77.1] - 2026-09-15
+
+### Novedades
+
+- **atributos:** ordenar manualmente las opciones de un atributo ([`9ad91e5`](https://github.com/mitienda-pe/mitienda-admin/commit/9ad91e5cb994308a5c2b9490e93e3e0252664f8f))
+- **avisos:** cuenta regresiva para cerrar y reaparición de avisos ([`6e5b818`](https://github.com/mitienda-pe/mitienda-admin/commit/6e5b8186715665bb895dd26f465105ef33acec2b))
+
 ## [v2.77.0] - 2026-09-14
 
 ### Novedades
