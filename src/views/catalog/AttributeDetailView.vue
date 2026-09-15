@@ -67,14 +67,29 @@
       <!-- Right: Options -->
       <div class="lg:col-span-2">
         <div class="bg-white rounded-lg shadow p-6">
-          <div class="flex items-center justify-between mb-4">
+          <div
+            class="flex flex-wrap items-center justify-between gap-2"
+            :class="orderedOptions.length > 1 ? 'mb-1' : 'mb-4'"
+          >
             <h2 class="text-lg font-semibold text-secondary">
               Opciones
               <span class="text-secondary-400 font-normal">
                 ({{ store.currentAttribute.options?.length || 0 }})
               </span>
             </h2>
+            <Button
+              v-if="orderedOptions.length > 1"
+              label="Ordenar A→Z"
+              icon="pi pi-sort-alpha-down"
+              text
+              size="small"
+              severity="secondary"
+              @click="sortOptionsAlphabetically"
+            />
           </div>
+          <p v-if="orderedOptions.length > 1" class="text-sm text-secondary-500 mb-4">
+            Arrastra las opciones para definir el orden en que se muestran en la tienda y al crear variantes.
+          </p>
 
           <!-- Add Option: Color type -->
           <div v-if="store.currentAttribute.type === 2" class="flex gap-2 mb-4 items-end">
@@ -135,15 +150,26 @@
           </div>
 
           <!-- Options List -->
-          <div
-            v-if="store.currentAttribute.options && store.currentAttribute.options.length > 0"
-            class="space-y-2"
-          >
+          <div v-if="orderedOptions.length > 0" class="space-y-2">
             <div
-              v-for="option in store.currentAttribute.options"
+              v-for="(option, index) in orderedOptions"
               :key="option.id"
-              class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg group"
+              class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg group transition-opacity"
+              :class="{ 'opacity-40': draggingId === option.id }"
+              :draggable="orderedOptions.length > 1 && editingOptionId === null"
+              @dragstart="onDragStart($event, option.id)"
+              @dragover.prevent="onDragOver(option.id)"
+              @drop.prevent="onDragEnd"
+              @dragend="onDragEnd"
             >
+              <!-- Drag handle -->
+              <i
+                v-if="orderedOptions.length > 1"
+                class="pi pi-bars text-secondary-400 flex-shrink-0"
+                :class="editingOptionId === null ? 'cursor-grab' : 'opacity-30'"
+                aria-hidden="true"
+              ></i>
+
               <!-- Color Preview (for color type) -->
               <div
                 v-if="store.currentAttribute.type === 2"
@@ -196,7 +222,7 @@
               </div>
 
               <!-- Actions -->
-              <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div class="flex gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
                 <template v-if="editingOptionId === option.id">
                   <Button
                     icon="pi pi-check"
@@ -216,6 +242,29 @@
                   />
                 </template>
                 <template v-else>
+                  <!-- Alternativa al arrastre para teclado y pantallas táctiles -->
+                  <template v-if="orderedOptions.length > 1">
+                    <Button
+                      icon="pi pi-arrow-up"
+                      text
+                      rounded
+                      size="small"
+                      severity="secondary"
+                      :disabled="index === 0"
+                      aria-label="Subir"
+                      @click="moveOption(index, -1)"
+                    />
+                    <Button
+                      icon="pi pi-arrow-down"
+                      text
+                      rounded
+                      size="small"
+                      severity="secondary"
+                      :disabled="index === orderedOptions.length - 1"
+                      aria-label="Bajar"
+                      @click="moveOption(index, 1)"
+                    />
+                  </template>
                   <Button
                     icon="pi pi-pencil"
                     text
@@ -250,7 +299,9 @@
       :dirty="hasChanges"
       :loading="isSaving"
       save-label="Guardar Cambios"
+      show-discard
       @save="handleSave"
+      @discard="syncForm"
     />
   </div>
 </template>
@@ -259,7 +310,12 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAttributesStore } from '@/stores/attributes.store'
-import type { AttributeOption, AttributeType, AttributeStyle } from '@/types/attribute.types'
+import type {
+  AttributeOption,
+  AttributeType,
+  AttributeStyle,
+  UpdateAttributePayload,
+} from '@/types/attribute.types'
 import Button from 'primevue/button'
 import Dropdown from 'primevue/dropdown'
 import InputText from 'primevue/inputtext'
@@ -285,6 +341,9 @@ const editingColorName = ref('')
 const editingColorHex = ref('#000000')
 const colorName = ref('')
 const colorHex = ref('#000000')
+// Orden de las opciones en edición (ids). Se guarda con "Guardar Cambios".
+const optionOrder = ref<number[]>([])
+const draggingId = ref<number | null>(null)
 
 const editForm = ref({
   name: '',
@@ -300,12 +359,32 @@ const typeOptions = [
 ]
 
 // Computed
+const serverOptionIds = computed(() => (store.currentAttribute?.options || []).map(o => o.id))
+
+// Opciones en el orden en edición. Las que se agregan mientras tanto aparecen
+// al final y las eliminadas desaparecen, sin perder el orden ya arrastrado.
+const orderedOptions = computed<AttributeOption[]>(() => {
+  const options = store.currentAttribute?.options || []
+  const byId = new Map(options.map(o => [o.id, o]))
+  const inOrder = optionOrder.value
+    .map(id => byId.get(id))
+    .filter((o): o is AttributeOption => o !== undefined)
+  const seen = new Set(optionOrder.value)
+  return [...inOrder, ...options.filter(o => !seen.has(o.id))]
+})
+
+const hasOrderChanges = computed(() => {
+  const current = orderedOptions.value.map(o => o.id)
+  return current.some((id, i) => id !== serverOptionIds.value[i])
+})
+
 const hasChanges = computed(() => {
   if (!store.currentAttribute) return false
   return (
     editForm.value.name !== store.currentAttribute.name ||
     editForm.value.type !== store.currentAttribute.type ||
-    editForm.value.style !== store.currentAttribute.style
+    editForm.value.style !== store.currentAttribute.style ||
+    hasOrderChanges.value
   )
 })
 
@@ -339,14 +418,65 @@ function syncForm() {
       type: store.currentAttribute.type,
       style: store.currentAttribute.style,
     }
+    optionOrder.value = serverOptionIds.value.slice()
   }
+}
+
+// Ordering
+function moveOption(index: number, delta: -1 | 1) {
+  const ids = orderedOptions.value.map(o => o.id)
+  const target = index + delta
+  if (target < 0 || target >= ids.length) return
+  const [moved] = ids.splice(index, 1)
+  ids.splice(target, 0, moved)
+  optionOrder.value = ids
+}
+
+// Orden "natural": talla 2 antes que talla 10. Útil como punto de partida
+// antes de ajustar a mano (S/M/L o los colores no tienen orden alfabético).
+const naturalCollator = new Intl.Collator('es', { numeric: true, sensitivity: 'base' })
+
+function sortOptionsAlphabetically() {
+  optionOrder.value = orderedOptions.value
+    .slice()
+    .sort((a, b) => naturalCollator.compare(extractName(a.text), extractName(b.text)))
+    .map(o => o.id)
+}
+
+function onDragStart(event: DragEvent, optionId: number) {
+  draggingId.value = optionId
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move'
+    // Firefox no inicia el arrastre sin datos.
+    event.dataTransfer.setData('text/plain', String(optionId))
+  }
+}
+
+// Reordena en vivo al pasar sobre otra fila: lo que se ve es lo que se guarda.
+function onDragOver(overId: number) {
+  const fromId = draggingId.value
+  if (fromId === null || fromId === overId) return
+  const ids = orderedOptions.value.map(o => o.id)
+  const from = ids.indexOf(fromId)
+  const to = ids.indexOf(overId)
+  if (from === -1 || to === -1) return
+  ids.splice(from, 1)
+  ids.splice(to, 0, fromId)
+  optionOrder.value = ids
+}
+
+function onDragEnd() {
+  draggingId.value = null
 }
 
 async function handleSave() {
   if (!store.currentAttribute) return
   isSaving.value = true
 
-  const payload: Record<string, any> = {}
+  const payload: UpdateAttributePayload = {}
+  if (hasOrderChanges.value) {
+    payload.option_order = orderedOptions.value.map(o => o.id)
+  }
   if (editForm.value.name !== store.currentAttribute.name) {
     payload.name = editForm.value.name
   }

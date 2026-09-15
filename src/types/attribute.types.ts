@@ -35,6 +35,8 @@ export interface UpdateAttributePayload {
   name?: string
   type?: AttributeType
   style?: AttributeStyle
+  /** Ids de las opciones en el orden en que deben mostrarse (tienda y editor de variantes). */
+  option_order?: number[]
 }
 
 export const ATTRIBUTE_TYPE_LABELS: Record<AttributeType, string> = {
