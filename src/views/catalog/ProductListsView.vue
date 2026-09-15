@@ -83,15 +83,25 @@
           </template>
         </Column>
 
-        <Column field="productolista_codigo" header="Código" sortable style="width: 140px">
+        <Column field="productolista_slug" header="URL" sortable>
           <template #body="{ data }">
-            <span class="text-secondary-500 font-mono text-sm">{{ data.productolista_codigo }}</span>
+            <span class="text-secondary-500 font-mono text-sm">/lista/{{ data.productolista_slug || data.productolista_codigo }}</span>
           </template>
         </Column>
 
-        <Column header="Acciones" style="width: 160px">
+        <Column header="Acciones" style="width: 200px">
           <template #body="{ data }">
             <div class="flex gap-2">
+              <Button
+                v-if="storeBaseUrl && data.productolista_estado == 1"
+                icon="pi pi-external-link"
+                text
+                rounded
+                size="small"
+                severity="secondary"
+                v-tooltip="'Ver en tienda'"
+                @click="openInStore(data)"
+              />
               <Button
                 v-if="data.productolista_tipo == 1"
                 icon="pi pi-link"
@@ -176,6 +186,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useProductListStore } from '@/stores/product-list.store'
+import { useAuthStore } from '@/stores/auth.store'
 import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
@@ -191,7 +202,14 @@ import type { ProductList } from '@/types/product-list.types'
 import { PRODUCT_LIST_TYPES } from '@/types/product-list.types'
 
 const productListStore = useProductListStore()
+const authStore = useAuthStore()
 const toast = useToast()
+
+const storeBaseUrl = computed(() => (authStore.selectedStore?.url || '').replace(/\/+$/, ''))
+
+const openInStore = (list: ProductList) => {
+  window.open(`${storeBaseUrl.value}/lista/${list.productolista_slug || list.productolista_codigo}`, '_blank')
+}
 
 const searchQuery = ref('')
 const selectedTypeFilter = ref<number | null>(null)
@@ -223,6 +241,7 @@ const filteredLists = computed(() => {
     const query = searchQuery.value.toLowerCase()
     result = result.filter(list =>
       list.productolista_nombre.toLowerCase().includes(query) ||
+      (list.productolista_slug || '').toLowerCase().includes(query) ||
       list.productolista_codigo.toLowerCase().includes(query)
     )
   }

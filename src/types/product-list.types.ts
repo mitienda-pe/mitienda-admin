@@ -2,6 +2,7 @@ export interface ProductList {
   productolista_id: number
   tienda_id: number
   productolista_nombre: string
+  productolista_slug: string | null
   productolista_codigo: string
   productolista_estado: number
   productolista_tipo: number // 1=Manual, 2=Más Vendidos, 3=Nuevos Productos
@@ -14,6 +15,7 @@ export interface ProductList {
 
 export interface ProductListFormData {
   productolista_nombre: string
+  productolista_slug: string
   productolista_tipo: number
   productolista_estado: number
   productolista_cantidaditems: number | null
@@ -21,6 +23,7 @@ export interface ProductListFormData {
 
 export interface ProductListCreateRequest {
   productolista_nombre: string
+  productolista_slug?: string
   productolista_tipo: number
   productolista_estado?: number
   productolista_cantidaditems?: number | null
@@ -28,6 +31,7 @@ export interface ProductListCreateRequest {
 
 export interface ProductListUpdateRequest {
   productolista_nombre?: string
+  productolista_slug?: string
   productolista_tipo?: number
   productolista_estado?: number
   productolista_cantidaditems?: number | null

@@ -9,7 +9,7 @@
         severity="secondary"
         @click="$router.push({ name: 'product-lists' })"
       />
-      <div>
+      <div class="flex-1">
         <h1 class="text-3xl font-bold text-secondary">
           {{ isEditMode ? 'Editar Lista' : 'Nueva Lista de Productos' }}
         </h1>
@@ -17,6 +17,14 @@
           {{ isEditMode ? 'Modifica los datos de la lista' : 'Crea una nueva lista de productos' }}
         </p>
       </div>
+      <Button
+        v-if="isEditMode && publicUrl && savedSlug && savedActive"
+        label="Ver en tienda"
+        icon="pi pi-external-link"
+        severity="secondary"
+        outlined
+        @click="openInStore"
+      />
     </div>
 
     <!-- Loading -->
@@ -39,6 +47,47 @@
             placeholder="Ej: Productos destacados, Ofertas del mes"
           />
           <small v-if="errors.productolista_nombre" class="text-red-500">{{ errors.productolista_nombre }}</small>
+        </div>
+
+        <!-- URL pública -->
+        <div>
+          <label for="list-slug" class="block text-sm font-medium text-secondary-700 mb-2">
+            URL en la tienda
+          </label>
+          <div class="flex items-stretch">
+            <span
+              class="hidden sm:flex items-center px-3 text-sm text-secondary-500 bg-gray-50 border border-r-0 border-gray-300 rounded-l-md font-mono truncate max-w-[50%]"
+            >
+              {{ urlPrefix }}
+            </span>
+            <InputText
+              id="list-slug"
+              v-model="formData.productolista_slug"
+              class="w-full font-mono text-sm sm:rounded-l-none"
+              :class="{ 'p-invalid': errors.productolista_slug }"
+              placeholder="ofertas-del-mes"
+              @input="slugTouched = true"
+              @blur="formData.productolista_slug = slugify(formData.productolista_slug)"
+            />
+            <Button
+              v-if="publicUrl && formData.productolista_slug"
+              icon="pi pi-copy"
+              severity="secondary"
+              outlined
+              class="ml-2 shrink-0"
+              v-tooltip="'Copiar URL'"
+              @click="copyUrl"
+            />
+          </div>
+          <small v-if="errors.productolista_slug" class="text-red-500 block">{{ errors.productolista_slug }}</small>
+          <small v-else-if="slugChanged" class="text-yellow-600 block">
+            <i class="pi pi-exclamation-triangle mr-1"></i>
+            Los enlaces del menú se actualizan solos, pero los que hayas compartido fuera de la tienda dejarán de funcionar.
+          </small>
+          <small v-else class="text-secondary-500 block">
+            Solo letras sin tildes, números y guiones.
+            <template v-if="!isActive">La lista está inactiva: la URL no mostrará productos hasta activarla.</template>
+          </small>
         </div>
 
         <!-- Tipo -->
@@ -144,11 +193,14 @@ import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import InputSwitch from 'primevue/inputswitch'
 import ProgressSpinner from 'primevue/progressspinner'
+import { useAuthStore } from '@/stores/auth.store'
+import { slugify } from '@/utils/slugify'
 import type { ProductListFormData } from '@/types/product-list.types'
 
 const route = useRoute()
 const router = useRouter()
 const productListStore = useProductListStore()
+const authStore = useAuthStore()
 const toast = useToast()
 
 const isLoading = ref(false)
@@ -157,12 +209,54 @@ const errors = ref<Record<string, string>>({})
 
 const formData = ref<ProductListFormData>({
   productolista_nombre: '',
+  productolista_slug: '',
   productolista_tipo: 1,
   productolista_estado: 1,
   productolista_cantidaditems: null
 })
 
 const isActive = ref(true)
+
+const isEditMode = computed(() => !!route.params.id)
+const listId = computed(() => route.params.id ? parseInt(route.params.id as string) : null)
+
+// Slug y estado tal como están guardados: "Ver en tienda" abre lo publicado, no
+// lo que se está escribiendo, y el aviso de enlaces rotos compara contra esto.
+const savedSlug = ref('')
+const savedActive = ref(false)
+// Al crear, el slug sigue al nombre hasta que el comerciante lo edita a mano. Al
+// editar nunca: renombrar la lista no debe cambiar una URL ya publicada.
+const slugTouched = ref(false)
+
+const storeBaseUrl = computed(() => (authStore.selectedStore?.url || '').replace(/\/+$/, ''))
+const urlPrefix = computed(() => `${storeBaseUrl.value.replace(/^https?:\/\//, '') || 'tu-tienda'}/lista/`)
+const publicUrl = computed(() =>
+  storeBaseUrl.value && formData.value.productolista_slug
+    ? `${storeBaseUrl.value}/lista/${formData.value.productolista_slug}`
+    : ''
+)
+const slugChanged = computed(() =>
+  isEditMode.value && !!savedSlug.value && slugify(formData.value.productolista_slug) !== savedSlug.value
+)
+
+watch(() => formData.value.productolista_nombre, (name) => {
+  if (!isEditMode.value && !slugTouched.value) {
+    formData.value.productolista_slug = slugify(name)
+  }
+})
+
+const openInStore = () => {
+  window.open(`${storeBaseUrl.value}/lista/${savedSlug.value}`, '_blank')
+}
+
+const copyUrl = async () => {
+  try {
+    await navigator.clipboard.writeText(publicUrl.value)
+    toast.add({ severity: 'success', summary: 'Copiado', detail: 'URL copiada al portapapeles', life: 2000 })
+  } catch {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudo copiar la URL', life: 3000 })
+  }
+}
 
 const listTypes = [
   {
@@ -193,14 +287,16 @@ watch(isActive, (value) => {
   formData.value.productolista_estado = value ? 1 : 0
 })
 
-const isEditMode = computed(() => !!route.params.id)
-const listId = computed(() => route.params.id ? parseInt(route.params.id as string) : null)
-
 const validateForm = (): boolean => {
   errors.value = {}
 
   if (!formData.value.productolista_nombre || formData.value.productolista_nombre.trim().length < 2) {
     errors.value.productolista_nombre = 'El nombre es requerido (mínimo 2 caracteres)'
+  }
+
+  formData.value.productolista_slug = slugify(formData.value.productolista_slug)
+  if (!formData.value.productolista_slug) {
+    errors.value.productolista_slug = 'La URL es requerida (letras sin tildes, números y guiones)'
   }
 
   if (!formData.value.productolista_tipo) {
@@ -226,6 +322,7 @@ const saveList = async () => {
 
     const payload = {
       productolista_nombre: formData.value.productolista_nombre,
+      productolista_slug: formData.value.productolista_slug,
       productolista_tipo: formData.value.productolista_tipo,
       productolista_estado: formData.value.productolista_estado,
       productolista_cantidaditems: formData.value.productolista_tipo !== 1
@@ -255,10 +352,14 @@ const saveList = async () => {
 
     router.push({ name: 'product-lists' })
   } catch (error: any) {
+    const messages = error.response?.data?.messages || {}
+    if (messages.productolista_slug) {
+      errors.value.productolista_slug = messages.productolista_slug
+    }
     toast.add({
       severity: 'error',
       summary: 'Error',
-      detail: error.response?.data?.messages?.productolista_nombre || error.response?.data?.message || 'Error al guardar la lista',
+      detail: messages.productolista_slug || messages.productolista_nombre || messages.error || error.response?.data?.message || 'Error al guardar la lista',
       life: 5000
     })
   } finally {
@@ -276,11 +377,16 @@ const loadList = async () => {
     if (list) {
       formData.value = {
         productolista_nombre: list.productolista_nombre,
+        // El panel legacy crea listas sin slug (hoy se sirven por código): se
+        // propone uno desde el nombre para que guardar no exija escribirlo.
+        productolista_slug: list.productolista_slug || slugify(list.productolista_nombre),
         productolista_tipo: list.productolista_tipo,
         productolista_estado: list.productolista_estado,
         productolista_cantidaditems: list.productolista_cantidaditems
       }
       isActive.value = list.productolista_estado == 1
+      savedSlug.value = list.productolista_slug || ''
+      savedActive.value = isActive.value
     }
   } catch (error) {
     toast.add({
