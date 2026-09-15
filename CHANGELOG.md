@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.77.2] - 2026-09-15
+
+### Novedades
+
+- **listas:** URL pública editable y "Ver en tienda" ([`77a1ce6`](https://github.com/mitienda-pe/mitienda-admin/commit/77a1ce66c246e1063282288636677614e744a1a8))
+
 ## [v2.77.1] - 2026-09-15
 
 ### Novedades
