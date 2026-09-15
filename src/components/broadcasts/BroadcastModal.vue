@@ -3,8 +3,8 @@
     v-if="current"
     :visible="true"
     :modal="true"
-    :closable="current.is_dismissible"
-    :closeOnEscape="current.is_dismissible"
+    :closable="closable"
+    :closeOnEscape="closable"
     :dismissableMask="false"
     :style="{ width: '560px', maxWidth: '95vw' }"
     :contentStyle="{ maxHeight: 'calc(90vh - 140px)', overflowY: 'auto' }"
@@ -35,16 +35,26 @@
         <i class="pi pi-lock" /> Este mensaje debe mantenerse visible.
       </p>
     </div>
-    <template v-if="hasCta" #footer>
-      <a
-        :href="current.cta_url!"
-        target="_blank"
-        rel="noopener"
-        class="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-white no-underline shadow-sm transition-colors hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-200"
-        @click="handleCtaClick"
-      >
-        {{ current.cta_label }}
-      </a>
+    <template v-if="hasCta || waitSeconds > 0" #footer>
+      <div class="flex w-full flex-wrap items-center justify-end gap-3">
+        <p
+          v-if="waitSeconds > 0"
+          class="mr-auto flex items-center gap-1.5 text-xs text-gray-500 tabular-nums"
+        >
+          <i class="pi pi-clock" />
+          Podrás cerrar este aviso en {{ formatCountdown(waitSeconds) }}
+        </p>
+        <a
+          v-if="hasCta"
+          :href="current.cta_url!"
+          target="_blank"
+          rel="noopener"
+          class="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-white no-underline shadow-sm transition-colors hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-200"
+          @click="handleCtaClick"
+        >
+          {{ current.cta_label }}
+        </a>
+      </div>
     </template>
   </Dialog>
 </template>
@@ -55,24 +65,16 @@ import Dialog from 'primevue/dialog'
 import { useBroadcastsStore } from '@/stores/broadcasts.store'
 import type { BroadcastSeverity } from '@/types/broadcast.types'
 import { renderBroadcastMarkdownBlock } from '@/utils/broadcast-markdown'
+import { formatCountdown } from '@/utils/broadcast-countdown'
 
 const store = useBroadcastsStore()
 
-const current = computed(() => {
-  const modals = store.activeModals
-  if (modals.length === 0) return null
-  const rank = (s: BroadcastSeverity) =>
-    s === 'danger' ? 0 : s === 'warning' ? 1 : 2
-  const blockingFirst = [...modals].sort((a, b) => {
-    if (a.is_dismissible !== b.is_dismissible) {
-      return a.is_dismissible ? 1 : -1
-    }
-    const byRank = rank(a.severity) - rank(b.severity)
-    if (byRank !== 0) return byRank
-    return (b.published_at || '').localeCompare(a.published_at || '')
-  })
-  return blockingFirst[0]
-})
+const current = computed(() => store.currentModal)
+
+const waitSeconds = computed(() =>
+  current.value ? store.secondsUntilClosable(current.value) : 0
+)
+const closable = computed(() => !!current.value && store.canClose(current.value))
 
 const hasCta = computed(
   () => !!(current.value?.cta_label && current.value?.cta_url)
@@ -80,15 +82,16 @@ const hasCta = computed(
 
 function onClose(visible: boolean) {
   if (visible) return
-  if (current.value?.is_dismissible) {
+  if (current.value && closable.value) {
     store.dismiss(current.value.id)
   }
 }
 
 function handleCtaClick() {
-  // Al abrir el CTA también marcamos visto si es cerrable
+  // Al abrir el CTA también marcamos visto si es cerrable, aunque no haya
+  // terminado la espera: hacer clic en la acción es lo que buscamos.
   if (current.value?.is_dismissible) {
-    store.dismiss(current.value.id)
+    store.dismiss(current.value.id, { viaCta: true })
   }
 }
 

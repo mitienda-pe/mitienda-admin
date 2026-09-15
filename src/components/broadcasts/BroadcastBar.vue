@@ -19,8 +19,16 @@
       >
         {{ b.cta_label }}
       </a>
+      <span
+        v-if="b.is_dismissible && store.secondsUntilClosable(b) > 0"
+        class="shrink-0 inline-flex items-center gap-1 text-xs tabular-nums text-white/80"
+        :title="'Podrás cerrar este aviso en ' + formatCountdown(store.secondsUntilClosable(b))"
+      >
+        <i class="pi pi-clock text-xs" aria-hidden="true" />
+        {{ formatCountdown(store.secondsUntilClosable(b)) }}
+      </span>
       <button
-        v-if="b.is_dismissible"
+        v-else-if="b.is_dismissible"
         type="button"
         class="shrink-0 text-white/80 hover:text-white transition-colors"
         :aria-label="'Cerrar ' + b.title"
@@ -38,18 +46,11 @@ import { computed } from 'vue'
 import { useBroadcastsStore } from '@/stores/broadcasts.store'
 import type { BroadcastSeverity } from '@/types/broadcast.types'
 import { renderBroadcastMarkdownInline } from '@/utils/broadcast-markdown'
+import { formatCountdown } from '@/utils/broadcast-countdown'
 
 const store = useBroadcastsStore()
 
-const bars = computed(() => {
-  const rank = (s: BroadcastSeverity) =>
-    s === 'danger' ? 0 : s === 'warning' ? 1 : 2
-  return [...store.activeBars].sort((a, b) => {
-    const byRank = rank(a.severity) - rank(b.severity)
-    if (byRank !== 0) return byRank
-    return (b.published_at || '').localeCompare(a.published_at || '')
-  })
-})
+const bars = computed(() => store.activeBars)
 
 function barClass(s: BroadcastSeverity) {
   switch (s) {
