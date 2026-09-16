@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.78.1] - 2026-09-16
+
+### Correcciones
+
+- **reparto:** avisar cuando el recojo está activado pero no tiene puntos ([`df7acb6`](https://github.com/mitienda-pe/mitienda-admin/commit/df7acb62d7ee90d21342482623459d6b8a0dd50b))
+
 ## [v2.78.0] - 2026-09-16
 
 ### Novedades
