@@ -967,6 +967,9 @@
         <!-- Etiquetas del producto -->
         <ProductTagAssignment v-if="product" :product-id="product.id" />
 
+        <!-- Interesados en el aviso de "ya está disponible" -->
+        <ProductStockNotifications v-if="product" :product-id="product.id" />
+
         <!-- Categorias Externas -->
         <Card>
           <template #title>
@@ -1177,6 +1180,7 @@ import WholesalePriceEditor from '@/components/products/WholesalePriceEditor.vue
 import { AiFieldGenerator, UnsavedChangesBar } from '@/components/ui'
 import { AI_BUTTON_IDS } from '@/config/ai-buttons.config'
 import ProductTagAssignment from '@/components/ProductTagAssignment.vue'
+import ProductStockNotifications from '@/components/products/ProductStockNotifications.vue'
 import ProductReviewsCard from '@/components/reviews/ProductReviewsCard.vue'
 import type { ProductUpdatePayload, ExternalCategoryOption, SaleUnitOption } from '@/types/product.types'
 import { useShippingConfigStore } from '@/stores/shipping-config.store'
