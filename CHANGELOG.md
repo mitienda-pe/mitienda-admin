@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.78.0] - 2026-09-16
+
+### Novedades
+
+- **direcciones:** operador del punto de recojo y nombre del método en el checkout ([`e4734a6`](https://github.com/mitienda-pe/mitienda-admin/commit/e4734a648a975982a94be7756346b4703fb97c13))
+
 ## [v2.77.2] - 2026-09-15
 
 ### Novedades
