@@ -187,6 +187,37 @@
 
                 <Divider />
 
+                <!-- Badges automáticos -->
+                <div>
+                  <label class="block text-sm font-medium text-secondary-700 mb-1">
+                    Badges automáticos
+                  </label>
+                  <p class="text-sm text-secondary-500 mb-3">
+                    En los productos con esta etiqueta, la tienda deja de mostrar estos badges.
+                  </p>
+                  <div class="space-y-3">
+                    <div class="flex items-start gap-2">
+                      <Checkbox v-model="formData.oculta_agotado" inputId="oculta_agotado" binary class="mt-0.5" />
+                      <label for="oculta_agotado" class="text-sm cursor-pointer">
+                        Ocultar «Agotado»
+                        <span class="block text-secondary-500">
+                          Útil para productos que aún no llegan (Coming Soon, Preventa). Siguen sin poder
+                          comprarse; el botón muestra {{ outOfStockLabelPreview }} en lugar de «Agotado».
+                        </span>
+                      </label>
+                    </div>
+                    <div class="flex items-start gap-2">
+                      <Checkbox v-model="formData.oculta_descuento" inputId="oculta_descuento" binary class="mt-0.5" />
+                      <label for="oculta_descuento" class="text-sm cursor-pointer">
+                        Ocultar el badge de descuento
+                        <span class="block text-secondary-500">El precio anterior tachado se sigue mostrando.</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <Divider />
+
                 <!-- Orden y Estado -->
                 <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
                   <div>
@@ -251,6 +282,7 @@ import InputNumber from 'primevue/inputnumber'
 import InputSwitch from 'primevue/inputswitch'
 import SelectButton from 'primevue/selectbutton'
 import Divider from 'primevue/divider'
+import Checkbox from 'primevue/checkbox'
 import { useToast } from 'primevue/usetoast'
 import { productTagsApi } from '@/api/product-tags.api'
 
@@ -276,7 +308,9 @@ const defaultFormData: ProductTagFormData = {
   color_fondo: '#ff0000',
   color_texto: '#ffffff',
   activo: true,
-  orden: 0
+  orden: 0,
+  oculta_agotado: false,
+  oculta_descuento: false
 }
 
 const formData = reactive<ProductTagFormData>({ ...defaultFormData })
@@ -290,6 +324,12 @@ const tipoOptions = [
 // Eliminado posicionOptions - no se usa en el componente
 
 // Computed
+// El storefront usa `texto || nombre` de la etiqueta para reemplazar «Agotado».
+const outOfStockLabelPreview = computed(() => {
+  const label = (formData.tipo === 'texto' && formData.texto?.trim()) || formData.nombre.trim()
+  return label ? `«${label}»` : 'el texto de la etiqueta'
+})
+
 const showPreview = computed(() => {
   if (formData.tipo === 'texto') {
     return formData.texto && formData.texto.trim().length > 0
@@ -484,6 +524,8 @@ onMounted(async () => {
       formData.color_texto = editingTag.value.color_texto
       formData.activo = editingTag.value.activo
       formData.orden = editingTag.value.orden
+      formData.oculta_agotado = !!editingTag.value.oculta_agotado
+      formData.oculta_descuento = !!editingTag.value.oculta_descuento
     }
   }
 })

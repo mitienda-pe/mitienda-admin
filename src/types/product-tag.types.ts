@@ -22,6 +22,8 @@ export interface ProductTag {
   color_texto: string
   activo: boolean
   orden: number
+  oculta_agotado?: boolean
+  oculta_descuento?: boolean
   created_at?: string
   updated_at?: string
 }
@@ -46,6 +48,8 @@ export interface ProductTagFormData {
   color_texto: string
   activo: boolean
   orden: number
+  oculta_agotado: boolean
+  oculta_descuento: boolean
 }
 
 export interface ProductTagAssignmentFormData {
