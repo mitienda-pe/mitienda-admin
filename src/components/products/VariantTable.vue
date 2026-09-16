@@ -186,6 +186,7 @@
 import { computed, ref } from 'vue'
 import type { ProductVariant } from '@/types/product.types'
 import { useFormatters } from '@/composables/useFormatters'
+import { useStoreConfigStore } from '@/stores/store-config.store'
 import type { ProductImage } from '@/types/product.types'
 import Button from 'primevue/button'
 import Checkbox from 'primevue/checkbox'
@@ -257,9 +258,11 @@ function selectImage(img: ProductImage | null) {
   imagePickerRef.value?.hide()
 }
 
+const storeConfigStore = useStoreConfigStore()
+
 function calcPriceSinIgv(price: number | null): number | null {
   if (!price || price <= 0) return null
-  const igv = (props.igvPercent || 18) / 100
+  const igv = (props.igvPercent || storeConfigStore.taxRatePercent) / 100
   return parseFloat((price / (1 + igv)).toFixed(2))
 }
 

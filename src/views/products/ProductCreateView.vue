@@ -50,7 +50,7 @@ const form = ref<ProductCreatePayload>({
   cost: null,
   tax_affectation: 1,
   icbper: false, // Bolsa plástica afecta a ICBPER (Ley 30884)
-  igv_percent: 18,
+  igv_percent: storeConfigStore.taxRatePercent,
   stock: undefined,
   unlimited_stock: false,
   max_purchase_qty: 0,
@@ -90,11 +90,11 @@ const estimatedMargin = computed(() => {
   return Math.round(((price - cost) / price) * 100)
 })
 
-const taxAffectationOptions = [
-  { label: 'Gravado (con IGV)', value: 1 },
+const taxAffectationOptions = computed(() => [
+  { label: `Gravado (con ${storeConfigStore.taxLabel})`, value: 1 },
   { label: 'Exonerado', value: 2 },
   { label: 'Inafecto', value: 3 },
-]
+])
 
 // ── Category tree for TreeSelect ──
 interface TreeNode {
@@ -149,6 +149,12 @@ const selectedCategoryKeys = computed({
   },
 })
 
+// El country config puede llegar después de montar el form (lo carga
+// DashboardLayout). igv_percent no es editable aquí: sigue siempre al país.
+watch(() => storeConfigStore.taxRatePercent, (rate) => {
+  form.value.igv_percent = rate
+})
+
 // ── Gamma cascading ──
 const gammaOptions = computed(() => gammaStore.gammasByBrand || [])
 
@@ -164,7 +170,7 @@ const handleBrandChange = async () => {
 const onPriceChange = (value: number | null) => {
   form.value.price = value ?? undefined
   if (form.value.tax_affectation === 1 && value != null) {
-    const igv = (form.value.igv_percent || 18) / 100
+    const igv = (form.value.igv_percent || storeConfigStore.taxRatePercent) / 100
     form.value.price_without_tax = parseFloat((value / (1 + igv)).toFixed(8))
   } else if (form.value.tax_affectation !== 1 && value != null) {
     form.value.price_without_tax = value
@@ -174,7 +180,7 @@ const onPriceChange = (value: number | null) => {
 const onPriceWithoutTaxChange = (value: number | null) => {
   form.value.price_without_tax = value ?? undefined
   if (form.value.tax_affectation === 1 && value != null) {
-    const igv = (form.value.igv_percent || 18) / 100
+    const igv = (form.value.igv_percent || storeConfigStore.taxRatePercent) / 100
     form.value.price = parseFloat((value * (1 + igv)).toFixed(2))
   } else if (form.value.tax_affectation !== 1 && value != null) {
     form.value.price = value
@@ -184,7 +190,7 @@ const onPriceWithoutTaxChange = (value: number | null) => {
 const onTaxAffectationChange = () => {
   if (form.value.tax_affectation === 1) {
     if (form.value.price != null) {
-      const igv = (form.value.igv_percent || 18) / 100
+      const igv = (form.value.igv_percent || storeConfigStore.taxRatePercent) / 100
       form.value.price_without_tax = parseFloat((form.value.price / (1 + igv)).toFixed(8))
     }
   } else {
@@ -431,7 +437,7 @@ const handleSave = async () => {
         <!-- Afectacion IGV -->
         <div class="mb-4">
           <label for="tax" class="block text-sm font-medium text-gray-700 mb-1">
-            Afectacion IGV
+            Afectacion {{ storeConfigStore.taxLabel }}
           </label>
           <Dropdown
             id="tax"
@@ -446,7 +452,7 @@ const handleSave = async () => {
 
         <!-- ICBPER (Ley 30884). NO dispara onTaxAffectationChange: el tributo va
              encima del IGV y no altera price_without_tax. -->
-        <div class="mb-4 flex items-start gap-2">
+        <div v-if="storeConfigStore.isPeru" class="mb-4 flex items-start gap-2">
           <Checkbox inputId="icbper" v-model="form.icbper" :binary="true" />
           <label for="icbper" class="cursor-pointer">
             <span class="block text-sm font-medium text-gray-700">Bolsa plástica (ICBPER)</span>
@@ -458,7 +464,7 @@ const handleSave = async () => {
           <!-- Precio con IGV -->
           <div>
             <label for="price" class="block text-sm font-medium text-gray-700 mb-1">
-              Precio con IGV ({{ currencySymbol }})
+              Precio con {{ storeConfigStore.taxLabel }} ({{ currencySymbol }})
             </label>
             <InputNumber
               id="price"
@@ -480,7 +486,7 @@ const handleSave = async () => {
           <!-- Precio sin IGV -->
           <div>
             <label for="price-no-tax" class="block text-sm font-medium text-gray-700 mb-1">
-              Precio sin IGV ({{ currencySymbol }})
+              Precio sin {{ storeConfigStore.taxLabel }} ({{ currencySymbol }})
             </label>
             <InputNumber
               id="price-no-tax"

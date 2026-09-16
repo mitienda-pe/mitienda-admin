@@ -17,7 +17,7 @@
         icon-color="info"
       />
       <MetricsCard
-        title="IGV (18%)"
+        :title="`${storeConfigStore.taxLabel} (${storeConfigStore.taxRatePercent}%)`"
         :value="formatCurrency(scorecards.igv.value)"
         :change="buildChange(scorecards.igv)"
         icon="pi-percentage"
@@ -101,6 +101,7 @@
 <script setup lang="ts">
 import MetricsCard from './MetricsCard.vue'
 import { useFormatters } from '@/composables/useFormatters'
+import { useStoreConfigStore } from '@/stores/store-config.store'
 import type { Scorecard, Scorecards } from '@/types/dashboard.types'
 
 interface Props {
@@ -110,6 +111,7 @@ interface Props {
 
 const props = defineProps<Props>()
 const { formatCurrency } = useFormatters()
+const storeConfigStore = useStoreConfigStore()
 
 function buildChange(
   scorecard: Scorecard | undefined,

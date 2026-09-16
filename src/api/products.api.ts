@@ -1,4 +1,5 @@
 import apiClient from './axios'
+import { useStoreConfigStore } from '@/stores/store-config.store'
 import type { ApiResponse, PaginatedResponse } from '@/types/api.types'
 import type {
   Product,
@@ -112,7 +113,7 @@ export function normalizeProduct(rawData: any): Product {
     price_without_tax: toFloat(rawData.price_without_tax),
     compare_price: rawData.compare_price ? toFloat(rawData.compare_price) : undefined,
     cost: rawData.cost ? toFloat(rawData.cost) : undefined,
-    igv_percent: rawData.igv_percent !== undefined ? toInt(rawData.igv_percent) : 18,
+    igv_percent: rawData.igv_percent !== undefined ? toInt(rawData.igv_percent) : useStoreConfigStore().taxRatePercent,
     tax_affectation: rawData.tax_affectation !== undefined ? toInt(rawData.tax_affectation) : 1,
     // Bolsa plastica afecta a ICBPER (Ley 30884)
     icbper: toBool(rawData.icbper),

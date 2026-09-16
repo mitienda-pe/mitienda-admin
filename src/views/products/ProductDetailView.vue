@@ -118,7 +118,7 @@
           :has-variants-prop="product.has_variation_attributes || false"
           :default-price="form.price"
           :images="product.images || []"
-          :igv-percent="form.igv_percent || 18"
+          :igv-percent="form.igv_percent || storeConfigStore.taxRatePercent"
           @variants-saved="reloadProduct"
           @variants-toggle="handleVariantsToggle"
         />
@@ -635,7 +635,7 @@
 
                 <div class="mb-3">
                   <label for="edit-tax" class="block text-xs font-medium text-secondary-600 mb-1">
-                    Afectacion IGV
+                    Afectacion {{ storeConfigStore.taxLabel }}
                   </label>
                   <Dropdown
                     id="edit-tax"
@@ -650,7 +650,7 @@
 
                 <!-- ICBPER (Ley 30884). NO dispara onTaxAffectationChange: el
                      tributo va encima del IGV y no altera price_without_tax. -->
-                <div class="mb-3 flex items-start gap-2">
+                <div v-if="storeConfigStore.isPeru" class="mb-3 flex items-start gap-2">
                   <Checkbox
                     inputId="edit-icbper"
                     v-model="form.icbper"
@@ -671,7 +671,7 @@
                 <div v-else class="space-y-3">
                   <div>
                     <label for="edit-price" class="block text-xs font-medium text-secondary-600 mb-1">
-                      Precio con IGV ({{ currencySymbol }})
+                      Precio con {{ storeConfigStore.taxLabel }} ({{ currencySymbol }})
                     </label>
                     <InputNumber
                       id="edit-price"
@@ -689,7 +689,7 @@
                   </div>
                   <div>
                     <label for="edit-price-no-tax" class="block text-xs font-medium text-secondary-600 mb-1">
-                      Precio sin IGV ({{ currencySymbol }})
+                      Precio sin {{ storeConfigStore.taxLabel }} ({{ currencySymbol }})
                     </label>
                     <InputNumber
                       id="edit-price-no-tax"
@@ -1305,7 +1305,7 @@ const form = ref<FormState>({
   cost: null,
   tax_affectation: 1,
   icbper: false, // Bolsa plástica afecta a ICBPER (Ley 30884)
-  igv_percent: 18,
+  igv_percent: storeConfigStore.taxRatePercent,
   stock: undefined,
   unlimited_stock: false,
   max_purchase_qty: 0,
@@ -1360,11 +1360,11 @@ const aiContext = computed(() => {
 const selectedType = computed(() => productTypeStore.getById(form.value.product_type_id))
 const requiresShipping = computed(() => selectedType.value?.requires_shipping ?? true)
 
-const taxAffectationOptions = [
-  { label: 'Gravado (con IGV)', value: 1 },
+const taxAffectationOptions = computed(() => [
+  { label: `Gravado (con ${storeConfigStore.taxLabel})`, value: 1 },
   { label: 'Exonerado', value: 2 },
   { label: 'Inafecto', value: 3 },
-]
+])
 
 const dimensionUnitOptions = [
   { label: 'Centimetros (cm)', value: 'centimetros' },
@@ -1500,7 +1500,7 @@ const populateForm = async () => {
     cost: p.cost ?? null,
     tax_affectation: p.tax_affectation || 1,
     icbper: p.icbper === true,
-    igv_percent: p.igv_percent || 18,
+    igv_percent: storeConfigStore.resolveTaxPercent(p.igv_percent),
     stock: p.stock ?? undefined,
     unlimited_stock: p.unlimited_stock || false,
     max_purchase_qty: p.max_purchase_qty ?? 0,
@@ -1572,11 +1572,22 @@ const handleBrandChange = async () => {
   }
 }
 
+// Fuera de Perú la tasa es la del país. Si el country config llega después de
+// cargar el producto (lo pide DashboardLayout en paralelo), re-sincronizarla.
+// No es un cambio del usuario: no debe marcar el formulario como sucio.
+watch(() => storeConfigStore.taxRatePercent, async (rate) => {
+  if (storeConfigStore.isPeru || form.value.igv_percent === rate) return
+  const wasDirty = isDirty.value
+  form.value.igv_percent = rate
+  await nextTick()
+  isDirty.value = wasDirty
+})
+
 // ── Price auto-calculation ──
 const onPriceChange = (value: number | null) => {
   form.value.price = value ?? undefined
   if (form.value.tax_affectation === 1 && value != null) {
-    const igv = (form.value.igv_percent || 18) / 100
+    const igv = (form.value.igv_percent || storeConfigStore.taxRatePercent) / 100
     form.value.price_without_tax = parseFloat((value / (1 + igv)).toFixed(8))
   } else if (form.value.tax_affectation !== 1 && value != null) {
     form.value.price_without_tax = value
@@ -1586,7 +1597,7 @@ const onPriceChange = (value: number | null) => {
 const onPriceWithoutTaxChange = (value: number | null) => {
   form.value.price_without_tax = value ?? undefined
   if (form.value.tax_affectation === 1 && value != null) {
-    const igv = (form.value.igv_percent || 18) / 100
+    const igv = (form.value.igv_percent || storeConfigStore.taxRatePercent) / 100
     form.value.price = parseFloat((value * (1 + igv)).toFixed(2))
   } else if (form.value.tax_affectation !== 1 && value != null) {
     form.value.price = value
@@ -1598,7 +1609,7 @@ const onTaxAffectationChange = () => {
   if (form.value.tax_affectation === 1) {
     // Gravado: recalculate from current price
     if (form.value.price != null) {
-      const igv = (form.value.igv_percent || 18) / 100
+      const igv = (form.value.igv_percent || storeConfigStore.taxRatePercent) / 100
       form.value.price_without_tax = parseFloat((form.value.price / (1 + igv)).toFixed(8))
     }
   } else {

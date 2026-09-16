@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { productManagementApi } from '@/api/product-management.api'
+import { useStoreConfigStore } from '@/stores/store-config.store'
 import type {
   ProductPriceItem,
   ProductStockItem,
@@ -99,7 +100,7 @@ export const useProductManagementStore = defineStore('productManagement', () => 
     item.tax_affectation = value
 
     // Re-sincronizar precios: exento (2/3) → ambos iguales; gravado (1) → sin IGV = con IGV / (1+igv)
-    const igvMultiplier = 1 + (item.igv_percent || 18) / 100
+    const igvMultiplier = 1 + useStoreConfigStore().resolveTaxPercent(item.igv_percent) / 100
     const isExempt = value === 2 || value === 3
     if (isExempt) {
       item.price_without_tax = item.price
@@ -125,7 +126,7 @@ export const useProductManagementStore = defineStore('productManagement', () => 
     const variant = product.variants.find(v => v.id === variantId)
     if (!variant) return
 
-    const igvMultiplier = 1 + (product.igv_percent || 18) / 100
+    const igvMultiplier = 1 + useStoreConfigStore().resolveTaxPercent(product.igv_percent) / 100
     const isExempt = product.tax_affectation === 2 || product.tax_affectation === 3
 
     if (field === 'price') {

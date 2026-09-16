@@ -79,6 +79,26 @@ export const useStoreConfigStore = defineStore('store-config', () => {
     dist: 'Distrito'
   })
 
+  // Impuesto al consumo del país (IGV 18% en PE, IVA 13% en CR, 15% en EC).
+  // Mientras countryConfig no carga se asume Perú, que es lo que el backoffice
+  // hacía siempre.
+  const isPeru = computed(() => !countryConfig.value || countryConfig.value.iso2 === 'PE')
+  const taxLabel = computed(() => (isPeru.value ? 'IGV' : 'IVA'))
+  const taxRatePercent = computed(() => {
+    const rate = Number(countryConfig.value?.iva_rate)
+    return rate > 0 ? Math.round(rate * 10000) / 100 : 18
+  })
+
+  /**
+   * Tasa a usar para un producto. En Perú se respeta el `igv_percent` guardado;
+   * fuera de Perú manda la del país (el API la impone al guardar, y productos
+   * creados antes pueden traer un 18 que no aplica).
+   */
+  function resolveTaxPercent(stored?: number | null): number {
+    if (!isPeru.value) return taxRatePercent.value
+    return stored || taxRatePercent.value
+  }
+
   async function fetchConfig() {
     isLoading.value = true
     error.value = null
@@ -247,6 +267,10 @@ export const useStoreConfigStore = defineStore('store-config', () => {
     currentCurrencyIso,
     currentDecimales,
     territoryLabels,
+    isPeru,
+    taxLabel,
+    taxRatePercent,
+    resolveTaxPercent,
     fetchConfig,
     saveConfig,
     fetchCurrencies,
