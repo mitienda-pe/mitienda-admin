@@ -193,6 +193,7 @@ const providerIcons: Record<string, string> = {
   bdow: 'pi pi-megaphone',
   hellobar: 'pi pi-megaphone',
   poptin: 'pi pi-megaphone',
+  doppler_popup: 'pi pi-megaphone',
   // Analytics (additional)
   crazyegg: 'pi pi-chart-bar',
   // Fulfillment
