@@ -3,6 +3,20 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.82.0] - 2026-09-16
+
+### Novedades
+
+- **novedades:** ver el changelog al hacer clic en la versión ([`8bbecc1`](https://github.com/mitienda-pe/mitienda-admin/commit/8bbecc10b2a51b2431fd9ba553eb5f748b1f6efd))
+- **direcciones:** arrastrar para ordenar las direcciones de la tienda ([`0452f4e`](https://github.com/mitienda-pe/mitienda-admin/commit/0452f4e206e0e9951670a9c82966c3de2aa39a95))
+- **productos:** tarjeta con los interesados en el aviso de disponibilidad ([`59ab85b`](https://github.com/mitienda-pe/mitienda-admin/commit/59ab85bd9a6122744248e806519634a985c56453))
+- **etiquetas:** opción para ocultar los badges de agotado y descuento ([`45a09be`](https://github.com/mitienda-pe/mitienda-admin/commit/45a09be33e2aef86866923c534d15d576cc7c15e))
+- **integraciones:** icono del proveedor Doppler Pop-up ([`d0be286`](https://github.com/mitienda-pe/mitienda-admin/commit/d0be28668ab70d422de1d149f5fc34a7a492f520))
+
+### Correcciones
+
+- **productos:** usar el IVA del país de la tienda en vez del IGV 18% fijo ([`d2ec15c`](https://github.com/mitienda-pe/mitienda-admin/commit/d2ec15ccce453fe7770938a95fdbfe85ac280494))
+
 ## [v2.78.1] - 2026-09-16
 
 ### Correcciones
