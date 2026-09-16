@@ -556,9 +556,14 @@
             </li>
           </ul>
         </nav>
-        <div class="px-4 py-2 text-[11px] text-gray-400 border-t border-gray-100">
+        <button
+          type="button"
+          class="w-full px-4 py-2 text-left text-[11px] text-gray-400 border-t border-gray-100 hover:text-primary transition-colors"
+          title="Ver novedades"
+          @click="changelogVisible = true"
+        >
           v{{ appVersion }}
-        </div>
+        </button>
       </aside>
 
       <!-- Sidebar Mobile -->
@@ -1023,6 +1028,9 @@
     <!-- Contextual Help -->
     <HelpFab />
     <HelpDrawer />
+
+    <!-- Novedades (clic en el número de versión) -->
+    <ChangelogDialog v-model:visible="changelogVisible" />
   </div>
 </template>
 
@@ -1046,12 +1054,14 @@ import { usePermissionsStore } from '@/stores/permissions.store'
 import UpgradeModal from '@/components/plan/UpgradeModal.vue'
 import HelpFab from '@/components/help/HelpFab.vue'
 import HelpDrawer from '@/components/help/HelpDrawer.vue'
+import ChangelogDialog from '@/components/changelog/ChangelogDialog.vue'
 import { useOnboardingStore } from '@/stores/onboarding.store'
 import { useStoreConfigStore } from '@/stores/store-config.store'
 import { pluginsApi } from '@/api/plugins.api'
 import { customReportsApi } from '@/api/custom-reports.api'
 
 const appVersion = __APP_VERSION__
+const changelogVisible = ref(false)
 
 const router = useRouter()
 const route = useRoute()
