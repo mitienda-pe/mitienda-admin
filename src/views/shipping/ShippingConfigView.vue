@@ -262,7 +262,17 @@ watch(hasPickupPoint, (has) => {
               class="mt-2 flex items-start gap-2 rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800"
             >
               <i class="pi pi-info-circle mt-0.5" />
-              <p>
+              <p v-if="draftConfig.swRecojoEnTienda">
+                El recojo está activado, pero <strong>no aparece en el checkout</strong> porque
+                ninguna dirección está marcada como punto de recojo. Aparecerá en cuanto marques una.
+                <router-link
+                  :to="{ name: 'store-addresses' }"
+                  class="text-primary hover:underline font-medium"
+                >
+                  Ir a Direcciones de la tienda
+                </router-link>
+              </p>
+              <p v-else>
                 Para habilitar esta opción primero debes marcar al menos una dirección como
                 <strong>punto de recojo</strong>.
                 <router-link
