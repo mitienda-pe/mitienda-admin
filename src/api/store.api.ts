@@ -12,7 +12,8 @@ import type {
   Currency,
   Country,
   CountryConfig,
-  StoreMessages
+  StoreMessages,
+  LogisticsBrand
 } from '@/types/store.types'
 
 export const storeApi = {
@@ -70,6 +71,13 @@ export const storeApi = {
   async deleteAddress(id: number): Promise<ApiResponse<void>> {
     await apiClient.delete(`/store-addresses/${id}`)
     return { success: true }
+  },
+
+  // ─── Marcas logísticas (operadores de puntos de recojo) ───
+
+  async getLogisticsBrands(): Promise<ApiResponse<LogisticsBrand[]>> {
+    const response = await apiClient.get('/logistics-brands')
+    return { success: true, data: response.data?.data ?? [] }
   },
 
   // ─── Sender Address (Dirección Remitente) ───

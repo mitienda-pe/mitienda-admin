@@ -797,7 +797,8 @@ function mapConfigFromApi(raw: Record<string, unknown>): ShippingConfig {
     horarioRecojoTienda: (raw.tiendageneral_horariorecojoTienda as ShippingConfig['horarioRecojoTienda']) || null,
     tipoMostrarFechaRecojoTienda: (Number(raw.tiendageneral_tipomostrarfechaRecojoTienda) || 1) as 1 | 2,
     swRecojoTiendaHoy: Number(raw.sw_recojoTiendaHoy) || 0,
-    plazoMaximoRecojoTienda: Number(raw.tiendageneral_plazomaximoRecojoTienda) || 30
+    plazoMaximoRecojoTienda: Number(raw.tiendageneral_plazomaximoRecojoTienda) || 30,
+    labelRecojoEnTienda: (raw.tiendageneral_label_recojoentienda as string) || ''
   }
 }
 
@@ -809,6 +810,8 @@ function mapConfigToApi(config: Partial<ShippingConfig>): Record<string, unknown
     map.tiendageneral_swentregaadomicilio = config.swEntregaADomicilio ? 1 : 0
   if (config.swRecojoEnTienda !== undefined)
     map.tiendageneral_swrecojoentienda = config.swRecojoEnTienda ? 1 : 0
+  if (config.labelRecojoEnTienda !== undefined)
+    map.tiendageneral_label_recojoentienda = config.labelRecojoEnTienda.trim()
   if (config.swRepartoGratis !== undefined)
     map.tiendageneral_swrepartogratis = config.swRepartoGratis ? 1 : 0
   if (config.montoRepartoGratis !== undefined)

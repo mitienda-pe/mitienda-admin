@@ -6,6 +6,7 @@ import { useStoreInfoStore } from '@/stores/store-info.store'
 import { storeToRefs } from 'pinia'
 import InputSwitch from 'primevue/inputswitch'
 import InputNumber from 'primevue/inputnumber'
+import InputText from 'primevue/inputtext'
 import RadioButton from 'primevue/radiobutton'
 import Dropdown from 'primevue/dropdown'
 import { AppButton, AppErrorState, UnsavedChangesBar } from '@/components/ui'
@@ -239,6 +240,22 @@ watch(hasPickupPoint, (has) => {
                 v-model="draftConfig.swRecojoEnTienda"
                 :disabled="!canEnableStorePickup"
               />
+            </div>
+            <div v-if="draftConfig.swRecojoEnTienda" class="mt-3">
+              <label class="block text-sm font-medium text-gray-900 mb-1">
+                Cómo se llama en el checkout
+              </label>
+              <InputText
+                v-model="draftConfig.labelRecojoEnTienda"
+                placeholder="Recojo en tienda"
+                maxlength="60"
+                class="w-full md:w-80"
+              />
+              <p class="mt-1 text-sm text-gray-500">
+                Déjalo vacío para usar "Recojo en tienda". Si el punto es un almacén o el local
+                de un operador logístico, aquí puedes llamarlo como corresponde
+                (por ejemplo "Recojo en almacén").
+              </p>
             </div>
             <div
               v-if="!hasPickupPoint"

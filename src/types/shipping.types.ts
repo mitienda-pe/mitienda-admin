@@ -222,4 +222,9 @@ export interface ShippingConfig {
   tipoMostrarFechaRecojoTienda: 1 | 2
   swRecojoTiendaHoy: number
   plazoMaximoRecojoTienda: number
+  /**
+   * Nombre del método de recojo en el checkout. Vacío = "Recojo en tienda".
+   * No siempre es una tienda: puede ser un almacén o el local de un operador.
+   */
+  labelRecojoEnTienda: string
 }

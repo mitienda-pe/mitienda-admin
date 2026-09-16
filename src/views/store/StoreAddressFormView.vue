@@ -230,6 +230,24 @@
               <p class="text-xs text-secondary-400">Los clientes pueden recoger pedidos aquí</p>
             </div>
           </div>
+          <div v-if="logisticsBrands.length > 0">
+            <label class="block text-sm font-medium text-secondary-700 mb-1">
+              Operado por
+            </label>
+            <Dropdown
+              v-model="formData.logistics_brand_id"
+              :options="brandOptions"
+              option-label="label"
+              option-value="value"
+              :loading="loadingBrands"
+              placeholder="La propia tienda"
+              class="w-full md:w-80"
+            />
+            <p class="text-xs text-secondary-400 mt-1">
+              Si el local lo opera un tercero (por ejemplo un almacén de un operador logístico),
+              su logotipo aparece en el checkout junto a la opción de recojo.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -264,7 +282,9 @@ import Dropdown from 'primevue/dropdown'
 import InputSwitch from 'primevue/inputswitch'
 import ProgressSpinner from 'primevue/progressspinner'
 import { shippingZonesApi } from '@/api/shipping-zones.api'
+import { storeApi } from '@/api/store.api'
 import type { UbigeoOption } from '@/types/shipping-zone.types'
+import type { LogisticsBrand } from '@/types/store.types'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
@@ -405,11 +425,35 @@ const formData = ref<StoreAddressCreateRequest>({
   tiendadireccion_longitud: '',
   tiendadireccion_ubigeo: null,
   tiendadireccion_swpublicado: 1,
-  tiendadireccion_swalmacen: 0
+  tiendadireccion_swalmacen: 0,
+  logistics_brand_id: null
 })
 
 const isPublished = ref(true)
 const isPickupPoint = ref(false)
+
+// Operador del local: catálogo de plataforma, no un logo que suba el comercio.
+const logisticsBrands = ref<LogisticsBrand[]>([])
+const loadingBrands = ref(false)
+
+const brandOptions = computed(() => [
+  { label: 'La propia tienda', value: null },
+  ...logisticsBrands.value.map(brand => ({ label: brand.name, value: brand.id }))
+])
+
+const loadLogisticsBrands = async () => {
+  loadingBrands.value = true
+  try {
+    const response = await storeApi.getLogisticsBrands()
+    logisticsBrands.value = response.data || []
+  } catch {
+    // El catálogo es opcional: sin él la dirección se guarda igual, solo que
+    // sin operador. No vale interrumpir el formulario por esto.
+    logisticsBrands.value = []
+  } finally {
+    loadingBrands.value = false
+  }
+}
 
 // Sync toggles with formData
 watch(isPublished, (value) => {
@@ -503,7 +547,8 @@ const loadAddress = async () => {
         tiendadireccion_longitud: address.tiendadireccion_longitud || '',
         tiendadireccion_ubigeo: address.tiendadireccion_ubigeo || null,
         tiendadireccion_swpublicado: address.tiendadireccion_swpublicado,
-        tiendadireccion_swalmacen: address.tiendadireccion_swalmacen
+        tiendadireccion_swalmacen: address.tiendadireccion_swalmacen,
+        logistics_brand_id: address.logistics_brand_id ?? null
       }
       isPublished.value = address.tiendadireccion_swpublicado == 1
       isPickupPoint.value = address.tiendadireccion_swalmacen == 1
@@ -651,6 +696,7 @@ const updateMapFromInputs = () => {
 }
 
 onMounted(async () => {
+  await loadLogisticsBrands()
   if (isEditMode.value) {
     await loadAddress()
   }

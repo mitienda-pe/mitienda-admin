@@ -10,6 +10,7 @@ function deepClone<T>(obj: T): T {
 const DEFAULT_CONFIG: ShippingConfig = {
   swEntregaADomicilio: false,
   swRecojoEnTienda: false,
+  labelRecojoEnTienda: '',
   swRepartoGratis: false,
   montoRepartoGratis: 0,
   zonaRepartoGratis: null,

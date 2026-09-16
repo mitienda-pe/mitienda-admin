@@ -61,6 +61,8 @@ export interface StoreAddress {
   tiendadireccion_swpublicado: number
   tiendadireccion_swalmacen: number
   tiendadireccion_swremitente: number
+  /** Operador logístico del local (logistics_brands). NULL = la propia tienda. */
+  logistics_brand_id?: number | null
 }
 
 export interface StoreAddressCreateRequest {
@@ -79,9 +81,24 @@ export interface StoreAddressCreateRequest {
   tiendadireccion_swpublicado?: number
   tiendadireccion_swalmacen?: number
   tiendadireccion_swremitente?: number
+  logistics_brand_id?: number | null
 }
 
 export type StoreAddressUpdateRequest = Partial<StoreAddressCreateRequest>
+
+/**
+ * Marca logística del catálogo de plataforma: quién opera un punto de recojo
+ * (un dark store de un tercero) o, más adelante, una agencia de transporte.
+ * El comerciante elige de la lista; los logos los cura el superadmin.
+ */
+export interface LogisticsBrand {
+  id: number
+  code: string
+  name: string
+  logo_url: string | null
+  logo_url_dark: string | null
+  is_agency: boolean
+}
 
 export interface Rubro {
   rubro_id: number
