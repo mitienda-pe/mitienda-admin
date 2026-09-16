@@ -7,6 +7,10 @@
         <p class="text-sm text-secondary-500 mt-1">
           {{ storeInfoStore.addresses.length }} direcciones registradas
         </p>
+        <p v-if="storeInfoStore.addresses.length > 1" class="text-sm text-secondary-500 mt-1">
+          <i class="pi pi-arrows-v text-xs"></i>
+          Arrastra las filas para definir el orden en que aparecen en tu tienda: pie de página y puntos de recojo.
+        </p>
       </div>
       <div class="flex items-center gap-2">
         <Button
@@ -45,21 +49,29 @@
       </div>
 
       <div class="bg-white rounded-lg shadow overflow-hidden">
+      <!-- Sin paginador ni columnas ordenables: el orden de la tabla ES el orden
+           que se guarda, y arrastrar entre páginas o sobre una vista ordenada por
+           columna guardaría algo distinto de lo que se ve. -->
       <DataTable
         :value="storeInfoStore.addresses"
-        :paginator="storeInfoStore.addresses.length > 10"
-        :rows="10"
-        :rowsPerPageOptions="[5, 10, 20]"
         responsiveLayout="scroll"
         stripedRows
+        @row-reorder="onRowReorder"
       >
-        <Column field="tiendadireccion_nombresucursal" header="Sucursal" sortable>
+        <Column
+          v-if="storeInfoStore.addresses.length > 1"
+          rowReorder
+          headerStyle="width: 3rem"
+          :reorderableColumn="false"
+        />
+
+        <Column field="tiendadireccion_nombresucursal" header="Sucursal">
           <template #body="{ data }">
             <span class="font-semibold">{{ data.tiendadireccion_nombresucursal }}</span>
           </template>
         </Column>
 
-        <Column field="tiendadireccion_direccion" header="Dirección" sortable>
+        <Column field="tiendadireccion_direccion" header="Dirección">
           <template #body="{ data }">
             <div>
               <span>{{ data.tiendadireccion_direccion }}</span>
@@ -79,7 +91,7 @@
           </template>
         </Column>
 
-        <Column field="tiendadireccion_swpublicado" header="Estado" sortable style="width: 120px">
+        <Column field="tiendadireccion_swpublicado" header="Estado" style="width: 120px">
           <template #body="{ data }">
             <Tag
               :value="data.tiendadireccion_swpublicado == 1 ? 'Publicada' : 'No publicada'"
@@ -88,7 +100,7 @@
           </template>
         </Column>
 
-        <Column field="tiendadireccion_swalmacen" header="Punto de recojo" sortable style="width: 140px">
+        <Column field="tiendadireccion_swalmacen" header="Punto de recojo" style="width: 140px">
           <template #body="{ data }">
             <Tag
               :value="data.tiendadireccion_swalmacen == 1 ? 'Sí' : 'No'"
@@ -97,7 +109,7 @@
           </template>
         </Column>
 
-        <Column field="tiendadireccion_swremitente" header="Remitente" sortable style="width: 130px">
+        <Column field="tiendadireccion_swremitente" header="Remitente" style="width: 130px">
           <template #body="{ data }">
             <Button
               v-if="data.tiendadireccion_swremitente == 1"
@@ -314,6 +326,25 @@ const toggleSender = async (address: StoreAddress) => {
     })
   } finally {
     togglingIds.delete(addrId)
+  }
+}
+
+const onRowReorder = async (event: { value: StoreAddress[] }) => {
+  try {
+    await storeInfoStore.reorderAddresses(event.value)
+    toast.add({
+      severity: 'success',
+      summary: 'Orden guardado',
+      detail: 'Tu tienda mostrará las direcciones en este orden',
+      life: 3000
+    })
+  } catch (error: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: error.message || 'Error al guardar el orden',
+      life: 5000
+    })
   }
 }
 

@@ -173,6 +173,23 @@ export const useStoreInfoStore = defineStore('storeInfo', () => {
     }
   }
 
+  // Sin `isLoading`: el spinner desmontaría la tabla y el mapa a mitad del
+  // arrastre. Se reordena en pantalla primero y se revierte si falla.
+  async function reorderAddresses(ordered: StoreAddress[]) {
+    const previous = addresses.value
+    addresses.value = ordered
+
+    try {
+      const response = await storeApi.reorderAddresses(ordered.map(a => a.tiendadireccion_id))
+      if (response.success && response.data) {
+        addresses.value = response.data
+      }
+    } catch (err: any) {
+      addresses.value = previous
+      throw new Error(err.response?.data?.messages?.error || err.response?.data?.message || 'Error al guardar el orden')
+    }
+  }
+
   // ─── Sender Address Actions ───
 
   async function getSenderAddress() {
@@ -255,6 +272,7 @@ export const useStoreInfoStore = defineStore('storeInfo', () => {
     createAddress,
     updateAddress,
     deleteAddress,
+    reorderAddresses,
     getSenderAddress,
     setSenderAddress,
     unsetSenderAddress

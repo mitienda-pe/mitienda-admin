@@ -73,6 +73,18 @@ export const storeApi = {
     return { success: true }
   },
 
+  /** Orden manual: el footer y los puntos de recojo del storefront lo respetan. */
+  async reorderAddresses(ids: number[]): Promise<ApiResponse<StoreAddress[]>> {
+    const response = await apiClient.put('/store-addresses/order', { order: ids })
+    const rawData = response.data
+
+    if (Array.isArray(rawData)) {
+      return { success: true, data: rawData }
+    }
+
+    return { success: false, data: [] }
+  },
+
   // ─── Marcas logísticas (operadores de puntos de recojo) ───
 
   async getLogisticsBrands(): Promise<ApiResponse<LogisticsBrand[]>> {

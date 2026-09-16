@@ -61,6 +61,8 @@ export interface StoreAddress {
   tiendadireccion_swpublicado: number
   tiendadireccion_swalmacen: number
   tiendadireccion_swremitente: number
+  /** Orden manual (1..N). 0 = sin orden, va al final. */
+  tiendadireccion_orden?: number
   /** Operador logístico del local (logistics_brands). NULL = la propia tienda. */
   logistics_brand_id?: number | null
 }
