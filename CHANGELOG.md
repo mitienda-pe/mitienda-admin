@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.85.0] - 2026-09-17
+
+### Novedades
+
+- **contenido:** shortcode de EmbedSocial en el catálogo ([`827f261`](https://github.com/mitienda-pe/mitienda-admin/commit/827f261f10670a83b6821762b5986f2204262952))
+
 ## [v2.84.0] - 2026-09-17
 
 ### Novedades
