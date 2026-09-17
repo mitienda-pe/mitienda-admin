@@ -110,6 +110,21 @@ export const SHORTCODE_TYPES: ShortcodeType[] = [
     ],
   },
   {
+    value: 'embedsocial',
+    label: 'EmbedSocial (widget)',
+    group: 'Widgets externos',
+    help: 'Sirve para cualquier widget de EmbedSocial. En el código que te dan, es el valor de data-ref en <div class="embedsocial-hashtag" data-ref="XXXX">.',
+    fields: [
+      {
+        key: 'ref',
+        label: 'Referencia (data-ref)',
+        type: 'text',
+        placeholder: 'f718fc77f3f7142d374023362f2fd1f2aa471605',
+        required: true,
+      },
+    ],
+  },
+  {
     value: 'review_widget',
     label: 'Reseñas de Google (review-widget.net)',
     group: 'Widgets externos',
