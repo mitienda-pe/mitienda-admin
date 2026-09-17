@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.83.0] - 2026-09-17
+
+### Novedades
+
+- **contenido:** insertar shortcodes también en los bloques de plantilla ([`b0b2bab`](https://github.com/mitienda-pe/mitienda-admin/commit/b0b2babcde52b9ac48d20d7572acf06b02004060))
+
 ## [v2.82.0] - 2026-09-16
 
 ### Novedades
