@@ -170,142 +170,10 @@
     </Dialog>
 
     <!-- Insertar Shortcode Dialog -->
-    <Dialog
+    <ShortcodeInsertDialog
       v-model:visible="showShortcode"
-      header="Insertar shortcode"
-      :modal="true"
-      :style="{ width: '520px' }"
-    >
-      <div class="space-y-4">
-        <p class="text-sm text-secondary-500">
-          Los shortcodes insertan bloques dinámicos (productos, categorías,
-          marcas, mapas) que se renderizan en tu tienda al ver la página.
-        </p>
-
-        <!-- Tipo de shortcode -->
-        <div>
-          <label class="block text-sm font-medium text-secondary-700 mb-1">Tipo de bloque</label>
-          <Dropdown
-            v-model="shortcodeType"
-            :options="availableShortcodes"
-            option-label="label"
-            option-value="value"
-            class="w-full"
-          />
-          <p v-if="selectedShortcode?.help" class="text-xs text-secondary-400 mt-1">
-            {{ selectedShortcode.help }}
-          </p>
-        </div>
-
-        <!-- Campos dinámicos según el tipo -->
-        <div v-for="field in selectedShortcode?.fields || []" :key="field.key">
-          <label class="block text-sm font-medium text-secondary-700 mb-1">{{ field.label }}</label>
-
-          <!-- Producto (búsqueda) -->
-          <AutoComplete
-            v-if="field.type === 'product'"
-            v-model="productQuery"
-            :suggestions="productResults"
-            option-label="name"
-            placeholder="Buscar producto por nombre..."
-            class="w-full"
-            dropdown
-            force-selection
-            @complete="searchProducts"
-            @item-select="onProductSelect(field.key, $event)"
-          >
-            <template #option="{ option }">
-              <div class="flex items-center gap-2">
-                <img
-                  v-if="option.images?.[0]"
-                  :src="option.images[0].thumbnail || option.images[0].url"
-                  class="w-8 h-8 object-cover rounded"
-                />
-                <span class="text-sm">{{ option.name }}</span>
-              </div>
-            </template>
-          </AutoComplete>
-
-          <!-- Categoría -->
-          <Dropdown
-            v-else-if="field.type === 'category'"
-            v-model="shortcodeValues[field.key]"
-            :options="catalogStore.flatCategories"
-            option-label="name"
-            option-value="slug"
-            :loading="catalogStore.isCategoriesLoading"
-            placeholder="Todas / elige una categoría"
-            show-clear
-            filter
-            class="w-full"
-          />
-
-          <!-- Marca -->
-          <Dropdown
-            v-else-if="field.type === 'brand'"
-            v-model="shortcodeValues[field.key]"
-            :options="catalogStore.brands"
-            option-label="name"
-            option-value="slug"
-            :loading="catalogStore.isBrandsLoading"
-            placeholder="Todas / elige una marca"
-            show-clear
-            filter
-            class="w-full"
-          />
-
-          <!-- Select (orden) -->
-          <Dropdown
-            v-else-if="field.type === 'select'"
-            v-model="shortcodeValues[field.key]"
-            :options="field.options || []"
-            option-label="label"
-            option-value="value"
-            placeholder="Por defecto"
-            show-clear
-            class="w-full"
-          />
-
-          <!-- Número -->
-          <InputText
-            v-else-if="field.type === 'number'"
-            v-model="shortcodeValues[field.key]"
-            type="number"
-            min="1"
-            :placeholder="field.placeholder"
-            class="w-full"
-          />
-
-          <!-- Texto -->
-          <InputText
-            v-else
-            v-model="shortcodeValues[field.key]"
-            :placeholder="field.placeholder"
-            class="w-full"
-          />
-
-          <p v-if="field.help" class="text-xs text-secondary-400 mt-1">{{ field.help }}</p>
-        </div>
-
-        <!-- Preview -->
-        <div v-if="isShortcodeValid">
-          <label class="block text-sm font-medium text-secondary-700 mb-1">Se insertará</label>
-          <code class="block text-sm bg-gray-100 text-secondary-700 rounded px-3 py-2 font-mono break-all">
-            {{ generatedShortcode }}
-          </code>
-        </div>
-      </div>
-
-      <template #footer>
-        <Button label="Cancelar" text @click="showShortcode = false" />
-        <Button
-          label="Insertar"
-          icon="pi pi-bolt"
-          :disabled="!isShortcodeValid"
-          @click="handleInsertShortcode"
-        />
-      </template>
-    </Dialog>
+      @insert="handleInsertShortcode"
+    />
 
     <!-- Asistente de HTML con IA -->
     <AiHtmlBuilderPanel
@@ -320,135 +188,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePagesStore } from '@/stores/pages.store'
-import { useCatalogStore } from '@/stores/catalog.store'
-import { useStoreConfigStore } from '@/stores/store-config.store'
-import { productsApi } from '@/api/products.api'
 import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import Divider from 'primevue/divider'
 import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
-import Dropdown from 'primevue/dropdown'
-import AutoComplete from 'primevue/autocomplete'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import PageContentEditor from '@/components/pages/PageContentEditor.vue'
+import ShortcodeInsertDialog from '@/components/pages/ShortcodeInsertDialog.vue'
 import AiHtmlBuilderPanel from '@/components/ai/AiHtmlBuilderPanel.vue'
 import { AI_BUTTON_IDS } from '@/config/ai-buttons.config'
 import type { Page, PageEditorType } from '@/types/page.types'
-import type { Product } from '@/types/product.types'
-
-// Catálogo de shortcodes disponibles. Cada entrada debe tener un widget
-// equivalente registrado en el storefront (PageContentRenderer.vue).
-//
-// Cada shortcode declara sus `fields`; el diálogo los renderiza según `type`
-// (text/number/product/category/brand/select) y serializa
-// `[valor key="v" ...]`. Convención de valores: producto → id numérico;
-// categoría/marca → slug (así lo espera el storefront).
-type ShortcodeFieldType = 'text' | 'number' | 'product' | 'category' | 'brand' | 'select'
-
-interface ShortcodeField {
-  key: string
-  label: string
-  type: ShortcodeFieldType
-  placeholder?: string
-  help?: string
-  required?: boolean
-  options?: { label: string; value: string }[]
-}
-
-interface ShortcodeType {
-  value: string
-  label: string
-  help?: string
-  fields: ShortcodeField[]
-}
-
-const ORDEN_OPTIONS = [
-  { label: 'Más recientes', value: 'recientes' },
-  { label: 'Más populares', value: 'populares' },
-  { label: 'Precio: menor a mayor', value: 'precio_asc' },
-  { label: 'Precio: mayor a menor', value: 'precio_desc' },
-  { label: 'Nombre: A-Z', value: 'nombre_asc' },
-  { label: 'Nombre: Z-A', value: 'nombre_desc' },
-]
-
-const SHORTCODE_TYPES: ShortcodeType[] = [
-  {
-    value: 'producto',
-    label: 'Producto (viñeta)',
-    help: 'Muestra la tarjeta de un producto con su precio y botón de compra.',
-    fields: [{ key: 'id', label: 'Producto', type: 'product', required: true }],
-  },
-  {
-    value: 'agregar_carrito',
-    label: 'Botón "Agregar al carrito"',
-    help: 'Botón que agrega un producto puntual al carrito.',
-    fields: [{ key: 'id', label: 'Producto', type: 'product', required: true }],
-  },
-  {
-    value: 'productos',
-    label: 'Lista de productos',
-    help: 'Grilla de productos. Filtra por categoría y/o marca (opcional).',
-    fields: [
-      { key: 'categoria', label: 'Categoría (opcional)', type: 'category' },
-      { key: 'marca', label: 'Marca (opcional)', type: 'brand' },
-      { key: 'limite', label: 'Cantidad a mostrar', type: 'number', placeholder: '8' },
-      { key: 'orden', label: 'Orden (opcional)', type: 'select', options: ORDEN_OPTIONS },
-      { key: 'titulo', label: 'Título (opcional)', type: 'text', placeholder: 'Nuestros productos' },
-    ],
-  },
-  {
-    value: 'categorias',
-    label: 'Lista de categorías',
-    fields: [{ key: 'titulo', label: 'Título (opcional)', type: 'text', placeholder: 'Categorías' }],
-  },
-  {
-    value: 'marcas',
-    label: 'Lista de marcas',
-    fields: [{ key: 'titulo', label: 'Título (opcional)', type: 'text', placeholder: 'Marcas' }],
-  },
-  {
-    value: 'storemapper',
-    label: 'Storemapper (mapa de tiendas)',
-    help: 'Widget externo. El ID lo encuentras en tu panel de Storemapper.',
-    fields: [{ key: 'id', label: 'ID de Storemapper', type: 'text', placeholder: '29720-Bfq2LEYgpPsVNnZ9', required: true }],
-  },
-  {
-    value: 'storepoint',
-    label: 'Storepoint (mapa de tiendas)',
-    help: "Widget externo. El ID está en el embed: new StorepointWidget('ESTE_ID', ...).",
-    fields: [{ key: 'id', label: 'Widget ID de Storepoint', type: 'text', placeholder: '1690e3dbcdc582', required: true }],
-  },
-  {
-    value: 'ar',
-    label: 'Visor 3D / Realidad Aumentada',
-    help: 'Genera un modelo 3D a partir de la foto. En la descripción de un producto se escribe [ar] a secas; acá hay que indicar la foto y las medidas.',
-    fields: [
-      { key: 'imagen', label: 'URL de la foto', type: 'text', placeholder: 'https://…/silla.jpg', help: 'Debe ser pública y mostrar un solo objeto sobre fondo limpio.', required: true },
-      { key: 'ancho', label: 'Ancho (cm)', type: 'number', placeholder: '60' },
-      { key: 'alto', label: 'Alto (cm)', type: 'number', placeholder: '90' },
-      { key: 'profundidad', label: 'Profundidad (cm)', type: 'number', placeholder: '60' },
-      {
-        key: 'tipo',
-        label: 'Categoría',
-        type: 'select',
-        help: 'Define cómo se apoya el objeto en AR.',
-        options: [
-          { label: 'Silla', value: 'chair' },
-          { label: 'Sofá', value: 'sofa' },
-          { label: 'Lámpara', value: 'lamp' },
-          { label: 'Mesa', value: 'table' },
-          { label: 'Otro', value: 'other' },
-        ],
-      },
-    ],
-  },
-]
 
 const route = useRoute()
 const router = useRouter()
@@ -468,17 +223,7 @@ const editorRef = ref<{
 } | null>(null)
 
 // Shortcode insertion
-const catalogStore = useCatalogStore()
-const storeConfig = useStoreConfigStore()
 const showShortcode = ref(false)
-const shortcodeType = ref<string>(SHORTCODE_TYPES[0].value)
-// Valores por atributo del shortcode seleccionado (key → valor). Dropdown con
-// show-clear puede escribir null; se normaliza a '' al serializar.
-const shortcodeValues = reactive<Record<string, string | null>>({})
-// Estado del picker de producto (AutoComplete). En v1 hay a lo sumo un campo
-// producto por shortcode, así que un solo estado alcanza.
-const productQuery = ref<Product | string | null>(null)
-const productResults = ref<Product[]>([])
 
 // Asistente de HTML con IA (solo editor de Código)
 const showAiPanel = ref(false)
@@ -489,74 +234,12 @@ const supportsShortcodes = computed(
 
 const supportsAi = computed(() => page.value?.editor_type === 'code')
 
-// El visor 3D/AR es un add-on: sólo aparece en el selector si MiTienda lo activó
-// para esta tienda (el proveedor licencia el widget por dominio).
-const availableShortcodes = computed(() =>
-  SHORTCODE_TYPES.filter(
-    (s) => s.value !== 'ar' || storeConfig.savedConfig.tiendageneral_sw_ar_3d === 1
-  )
-)
-
-const selectedShortcode = computed(() =>
-  SHORTCODE_TYPES.find((s) => s.value === shortcodeType.value)
-)
-
-const generatedShortcode = computed(() => {
-  const sc = selectedShortcode.value
-  if (!sc) return ''
-  const attrs = sc.fields
-    .map((f) => {
-      const v = (shortcodeValues[f.key] ?? '').toString().trim()
-      return v ? `${f.key}="${v}"` : ''
-    })
-    .filter(Boolean)
-  return attrs.length ? `[${sc.value} ${attrs.join(' ')}]` : `[${sc.value}]`
-})
-
-const isShortcodeValid = computed(() => {
-  const sc = selectedShortcode.value
-  if (!sc) return false
-  return sc.fields
-    .filter((f) => f.required)
-    .every((f) => (shortcodeValues[f.key] ?? '').toString().trim() !== '')
-})
-
-function resetShortcodeValues() {
-  Object.keys(shortcodeValues).forEach((k) => delete shortcodeValues[k])
-  productQuery.value = null
-  productResults.value = []
-}
-
 const openShortcodeDialog = () => {
-  shortcodeType.value = SHORTCODE_TYPES[0].value
-  resetShortcodeValues()
   showShortcode.value = true
-  // Cargar catálogo para los dropdowns de categoría/marca (una sola vez).
-  if (!catalogStore.categories.length) catalogStore.fetchCategories()
-  if (!catalogStore.brands.length) catalogStore.fetchBrands()
 }
 
-// Al cambiar de tipo de shortcode, limpiar los valores del anterior.
-watch(shortcodeType, () => resetShortcodeValues())
-
-async function searchProducts(event: { query: string }) {
-  if (event.query.length < 2) return
-  try {
-    const res = await productsApi.getProducts({ search: event.query, limit: 10 })
-    productResults.value = res.data || []
-  } catch {
-    productResults.value = []
-  }
-}
-
-function onProductSelect(fieldKey: string, event: { value: Product }) {
-  shortcodeValues[fieldKey] = String(event.value?.id ?? '')
-}
-
-const handleInsertShortcode = () => {
-  if (!isShortcodeValid.value) return
-  editorRef.value?.insertShortcode(generatedShortcode.value)
-  showShortcode.value = false
+const handleInsertShortcode = (shortcode: string) => {
+  editorRef.value?.insertShortcode(shortcode)
 }
 
 const settingsForm = reactive({
@@ -718,7 +401,5 @@ const handleBack = () => {
 
 onMounted(() => {
   loadPage()
-  // Necesaria para saber si la tienda tiene el add-on de visor 3D/AR.
-  if (!storeConfig.isLoaded) storeConfig.fetchConfig()
 })
 </script>

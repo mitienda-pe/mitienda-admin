@@ -51,6 +51,14 @@
             text
             @click="showAiPanel = true"
           />
+          <Button
+            v-if="supportsShortcodes"
+            label="Insertar shortcode"
+            icon="pi pi-bolt"
+            text
+            severity="secondary"
+            @click="showShortcode = true"
+          />
           <div class="flex items-center gap-2 mr-4">
             <label class="text-sm text-secondary-600">Activo</label>
             <InputSwitch
@@ -69,11 +77,17 @@
 
       <!-- Content Editor -->
       <PageContentEditor
+        ref="editorRef"
         v-model="htmlContent"
         :editor-type="component.editor_type || 'code'"
         :page-id="String(component.id)"
         class="flex-1"
         style="min-height: 500px"
+      />
+
+      <ShortcodeInsertDialog
+        v-model:visible="showShortcode"
+        @insert="(shortcode) => editorRef?.insertShortcode(shortcode)"
       />
 
       <!-- Asistente de HTML con IA -->
@@ -98,6 +112,7 @@ import InputSwitch from 'primevue/inputswitch'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import PageContentEditor from '@/components/pages/PageContentEditor.vue'
+import ShortcodeInsertDialog from '@/components/pages/ShortcodeInsertDialog.vue'
 import AiHtmlBuilderPanel from '@/components/ai/AiHtmlBuilderPanel.vue'
 import { AI_BUTTON_IDS } from '@/config/ai-buttons.config'
 import type { StoreComponent, ComponentEditorType } from '@/types/component.types'
@@ -116,6 +131,12 @@ const isSaving = ref(false)
 // Asistente de HTML con IA (solo editor de Código)
 const showAiPanel = ref(false)
 const supportsAi = computed(() => (component.value?.editor_type || 'code') === 'code')
+
+// Shortcodes: el storefront los resuelve también en los bloques HTML de la
+// plantilla. El Visual Builder no los admite (trabaja con bloques JSON).
+const editorRef = ref<{ insertShortcode: (text: string) => void } | null>(null)
+const showShortcode = ref(false)
+const supportsShortcodes = computed(() => component.value?.editor_type !== 'visual_builder')
 
 const editorIcon = (type: ComponentEditorType) => {
   if (type === 'wysiwyg') return 'pi pi-align-left'
