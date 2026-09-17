@@ -95,6 +95,21 @@ export const SHORTCODE_TYPES: ShortcodeType[] = [
     fields: [{ key: 'id', label: 'Widget ID de Storepoint', type: 'text', placeholder: '1690e3dbcdc582', required: true }],
   },
   {
+    value: 'elfsight',
+    label: 'Elfsight (widget)',
+    group: 'Widgets externos',
+    help: 'Sirve para cualquier app de Elfsight. En el código que te da Elfsight, el ID es lo que sigue a "elfsight-app-" en <div class="elfsight-app-XXXX">.',
+    fields: [
+      {
+        key: 'id',
+        label: 'ID del widget',
+        type: 'text',
+        placeholder: 'a1b2c3d4-5678-90ab-cdef-1234567890ab',
+        required: true,
+      },
+    ],
+  },
+  {
     value: 'review_widget',
     label: 'Reseñas de Google (review-widget.net)',
     group: 'Widgets externos',
