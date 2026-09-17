@@ -3,6 +3,13 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.84.0] - 2026-09-17
+
+### Novedades
+
+- **contenido:** shortcode de Elfsight en el catálogo ([`741548d`](https://github.com/mitienda-pe/mitienda-admin/commit/741548d93992d2c339107f343a6476f8d53c04a3))
+- **listas:** descripcion, SEO e imagenes en el editor de listas ([`4941117`](https://github.com/mitienda-pe/mitienda-admin/commit/4941117953e2a7863ea52b4d713fabbe727b1ead))
+
 ## [v2.83.0] - 2026-09-17
 
 ### Novedades
