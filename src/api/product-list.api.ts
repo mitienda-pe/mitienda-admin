@@ -55,5 +55,19 @@ export const productListApi = {
   async unlinkProducts(id: number, productIds: number[]): Promise<ApiResponse<{ unlinked_count: number }>> {
     const response = await apiClient.post(`/product-lists/${id}/unlink-products`, { product_ids: productIds })
     return { success: true, data: response.data }
+  },
+
+  // Imagen de la lista: mismas tres variantes que marcas y categorías.
+  async uploadImage(id: number, file: File, imageType: string): Promise<ApiResponse<ProductList>> {
+    const formData = new FormData()
+    formData.append('image', file)
+    formData.append('image_type', imageType)
+    const response = await apiClient.post(`/product-lists/${id}/upload-image`, formData)
+    return { success: true, data: (response.data?.data ?? response.data) as ProductList }
+  },
+
+  async deleteImage(id: number, imageType: string): Promise<ApiResponse<ProductList>> {
+    const response = await apiClient.delete(`/product-lists/${id}/delete-image/${imageType}`)
+    return { success: true, data: (response.data?.data ?? response.data) as ProductList }
   }
 }

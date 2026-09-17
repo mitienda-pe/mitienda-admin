@@ -27,6 +27,13 @@
       />
     </div>
 
+    <!-- Recortador de imagen -->
+    <CatalogImageUploader
+      v-model:visible="showImageUploader"
+      :image-type="activeImageType"
+      @upload-success="handleImageUploadSuccess"
+    />
+
     <!-- Loading -->
     <div v-if="isLoading" class="flex justify-center py-20">
       <ProgressSpinner />
@@ -164,6 +171,121 @@
           </div>
         </div>
 
+        <!-- Descripción -->
+        <div>
+          <label class="block text-sm font-medium text-secondary-700 mb-2">
+            Descripción
+          </label>
+          <p class="text-xs text-secondary-500 mb-2">
+            Se muestra en la cabecera de la lista, antes de los productos. Admite
+            los mismos shortcodes que la descripción de un producto.
+          </p>
+          <QuillEditor
+            v-model="formData.productolista_descripcion"
+            height="220px"
+            toolbar="compact"
+          />
+        </div>
+
+        <Divider />
+
+        <!-- SEO -->
+        <div>
+          <h2 class="text-base font-semibold text-secondary mb-1">SEO</h2>
+          <p class="text-xs text-secondary-500 mb-3">
+            Cómo aparece la lista en Google. Si los dejás vacíos se usa el nombre
+            de la lista.
+          </p>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-secondary-700 mb-2">
+                Título SEO
+              </label>
+              <InputText
+                v-model="formData.productolista_meta_tittle"
+                class="w-full"
+                maxlength="300"
+                placeholder="Realidad Aumentada | Mi Tienda"
+              />
+              <small class="text-secondary-500">
+                {{ (formData.productolista_meta_tittle?.length || 0) }}/300 caracteres
+              </small>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-secondary-700 mb-2">
+                Descripción SEO
+              </label>
+              <Textarea
+                v-model="formData.productolista_meta_description"
+                class="w-full"
+                rows="3"
+                maxlength="350"
+                placeholder="Probá nuestros muebles en tu propia casa desde el celular."
+              />
+              <small class="text-secondary-500">
+                {{ (formData.productolista_meta_description?.length || 0) }}/350 caracteres
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Imágenes: solo al editar, porque la subida necesita el id -->
+        <template v-if="isEditMode">
+          <Divider />
+          <div>
+            <h2 class="text-base font-semibold text-secondary mb-1">Imágenes</h2>
+            <p class="text-xs text-secondary-500 mb-3">
+              Opcionales. La cover encabeza la página de la lista y la OpenGraph
+              es la que se ve al compartir el enlace.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div v-for="config in imageConfigs" :key="config.type">
+                <p class="text-sm font-medium text-secondary-700 mb-1">{{ config.label }}</p>
+                <p class="text-xs text-secondary-400 mb-2">{{ config.dimensions }}</p>
+
+                <div v-if="currentList?.[config.urlField]" class="space-y-2">
+                  <img
+                    :src="currentList[config.urlField] as string"
+                    :class="['w-full rounded object-cover', config.aspectClass]"
+                    :alt="config.label"
+                  />
+                  <div class="flex gap-2">
+                    <Button
+                      label="Reemplazar"
+                      size="small"
+                      outlined
+                      severity="secondary"
+                      @click="openImageUploader(config.type)"
+                    />
+                    <Button
+                      label="Eliminar"
+                      size="small"
+                      outlined
+                      severity="danger"
+                      @click="handleDeleteImage(config.type)"
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  v-else
+                  label="Subir imagen"
+                  icon="pi pi-upload"
+                  size="small"
+                  outlined
+                  severity="secondary"
+                  @click="openImageUploader(config.type)"
+                />
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <Divider />
+
         <!-- Botones -->
         <div class="flex justify-end gap-3 pt-4 border-t">
           <Button
@@ -192,10 +314,16 @@ import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import InputSwitch from 'primevue/inputswitch'
+import Textarea from 'primevue/textarea'
+import Divider from 'primevue/divider'
 import ProgressSpinner from 'primevue/progressspinner'
+import { QuillEditor } from '@/components/ui'
+import CatalogImageUploader from '@/components/catalog/CatalogImageUploader.vue'
+import type { CatalogImageType } from '@/components/catalog/CatalogImageUploader.vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { slugify } from '@/utils/slugify'
-import type { ProductListFormData } from '@/types/product-list.types'
+import { productListApi } from '@/api/product-list.api'
+import type { ProductList, ProductListFormData } from '@/types/product-list.types'
 
 const route = useRoute()
 const router = useRouter()
@@ -212,8 +340,69 @@ const formData = ref<ProductListFormData>({
   productolista_slug: '',
   productolista_tipo: 1,
   productolista_estado: 1,
-  productolista_cantidaditems: null
+  productolista_cantidaditems: null,
+  productolista_descripcion: '',
+  productolista_meta_tittle: '',
+  productolista_meta_description: ''
 })
+
+// La lista tal como está guardada: las imágenes se suben de una en una contra
+// la API y no pasan por el formulario, así que se leen de acá.
+const currentList = ref<ProductList | null>(null)
+const showImageUploader = ref(false)
+const activeImageType = ref<CatalogImageType>('square')
+
+const imageConfigs: {
+  type: CatalogImageType
+  label: string
+  dimensions: string
+  urlField: 'square_r2_url' | 'cover_r2_url' | 'og_r2_url'
+  aspectClass: string
+}[] = [
+  { type: 'square', label: 'Cuadrada (1:1)', dimensions: '400x400 px', urlField: 'square_r2_url', aspectClass: 'aspect-square' },
+  { type: 'cover', label: 'Cover (820x360)', dimensions: '820x360 px', urlField: 'cover_r2_url', aspectClass: 'aspect-[820/360]' },
+  { type: 'og', label: 'OpenGraph (1200x630)', dimensions: '1200x630 px', urlField: 'og_r2_url', aspectClass: 'aspect-[1200/630]' }
+]
+
+const openImageUploader = (type: CatalogImageType) => {
+  activeImageType.value = type
+  showImageUploader.value = true
+}
+
+const handleImageUploadSuccess = async (data: { blob: Blob; fileName: string }) => {
+  if (!listId.value) return
+
+  try {
+    const file = new File([data.blob], data.fileName, { type: data.blob.type })
+    const response = await productListApi.uploadImage(listId.value, file, activeImageType.value)
+    currentList.value = response.data ?? null
+    toast.add({ severity: 'success', summary: 'Imagen subida', detail: 'La imagen se subió correctamente', life: 3000 })
+  } catch (err: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: err.response?.data?.message || 'Error al subir la imagen',
+      life: 5000,
+    })
+  }
+}
+
+const handleDeleteImage = async (type: CatalogImageType) => {
+  if (!listId.value) return
+
+  try {
+    const response = await productListApi.deleteImage(listId.value, type)
+    currentList.value = response.data ?? null
+    toast.add({ severity: 'success', summary: 'Imagen eliminada', life: 3000 })
+  } catch (err: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: err.response?.data?.message || 'Error al eliminar la imagen',
+      life: 5000,
+    })
+  }
+}
 
 const isActive = ref(true)
 
@@ -327,7 +516,10 @@ const saveList = async () => {
       productolista_estado: formData.value.productolista_estado,
       productolista_cantidaditems: formData.value.productolista_tipo !== 1
         ? formData.value.productolista_cantidaditems
-        : null
+        : null,
+      productolista_descripcion: formData.value.productolista_descripcion || null,
+      productolista_meta_tittle: formData.value.productolista_meta_tittle || null,
+      productolista_meta_description: formData.value.productolista_meta_description || null
     }
 
     if (isEditMode.value && listId.value) {
@@ -382,8 +574,12 @@ const loadList = async () => {
         productolista_slug: list.productolista_slug || slugify(list.productolista_nombre),
         productolista_tipo: list.productolista_tipo,
         productolista_estado: list.productolista_estado,
-        productolista_cantidaditems: list.productolista_cantidaditems
+        productolista_cantidaditems: list.productolista_cantidaditems,
+        productolista_descripcion: list.productolista_descripcion || '',
+        productolista_meta_tittle: list.productolista_meta_tittle || '',
+        productolista_meta_description: list.productolista_meta_description || ''
       }
+      currentList.value = list
       isActive.value = list.productolista_estado == 1
       savedSlug.value = list.productolista_slug || ''
       savedActive.value = isActive.value
