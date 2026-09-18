@@ -64,24 +64,30 @@ const parentOptions = computed(() => {
 })
 
 // ─── Watch type changes to load options ───
-watch(formType, async newType => {
-  selectedOption.value = null
-  selectedSubcatParent.value = null
-  selectedSubcatChild.value = null
-  formUrl.value = ''
+// `immediate` para que el tipo por defecto ('categoria') cargue sus opciones al montar,
+// no recién cuando el usuario cambia de tipo y vuelve.
+watch(
+  formType,
+  async newType => {
+    selectedOption.value = null
+    selectedSubcatParent.value = null
+    selectedSubcatChild.value = null
+    formUrl.value = ''
 
-  if (newType === 'url') return
+    if (newType === 'url') return
 
-  const options = await menuStore.fetchLinkOptions(newType)
+    const options = await menuStore.fetchLinkOptions(newType)
 
-  if (newType === 'subcategoria') {
-    subcategoryGroups.value = options as LinkOptionGroup[]
-    linkOptions.value = []
-  } else {
-    linkOptions.value = options as LinkOption[]
-    subcategoryGroups.value = []
-  }
-})
+    if (newType === 'subcategoria') {
+      subcategoryGroups.value = options as LinkOptionGroup[]
+      linkOptions.value = []
+    } else {
+      linkOptions.value = options as LinkOption[]
+      subcategoryGroups.value = []
+    }
+  },
+  { immediate: true }
+)
 
 // Watch subcategory parent selection to show children
 const subcatChildren = computed(() => {
