@@ -456,6 +456,7 @@ export interface ProductManagementFilters {
 export interface VariantDetail {
   store_attribute_id: number
   store_attribute_name: string
+  /** 0 cuando la opción se acaba de escribir en la fila y todavía no existe en BD. */
   option_id: number
   option_text: string
   global_attribute_id: number
@@ -511,6 +512,12 @@ export interface SaveVariantsPayload {
     details: {
       store_attribute_id: number
       option_id: number
+      /**
+       * Opción escrita a mano en la ficha. El backend la crea ad-hoc para este
+       * producto cuando `option_id` viene en 0, en vez de obligar a darla de
+       * alta antes en el catálogo de la tienda.
+       */
+      option_text?: string
       global_attribute_id: number
     }[]
   }[]

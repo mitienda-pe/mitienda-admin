@@ -93,85 +93,10 @@
       <Button label="Nuevo Atributo" icon="pi pi-plus" @click="showCreateDialog = true" />
     </div>
 
-    <!-- Dialog: Crear Atributo -->
-    <Dialog
+    <AttributeCreateDialog
       v-model:visible="showCreateDialog"
-      header="Nuevo Atributo"
-      :modal="true"
-      :style="{ width: '500px' }"
-    >
-      <div class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-secondary-700 mb-1">Nombre</label>
-          <InputText
-            v-model="createForm.name"
-            placeholder="Ej: Color, Talla, Material"
-            class="w-full"
-            :class="{ 'p-invalid': createErrors.name }"
-          />
-          <small v-if="createErrors.name" class="text-red-500">{{ createErrors.name }}</small>
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-secondary-700 mb-1">Tipo</label>
-          <Dropdown
-            v-model="createForm.type"
-            :options="typeOptions"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Seleccionar tipo"
-            class="w-full"
-          />
-        </div>
-
-        <div>
-          <label class="block text-sm font-medium text-secondary-700 mb-1">Estilo de visualización</label>
-          <div class="flex gap-4">
-            <div class="flex items-center gap-2">
-              <RadioButton v-model="createForm.style" :value="1" inputId="style-rect" />
-              <label for="style-rect" class="text-sm">Rectangular</label>
-            </div>
-            <div class="flex items-center gap-2">
-              <RadioButton v-model="createForm.style" :value="2" inputId="style-circle" />
-              <label for="style-circle" class="text-sm">Circular</label>
-            </div>
-          </div>
-        </div>
-
-        <!-- Color type: skip options here, add them in detail view -->
-        <div v-if="createForm.type === 2" class="bg-primary/5 rounded-lg p-3">
-          <p class="text-sm text-primary">
-            <i class="pi pi-info-circle mr-1"></i>
-            Los colores se agregan con el color picker en la vista de detalle del atributo.
-          </p>
-        </div>
-
-        <!-- Non-color options input -->
-        <div v-else>
-          <label class="block text-sm font-medium text-secondary-700 mb-1">
-            Opciones iniciales <span class="text-secondary-400">(opcional)</span>
-          </label>
-          <Chips
-            v-model="createForm.options"
-            placeholder="Escribe y presiona Enter"
-            class="w-full"
-          />
-          <small class="text-secondary-400">Puedes agregar más opciones después</small>
-        </div>
-      </div>
-
-      <template #footer>
-        <div class="flex justify-end gap-2">
-          <Button label="Cancelar" severity="secondary" outlined @click="showCreateDialog = false" />
-          <Button
-            label="Crear Atributo"
-            icon="pi pi-check"
-            :loading="store.isLoading"
-            @click="handleCreate"
-          />
-        </div>
-      </template>
-    </Dialog>
+      @created="onAttributeCreated"
+    />
 
     <!-- Dialog: Confirmar Eliminación -->
     <Dialog
@@ -216,16 +141,13 @@ import type { StoreAttribute, AttributeType, AttributeStyle } from '@/types/attr
 import { ATTRIBUTE_TYPE_LABELS, ATTRIBUTE_STYLE_LABELS } from '@/types/attribute.types'
 import Button from 'primevue/button'
 import Column from 'primevue/column'
-import Chips from 'primevue/chips'
 import DataTable from 'primevue/datatable'
 import Dialog from 'primevue/dialog'
-import Dropdown from 'primevue/dropdown'
-import InputText from 'primevue/inputtext'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
-import RadioButton from 'primevue/radiobutton'
 import Tag from 'primevue/tag'
 import { useToast } from 'primevue/usetoast'
+import AttributeCreateDialog from '@/components/catalog/AttributeCreateDialog.vue'
 
 const router = useRouter()
 const store = useAttributesStore()
@@ -235,22 +157,6 @@ const toast = useToast()
 const showCreateDialog = ref(false)
 const showDeleteDialog = ref(false)
 const attributeToDelete = ref<StoreAttribute | null>(null)
-
-const createForm = ref({
-  name: '',
-  type: 1 as AttributeType,
-  style: 1 as AttributeStyle,
-  options: [] as string[],
-})
-
-const createErrors = ref<Record<string, string>>({})
-
-const typeOptions = [
-  { label: 'Texto / Combo', value: 1 },
-  { label: 'Color', value: 2 },
-  { label: 'Botón', value: 3 },
-  { label: 'Imagen', value: 4 },
-]
 
 // Methods
 function getTypeLabel(type: AttributeType): string {
@@ -271,39 +177,8 @@ function confirmDelete(attr: StoreAttribute) {
   showDeleteDialog.value = true
 }
 
-async function handleCreate() {
-  createErrors.value = {}
-
-  if (!createForm.value.name.trim()) {
-    createErrors.value.name = 'El nombre es requerido'
-    return
-  }
-
-  const id = await store.createAttribute({
-    name: createForm.value.name.trim(),
-    type: createForm.value.type,
-    style: createForm.value.style,
-    options: createForm.value.options,
-  })
-
-  if (id) {
-    toast.add({
-      severity: 'success',
-      summary: 'Atributo creado',
-      detail: `Se creó el atributo "${createForm.value.name}"`,
-      life: 3000,
-    })
-    showCreateDialog.value = false
-    createForm.value = { name: '', type: 1, style: 1, options: [] }
-    router.push(`/catalog/attributes/${id}`)
-  } else {
-    toast.add({
-      severity: 'error',
-      summary: 'Error',
-      detail: store.error || 'No se pudo crear el atributo',
-      life: 5000,
-    })
-  }
+function onAttributeCreated(id: number) {
+  router.push(`/catalog/attributes/${id}`)
 }
 
 async function handleDelete() {

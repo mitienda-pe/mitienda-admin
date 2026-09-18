@@ -28,10 +28,17 @@
         </template>
       </Column>
 
-      <!-- Variant Name (read-only) -->
-      <Column header="Variante" style="min-width: 180px">
+      <!-- Variante: editable si tiene un solo atributo (ver isEditable) -->
+      <Column header="Variante" style="min-width: 200px">
         <template #body="{ data }">
-          <span class="font-medium text-secondary-700">{{ data.names }}</span>
+          <InputText
+            v-if="isEditable(data)"
+            :modelValue="optionText(data)"
+            class="w-full p-inputtext-sm font-medium"
+            :placeholder="optionPlaceholder"
+            @update:modelValue="setOptionText(data, $event ?? '')"
+          />
+          <span v-else class="font-medium text-secondary-700">{{ data.names }}</span>
         </template>
       </Column>
 
@@ -196,17 +203,72 @@ import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
 import OverlayPanel from 'primevue/overlaypanel'
 
-const props = defineProps<{
-  variants: ProductVariant[]
-  images: ProductImage[]
-  loading?: boolean
-  igvPercent?: number
-}>()
+const props = withDefaults(
+  defineProps<{
+    variants: ProductVariant[]
+    images: ProductImage[]
+    loading?: boolean
+    igvPercent?: number
+    /**
+     * Atributo al que se cuelgan las opciones escritas a mano. 0 = todavía no
+     * se sabe cuál es; sin eso el texto no se puede guardar, así que la celda
+     * queda de solo lectura en vez de aceptar algo que se perdería en silencio.
+     */
+    attributeId?: number
+    /** Nombre del atributo, para el placeholder ("Ej: Versión"). */
+    attributeName?: string
+  }>(),
+  { attributeId: 0, attributeName: '' }
+)
 
 const emit = defineEmits<{
   update: []
   remove: [index: number]
 }>()
+
+const optionPlaceholder = computed(() =>
+  props.attributeName ? `Ej: ${props.attributeName}` : 'Escribe la opción'
+)
+
+/**
+ * Solo se edita el nombre de una variante de UN atributo.
+ *
+ * Con dos o más (talla × color) el nombre es la combinación y cambiarlo desde
+ * una celda no tiene una traducción única a opciones: eso se sigue haciendo
+ * desde el selector de atributos.
+ *
+ * Una variante legacy llega con un detalle de `option_id` 0, `store_attribute_id`
+ * 0 y el `names` resuelto por el servidor: es editable igual, tomando el
+ * atributo de la prop, y al guardarla el backend asciende su fila en sitio en
+ * vez de duplicarla.
+ */
+function isEditable(variant: ProductVariant): boolean {
+  if (variant.details.length !== 1) return false
+
+  return Number(variant.details[0]?.store_attribute_id) > 0 || props.attributeId > 0
+}
+
+function optionText(variant: ProductVariant): string {
+  const detail = variant.details[0]
+  if (!detail) return ''
+  return detail.option_text || variant.names || ''
+}
+
+function setOptionText(variant: ProductVariant, text: string) {
+  const detail = variant.details[0]
+  if (!detail) return
+
+  detail.option_text = text
+  // Se soltó la opción anterior: el backend la resuelve (o la crea) por texto.
+  detail.option_id = 0
+  detail.global_attribute_id = 0
+  // Las variantes legacy no traen atributo: se lo pone el editor.
+  if (!Number(detail.store_attribute_id)) {
+    detail.store_attribute_id = props.attributeId
+  }
+  variant.names = text
+  emitUpdate()
+}
 
 const imagePickerRef = ref()
 

@@ -12,10 +12,8 @@
     <!-- No attributes -->
     <div v-else-if="!storeAttributes.length" class="text-center py-8 text-secondary-400">
       <i class="pi pi-palette text-4xl mb-2"></i>
-      <p class="mb-2">No hay atributos definidos.</p>
-      <router-link to="/catalog/attributes" class="text-primary hover:underline">
-        Crear atributos
-      </router-link>
+      <p class="mb-3">No hay atributos definidos.</p>
+      <Button label="Crear atributo" icon="pi pi-plus" size="small" @click="showCreateAttribute = true" />
     </div>
 
     <!-- Attribute list -->
@@ -96,6 +94,12 @@
         @click="$emit('generate', buildPayload())"
       />
     </div>
+
+    <AttributeCreateDialog
+      v-model:visible="showCreateAttribute"
+      context="variants"
+      @created="loadAttributes"
+    />
   </div>
 </template>
 
@@ -108,6 +112,7 @@ import Button from 'primevue/button'
 import Checkbox from 'primevue/checkbox'
 import ProgressSpinner from 'primevue/progressspinner'
 import Tag from 'primevue/tag'
+import AttributeCreateDialog from '@/components/catalog/AttributeCreateDialog.vue'
 
 interface AttrOption {
   id: number
@@ -139,6 +144,9 @@ const generating = ref(false)
 const storeAttributes = ref<StoreAttr[]>([])
 const selectedAttributes = ref<Set<number>>(new Set())
 const selectedOptions = ref<Map<number, Set<number>>>(new Map())
+// Crear el atributo sin salir de la ficha: antes esto era un enlace a
+// /catalog/attributes y volver era trabajo del comerciante.
+const showCreateAttribute = ref(false)
 
 // Computed
 const canGenerate = computed(() => {
