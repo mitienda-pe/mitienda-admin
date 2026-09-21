@@ -79,7 +79,7 @@
         </div>
 
         <div v-for="zone in activeZones" :key="zone.ubicacion">
-          <!-- Zone label (only when 2 zones) -->
+          <!-- Zone label (only when more than one zone) -->
           <div v-if="activeZones.length > 1" class="flex items-center gap-3 mb-3">
             <span class="text-xs font-semibold uppercase tracking-wider text-secondary-400">
               {{ ZONE_LABELS[zone.ubicacion] }}
@@ -520,7 +520,7 @@ import {
   PREDEFINED_BLOCKS,
   HOME_MODES,
 } from '@/types/template-section.types'
-import type { SectionColumn, BlockConfig, HomeModo } from '@/types/template-section.types'
+import type { SectionColumn, BlockConfig, HomeModo, ZoneKey } from '@/types/template-section.types'
 import { useAuthStore } from '@/stores/auth.store'
 import HomeModePreview from '@/components/content/HomeModePreview.vue'
 import { catalogApi } from '@/api/catalog.api'
@@ -559,7 +559,7 @@ const isHome = computed(() => activePage.value === HOME_PAGE)
 const activeZones = computed(() => {
   const zones = activePageDef.value?.zones ?? ['header']
   const usable = isHome.value && homeModo.value === 'plantilla' ? ['header'] : zones
-  return usable.map(z => ({ ubicacion: z as 'header' | 'footer' }))
+  return usable.map(z => ({ ubicacion: z as ZoneKey }))
 })
 
 const isPageLoaded = computed(() => sectionsStore.loadedPages.has(activePage.value))
@@ -608,7 +608,7 @@ function selectHomeModo(modo: HomeModo) {
   sectionsStore.setHomeModo(modo)
 }
 
-function emptyZoneMessage(ubicacion: 'header' | 'footer'): string {
+function emptyZoneMessage(ubicacion: ZoneKey): string {
   if (isHome.value && homeModo.value !== 'plantilla') {
     const arriba = homeModo.value === 'catalogo'
       ? 'Tu home ya muestra el carrusel y tu catálogo de productos. Agrega una sección si quieres poner contenido propio justo debajo del carrusel.'
@@ -617,12 +617,15 @@ function emptyZoneMessage(ubicacion: 'header' | 'footer'): string {
       ? arriba
       : 'Agrega una sección si quieres poner contenido propio debajo del catálogo.'
   }
+  if (ubicacion === 'descripcion') {
+    return 'Lo que agregues aquí aparece debajo de la descripción de todos tus productos. Ideal para textos de marca, garantía o envíos que hoy repites en cada ficha.'
+  }
   return 'Arrastra bloques desde el panel o agrega una nueva sección.'
 }
 
 // ── Sections helpers ──────────────────────────────────────────────────────────
 
-function zoneSections(ubicacion: 'header' | 'footer'): SectionColumn[][] {
+function zoneSections(ubicacion: ZoneKey): SectionColumn[][] {
   return sectionsStore.getSections(activePage.value, ubicacion)
 }
 
@@ -659,14 +662,14 @@ function clearDragOver(key: string) {
   if (dragOverKey.value === key) dragOverKey.value = null
 }
 
-function handleDrop(ubicacion: 'header' | 'footer', sIdx: number, cIdx: number) {
+function handleDrop(ubicacion: ZoneKey, sIdx: number, cIdx: number) {
   if (!draggedBlock.value) return
   sectionsStore.assignBlock(activePage.value, ubicacion, sIdx, cIdx, draggedBlock.value)
   draggedBlock.value = null
   dragOverKey.value = null
 }
 
-function colSlotClass(col: SectionColumn, ubicacion: 'header' | 'footer', sIdx: number, cIdx: number): string {
+function colSlotClass(col: SectionColumn, ubicacion: ZoneKey, sIdx: number, cIdx: number): string {
   const key = `${ubicacion}-${sIdx}-${cIdx}`
   const isDragOver = dragOverKey.value === key
   if (isDragOver) return 'border-primary bg-primary-50/60 scale-[1.01] shadow-sm'
@@ -693,9 +696,9 @@ function getComponentTypeName(id: number | string): string {
 // ── Add Section Dialog ────────────────────────────────────────────────────────
 
 const addSectionVisible = ref(false)
-const pendingUbicacion = ref<'header' | 'footer'>('header')
+const pendingUbicacion = ref<ZoneKey>('header')
 
-function openAddSection(ubicacion: 'header' | 'footer') {
+function openAddSection(ubicacion: ZoneKey) {
   pendingUbicacion.value = ubicacion
   addSectionVisible.value = true
 }
@@ -707,7 +710,7 @@ function confirmAddSection(colBs: number[]) {
 
 // ── Remove section confirm ────────────────────────────────────────────────────
 
-function confirmRemove(ubicacion: 'header' | 'footer', zoneIdx: number) {
+function confirmRemove(ubicacion: ZoneKey, zoneIdx: number) {
   confirm.require({
     message: '¿Eliminar esta sección? Se perderá la configuración de sus columnas.',
     header: 'Eliminar sección',
@@ -723,14 +726,14 @@ function confirmRemove(ubicacion: 'header' | 'footer', zoneIdx: number) {
 
 const selectorVisible = ref(false)
 const selectorSearch = ref('')
-const pendingCol = ref<{ ubicacion: 'header' | 'footer'; sIdx: number; cIdx: number } | null>(null)
+const pendingCol = ref<{ ubicacion: ZoneKey; sIdx: number; cIdx: number } | null>(null)
 
 const filteredComponents = computed(() => {
   const q = selectorSearch.value.toLowerCase().trim()
   return htmlComponents.value.filter(c => !q || c.name.toLowerCase().includes(q))
 })
 
-function handleColumnClick(ubicacion: 'header' | 'footer', sIdx: number, cIdx: number) {
+function handleColumnClick(ubicacion: ZoneKey, sIdx: number, cIdx: number) {
   const sections = zoneSections(ubicacion)
   const col = sections[sIdx]?.[cIdx]
   if (col?.bloque_codigo) {
@@ -740,7 +743,7 @@ function handleColumnClick(ubicacion: 'header' | 'footer', sIdx: number, cIdx: n
   }
 }
 
-function openSelector(ubicacion: 'header' | 'footer', sIdx: number, cIdx: number) {
+function openSelector(ubicacion: ZoneKey, sIdx: number, cIdx: number) {
   pendingCol.value = { ubicacion, sIdx, cIdx }
   selectorSearch.value = ''
   selectorVisible.value = true
@@ -761,7 +764,7 @@ function applyComponent(componentId: number) {
 // ── Block Config Dialog ──────────────────────────────────────────────────────
 
 const blockConfigVisible = ref(false)
-const blockConfigTarget = ref<{ ubicacion: 'header' | 'footer'; sIdx: number; cIdx: number } | null>(null)
+const blockConfigTarget = ref<{ ubicacion: ZoneKey; sIdx: number; cIdx: number } | null>(null)
 const blockConfigCode = ref('')
 const blockConfigForm = ref<BlockConfig>({ titulo: '', subtitulo: '', bg_color: '', limite: 0, limite_listas: 0, items: [] })
 const blockConfigItems = ref<{ id: number; name: string }[]>([])
@@ -783,7 +786,7 @@ function blockConfigSummary(col: SectionColumn): string {
   return parts.length ? parts.join(' · ') : 'Bloque predefinido — click para configurar'
 }
 
-function openBlockConfig(ubicacion: 'header' | 'footer', sIdx: number, cIdx: number, col: SectionColumn) {
+function openBlockConfig(ubicacion: ZoneKey, sIdx: number, cIdx: number, col: SectionColumn) {
   blockConfigTarget.value = { ubicacion, sIdx, cIdx }
   blockConfigCode.value = col.bloque_codigo!
   blockConfigForm.value = {

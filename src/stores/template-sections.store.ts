@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { templateSectionsApi } from '@/api/template-sections.api'
-import type { PageSection, SectionColumn, BlockConfig, HomeModo } from '@/types/template-section.types'
+import type { PageSection, SectionColumn, BlockConfig, HomeModo, ZoneKey } from '@/types/template-section.types'
 
 const HOME_PAGE = 1
 
@@ -76,7 +76,7 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
 
   // ── Getters ────────────────────────────────────────────────────────────────
 
-  function getSections(page: number, ubicacion: 'header' | 'footer'): SectionColumn[][] {
+  function getSections(page: number, ubicacion: ZoneKey): SectionColumn[][] {
     const all = pagesData.value.get(page) ?? []
     return all.filter(s => s.ubicacion === ubicacion).map(s => s.columnas)
   }
@@ -85,7 +85,7 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
 
   // colBsList = ancho bootstrap (base 12) de cada columna; su longitud define el
   // número de columnas y soporta proporciones asimétricas (ej. [8, 4] = 2:1).
-  function addSection(page: number, ubicacion: 'header' | 'footer', colBsList: number[]) {
+  function addSection(page: number, ubicacion: ZoneKey, colBsList: number[]) {
     const columnas: SectionColumn[] = colBsList.map((colBs, i) =>
       emptyColumn(i + 1, colBs),
     )
@@ -94,7 +94,7 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
     pagesData.value.set(page, all)
   }
 
-  function removeSection(page: number, ubicacion: 'header' | 'footer', zoneIdx: number) {
+  function removeSection(page: number, ubicacion: ZoneKey, zoneIdx: number) {
     const all = pagesData.value.get(page) ?? []
     let count = 0
     const newAll = all.filter(s => {
@@ -104,17 +104,17 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
     pagesData.value.set(page, newAll)
   }
 
-  function moveSectionUp(page: number, ubicacion: 'header' | 'footer', zoneIdx: number) {
+  function moveSectionUp(page: number, ubicacion: ZoneKey, zoneIdx: number) {
     if (zoneIdx <= 0) return
     _swapInZone(page, ubicacion, zoneIdx, zoneIdx - 1)
   }
 
-  function moveSectionDown(page: number, ubicacion: 'header' | 'footer', zoneIdx: number, total: number) {
+  function moveSectionDown(page: number, ubicacion: ZoneKey, zoneIdx: number, total: number) {
     if (zoneIdx >= total - 1) return
     _swapInZone(page, ubicacion, zoneIdx, zoneIdx + 1)
   }
 
-  function _swapInZone(page: number, ubicacion: 'header' | 'footer', fromZone: number, toZone: number) {
+  function _swapInZone(page: number, ubicacion: ZoneKey, fromZone: number, toZone: number) {
     const all = [...(pagesData.value.get(page) ?? [])]
     // Collect global indices for this zone
     const zoneGlobalIdx: number[] = []
@@ -129,7 +129,7 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
 
   function _updateColumn(
     page: number,
-    ubicacion: 'header' | 'footer',
+    ubicacion: ZoneKey,
     zoneIdx: number,
     colIdx: number,
     patch: Partial<SectionColumn>,
@@ -149,7 +149,7 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
 
   function assignComponent(
     page: number,
-    ubicacion: 'header' | 'footer',
+    ubicacion: ZoneKey,
     zoneIdx: number,
     colIdx: number,
     componentId: number,
@@ -162,7 +162,7 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
 
   function assignBlock(
     page: number,
-    ubicacion: 'header' | 'footer',
+    ubicacion: ZoneKey,
     zoneIdx: number,
     colIdx: number,
     bloqueCodigo: string,
@@ -175,7 +175,7 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
 
   function updateBlockConfig(
     page: number,
-    ubicacion: 'header' | 'footer',
+    ubicacion: ZoneKey,
     zoneIdx: number,
     colIdx: number,
     config: BlockConfig,
@@ -185,7 +185,7 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
 
   function clearColumn(
     page: number,
-    ubicacion: 'header' | 'footer',
+    ubicacion: ZoneKey,
     zoneIdx: number,
     colIdx: number,
   ) {

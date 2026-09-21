@@ -95,8 +95,15 @@ export const HOME_AUTO_BLOCKS: Record<'auto' | 'catalogo', { codigo: string; lab
   ],
 }
 
+/**
+ * Zona de la página donde va una sección. `descripcion` solo existe en la
+ * ficha de producto: se pinta pegada a la descripción larga, para textos que
+ * el comerciante quiere en todas las fichas sin copiarlos producto por producto.
+ */
+export type ZoneKey = 'header' | 'descripcion' | 'footer'
+
 export interface PageSection {
-  ubicacion: 'header' | 'footer'
+  ubicacion: ZoneKey
   columnas: SectionColumn[]
 }
 
@@ -108,7 +115,7 @@ export interface PageLayout {
 export interface PageDefinition {
   id: number
   label: string
-  zones: ('header' | 'footer')[]
+  zones: ZoneKey[]
 }
 
 export const PAGE_DEFINITIONS: PageDefinition[] = [
@@ -117,7 +124,7 @@ export const PAGE_DEFINITIONS: PageDefinition[] = [
   // storefront lee únicamente `header`.
   { id: 1, label: 'Home', zones: ['header', 'footer'] },
   { id: 2, label: 'Catálogo', zones: ['header', 'footer'] },
-  { id: 3, label: 'Detalle Producto', zones: ['header', 'footer'] },
+  { id: 3, label: 'Detalle Producto', zones: ['header', 'descripcion', 'footer'] },
   { id: 4, label: 'Carrito', zones: ['header', 'footer'] },
   { id: 5, label: 'Checkout', zones: ['header', 'footer'] },
   { id: 6, label: 'Pago Confirmado', zones: ['header', 'footer'] },
@@ -143,7 +150,8 @@ export const COLUMN_LAYOUTS: ColumnLayout[] = [
   { key: '4', label: '4 columnas', colBs: [3, 3, 3, 3] },
 ]
 
-export const ZONE_LABELS: Record<'header' | 'footer', string> = {
+export const ZONE_LABELS: Record<ZoneKey, string> = {
   header: 'Arriba del contenido',
+  descripcion: 'Debajo de la descripción',
   footer: 'Abajo del contenido',
 }
