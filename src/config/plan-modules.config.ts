@@ -42,7 +42,7 @@ export const MODULE_ROUTE_MAP: Record<string, string[]> = {
   mod_promociones_v2: ['/marketing/promotions-v2'],
   mod_upsales: ['/marketing/upsales'],
   mod_combos: ['/marketing/combos'],
-  mod_barras_anuncios: ['/marketing/announcement-bars'],
+  mod_barras_anuncios: ['/marketing/announcement-bars', '/marketing/announcement-popups'],
   mod_referidos: ['/marketing/referrals'],
   mod_fidelizacion: ['/marketing/loyalty'],
   mod_carrito_abandonado: ['/marketing/abandoned-carts'],

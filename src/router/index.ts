@@ -684,6 +684,18 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/marketing/AnnouncementBarFormView.vue')
       },
       {
+        path: 'announcement-popups',
+        name: 'AnnouncementPopups',
+        meta: { title: 'Popups' },
+        component: () => import('@/views/marketing/AnnouncementPopupsListView.vue')
+      },
+      {
+        path: 'announcement-popups/:id',
+        name: 'AnnouncementPopupForm',
+        meta: { title: 'Editar popup' },
+        component: () => import('@/views/marketing/AnnouncementPopupFormView.vue')
+      },
+      {
         path: 'promotions',
         name: 'Promotions',
         meta: { title: 'Promociones' },

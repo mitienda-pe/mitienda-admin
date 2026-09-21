@@ -1417,7 +1417,7 @@ const catalogMenuItems = computed(() => visibleItems(catalogMenuItemsSource))
 const marketingMenuItemsSource = [
   { label: 'Cupones', icon: 'pi pi-ticket', to: '/marketing/coupons' },
   { label: 'Promociones avanzadas', icon: 'pi pi-sparkles', to: '/marketing/promotions-v2' },
-  { label: 'Barras de Anuncios', icon: 'pi pi-megaphone', to: '/marketing/announcement-bars' },
+  { label: 'Barras y popups', icon: 'pi pi-megaphone', to: '/marketing/announcement-bars' },
   { label: 'Recuperación de carritos', icon: 'pi pi-replay', to: '/marketing/cart-recovery' },
   { label: 'Doppler', icon: 'pi pi-envelope', to: '/store/doppler' },
   { label: 'Upsales', icon: 'pi pi-arrow-up', to: '/marketing/upsales' },

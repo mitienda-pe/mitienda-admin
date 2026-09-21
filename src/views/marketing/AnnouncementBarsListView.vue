@@ -3,11 +3,13 @@
     <!-- Header -->
     <div class="flex justify-between items-center">
       <div>
-        <h1 class="text-2xl font-bold text-secondary-800">Barras de Anuncio</h1>
-        <p class="text-secondary-600 mt-1">Gestiona las barras de anuncio tipo HelloBar</p>
+        <h1 class="text-2xl font-bold text-secondary-800">Anuncios</h1>
+        <p class="text-secondary-600 mt-1">Barras arriba o abajo de tu tienda, tipo HelloBar</p>
       </div>
       <Button label="Nueva Barra" icon="pi pi-plus" @click="router.push('/marketing/announcement-bars/new')" />
     </div>
+
+    <AnnouncementsTabs />
 
     <!-- Tabla -->
     <Card>
@@ -116,6 +118,7 @@ import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import { useAnnouncementBarsStore } from '@/stores/announcement-bars.store'
 import type { AnnouncementBar, BarPosition } from '@/types/announcement-bar.types'
+import AnnouncementsTabs from '@/components/marketing/AnnouncementsTabs.vue'
 
 import Button from 'primevue/button'
 import Card from 'primevue/card'
