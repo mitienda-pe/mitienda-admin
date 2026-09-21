@@ -11,6 +11,7 @@ import { useToast } from 'primevue/usetoast'
 import {
   MENU_LINK_TYPE_OPTIONS,
   MENU_LINK_TYPE_LABELS,
+  MENU_LINK_FIXED_URLS,
   type MenuLinkType,
   type MenuItem,
   type LinkOption,
@@ -75,6 +76,15 @@ watch(
     formUrl.value = ''
 
     if (newType === 'url') return
+
+    const fixedUrl = MENU_LINK_FIXED_URLS[newType]
+    if (fixedUrl) {
+      formUrl.value = fixedUrl
+      if (!formLabel.value) formLabel.value = 'Blog'
+      linkOptions.value = []
+      subcategoryGroups.value = []
+      return
+    }
 
     const options = await menuStore.fetchLinkOptions(newType)
 
@@ -148,7 +158,8 @@ async function handleAddItem() {
 
 function resetForm() {
   formLabel.value = ''
-  formUrl.value = ''
+  // El tipo se conserva entre altas: si es de destino fijo, su URL también.
+  formUrl.value = MENU_LINK_FIXED_URLS[formType.value] ?? ''
   formParentId.value = 0
   formTargetBlank.value = false
   selectedOption.value = null
@@ -159,7 +170,7 @@ function resetForm() {
 // ─── Edit Dialog ───
 /** Loads the entity options for a given type into the edit-dialog selectors. */
 async function populateEditOptions(type: MenuLinkType) {
-  if (type === 'url') {
+  if (type === 'url' || MENU_LINK_FIXED_URLS[type]) {
     editLinkOptions.value = []
     editSubcategoryGroups.value = []
     return
@@ -198,7 +209,7 @@ async function startEditing(item: MenuItem) {
         editSelectedSubcatParent.value = group
         editSelectedSubcatChild.value = group.children.find(c => c.slug === childSlug) ?? null
       }
-    } else if (item.type !== 'url') {
+    } else if (item.type !== 'url' && !MENU_LINK_FIXED_URLS[item.type]) {
       editSelectedOption.value =
         editLinkOptions.value.find(o => (o.slug ?? String(o.id)) === item.url) ?? null
     }
@@ -213,7 +224,7 @@ watch(editType, async newType => {
   editSelectedOption.value = null
   editSelectedSubcatParent.value = null
   editSelectedSubcatChild.value = null
-  editUrl.value = ''
+  editUrl.value = MENU_LINK_FIXED_URLS[newType] ?? ''
   await populateEditOptions(newType)
 })
 
@@ -323,6 +334,7 @@ function getTypeSeverity(type: MenuLinkType): string {
     gamma: 'warning',
     lista: '',
     pagina: 'contrast',
+    bloglistado: 'contrast',
     blog: 'contrast',
     url: 'danger'
   }
@@ -402,6 +414,12 @@ onMounted(() => {
               <label class="block text-sm font-medium text-secondary-700 mb-1">URL</label>
               <InputText v-model="formUrl" placeholder="https://ejemplo.com" class="w-full" />
             </template>
+
+            <!-- Destino fijo: no hay nada que elegir -->
+            <p v-else-if="MENU_LINK_FIXED_URLS[formType]" class="text-sm text-secondary-500">
+              Enlaza a <span class="font-mono">/{{ MENU_LINK_FIXED_URLS[formType] }}</span>, el
+              listado de todas las entradas publicadas.
+            </p>
 
             <!-- Subcategoría: two dropdowns -->
             <template v-else-if="formType === 'subcategoria'">
@@ -705,6 +723,12 @@ onMounted(() => {
           <label class="block text-sm font-medium text-secondary-700 mb-1">URL</label>
           <InputText v-model="editUrl" placeholder="https://ejemplo.com" class="w-full" />
         </template>
+
+        <!-- Destino fijo: no hay nada que elegir -->
+        <p v-else-if="MENU_LINK_FIXED_URLS[editType]" class="text-sm text-secondary-500">
+          Enlaza a <span class="font-mono">/{{ MENU_LINK_FIXED_URLS[editType] }}</span>, el listado
+          de todas las entradas publicadas.
+        </p>
 
         <!-- Subcategoría: two dropdowns -->
         <template v-else-if="editType === 'subcategoria'">

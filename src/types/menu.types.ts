@@ -6,9 +6,18 @@ export type MenuLinkType =
   | 'gamma'
   | 'lista'
   | 'pagina'
+  | 'bloglistado'
   | 'blogcategoria'
   | 'blog'
   | 'url'
+
+/**
+ * Tipos que no apuntan a una entidad elegible: el destino es fijo y la URL se
+ * rellena sola. La API exige `url`, así que se guarda igual.
+ */
+export const MENU_LINK_FIXED_URLS: Partial<Record<MenuLinkType, string>> = {
+  bloglistado: 'blog'
+}
 
 export interface MenuItem {
   id: number
@@ -56,6 +65,7 @@ export const MENU_LINK_TYPE_LABELS: Record<MenuLinkType, string> = {
   gamma: 'Gamma',
   lista: 'Lista',
   pagina: 'Página',
+  bloglistado: 'Blog (todas las entradas)',
   blogcategoria: 'Categoría Blog',
   blog: 'Entrada Blog',
   url: 'URL Externa'
@@ -69,6 +79,7 @@ export const MENU_LINK_TYPE_OPTIONS: { label: string; value: MenuLinkType }[] = 
   { label: 'Gamma', value: 'gamma' },
   { label: 'Lista', value: 'lista' },
   { label: 'Página', value: 'pagina' },
+  { label: 'Blog (todas las entradas)', value: 'bloglistado' },
   { label: 'Categoría Blog', value: 'blogcategoria' },
   { label: 'Entrada Blog', value: 'blog' },
   { label: 'URL Externa', value: 'url' }
