@@ -125,6 +125,21 @@ export const SHORTCODE_TYPES: ShortcodeType[] = [
     ],
   },
   {
+    value: 'senja',
+    label: 'Senja (testimonios)',
+    group: 'Widgets externos',
+    help: 'En el código que te da Senja, el ID es el valor de data-id en <div class="senja-embed" data-id="XXXX">.',
+    fields: [
+      {
+        key: 'id',
+        label: 'ID del widget (data-id)',
+        type: 'text',
+        placeholder: '8a7964e2-7347-402f-b022-e5f03bf293c2',
+        required: true,
+      },
+    ],
+  },
+  {
     value: 'review_widget',
     label: 'Reseñas de Google (review-widget.net)',
     group: 'Widgets externos',
