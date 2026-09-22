@@ -3,6 +3,20 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.86.0] - 2026-09-22
+
+### Novedades
+
+- **contenido:** shortcode de Senja en el catálogo ([`3e8c568`](https://github.com/mitienda-pe/mitienda-admin/commit/3e8c568b1adf99798946d8c5c34d0394bfb2b83a))
+- **menu:** tipo de enlace «Blog (todas las entradas)» ([`d2e21b9`](https://github.com/mitienda-pe/mitienda-admin/commit/d2e21b913940cb2e6c922e473e8ef0ce5d004392))
+- **plantillas:** zona "Debajo de la descripción" en Detalle Producto ([`1af97ee`](https://github.com/mitienda-pe/mitienda-admin/commit/1af97ee0d6ffe197b85bd092411156425331141c))
+- **anuncios:** popups del storefront en Marketing → Barras y popups ([`6f783a4`](https://github.com/mitienda-pe/mitienda-admin/commit/6f783a40a6f3125bf4b91fc0b3b8663447115df5))
+- **variantes:** agregar variantes desde la ficha, escribiendo la opción ([`816a5cd`](https://github.com/mitienda-pe/mitienda-admin/commit/816a5cdb8adf9b65c50a341883fe70a4ab8035d4))
+
+### Correcciones
+
+- **menu:** el selector de categoria no cargaba opciones al abrir la vista ([`e1ecab9`](https://github.com/mitienda-pe/mitienda-admin/commit/e1ecab90206f85bbd8878f3ce5f52f9456dcf795))
+
 ## [v2.85.0] - 2026-09-17
 
 ### Novedades
