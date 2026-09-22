@@ -90,12 +90,26 @@ export const useStoreConfigStore = defineStore('store-config', () => {
   })
 
   /**
+   * Tasas que puede tener un producto fuera de Perú, la general primero. En
+   * Costa Rica 13, 4, 2 y 1 (Ley 10548: 1% en protectores solares). Viene del API
+   * (`iva_rates`); sin ese dato, solo la general.
+   */
+  const taxRateOptions = computed<number[]>(() => {
+    const rates = (countryConfig.value?.iva_rates ?? []).map(Number).filter(r => r > 0)
+    return rates.length ? rates : [taxRatePercent.value]
+  })
+
+  /**
    * Tasa a usar para un producto. En Perú se respeta el `igv_percent` guardado;
-   * fuera de Perú manda la del país (el API la impone al guardar, y productos
-   * creados antes pueden traer un 18 que no aplica).
+   * fuera de Perú, la guardada si es una tasa legal del país y si no la general
+   * (el API aplica la misma regla al guardar, y productos creados antes pueden
+   * traer un 18 que no aplica).
    */
   function resolveTaxPercent(stored?: number | null): number {
-    if (!isPeru.value) return taxRatePercent.value
+    if (!isPeru.value) {
+      const value = Number(stored)
+      return taxRateOptions.value.includes(value) ? value : taxRatePercent.value
+    }
     return stored || taxRatePercent.value
   }
 
@@ -270,6 +284,7 @@ export const useStoreConfigStore = defineStore('store-config', () => {
     isPeru,
     taxLabel,
     taxRatePercent,
+    taxRateOptions,
     resolveTaxPercent,
     fetchConfig,
     saveConfig,

@@ -214,6 +214,8 @@ export interface CountryConfig {
   moneda_iso: string | null
   moneda_simbolo: string | null
   iva_rate: number
+  /** Tasas (en %) que puede tener un producto en el país, la general primero. */
+  iva_rates?: number[]
   ubigeo_root_id: number | null
   decimales: number
   labels: {

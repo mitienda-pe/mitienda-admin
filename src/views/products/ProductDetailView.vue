@@ -648,6 +648,27 @@
                   />
                 </div>
 
+                <div v-if="showTaxRateSelector" class="mb-3">
+                  <label for="edit-tax-rate" class="block text-xs font-medium text-secondary-600 mb-1">
+                    Tasa de {{ storeConfigStore.taxLabel }}
+                  </label>
+                  <Dropdown
+                    id="edit-tax-rate"
+                    v-model="form.igv_percent"
+                    :options="taxRateSelectOptions"
+                    optionLabel="label"
+                    optionValue="value"
+                    class="w-full"
+                    @change="onTaxRateChange"
+                  />
+                  <small class="block text-gray-500 mt-1 text-xs">
+            <template v-if="storeConfigStore.countryConfig?.iso2 === 'CR'">
+              General 13%. Los protectores solares registrados ante el Ministerio de Salud que no dañan los arrecifes van al 1% (Ley 10548).
+            </template>
+            <template v-else>General {{ storeConfigStore.taxRatePercent }}%.</template>
+          </small>
+                </div>
+
                 <!-- ICBPER (Ley 30884). NO dispara onTaxAffectationChange: el
                      tributo va encima del IGV y no altera price_without_tax. -->
                 <div v-if="storeConfigStore.isPeru" class="mb-3 flex items-start gap-2">
@@ -1572,16 +1593,29 @@ const handleBrandChange = async () => {
   }
 }
 
-// Fuera de Perú la tasa es la del país. Si el country config llega después de
-// cargar el producto (lo pide DashboardLayout en paralelo), re-sincronizarla.
-// No es un cambio del usuario: no debe marcar el formulario como sucio.
-watch(() => storeConfigStore.taxRatePercent, async (rate) => {
-  if (storeConfigStore.isPeru || form.value.igv_percent === rate) return
+// Fuera de Perú la tasa tiene que ser una tasa legal del país (la general o una
+// reducida). Si el country config llega después de cargar el producto (lo pide
+// DashboardLayout en paralelo), re-sincronizarla. No es un cambio del usuario:
+// no debe marcar el formulario como sucio.
+watch(() => storeConfigStore.taxRatePercent, async () => {
+  if (storeConfigStore.isPeru) return
+  const resolved = storeConfigStore.resolveTaxPercent(form.value.igv_percent)
+  if (form.value.igv_percent === resolved) return
   const wasDirty = isDirty.value
-  form.value.igv_percent = rate
+  form.value.igv_percent = resolved
   await nextTick()
   isDirty.value = wasDirty
 })
+
+// Tasa reducida por producto (fuera de Perú, p. ej. 1% en protectores solares de
+// Costa Rica). Solo aplica a productos gravados.
+const showTaxRateSelector = computed(() =>
+  !storeConfigStore.isPeru && storeConfigStore.taxRateOptions.length > 1 && form.value.tax_affectation === 1)
+const taxRateSelectOptions = computed(() =>
+  storeConfigStore.taxRateOptions.map((rate, i) => ({ label: i === 0 ? `${rate}% (general)` : `${rate}%`, value: rate })))
+const onTaxRateChange = () => {
+  if (form.value.price != null) onPriceChange(form.value.price)
+}
 
 // ── Price auto-calculation ──
 const onPriceChange = (value: number | null) => {

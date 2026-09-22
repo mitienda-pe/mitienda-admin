@@ -150,10 +150,21 @@ const selectedCategoryKeys = computed({
 })
 
 // El country config puede llegar después de montar el form (lo carga
-// DashboardLayout). igv_percent no es editable aquí: sigue siempre al país.
+// DashboardLayout). En Perú la tasa sigue al país; fuera de Perú se conserva la
+// elegida si es una tasa legal del país.
 watch(() => storeConfigStore.taxRatePercent, (rate) => {
-  form.value.igv_percent = rate
+  form.value.igv_percent = storeConfigStore.isPeru ? rate : storeConfigStore.resolveTaxPercent(form.value.igv_percent)
 })
+
+// Tasa reducida por producto (fuera de Perú, p. ej. 1% en protectores solares de
+// Costa Rica). Solo aplica a productos gravados.
+const showTaxRateSelector = computed(() =>
+  !storeConfigStore.isPeru && storeConfigStore.taxRateOptions.length > 1 && form.value.tax_affectation === 1)
+const taxRateSelectOptions = computed(() =>
+  storeConfigStore.taxRateOptions.map((rate, i) => ({ label: i === 0 ? `${rate}% (general)` : `${rate}%`, value: rate })))
+const onTaxRateChange = () => {
+  if (form.value.price != null) onPriceChange(form.value.price)
+}
 
 // ── Gamma cascading ──
 const gammaOptions = computed(() => gammaStore.gammasByBrand || [])
@@ -448,6 +459,27 @@ const handleSave = async () => {
             class="w-full md:w-64"
             @change="onTaxAffectationChange"
           />
+        </div>
+
+        <div v-if="showTaxRateSelector" class="mb-4">
+          <label for="tax-rate" class="block text-sm font-medium text-gray-700 mb-1">
+            Tasa de {{ storeConfigStore.taxLabel }}
+          </label>
+          <Dropdown
+            id="tax-rate"
+            v-model="form.igv_percent"
+            :options="taxRateSelectOptions"
+            optionLabel="label"
+            optionValue="value"
+            class="w-full md:w-64"
+            @change="onTaxRateChange"
+          />
+          <small class="block text-gray-500 mt-1">
+            <template v-if="storeConfigStore.countryConfig?.iso2 === 'CR'">
+              General 13%. Los protectores solares registrados ante el Ministerio de Salud que no dañan los arrecifes van al 1% (Ley 10548).
+            </template>
+            <template v-else>General {{ storeConfigStore.taxRatePercent }}%.</template>
+          </small>
         </div>
 
         <!-- ICBPER (Ley 30884). NO dispara onTaxAffectationChange: el tributo va
