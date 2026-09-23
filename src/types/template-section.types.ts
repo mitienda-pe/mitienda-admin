@@ -102,9 +102,61 @@ export const HOME_AUTO_BLOCKS: Record<'auto' | 'catalogo', { codigo: string; lab
  */
 export type ZoneKey = 'header' | 'descripcion' | 'footer'
 
+/**
+ * Ancho de una fila. `contenido` la alinea con el catálogo (respeta «Ancho del
+ * catálogo» de Apariencia); `completo` la deja de borde a borde.
+ */
+export type SectionWidth = 'contenido' | 'completo'
+
+export interface SectionWidthOption {
+  value: SectionWidth
+  label: string
+  icon: string
+  descripcion: string
+}
+
+export const SECTION_WIDTH_OPTIONS: SectionWidthOption[] = [
+  {
+    value: 'contenido',
+    label: 'Contenido',
+    icon: 'pi pi-align-center',
+    descripcion: 'La fila se alinea con el catálogo y el resto de la página.',
+  },
+  {
+    value: 'completo',
+    label: 'Completo',
+    icon: 'pi pi-arrows-h',
+    descripcion: 'La fila ocupa todo el ancho de la pantalla, de borde a borde.',
+  },
+]
+
 export interface PageSection {
   ubicacion: ZoneKey
   columnas: SectionColumn[]
+  /** Elegido en el builder. Sin valor, la tienda se sigue viendo como antes de
+   *  que existiera esta opción; ver `effectiveSectionWidth`. */
+  ancho?: SectionWidth
+}
+
+/**
+ * Ancho que hay que mostrar marcado en el builder.
+ *
+ * Las filas que nadie tocó no traen `ancho`, y el storefront las pinta como
+ * siempre: un componente HTML (o un carrusel) a una columna ocupa toda la
+ * pantalla, y cualquier otra fila queda dentro del contenedor. El selector
+ * arranca en esa misma opción para que abrir el builder no sugiera un cambio
+ * que no existe.
+ */
+export function effectiveSectionWidth(section: PageSection): SectionWidth {
+  if (section.ancho) return section.ancho
+
+  const [col] = section.columnas
+  const unaColumnaAnchaPorHistoria =
+    section.columnas.length === 1
+    && !!col
+    && (Number(col.componente_id) > 0 || col.bloque_codigo === 'carrusel')
+
+  return unaColumnaAnchaPorHistoria ? 'completo' : 'contenido'
 }
 
 export interface PageLayout {

@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { templateSectionsApi } from '@/api/template-sections.api'
-import type { PageSection, SectionColumn, BlockConfig, HomeModo, ZoneKey } from '@/types/template-section.types'
+import { effectiveSectionWidth } from '@/types/template-section.types'
+import type { PageSection, SectionColumn, SectionWidth, BlockConfig, HomeModo, ZoneKey } from '@/types/template-section.types'
 
 const HOME_PAGE = 1
 
@@ -79,6 +80,33 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
   function getSections(page: number, ubicacion: ZoneKey): SectionColumn[][] {
     const all = pagesData.value.get(page) ?? []
     return all.filter(s => s.ubicacion === ubicacion).map(s => s.columnas)
+  }
+
+  /** Índice real (en el array plano) de la fila `zoneIdx` de una zona. */
+  function _sectionIndex(page: number, ubicacion: ZoneKey, zoneIdx: number): number {
+    const all = pagesData.value.get(page) ?? []
+    let count = 0
+    for (let i = 0; i < all.length; i++) {
+      if (all[i].ubicacion !== ubicacion) continue
+      if (count === zoneIdx) return i
+      count++
+    }
+    return -1
+  }
+
+  /** Ancho a mostrar marcado; ver effectiveSectionWidth. */
+  function getSectionWidth(page: number, ubicacion: ZoneKey, zoneIdx: number): SectionWidth {
+    const all = pagesData.value.get(page) ?? []
+    const section = all[_sectionIndex(page, ubicacion, zoneIdx)]
+    return section ? effectiveSectionWidth(section) : 'contenido'
+  }
+
+  function setSectionWidth(page: number, ubicacion: ZoneKey, zoneIdx: number, ancho: SectionWidth) {
+    const idx = _sectionIndex(page, ubicacion, zoneIdx)
+    if (idx === -1) return
+    const all = [...(pagesData.value.get(page) ?? [])]
+    all[idx] = { ...all[idx], ancho }
+    pagesData.value.set(page, all)
   }
 
   // ── Section mutations ──────────────────────────────────────────────────────
@@ -205,6 +233,8 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
     loadPage,
     savePage,
     getSections,
+    getSectionWidth,
+    setSectionWidth,
     addSection,
     removeSection,
     moveSectionUp,

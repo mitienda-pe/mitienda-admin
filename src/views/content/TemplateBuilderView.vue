@@ -120,6 +120,25 @@
                     Sección {{ sIdx + 1 }} — {{ cols.length }}
                     {{ cols.length === 1 ? 'columna' : 'columnas' }}
                   </span>
+                  <Dropdown
+                    v-tooltip.top="'Ancho de la sección'"
+                    :model-value="sectionsStore.getSectionWidth(activePage, zone.ubicacion, sIdx)"
+                    :options="SECTION_WIDTH_OPTIONS"
+                    option-label="label"
+                    option-value="value"
+                    class="w-36 text-xs"
+                    @update:model-value="sectionsStore.setSectionWidth(activePage, zone.ubicacion, sIdx, $event)"
+                  >
+                    <template #option="{ option }">
+                      <div>
+                        <div class="flex items-center gap-2 text-sm">
+                          <i :class="option.icon" class="text-xs"></i>
+                          <span>{{ option.label }}</span>
+                        </div>
+                        <p class="text-xs text-secondary-400 mt-0.5">{{ option.descripcion }}</p>
+                      </div>
+                    </template>
+                  </Dropdown>
                   <Button
                     v-tooltip.top="'Mover arriba'"
                     icon="pi pi-angle-up"
@@ -519,6 +538,7 @@ import {
   ZONE_LABELS,
   PREDEFINED_BLOCKS,
   HOME_MODES,
+  SECTION_WIDTH_OPTIONS,
 } from '@/types/template-section.types'
 import type { SectionColumn, BlockConfig, HomeModo, ZoneKey } from '@/types/template-section.types'
 import { useAuthStore } from '@/stores/auth.store'
@@ -538,6 +558,7 @@ import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import ProgressSpinner from 'primevue/progressspinner'
 import Message from 'primevue/message'
+import Dropdown from 'primevue/dropdown'
 
 const sectionsStore = useTemplateSectionsStore()
 const authStore = useAuthStore()
