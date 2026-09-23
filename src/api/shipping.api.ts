@@ -14,15 +14,18 @@ import type {
   ServiceTypeRate
 } from '@/types/shipping.types'
 import { SUPPORTED_COUNTRIES } from '@/types/shipping.types'
+import { useStoreConfigStore } from '@/stores/store-config.store'
 
 // Mocks disabled — using real API endpoints
 const USE_MOCKS = false
 
 // Mapping from ISO country code to ubigeo codPais
+// codPais de la tabla `ubigeo`, que NO es el ISO ni el pais_id de `paises`.
 const COUNTRY_COD_PAIS: Record<CountryCode, number> = {
   PE: 1,
   EC: 58,
-  CO: 46
+  CO: 46,
+  CR: 53
 }
 
 // Mock: países habilitados para la tienda actual (normalmente viene del backend)
@@ -665,8 +668,14 @@ export const shippingApi = {
       return { success: true, data: enabledCountries }
     }
 
-    // No backend endpoint yet — return PE as default
-    return { success: true, data: SUPPORTED_COUNTRIES.filter(c => c.code === 'PE') }
+    // El país de la tienda (`GET /store-config/country`, ya cargado por
+    // DashboardLayout). Antes devolvía Perú fijo, así que una tienda de Costa
+    // Rica no podía crear ninguna zona de envío y su checkout se quedaba sin
+    // provincias. Sin config, Perú: es lo que hacía siempre.
+    const iso2 = useStoreConfigStore().countryConfig?.iso2 as CountryCode | undefined
+    const country = (iso2 && SUPPORTED_COUNTRIES.find(c => c.code === iso2)) || SUPPORTED_COUNTRIES[0]
+
+    return { success: true, data: [country] }
   },
 
   /**

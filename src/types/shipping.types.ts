@@ -2,7 +2,7 @@
 
 import { useStoreConfigStore } from '@/stores/store-config.store'
 
-export type CountryCode = 'PE' | 'EC' | 'CO'
+export type CountryCode = 'PE' | 'EC' | 'CO' | 'CR'
 
 export type DeliveryTimeUnit = 'days' | 'hours' | 'minutes'
 
@@ -147,6 +147,14 @@ export const SUPPORTED_COUNTRIES: Country[] = [
     currency: 'COP',
     currencySymbol: '$',
     levels: ['Departamento', 'Municipio', '']
+  },
+  {
+    code: 'CR',
+    name: 'Costa Rica',
+    flag: '🇨🇷',
+    currency: 'CRC',
+    currencySymbol: '₡',
+    levels: ['Provincia', 'Cantón', 'Distrito']
   }
 ]
 

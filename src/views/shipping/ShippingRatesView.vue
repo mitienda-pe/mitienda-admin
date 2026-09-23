@@ -211,7 +211,7 @@
             Precio de envío <span class="text-red-500">*</span>
           </label>
           <InputGroup>
-            <InputGroupAddon>{{ currentCountry?.currencySymbol }}</InputGroupAddon>
+            <InputGroupAddon>{{ storeCurrencySymbol }}</InputGroupAddon>
             <InputNumber
               v-model="editForm.price"
               :min="0"
@@ -374,7 +374,7 @@
             Precio de envío <span class="text-red-500">*</span>
           </label>
           <InputGroup>
-            <InputGroupAddon>{{ currentCountry?.currencySymbol }}</InputGroupAddon>
+            <InputGroupAddon>{{ storeCurrencySymbol }}</InputGroupAddon>
             <InputNumber
               v-model="addForm.price"
               :min="0"
@@ -453,7 +453,7 @@
               <div>
                 <label class="block text-xs text-gray-500 mb-1">Precio</label>
                 <InputGroup>
-                  <InputGroupAddon class="text-xs !px-2">{{ currentCountry?.currencySymbol }}</InputGroupAddon>
+                  <InputGroupAddon class="text-xs !px-2">{{ storeCurrencySymbol }}</InputGroupAddon>
                   <InputNumber
                     :modelValue="getServiceRateValue(st.service_type_code)"
                     @update:modelValue="setServiceRateValue(st.service_type_id, st.service_type_code, $event)"
@@ -519,6 +519,7 @@ import {
 import type { CountryCode, RateTreeNode, DeliveryTimeUnit, Location, ShippingServiceType } from '@/types/shipping.types'
 import { shippingServiceTypesApi, serviceRatesApi } from '@/api/shipping.api'
 import { useShippingConfigStore } from '@/stores/shipping-config.store'
+import { useStoreConfigStore } from '@/stores/store-config.store'
 
 // PrimeVue Components
 import TabView from 'primevue/tabview'
@@ -592,6 +593,10 @@ const timeUnitOptions = [
 ]
 
 // Computed
+// La tarifa se cobra en la moneda de la TIENDA, no en la del país de destino
+// (Altea Costa Rica cobra en dólares, no en colones).
+const storeCurrencySymbol = computed(() => useStoreConfigStore().currentCurrencySymbol)
+
 const countries = computed(() => store.enabledCountries)
 const currentCountry = computed(() => countries.value[activeTabIndex.value])
 

@@ -17,7 +17,8 @@ export const useShippingStore = defineStore('shipping', () => {
   const rates = ref<Record<CountryCode, RateTreeNode[]>>({
     PE: [],
     EC: [],
-    CO: []
+    CO: [],
+    CR: []
   })
   const locations = ref<Location[]>([])
   const currentCountry = ref<CountryCode>('PE')
