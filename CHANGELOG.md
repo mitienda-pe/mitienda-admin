@@ -3,6 +3,13 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.87.0] - 2026-09-23
+
+### Novedades
+
+- **plantillas:** elegir el ancho de cada fila en el builder ([`5d8def1`](https://github.com/mitienda-pe/mitienda-admin/commit/5d8def1b1c5885a3968351aa912644118bd81c14))
+- **productos:** tasa de IVA reducida por producto fuera de Perú ([`1c8ad60`](https://github.com/mitienda-pe/mitienda-admin/commit/1c8ad606b68f7865322dd76d54789d03a2d2cac9))
+
 ## [v2.86.0] - 2026-09-22
 
 ### Novedades
