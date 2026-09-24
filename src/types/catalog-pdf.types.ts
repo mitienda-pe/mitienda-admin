@@ -60,4 +60,5 @@ export interface CreateCatalogPayload {
   list_id?: number
 }
 
-export const CATALOG_MAX_PRODUCTS = 100
+/** Tope por defecto hasta que el pre-conteo trae el real (`max_products` del API). */
+export const CATALOG_MAX_PRODUCTS = 500

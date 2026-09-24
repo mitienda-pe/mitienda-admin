@@ -28,7 +28,7 @@ export const catalogPdfApi = {
 
   /**
    * Cuántos productos entran en un alcance, antes de generar. Permite avisar del
-   * truncado a 100 en el formulario en vez de descubrirlo con el PDF ya hecho.
+   * truncado al tope en el formulario en vez de descubrirlo con el PDF ya hecho.
    */
   async previewCount(
     params: {

@@ -5,7 +5,7 @@
       <h1 class="text-2xl font-bold text-gray-900">Catálogos PDF</h1>
       <p class="text-gray-500 mt-1">
         Genera un catálogo de productos en PDF (A4) para compartir con tus clientes.
-        Máximo {{ CATALOG_MAX_PRODUCTS }} productos por catálogo.
+        Máximo {{ maxProducts }} productos por catálogo.
       </p>
     </div>
 
@@ -98,7 +98,7 @@
               </div>
               <p v-if="errors.scope" class="text-danger text-xs mt-1">{{ errors.scope }}</p>
 
-              <!-- Pre-conteo del alcance: avisa del tope de 100 antes de generar -->
+              <!-- Pre-conteo del alcance: avisa del tope antes de generar -->
               <p v-if="countingScope" class="text-xs text-gray-400 mt-2">
                 <i class="pi pi-spinner pi-spin" /> Contando productos…
               </p>
@@ -380,9 +380,11 @@ async function loadProductLists() {
 }
 
 // ── Pre-conteo del alcance ───────────────────────────────────────
-// Se consulta al cambiar alcance o selección para avisar del tope de 100 antes
+// Se consulta al cambiar alcance o selección para avisar del tope antes
 // de generar. `countSeq` descarta respuestas que llegan fuera de orden.
 const scopeCount = ref<CatalogScopeCount | null>(null)
+// El tope lo decide el API; la constante solo cubre hasta el primer pre-conteo.
+const maxProducts = computed(() => scopeCount.value?.max_products ?? CATALOG_MAX_PRODUCTS)
 const countingScope = ref(false)
 
 // El conteo dice "con stock" cuando el catálogo excluye agotados, para que el
