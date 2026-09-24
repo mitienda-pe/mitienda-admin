@@ -673,8 +673,9 @@ function emptyZoneMessage(ubicacion: ZoneKey): string {
       ? arriba
       : 'Agrega una sección si quieres poner contenido propio debajo del catálogo.'
   }
-  if (ubicacion === 'descripcion') {
-    return 'Lo que agregues aquí aparece debajo de la descripción de todos tus productos. Ideal para textos de marca, garantía o envíos que hoy repites en cada ficha.'
+  if (ubicacion === 'pre_descripcion' || ubicacion === 'descripcion') {
+    const donde = ubicacion === 'pre_descripcion' ? 'encima de' : 'debajo de'
+    return `Lo que agregues aquí aparece ${donde} la descripción de todos tus productos. Ideal para textos de marca, garantía o envíos que hoy repites en cada ficha.`
   }
   return 'Arrastra bloques desde el panel o agrega una nueva sección.'
 }

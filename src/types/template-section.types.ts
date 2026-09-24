@@ -101,11 +101,12 @@ export const HOME_AUTO_BLOCKS: Record<'auto' | 'catalogo', { codigo: string; lab
 }
 
 /**
- * Zona de la página donde va una sección. `descripcion` solo existe en la
- * ficha de producto: se pinta pegada a la descripción larga, para textos que
- * el comerciante quiere en todas las fichas sin copiarlos producto por producto.
+ * Zona de la página donde va una sección. `pre_descripcion` y `descripcion`
+ * solo existen en la ficha de producto: se pintan pegadas a la descripción
+ * larga (encima y debajo), para textos que el comerciante quiere en todas las
+ * fichas sin copiarlos producto por producto.
  */
-export type ZoneKey = 'header' | 'descripcion' | 'footer'
+export type ZoneKey = 'header' | 'pre_descripcion' | 'descripcion' | 'footer'
 
 /**
  * Ancho de una fila. `contenido` la alinea con el catálogo (respeta «Ancho del
@@ -181,7 +182,7 @@ export const PAGE_DEFINITIONS: PageDefinition[] = [
   // storefront lee únicamente `header`.
   { id: 1, label: 'Home', zones: ['header', 'footer'] },
   { id: 2, label: 'Catálogo', zones: ['header', 'footer'] },
-  { id: 3, label: 'Detalle Producto', zones: ['header', 'descripcion', 'footer'] },
+  { id: 3, label: 'Detalle Producto', zones: ['header', 'pre_descripcion', 'descripcion', 'footer'] },
   { id: 4, label: 'Carrito', zones: ['header', 'footer'] },
   { id: 5, label: 'Checkout', zones: ['header', 'footer'] },
   { id: 6, label: 'Pago Confirmado', zones: ['header', 'footer'] },
@@ -209,6 +210,7 @@ export const COLUMN_LAYOUTS: ColumnLayout[] = [
 
 export const ZONE_LABELS: Record<ZoneKey, string> = {
   header: 'Arriba del contenido',
+  pre_descripcion: 'Arriba de la descripción',
   descripcion: 'Debajo de la descripción',
   footer: 'Abajo del contenido',
 }
