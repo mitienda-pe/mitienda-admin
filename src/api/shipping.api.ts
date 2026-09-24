@@ -450,8 +450,10 @@ export const shippingApi = {
       return { success: true, data }
     }
 
-    const COUNTRY_TO_COD: Record<string, number> = { PE: 1, EC: 58, CO: 46 }
-    const codPais = COUNTRY_TO_COD[countryCode] || 1
+    // Mismo mapa que el resto del módulo: una copia local sin Costa Rica hacía
+    // que el listado pidiera las tarifas de Perú y la tienda las viera vacías
+    // aunque se hubieran guardado bien.
+    const codPais = COUNTRY_COD_PAIS[countryCode] || 1
     const response = await apiClient.get(`/shipping-rates/tree?codPais=${codPais}`)
     if (response.data?.success) {
       return { success: true, data: response.data.data }
@@ -672,7 +674,15 @@ export const shippingApi = {
     // DashboardLayout). Antes devolvía Perú fijo, así que una tienda de Costa
     // Rica no podía crear ninguna zona de envío y su checkout se quedaba sin
     // provincias. Sin config, Perú: es lo que hacía siempre.
-    const iso2 = useStoreConfigStore().countryConfig?.iso2 as CountryCode | undefined
+    // La config del país la carga DashboardLayout, pero al refrescar esta
+    // pantalla puede no haber llegado todavía: sin esperarla, la tienda de Costa
+    // Rica caía a Perú y perdía sus tarifas de vista.
+    const storeConfig = useStoreConfigStore()
+    if (!storeConfig.countryConfig) {
+      await storeConfig.fetchCountryConfig()
+    }
+
+    const iso2 = storeConfig.countryConfig?.iso2 as CountryCode | undefined
     const country = (iso2 && SUPPORTED_COUNTRIES.find(c => c.code === iso2)) || SUPPORTED_COUNTRIES[0]
 
     return { success: true, data: [country] }
