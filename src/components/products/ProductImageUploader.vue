@@ -4,13 +4,18 @@ import Dialog from 'primevue/dialog'
 import FileUpload, { type FileUploadSelectEvent } from 'primevue/fileupload'
 import Button from 'primevue/button'
 import ProgressBar from 'primevue/progressbar'
+import SelectButton from 'primevue/selectbutton'
 import ProductImageCropper from './ProductImageCropper.vue'
+import ProductImageLibraryPicker from './ProductImageLibraryPicker.vue'
 import { getValidationRules, formatFileSize } from '@/config/image-validation.config'
+import type { GalleryImage } from '@/types/gallery-image.types'
+import type { ProductImage } from '@/types/product.types'
 
 interface Props {
   visible: boolean
   productId: number
   aspectRatio?: number
+  linkedImages?: ProductImage[]
 }
 
 const props = defineProps<Props>()
@@ -29,6 +34,22 @@ const showCropper = ref(false)
 const isUploading = ref(false)
 const uploadProgress = ref(0)
 const errorMessage = ref('')
+
+// 'upload' = subir un archivo nuevo; 'library' = vincular una imagen de Contenido › Imágenes
+const mode = ref<'upload' | 'library'>('upload')
+const modeOptions = [
+  { label: 'Subir nueva', value: 'upload', icon: 'pi pi-upload' },
+  { label: 'Elegir de la galería', value: 'library', icon: 'pi pi-images' },
+]
+const libraryImage = ref<GalleryImage | null>(null)
+const isLinking = ref(false)
+const isBusy = computed(() => isUploading.value || isLinking.value)
+
+const handleModeChange = (value: 'upload' | 'library' | null) => {
+  // SelectButton emite null al volver a pulsar la opción activa
+  if (value) mode.value = value
+  errorMessage.value = ''
+}
 
 const dialogVisible = computed({
   get: () => props.visible,
@@ -189,6 +210,32 @@ const handleUpload = async () => {
   }
 }
 
+const handleLink = async () => {
+  const image = libraryImage.value
+  if (!image || image.source === 'cloudflare') return
+
+  isLinking.value = true
+  errorMessage.value = ''
+
+  try {
+    const { productsApi } = await import('@/api/products.api')
+    const response = await productsApi.linkImage(props.productId, { id: image.id, source: image.source })
+
+    if (!response.success) {
+      throw new Error(response.message || 'No se pudo vincular la imagen')
+    }
+
+    emit('upload-success', { ...response.data, linked: true })
+    handleClose()
+  } catch (error: any) {
+    const data = error.response?.data
+    errorMessage.value = data?.messages?.error || data?.message || error.message || 'No se pudo vincular la imagen'
+    emit('upload-error', errorMessage.value)
+  } finally {
+    isLinking.value = false
+  }
+}
+
 const handleClose = () => {
   if (imagePreviewUrl.value) {
     URL.revokeObjectURL(imagePreviewUrl.value)
@@ -199,6 +246,9 @@ const handleClose = () => {
   errorMessage.value = ''
   uploadProgress.value = 0
   isUploading.value = false
+  isLinking.value = false
+  libraryImage.value = null
+  mode.value = 'upload'
   dialogVisible.value = false
 }
 </script>
@@ -208,15 +258,40 @@ const handleClose = () => {
     v-model:visible="dialogVisible"
     modal
     header="Añadir imagen al producto"
-    :style="{ width: '600px' }"
+    :style="{ width: mode === 'library' ? '760px' : '600px' }"
     :breakpoints="{ '768px': '95vw' }"
     :draggable="false"
-    :closable="!isUploading"
+    :closable="!isBusy"
     @hide="handleClose"
   >
     <div class="space-y-4">
+      <SelectButton
+        v-if="!selectedFile"
+        :modelValue="mode"
+        :options="modeOptions"
+        optionLabel="label"
+        optionValue="value"
+        :disabled="isBusy"
+        class="w-full"
+        @update:modelValue="handleModeChange"
+      >
+        <template #option="{ option }">
+          <i :class="option.icon" class="mr-2"></i>
+          <span>{{ option.label }}</span>
+        </template>
+      </SelectButton>
+
+      <!-- Vincular una imagen existente de la galería -->
+      <ProductImageLibraryPicker
+        v-if="mode === 'library'"
+        v-model:selected="libraryImage"
+        :linked-images="linkedImages"
+        :min-width="validationRules.minWidth"
+        :min-height="validationRules.minHeight"
+      />
+
       <!-- Step 1: File selection -->
-      <div v-if="!selectedFile" class="upload-area">
+      <div v-else-if="!selectedFile" class="upload-area">
         <FileUpload
           mode="basic"
           :accept="acceptedFormats"
@@ -298,7 +373,7 @@ const handleClose = () => {
       </div>
 
       <!-- Info Message -->
-      <div class="info-box">
+      <div v-if="mode === 'upload'" class="info-box">
         <i class="pi pi-info-circle"></i>
         <p class="text-sm">
           Las imágenes se suben a Cloudflare Images para mejor rendimiento y disponibilidad.
@@ -312,10 +387,18 @@ const handleClose = () => {
           label="Cancelar"
           severity="secondary"
           @click="handleClose"
-          :disabled="isUploading"
+          :disabled="isBusy"
         />
         <Button
-          v-if="selectedFile && !showCropper"
+          v-if="mode === 'library'"
+          label="Vincular imagen"
+          icon="pi pi-link"
+          @click="handleLink"
+          :disabled="!libraryImage || isLinking"
+          :loading="isLinking"
+        />
+        <Button
+          v-else-if="selectedFile && !showCropper"
           label="Subir imagen"
           icon="pi pi-upload"
           @click="handleUpload"

@@ -1047,7 +1047,7 @@
 
     <!-- Modal de subida de imagen -->
     <ProductImageUploader v-if="product" v-model:visible="showImageUploader" :product-id="product.id"
-      :aspect-ratio="cropperAspectRatio"
+      :aspect-ratio="cropperAspectRatio" :linked-images="product.images"
       @upload-success="handleImageUploadSuccess" @upload-error="handleImageUploadError" />
 
     <!-- Modal de subida de video -->
@@ -1960,8 +1960,8 @@ const handleDeleteOgImage = async () => {
 }
 
 // ── Image handlers ──
-const handleImageUploadSuccess = async () => {
-  toast.add({ severity: 'success', summary: 'Imagen subida', life: 3000 })
+const handleImageUploadSuccess = async (data?: { linked?: boolean }) => {
+  toast.add({ severity: 'success', summary: data?.linked ? 'Imagen vinculada' : 'Imagen subida', life: 3000 })
   showImageUploader.value = false
   if (product.value) await productsStore.fetchProduct(product.value.id)
 }
@@ -1976,10 +1976,10 @@ const handleImageDelete = async (imageId: number) => {
     const { productsApi } = await import('@/api/products.api')
     const response = await productsApi.deleteImage(product.value.id, imageId)
     if (response.success) {
-      toast.add({ severity: 'success', summary: 'Imagen eliminada', life: 3000 })
+      toast.add({ severity: 'success', summary: 'Imagen quitada del producto', life: 3000 })
       await productsStore.fetchProduct(product.value.id)
     } else {
-      throw new Error(response.message || 'Error al eliminar imagen')
+      throw new Error(response.message || 'Error al quitar la imagen')
     }
   } catch (error: any) {
     toast.add({ severity: 'error', summary: 'Error', detail: error.message, life: 5000 })

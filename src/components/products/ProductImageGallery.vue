@@ -41,10 +41,10 @@ const handleAddImage = () => {
 
 const handleDeleteImage = (image: ProductImage) => {
   confirm.require({
-    message: '¿Estás seguro de eliminar esta imagen?',
-    header: 'Confirmar eliminación',
+    message: '¿Quitar esta imagen del producto? Seguirá disponible en Contenido › Imágenes.',
+    header: 'Quitar imagen',
     icon: 'pi pi-exclamation-triangle',
-    acceptLabel: 'Eliminar',
+    acceptLabel: 'Quitar',
     rejectLabel: 'Cancelar',
     acceptClass: 'p-button-danger',
     accept: () => {
@@ -149,7 +149,7 @@ const onDragEnd = () => {
             <button
               type="button"
               class="delete-btn"
-              :aria-label="`Eliminar imagen ${index + 1}`"
+              :aria-label="`Quitar imagen ${index + 1}`"
               @click.stop="handleDeleteImage(image)"
             >
               <i class="pi pi-trash"></i>

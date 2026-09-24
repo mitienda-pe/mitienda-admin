@@ -475,7 +475,16 @@ export const productsApi = {
     return response.data
   },
 
-  // Eliminar imagen de producto
+  // Vincular una imagen que ya está en la galería (Contenido › Imágenes), sin subirla de nuevo
+  async linkImage(
+    productId: number,
+    image: { id: number; source: 'r2' | 'legacy' }
+  ): Promise<ApiResponse<any>> {
+    const response = await apiClient.post(`/products/${productId}/images/link`, image)
+    return response.data
+  },
+
+  // Quitar imagen del producto (solo la desvincula; el archivo sigue en la galería)
   async deleteImage(productId: number, imageId: number): Promise<ApiResponse<any>> {
     const response = await apiClient.delete(`/products/${productId}/images/${imageId}`)
     return response.data
