@@ -33,6 +33,10 @@ export interface PredefinedBlock {
   /** Etiqueta del campo `limite`. Nombrar lo que se cuenta evita el malentendido
    *  clásico: en `listas` el límite son productos, no listas. */
   limiteLabel?: string
+  /** El bloque no pinta una grilla, así que el campo `limite` no aplica. */
+  sinLimite?: boolean
+  /** Se elige UN producto (buscador), guardado como `config.items[0]`. */
+  productoUnico?: boolean
 }
 
 export const PREDEFINED_BLOCKS: PredefinedBlock[] = [
@@ -40,6 +44,7 @@ export const PREDEFINED_BLOCKS: PredefinedBlock[] = [
   { codigo: 'categorias', label: 'Categorías', icon: 'pi pi-th-large', descripcion: 'Cuadrícula de categorías', itemsType: 'categorias', itemsLabel: 'Categorías', limiteLabel: 'Cantidad de categorías' },
   { codigo: 'marcas', label: 'Marcas', icon: 'pi pi-tag', descripcion: 'Galería de marcas con logo', itemsType: 'marcas', itemsLabel: 'Marcas', limiteLabel: 'Cantidad de marcas' },
   { codigo: 'productos_destacados', label: 'Productos Destacados', icon: 'pi pi-star', descripcion: 'Los productos más populares (automático)', limiteLabel: 'Cantidad de productos' },
+  { codigo: 'producto', label: 'Producto destacado', icon: 'pi pi-shopping-bag', descripcion: 'Un solo producto en grande: imagen, precio y botón', sinLimite: true, productoUnico: true },
   { codigo: 'listas', label: 'Lista de Productos', icon: 'pi pi-list', descripcion: 'Selecciona una lista curada — puedes agregar varias', itemsType: 'listas', itemsLabel: 'Listas de Productos', limiteLabel: 'Productos por lista' },
   // `gamas` se retiró: el storefront no tiene componente para ese código, así que
   // la columna quedaba en blanco. Reincorporarlo exige primero su renderer.

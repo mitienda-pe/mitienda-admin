@@ -430,7 +430,7 @@
             :placeholder="getPredefinedBlock(blockConfigCode)?.label ?? 'Título por defecto'"
           />
           <p class="text-xs text-secondary-400 mt-1">
-            {{ blockConfigCode === 'listas' ? 'Dejar vacío para no mostrar título' : 'Dejar vacío para usar el título por defecto' }}
+            {{ ['listas', 'producto'].includes(blockConfigCode) ? 'Dejar vacío para no mostrar título' : 'Dejar vacío para usar el título por defecto' }}
           </p>
         </div>
 
@@ -465,7 +465,7 @@
         </div>
 
         <!-- Limit -->
-        <div>
+        <div v-if="!getPredefinedBlock(blockConfigCode)?.sinLimite">
           <label class="block text-sm font-medium text-secondary mb-1.5">
             {{ getPredefinedBlock(blockConfigCode)?.limiteLabel || 'Cantidad de items a mostrar' }}
           </label>
@@ -493,6 +493,39 @@
           />
           <p class="text-xs text-secondary-400 mt-1">
             0 = todas. Se ignora si abajo eliges listas específicas.
+          </p>
+        </div>
+
+        <!-- Producto (bloque `producto`): uno solo, con buscador -->
+        <div v-if="getPredefinedBlock(blockConfigCode)?.productoUnico">
+          <label class="block text-sm font-medium text-secondary mb-1.5">Producto</label>
+          <AutoComplete
+            v-model="blockProductQuery"
+            :suggestions="blockProductResults"
+            option-label="name"
+            placeholder="Buscar producto por nombre..."
+            class="w-full"
+            input-class="w-full"
+            dropdown
+            force-selection
+            :disabled="blockConfigItemsLoading"
+            @complete="searchBlockProducts"
+            @item-select="onBlockProductSelect"
+            @clear="blockConfigForm.items = []"
+          >
+            <template #option="{ option }">
+              <div class="flex items-center gap-2">
+                <img
+                  v-if="option.images?.[0]"
+                  :src="option.images[0].thumbnail || option.images[0].url"
+                  class="w-8 h-8 object-cover rounded"
+                />
+                <span class="text-sm">{{ option.name }}</span>
+              </div>
+            </template>
+          </AutoComplete>
+          <p class="text-xs text-secondary-400 mt-1">
+            Si el producto se despublica o se queda sin datos, el bloque no se muestra.
           </p>
         </div>
 
@@ -541,6 +574,7 @@ import {
   SECTION_WIDTH_OPTIONS,
 } from '@/types/template-section.types'
 import type { SectionColumn, BlockConfig, HomeModo, ZoneKey } from '@/types/template-section.types'
+import type { Product } from '@/types/product.types'
 import { useAuthStore } from '@/stores/auth.store'
 import HomeModePreview from '@/components/content/HomeModePreview.vue'
 import { catalogApi } from '@/api/catalog.api'
@@ -553,6 +587,7 @@ import Dialog from 'primevue/dialog'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import MultiSelect from 'primevue/multiselect'
+import AutoComplete from 'primevue/autocomplete'
 import ColorPicker from 'primevue/colorpicker'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
@@ -685,9 +720,16 @@ function clearDragOver(key: string) {
 
 function handleDrop(ubicacion: ZoneKey, sIdx: number, cIdx: number) {
   if (!draggedBlock.value) return
-  sectionsStore.assignBlock(activePage.value, ubicacion, sIdx, cIdx, draggedBlock.value)
+  const codigo = draggedBlock.value
+  sectionsStore.assignBlock(activePage.value, ubicacion, sIdx, cIdx, codigo)
   draggedBlock.value = null
   dragOverKey.value = null
+  // Un bloque de producto sin producto elegido no se pinta en la tienda: se abre
+  // la configuración de una vez para que no quede una columna vacía sin aviso.
+  if (getPredefinedBlock(codigo)?.productoUnico) {
+    const col = zoneSections(ubicacion)[sIdx]?.[cIdx]
+    if (col) openBlockConfig(ubicacion, sIdx, cIdx, col)
+  }
 }
 
 function colSlotClass(col: SectionColumn, ubicacion: ZoneKey, sIdx: number, cIdx: number): string {
@@ -790,6 +832,10 @@ const blockConfigCode = ref('')
 const blockConfigForm = ref<BlockConfig>({ titulo: '', subtitulo: '', bg_color: '', limite: 0, limite_listas: 0, items: [] })
 const blockConfigItems = ref<{ id: number; name: string }[]>([])
 const blockConfigItemsLoading = ref(false)
+// Picker del bloque `producto`: el AutoComplete guarda el objeto elegido (o el
+// texto tipeado mientras se busca).
+const blockProductQuery = ref<Product | string | null>(null)
+const blockProductResults = ref<Product[]>([])
 
 // Two-way hex binding for ColorPicker (expects hex without #)
 const blockConfigBgHex = computed({
@@ -802,7 +848,11 @@ function blockConfigSummary(col: SectionColumn): string {
   if (col.config?.titulo) parts.push(`"${col.config.titulo}"`)
   if (col.config?.limite) parts.push(`máx ${col.config.limite}`)
   if (col.config?.limite_listas) parts.push(`${col.config.limite_listas} listas`)
-  if (col.config?.items?.length) parts.push(`${col.config.items.length} seleccionados`)
+  if (getPredefinedBlock(col.bloque_codigo ?? '')?.productoUnico) {
+    parts.push(col.config?.items?.length ? '1 producto' : 'Sin producto — click para elegir')
+  } else if (col.config?.items?.length) {
+    parts.push(`${col.config.items.length} seleccionados`)
+  }
   if (col.config?.bg_color) parts.push(col.config.bg_color)
   return parts.length ? parts.join(' · ') : 'Bloque predefinido — click para configurar'
 }
@@ -824,6 +874,12 @@ function openBlockConfig(ubicacion: ZoneKey, sIdx: number, cIdx: number, col: Se
 
 async function loadBlockConfigItems(bloqueCodigo: string) {
   const blockDef = getPredefinedBlock(bloqueCodigo)
+  blockProductQuery.value = null
+  blockProductResults.value = []
+  if (blockDef?.productoUnico) {
+    await loadSelectedBlockProduct()
+    return
+  }
   if (!blockDef?.itemsType) {
     blockConfigItems.value = []
     return
@@ -877,6 +933,34 @@ async function loadBlockConfigItems(bloqueCodigo: string) {
   } finally {
     blockConfigItemsLoading.value = false
   }
+}
+
+// Muestra en el buscador el producto ya guardado (la config solo tiene el id).
+async function loadSelectedBlockProduct() {
+  const id = Number(blockConfigForm.value.items?.[0])
+  if (!id) return
+  blockConfigItemsLoading.value = true
+  try {
+    const res = await productsApi.getProducts({ ids: [id], limit: 1 })
+    blockProductQuery.value = res.data?.[0] ?? null
+  } catch (e) {
+    console.error('Error loading block product:', e)
+  } finally {
+    blockConfigItemsLoading.value = false
+  }
+}
+
+async function searchBlockProducts(event: { query: string }) {
+  try {
+    const res = await productsApi.getProducts({ search: event.query || undefined, limit: 10 })
+    blockProductResults.value = res.data || []
+  } catch {
+    blockProductResults.value = []
+  }
+}
+
+function onBlockProductSelect(event: { value: Product }) {
+  blockConfigForm.value.items = event.value?.id ? [Number(event.value.id)] : []
 }
 
 function saveBlockConfig() {
