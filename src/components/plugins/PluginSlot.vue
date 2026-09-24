@@ -8,6 +8,10 @@ const pluginComponents: Record<string, Record<string, LazyComponent>> = {
     'backoffice-settings': () => import('./curtain-calculator/BackofficeSettings.vue'),
     'backoffice-order-item': () => import('./curtain-calculator/BackofficeOrderItem.vue'),
   },
+  'cake-builder': {
+    'backoffice-settings': () => import('./cake-builder/BackofficeSettings.vue'),
+    'backoffice-order-item': () => import('./cake-builder/BackofficeOrderItem.vue'),
+  },
   'care-routines': {
     'backoffice-settings': () => import('./care-routines/CareRoutinesSettings.vue'),
   },
