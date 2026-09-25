@@ -271,6 +271,15 @@ export interface OrderIntegration {
    * sincronizada (reenviar lo sincronizado duplica el pedido en el WMS).
    */
   can_retry?: boolean
+  /**
+   * Si se puede rehacer la orden entera en el ERP, no solo completar lo que
+   * faltó. Es otra operación que `can_retry`, no una versión más fuerte: sirve
+   * cuando el comercio anuló el documento del lado del ERP y por eso está
+   * disponible incluso sobre una orden sincronizada, que es donde `can_retry`
+   * se corta. Sobre una venta vigente duplica la contabilidad, así que el
+   * backend exige un motivo.
+   */
+  can_force_resend?: boolean
 }
 
 export interface OrderIntegrationAttempt {

@@ -1138,6 +1138,66 @@ const retryingProvider = ref<string | null>(null)
 /** Cuándo volver a mirar, en segundos desde que se encoló. */
 const RETRY_POLL_SECONDS = [6, 15, 30, 50]
 
+/**
+ * Reenvío forzado: rehace la orden entera en el ERP en vez de completar lo que
+ * faltó. No es un "reintentar más fuerte" — es para cuando el comercio anuló el
+ * documento del otro lado y hay que emitir uno nuevo. Sobre una venta vigente
+ * duplica la contabilidad, así que va en su propio diálogo y pide motivo.
+ */
+const showForceDialog = ref(false)
+const forceIntegration = ref<OrderIntegration | null>(null)
+const forceReason = ref('')
+const forceError = ref('')
+const isForcing = ref(false)
+
+/** Mismo mínimo que exige el backend: un motivo de trámite no sirve de auditoría. */
+const FORCE_REASON_MIN = 10
+
+const canSubmitForce = computed(() => forceReason.value.trim().length >= FORCE_REASON_MIN)
+
+const openForceResend = (integration: OrderIntegration) => {
+  forceIntegration.value = integration
+  forceReason.value = ''
+  forceError.value = ''
+  showForceDialog.value = true
+}
+
+const handleForceResend = async () => {
+  const integration = forceIntegration.value
+  if (!integration || !canSubmitForce.value) return
+
+  isForcing.value = true
+  forceError.value = ''
+  const intentosAntes = order.value?.integration_attempts?.length ?? 0
+
+  try {
+    const response = await ordersApi.retryIntegration(orderId, integration.provider, {
+      force: true,
+      reason: forceReason.value.trim()
+    })
+    if (!response.success) throw new Error(response.message || 'No se pudo encolar el reenvío')
+
+    showForceDialog.value = false
+    retryingProvider.value = integration.provider
+    toast.add({
+      severity: 'warn',
+      summary: 'Reenvío forzado encolado',
+      detail: response.message || `Se está registrando la venta completa en ${integration.name}.`,
+      life: 6000
+    })
+
+    await esperarResultadoDelReenvio(intentosAntes)
+  } catch (err: any) {
+    forceError.value = err.response?.data?.messages?.error
+      || err.response?.data?.message
+      || err.message
+      || 'No se pudo reenviar la orden'
+  } finally {
+    isForcing.value = false
+    retryingProvider.value = null
+  }
+}
+
 const handleRetryIntegration = (integration: OrderIntegration) => {
   confirm.require({
     header: `Reenviar a ${integration.name}`,
@@ -2445,6 +2505,16 @@ const handleDebugPayments = async () => {
                           ></i>
                           {{ retryingProvider === integration.provider ? 'Reenviando…' : 'Reintentar' }}
                         </button>
+                        <button
+                          v-if="integration.can_force_resend"
+                          type="button"
+                          class="text-xs text-amber-700 hover:underline disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                          :disabled="retryingProvider !== null"
+                          @click="openForceResend(integration)"
+                        >
+                          <i class="pi pi-replay text-[10px]"></i>
+                          Reenviar desde cero
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -3094,6 +3164,87 @@ const handleDebugPayments = async () => {
           :loading="isVoiding"
           :disabled="!canSubmitVoid"
           @click="handleVoidOrder"
+        />
+      </template>
+    </Dialog>
+
+    <Dialog
+      v-model:visible="showForceDialog"
+      modal
+      header="Reenviar desde cero"
+      :style="{ width: '32rem' }"
+      :breakpoints="{ '640px': '90vw' }"
+      :closable="!isForcing"
+    >
+      <div class="space-y-4">
+        <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <p class="text-sm font-semibold text-amber-800 mb-1">
+            <i class="pi pi-exclamation-triangle mr-1"></i>
+            Esto registra la venta otra vez, completa
+          </p>
+          <ul class="text-sm text-amber-700 list-disc pl-5 space-y-0.5">
+            <li>
+              Se vuelven a enviar <strong>todos</strong> los pasos: cliente, venta,
+              inventario y cobranza.
+            </li>
+            <li>
+              Si el documento anterior <strong>sigue vigente</strong> en
+              {{ forceIntegration?.name }}, va a quedar <strong>duplicado</strong> en la
+              contabilidad.
+            </li>
+            <li>
+              Usalo solo si ya verificaste que el documento fue
+              <strong>anulado o eliminado</strong> del lado del ERP.
+            </li>
+          </ul>
+        </div>
+
+        <div
+          v-if="forceIntegration?.document"
+          class="rounded-lg border border-secondary-200 bg-secondary-50 p-3 text-sm text-secondary-700"
+        >
+          Documento que tenemos registrado:
+          <strong>{{ forceIntegration.document }}</strong>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-secondary-700 mb-2">
+            Motivo <span class="text-red-500">*</span>
+          </label>
+          <Textarea
+            v-model="forceReason"
+            rows="3"
+            maxlength="255"
+            class="w-full"
+            placeholder="Ej: el documento 00025002 fue anulado en Contanet el 12/09, hay que emitir uno nuevo"
+            :disabled="isForcing"
+          />
+          <p class="text-xs text-gray-500 mt-1">
+            Queda en el historial de intentos junto con tu usuario. Mínimo
+            {{ FORCE_REASON_MIN }} caracteres.
+          </p>
+        </div>
+
+        <p v-if="forceError" class="text-sm text-red-600">
+          <i class="pi pi-times-circle mr-1"></i>{{ forceError }}
+        </p>
+      </div>
+
+      <template #footer>
+        <Button
+          label="Cancelar"
+          severity="secondary"
+          text
+          :disabled="isForcing"
+          @click="showForceDialog = false"
+        />
+        <Button
+          label="Reenviar desde cero"
+          icon="pi pi-replay"
+          severity="warning"
+          :loading="isForcing"
+          :disabled="!canSubmitForce"
+          @click="handleForceResend"
         />
       </template>
     </Dialog>

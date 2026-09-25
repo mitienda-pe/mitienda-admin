@@ -633,9 +633,13 @@ export const ordersApi = {
    */
   async retryIntegration(
     orderId: number,
-    provider: string
-  ): Promise<ApiResponse<{ order_id: number; provider: string; name: string }>> {
-    const response = await apiClient.post(`/orders/${orderId}/integrations/${provider}/retry`)
+    provider: string,
+    options: { force?: boolean; reason?: string } = {}
+  ): Promise<ApiResponse<{ order_id: number; provider: string; name: string; forced: boolean }>> {
+    const response = await apiClient.post(
+      `/orders/${orderId}/integrations/${provider}/retry`,
+      options.force ? { force: true, reason: options.reason } : {}
+    )
     return {
       success: response.data?.success === true,
       message: response.data?.message,
