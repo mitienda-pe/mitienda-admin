@@ -108,6 +108,53 @@
         </div>
       </div>
 
+      <!-- Products Picker (varios) -->
+      <div v-else-if="field.type === 'products-picker'">
+        <AutoComplete
+          :modelValue="productsQuery"
+          :suggestions="productSuggestions"
+          optionLabel="producto_nombre"
+          :placeholder="'Buscar y agregar producto...'"
+          @complete="searchProducts($event)"
+          @item-select="addProduct(field.key, $event)"
+          class="w-full"
+          inputClass="w-full"
+        >
+          <template #option="{ option }">
+            <div class="flex items-center gap-2">
+              <img
+                v-if="option.producto_imagen"
+                :src="option.producto_imagen"
+                class="h-8 w-8 rounded object-cover"
+                alt=""
+              />
+              <div class="h-8 w-8 rounded bg-gray-200" v-else></div>
+              <div>
+                <div class="text-sm font-medium">{{ option.producto_nombre }}</div>
+                <div class="text-xs text-gray-500">SKU: {{ option.producto_sku }} · {{ currencySymbol }} {{ option.producto_precio }}</div>
+              </div>
+            </div>
+          </template>
+        </AutoComplete>
+        <div v-if="(modelValue[field.key] || []).length > 0" class="mt-2 flex flex-wrap gap-1.5">
+          <span
+            v-for="id in modelValue[field.key]"
+            :key="id"
+            class="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-xs text-gray-700"
+          >
+            {{ productNames[id] || `ID ${id}` }}
+            <button
+              type="button"
+              class="text-gray-400 hover:text-red-600"
+              title="Quitar"
+              @click="removeProduct(field.key, id)"
+            >
+              <i class="pi pi-times text-[10px]"></i>
+            </button>
+          </span>
+        </div>
+      </div>
+
       <!-- Category Picker -->
       <Dropdown
         v-else-if="field.type === 'category-picker'"
@@ -373,6 +420,59 @@ const selectProduct = (fieldKey: string, event: { value: any }) => {
   productDisplayValues.value[fieldKey] = product.producto_nombre
   updateField(fieldKey, product.producto_id)
 }
+
+// --- Products picker (varios) ---
+const productsQuery = ref('')
+const productNames = ref<Record<number, string>>({})
+
+const addProduct = (fieldKey: string, event: { value: any }) => {
+  const product = event.value
+  const id = Number(product.producto_id)
+  productNames.value[id] = product.producto_nombre
+  productsQuery.value = ''
+  const current: number[] = (props.modelValue[fieldKey] || []).map(Number)
+  if (!current.includes(id)) updateField(fieldKey, [...current, id])
+}
+
+const removeProduct = (fieldKey: string, id: number) => {
+  const current: number[] = (props.modelValue[fieldKey] || []).map(Number)
+  updateField(fieldKey, current.filter((x) => x !== Number(id)))
+}
+
+const productsPickerKeys = computed(() =>
+  (schema.value || []).filter((f) => f.type === 'products-picker').map((f) => f.key)
+)
+
+// Las condiciones viejas guardan `product_id` (uno); al editarlas pasan a
+// `product_ids` para que el selector las muestre y el guardado no deje ambas.
+watch(
+  () => props.modelValue,
+  (value) => {
+    if (!productsPickerKeys.value.includes('product_ids')) return
+    if (value.product_id === undefined || value.product_ids !== undefined) return
+    const { product_id, ...rest } = value
+    emit('update:modelValue', { ...rest, product_ids: [Number(product_id)] })
+  },
+  { immediate: true }
+)
+
+// Nombres de los productos ya guardados (solo llegan ids).
+watch(
+  () => productsPickerKeys.value.flatMap((k) => (props.modelValue[k] || []).map(Number)),
+  async (ids) => {
+    const missing = ids.filter((id: number) => !productNames.value[id])
+    if (missing.length === 0) return
+    try {
+      const response = await productsApi.getProducts({ ids: missing, limit: missing.length })
+      for (const p of response.data || []) {
+        productNames.value[Number(p.id)] = p.name
+      }
+    } catch {
+      // sin nombres se muestran los ids
+    }
+  },
+  { immediate: true }
+)
 
 // --- Categories ---
 const categories = ref<{ label: string; value: number }[]>([])

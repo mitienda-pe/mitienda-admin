@@ -280,6 +280,7 @@ import { productsApi } from '@/api/products.api'
 import { usePromotionV2Store } from '@/stores/promotion-v2.store'
 import { useFormatters } from '@/composables/useFormatters'
 import type { PromotionV2Condition } from '@/types/promotion-v2.types'
+import { conditionProductIds } from '@/config/promotion-v2-config-schemas'
 
 const { currencySymbol } = useFormatters()
 
@@ -360,16 +361,10 @@ const productConditions = computed(() =>
   props.conditions.filter(c => c.type === 'cart_contains_product')
 )
 
-function conditionProductIds(condition: PromotionV2Condition): number[] {
-  const config = condition.config || {}
-  const ids = config.product_ids ?? (config.product_id ? [config.product_id] : [])
-  return (ids as unknown[]).map(Number)
-}
-
 const uncoveredIds = computed<number[]>(() => {
   if (isGiftEffect.value) return []
   return productIds.value.filter(id =>
-    productConditions.value.some(c => !conditionProductIds(c).includes(Number(id)))
+    productConditions.value.some(c => !conditionProductIds(c.config).includes(Number(id)))
   )
 })
 
@@ -386,7 +381,7 @@ async function addUncoveredToConditions() {
   isSyncingCondition.value = true
   try {
     for (const condition of productConditions.value) {
-      const current = conditionProductIds(condition)
+      const current = conditionProductIds(condition.config)
       const missing = productIds.value.map(Number).filter(id => !current.includes(id))
       if (missing.length === 0) continue
       const { product_id: _legacy, ...config } = condition.config || {}

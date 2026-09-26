@@ -14,6 +14,7 @@ export type FieldType =
   | 'text'
   | 'textarea'
   | 'product-picker'
+  | 'products-picker' // varios productos → array de ids
   | 'category-picker'
   | 'brand-picker'
   | 'gamma-picker'
@@ -84,12 +85,17 @@ const activationSchemas: Record<string, ConfigFieldSchema[]> = {
 const conditionSchemas: Record<string, ConfigFieldSchema[]> = {
   none: [],
   customer_registered: [],
+  // Una condición = "al menos uno de estos productos". El motor combina las
+  // condiciones con AND: tres condiciones de un producto cada una exigen los tres
+  // juntos en el carrito (promo 1437, tienda 21335). Por eso aquí se eligen
+  // varios productos en vez de agregar una condición por producto.
   cart_contains_product: [
     {
-      key: 'product_id',
-      label: 'Producto',
-      type: 'product-picker',
+      key: 'product_ids',
+      label: 'Productos',
+      type: 'products-picker',
       required: true,
+      helpText: 'Basta con que el carrito tenga uno de estos productos.',
     },
     {
       key: 'quantity',
@@ -98,6 +104,7 @@ const conditionSchemas: Record<string, ConfigFieldSchema[]> = {
       required: true,
       min: 1,
       defaultValue: 1,
+      helpText: 'Unidades de un mismo producto de la lista.',
     },
   ],
   cart_contains_category: [
@@ -468,6 +475,16 @@ export function isKnownType(category: RuleCategory, type: string): boolean {
   return allSchemas[category]?.[type] !== undefined
 }
 
+/**
+ * Productos de una condición `cart_contains_product`. Las creadas antes del
+ * selector múltiple guardan `product_id` (uno solo); el motor acepta ambas.
+ */
+export function conditionProductIds(config: Record<string, any> | null | undefined): number[] {
+  if (!config) return []
+  const ids = config.product_ids ?? (config.product_id ? [config.product_id] : [])
+  return (ids as unknown[]).map(Number).filter((id) => id > 0)
+}
+
 // --- HUMAN-READABLE FORMATTERS ---
 
 /**
@@ -503,8 +520,12 @@ export function formatConfigHuman(
       return `Monto mínimo: ${sym} ${formatSoles(config.amount)}`
     case 'cart_minimum_quantity':
       return `Cantidad mínima: ${config.quantity} producto(s)`
-    case 'cart_contains_product':
-      return `Producto ID: ${config.product_id}, Cant: ${config.quantity ?? 1}`
+    case 'cart_contains_product': {
+      const ids = conditionProductIds(config)
+      return ids.length === 1
+        ? `Producto ID: ${ids[0]}, Cant: ${config.quantity ?? 1}`
+        : `Cualquiera de ${ids.length} productos, Cant: ${config.quantity ?? 1}`
+    }
     case 'cart_contains_category':
       return `Categoría ID: ${config.category_id}, Cant: ${config.quantity ?? 1}`
     case 'cart_contains_brand':

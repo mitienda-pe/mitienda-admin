@@ -83,6 +83,28 @@
             @delete="id => store.removeRule(promotion!.promotions_v2_id, 'conditions', id)"
           />
 
+          <div
+            v-if="productConditions.length > 1"
+            class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+          >
+            <p>
+              <i class="pi pi-exclamation-triangle mr-1"></i>
+              Hay {{ productConditions.length }} condiciones "Carrito contiene producto" y
+              <strong>todas deben cumplirse a la vez</strong>: la promoción solo se aplica si el
+              carrito trae un producto de cada una. Si basta con cualquiera de ellos, únelas en
+              una sola condición.
+            </p>
+            <button
+              type="button"
+              class="mt-2 inline-flex items-center rounded-md bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-900 hover:bg-amber-200 disabled:opacity-50"
+              :disabled="isMergingConditions"
+              @click="mergeProductConditions"
+            >
+              <i class="pi mr-1" :class="isMergingConditions ? 'pi-spinner pi-spin' : 'pi-link'"></i>
+              Unir en una condición
+            </button>
+          </div>
+
           <!-- Effects -->
           <RuleSection
             title="Efectos"
@@ -327,6 +349,7 @@ import { useFormatters } from '@/composables/useFormatters'
 import RuleSection from '@/components/promotions-v2/RuleSection.vue'
 import CouponsSection from '@/components/promotions-v2/CouponsSection.vue'
 import EffectProductsSection from '@/components/promotions-v2/EffectProductsSection.vue'
+import { conditionProductIds } from '@/config/promotion-v2-config-schemas'
 import {
   STATUS_META,
   ACTIVATION_TYPE_LABELS,
@@ -373,6 +396,37 @@ const PRODUCT_EFFECT_TYPES = ['percentage_discount_product', 'fixed_discount_pro
 const productEffects = computed(() =>
   (promotion.value?.effects || []).filter((e: any) => PRODUCT_EFFECT_TYPES.includes(e.type))
 )
+
+// Varias condiciones de producto se evalúan con AND: exigen un producto de cada
+// una en el mismo carrito. Casi siempre el vendedor quiso "cualquiera de estos"
+// (promo 1437, tienda 21335: la vitrina rebajaba y el checkout cobraba lista).
+const productConditions = computed(() =>
+  (promotion.value?.conditions || []).filter((c: any) => c.type === 'cart_contains_product')
+)
+
+const isMergingConditions = ref(false)
+
+async function mergeProductConditions() {
+  const [first, ...rest] = productConditions.value
+  if (!first || rest.length === 0) return
+  const promotionId = promotion.value!.promotions_v2_id
+  const productIds = [...new Set(productConditions.value.flatMap((c: any) => conditionProductIds(c.config)))]
+  const quantity = Math.min(...productConditions.value.map((c: any) => Number(c.config?.quantity ?? 1)))
+  isMergingConditions.value = true
+  try {
+    const config = { ...(first.config || {}) }
+    delete config.product_id
+    await store.editRule(promotionId, 'conditions', first.condition_id, {
+      type: first.type,
+      config: { ...config, quantity, product_ids: productIds },
+    })
+    for (const condition of rest) {
+      await store.removeRule(promotionId, 'conditions', condition.condition_id)
+    }
+  } finally {
+    isMergingConditions.value = false
+  }
+}
 
 const showEditDialog = ref(false)
 const showDeleteDialog = ref(false)
