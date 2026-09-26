@@ -53,10 +53,22 @@ export interface UserModule {
   level?: ModuleLevel
 }
 
+/** Sucursal/almacén de la tienda (`tiendasdirecciones`). */
+export interface StoreBranch {
+  id: number
+  name: string
+}
+
 export interface StoreUserDetail {
   user: StoreUser
   modules: UserModule[]
   available_modules: UserModule[]
+  /**
+   * Sucursales asignadas. **Vacío = puede operar en TODAS**, que es el default
+   * de la plataforma; no significa "en ninguna".
+   */
+  branches?: StoreBranch[]
+  available_branches?: StoreBranch[]
 }
 
 export interface InviteUserData {
@@ -66,6 +78,8 @@ export interface InviteUserData {
   module_ids: number[]
   /** modulo_id => nivel. Lo que no venga se concede en EDICION. */
   module_levels?: Record<number, ModuleLevel>
+  /** Sucursales en las que puede operar. Vacío u omitido = todas. */
+  branch_ids?: number[]
   /** Rol con el que se invita. Por omisión, invitado. */
   tipo_id?: number
 }

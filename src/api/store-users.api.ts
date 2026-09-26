@@ -2,6 +2,7 @@ import apiClient from './axios'
 import type { ApiResponse } from '@/types/api.types'
 import type {
   ModuleLevel,
+  StoreBranch,
   StoreUser,
   StoreUserDetail,
   UserModule,
@@ -25,6 +26,12 @@ export const storeUsersApi = {
     return response.data
   },
 
+  /** Sucursales de la tienda, para el selector de alcance al invitar. */
+  async getStoreBranches(): Promise<ApiResponse<StoreBranch[]>> {
+    const response = await apiClient.get('/store-users/branches')
+    return response.data
+  },
+
   async inviteUser(data: InviteUserData): Promise<ApiResponse<InviteResult>> {
     const response = await apiClient.post('/store-users/invite', data)
     return response.data
@@ -38,6 +45,20 @@ export const storeUsersApi = {
     const response = await apiClient.put(`/store-users/${userId}/modules`, {
       module_ids: moduleIds,
       module_levels: moduleLevels
+    })
+    return response.data
+  },
+
+  /**
+   * Alcance por sucursal. Lista vacía = le devuelve todas las sucursales, que
+   * es la única forma de quitar la restricción.
+   */
+  async updateBranches(
+    userId: number,
+    branchIds: number[]
+  ): Promise<ApiResponse<{ branches: StoreBranch[] }>> {
+    const response = await apiClient.put(`/store-users/${userId}/branches`, {
+      branch_ids: branchIds
     })
     return response.data
   },

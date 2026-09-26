@@ -23,4 +23,11 @@ export interface UserPermissions {
    * versión no lo trae; ausente equivale a "ninguno en solo lectura".
    */
   readonly_modules?: string[]
+  /**
+   * Sucursales en las que el usuario puede operar, o **null si no está
+   * acotado** (el caso normal: ve todas). Un array vacío no es lo mismo que
+   * null y no debería llegar nunca; si llegara, el store lo trata como null
+   * para no encerrar a nadie.
+   */
+  branch_ids?: number[] | null
 }

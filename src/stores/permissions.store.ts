@@ -31,6 +31,12 @@ export const usePermissionsStore = defineStore('permissions', () => {
   const moduleCodes = ref<string[]>([])
   /** Módulos concedidos en solo lectura: se ven, no se modifican. */
   const readOnlyCodes = ref<string[]>([])
+  /**
+   * Sucursales en las que el usuario puede operar. **null = sin restricción**,
+   * que es el caso normal. No usar array vacío para eso: cualquier `includes()`
+   * sobre él dejaría al usuario sin acceso a ninguna sucursal.
+   */
+  const branchIds = ref<number[] | null>(null)
   const isLoaded = ref(false)
   const isLoading = ref(false)
 
@@ -76,6 +82,21 @@ export const usePermissionsStore = defineStore('permissions', () => {
     return canEdit(code)
   }
 
+  /** ¿Está acotado a un subconjunto de sucursales? */
+  const isBranchScoped = computed(() => branchIds.value !== null)
+
+  /**
+   * ¿Puede operar en esta sucursal?
+   *
+   * Falla abierto igual que el resto: sin alcance definido, todas valen. Los
+   * selectores de almacén ya vienen filtrados por la API — esto sirve para
+   * decidir avisos y estados vacíos, no como barrera.
+   */
+  function canUseBranch(branchId: number): boolean {
+    if (branchIds.value === null) return true
+    return branchIds.value.includes(branchId)
+  }
+
   /**
    * ¿Puede entrar a esta ruta? Las rutas no mapeadas a ningún módulo quedan
    * accesibles (mismo criterio fail-open que el gating por plan).
@@ -99,6 +120,9 @@ export const usePermissionsStore = defineStore('permissions', () => {
     isOwner.value = data.is_owner
     moduleCodes.value = data.modules ?? []
     readOnlyCodes.value = data.readonly_modules ?? []
+    // Un array vacío se normaliza a null: "sin restricción". La API no debería
+    // mandarlo, pero tratarlo como una lista cerrada encerraría al usuario.
+    branchIds.value = data.branch_ids && data.branch_ids.length > 0 ? data.branch_ids : null
     isLoaded.value = true
   }
 
@@ -138,6 +162,7 @@ export const usePermissionsStore = defineStore('permissions', () => {
     isOwner.value = false
     moduleCodes.value = []
     readOnlyCodes.value = []
+    branchIds.value = null
     isLoaded.value = false
     localStorage.removeItem(STORAGE_KEY)
   }
@@ -147,6 +172,7 @@ export const usePermissionsStore = defineStore('permissions', () => {
     isOwner,
     moduleCodes,
     readOnlyCodes,
+    branchIds,
     isLoaded,
     isLoading,
     grantedModules,
@@ -154,6 +180,8 @@ export const usePermissionsStore = defineStore('permissions', () => {
     hasModule,
     canEdit,
     canEditRoute,
+    isBranchScoped,
+    canUseBranch,
     canAccessRoute,
     fetchPermissions,
     restorePermissions,

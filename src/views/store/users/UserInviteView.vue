@@ -7,7 +7,7 @@ import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Checkbox from 'primevue/checkbox'
 import RadioButton from 'primevue/radiobutton'
-import type { ModuleLevel, UserModule } from '@/types/store-users.types'
+import type { ModuleLevel, StoreBranch, UserModule } from '@/types/store-users.types'
 import { MODULE_LEVEL, STORE_ROLE } from '@/types/store-users.types'
 
 const route = useRoute()
@@ -29,6 +29,33 @@ const selectedModuleIds = ref<Set<number>>(new Set())
  * alguien lo haya elegido.
  */
 const moduleLevels = ref<Record<number, ModuleLevel>>({})
+/**
+ * Alcance por sucursal. **Set vacío = todas**, que es el default de la
+ * plataforma y lo que ve una tienda de un solo local. No es "ninguna".
+ */
+const selectedBranchIds = ref<Set<number>>(new Set())
+const availableBranches = ref<StoreBranch[]>([])
+
+/**
+ * La tarjeta solo aparece con 2 o más sucursales: con una sola, acotar no
+ * significa nada y el comerciante se preguntaría para qué está.
+ */
+const showBranchScope = computed(() => availableBranches.value.length > 1)
+const branchScopeIsOpen = computed(() => selectedBranchIds.value.size === 0)
+
+function toggleBranch(id: number) {
+  const next = new Set(selectedBranchIds.value)
+  if (next.has(id)) {
+    next.delete(id)
+  } else {
+    next.add(id)
+  }
+  selectedBranchIds.value = next
+}
+
+function clearBranchScope() {
+  selectedBranchIds.value = new Set()
+}
 /**
  * Rol con el que se invita. Un administrador ve todos los módulos del plan y no
  * usa `usuariosmodulos`, así que al elegirlo la lista de permisos deja de
@@ -146,6 +173,10 @@ async function loadUserData() {
       moduleLevels.value = Object.fromEntries(
         modules.map(m => [m.id, m.level ?? MODULE_LEVEL.EDICION])
       )
+      availableBranches.value = store.currentUser.available_branches ?? []
+      selectedBranchIds.value = new Set(
+        (store.currentUser.branches ?? []).map(b => b.id)
+      )
     }
   } catch (e: any) {
     toast.add({
@@ -163,6 +194,7 @@ async function loadAvailableModules() {
   isLoading.value = true
   try {
     availableModules.value = await store.fetchAvailableModules()
+    availableBranches.value = await store.fetchStoreBranches()
   } catch (e: any) {
     toast.add({
       severity: 'error',
@@ -213,6 +245,8 @@ async function handleInvite() {
       // Un administrador no lleva módulos: los tiene todos por definición.
       module_ids: invitaComoAdministrador.value ? [] : Array.from(selectedModuleIds.value),
       module_levels: invitaComoAdministrador.value ? {} : moduleLevels.value,
+      // Un administrador no se acota: tiene acceso total por definición.
+      branch_ids: invitaComoAdministrador.value ? [] : Array.from(selectedBranchIds.value),
       tipo_id: tipoId.value
     })
 
@@ -250,6 +284,9 @@ async function handleUpdateModules() {
       Array.from(selectedModuleIds.value),
       moduleLevels.value
     )
+    if (showBranchScope.value) {
+      await store.updateBranches(userId.value, Array.from(selectedBranchIds.value))
+    }
     toast.add({
       severity: 'success',
       summary: 'Permisos actualizados',
@@ -402,6 +439,60 @@ onMounted(() => {
             </span>
           </label>
         </div>
+      </div>
+
+      <!-- Alcance por sucursal: solo con 2 o más locales -->
+      <div
+        v-if="showBranchScope && !invitaComoAdministrador"
+        class="bg-white rounded-xl border border-gray-200 p-6 space-y-4"
+      >
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-gray-800">Sucursales</h2>
+          <Button
+            v-if="!branchScopeIsOpen"
+            label="Quitar restricción"
+            text
+            size="small"
+            severity="secondary"
+            @click="clearBranchScope"
+          />
+        </div>
+
+        <p class="text-sm text-gray-500">
+          Si no marcas ninguna, el usuario puede operar en
+          <strong>todas las sucursales</strong>. Al marcar una o más, solo podrá
+          ver y mover el stock e inventario de esas.
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          <label
+            v-for="branch in availableBranches"
+            :key="branch.id"
+            class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
+            :class="
+              selectedBranchIds.has(branch.id)
+                ? 'border-primary/30 bg-primary/5'
+                : 'border-gray-200 hover:bg-gray-50'
+            "
+          >
+            <Checkbox
+              :modelValue="selectedBranchIds.has(branch.id)"
+              :binary="true"
+              @update:modelValue="toggleBranch(branch.id)"
+            />
+            <span class="text-sm font-medium text-gray-700 truncate">
+              {{ branch.name || `Sucursal ${branch.id}` }}
+            </span>
+          </label>
+        </div>
+
+        <p
+          v-if="branchScopeIsOpen"
+          class="text-sm text-gray-400 flex items-center gap-2"
+        >
+          <i class="pi pi-globe text-xs" />
+          Sin restricción: todas las sucursales
+        </p>
       </div>
 
       <!-- Modules card -->

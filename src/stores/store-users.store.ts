@@ -4,6 +4,7 @@ import { storeUsersApi } from '@/api/store-users.api'
 import type { ApiResponse } from '@/types/api.types'
 import type {
   ModuleLevel,
+  StoreBranch,
   StoreUser,
   StoreUserDetail,
   UserModule,
@@ -79,6 +80,14 @@ export const useStoreUsersStore = defineStore('storeUsers', () => {
     return []
   }
 
+  async function fetchStoreBranches(): Promise<StoreBranch[]> {
+    const response = await storeUsersApi.getStoreBranches()
+    if (response.success && response.data) {
+      return response.data
+    }
+    return []
+  }
+
   async function inviteUser(data: InviteUserData): Promise<InviteResult | null> {
     const response = await storeUsersApi.inviteUser(data)
     if (response.success && response.data) {
@@ -94,6 +103,14 @@ export const useStoreUsersStore = defineStore('storeUsers', () => {
     moduleLevels: Record<number, ModuleLevel> = {}
   ) {
     const response = await storeUsersApi.updateModules(userId, moduleIds, moduleLevels)
+    if (response.success) {
+      await fetchUser(userId)
+    }
+    return response
+  }
+
+  async function updateBranches(userId: number, branchIds: number[]) {
+    const response = await storeUsersApi.updateBranches(userId, branchIds)
     if (response.success) {
       await fetchUser(userId)
     }
@@ -130,6 +147,8 @@ export const useStoreUsersStore = defineStore('storeUsers', () => {
     fetchAvailableModules,
     inviteUser,
     updateModules,
+    updateBranches,
+    fetchStoreBranches,
     updateRole,
     deleteUser
   }

@@ -95,6 +95,40 @@ describe('permissions.store — solo lectura', () => {
     expect(store.canEdit('mod_ventas')).toBe(true)
   })
 
+  it('sin alcance de sucursal puede operar en cualquiera', () => {
+    const store = apply({ branch_ids: null })
+
+    expect(store.isBranchScoped).toBe(false)
+    expect(store.canUseBranch(4442)).toBe(true)
+    expect(store.canUseBranch(9999)).toBe(true)
+  })
+
+  it('con alcance solo puede operar en las suyas', () => {
+    const store = apply({ branch_ids: [4442, 4446] })
+
+    expect(store.isBranchScoped).toBe(true)
+    expect(store.canUseBranch(4442)).toBe(true)
+    expect(store.canUseBranch(4448)).toBe(false)
+  })
+
+  it('una lista vacía de sucursales NO encierra al usuario', () => {
+    // La API manda null cuando no hay restricción, pero si algún día mandara
+    // [] hay que leerlo como "todas": tratarlo como lista cerrada dejaría a
+    // cualquier tienda de una sola sucursal sin acceso a su inventario.
+    const store = apply({ branch_ids: [] })
+
+    expect(store.isBranchScoped).toBe(false)
+    expect(store.canUseBranch(4442)).toBe(true)
+  })
+
+  it('cambiar de tienda limpia el alcance de sucursal', () => {
+    const store = apply({ branch_ids: [4442] })
+    expect(store.canUseBranch(4448)).toBe(false)
+
+    store.clearPermissions()
+    expect(store.canUseBranch(4448)).toBe(true)
+  })
+
   it('cambiar de tienda limpia los niveles', () => {
     const store = apply()
     expect(store.canEdit('mod_ventas')).toBe(false)
