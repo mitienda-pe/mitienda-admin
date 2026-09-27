@@ -116,7 +116,7 @@ const handleSubmitResponse = async () => {
           <template #title>
             <div class="flex items-center gap-2">
               <i class="pi pi-file-edit text-primary"></i>
-              Detalle del {{ complaint.complaint_type }}
+              Detalle de la solicitud
             </div>
           </template>
           <template #content>

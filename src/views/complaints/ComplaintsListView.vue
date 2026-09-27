@@ -28,6 +28,7 @@ const typeOptions = [
   { label: 'Todos', value: '' },
   { label: 'Reclamo', value: '1' },
   { label: 'Queja', value: '2' },
+  { label: 'Petición', value: '3' },
 ]
 
 const selectedStatus = computed({
