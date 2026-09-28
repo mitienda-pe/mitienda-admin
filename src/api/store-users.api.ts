@@ -9,6 +9,7 @@ import type {
   InviteUserData,
   InviteResult
 } from '@/types/store-users.types'
+import type { LoginActivity } from '@/types/login-activity.types'
 
 export const storeUsersApi = {
   async getUsers(): Promise<ApiResponse<StoreUser[]>> {
@@ -18,6 +19,11 @@ export const storeUsersApi = {
 
   async getUser(id: number): Promise<ApiResponse<StoreUserDetail>> {
     const response = await apiClient.get(`/store-users/${id}`)
+    return response.data
+  },
+
+  async getUserActivity(id: number): Promise<ApiResponse<LoginActivity>> {
+    const response = await apiClient.get(`/store-users/${id}/activity`)
     return response.data
   },
 

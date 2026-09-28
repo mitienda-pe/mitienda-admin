@@ -14,6 +14,8 @@ import type {
 
 export const usePosStore = defineStore('pos', () => {
   const cajeros = ref<PosCajero[]>([])
+  /** PINs fallidos en la tienda (30 días); no se pueden atribuir a un cajero. */
+  const pinFallidos30d = ref(0)
   const currentCajero = ref<PosCajero | null>(null)
   const sucursales = ref<PosSucursal[]>([])
   const netsuiteConfig = ref<PosSucursalesNetsuiteConfigResponse | null>(null)
@@ -40,6 +42,7 @@ export const usePosStore = defineStore('pos', () => {
       const response = await posApi.listCajeros(tiendaId)
       if (response.success && response.data) {
         cajeros.value = response.data
+        pinFallidos30d.value = response.pinFallidos30d
       }
     } catch (e: any) {
       error.value = e?.response?.data?.message || e?.message || 'Error al cargar cajeros'
@@ -182,6 +185,7 @@ export const usePosStore = defineStore('pos', () => {
 
   return {
     cajeros,
+    pinFallidos30d,
     currentCajero,
     sucursales,
     netsuiteConfig,

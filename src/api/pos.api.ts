@@ -9,6 +9,7 @@ import type {
   PosSucursalNetsuiteUpdate,
   CheckPinResult
 } from '@/types/pos.types'
+import type { LoginActivity } from '@/types/login-activity.types'
 
 function unwrap<T>(payload: unknown): T {
   if (payload && typeof payload === 'object' && 'data' in (payload as Record<string, unknown>)) {
@@ -20,10 +21,21 @@ function unwrap<T>(payload: unknown): T {
 export const posApi = {
   // ─── Cajeros ───
 
-  async listCajeros(tiendaId: number): Promise<ApiResponse<PosCajero[]>> {
+  async listCajeros(
+    tiendaId: number
+  ): Promise<ApiResponse<PosCajero[]> & { pinFallidos30d: number }> {
     const response = await apiClient.get('/pos-empleados', { params: { tienda_id: tiendaId } })
     const data = unwrap<PosCajero[]>(response.data)
-    return { success: true, data: Array.isArray(data) ? data : [] }
+    return {
+      success: true,
+      data: Array.isArray(data) ? data : [],
+      pinFallidos30d: Number(response.data?.pin_fallidos_30d ?? 0)
+    }
+  },
+
+  async getCajeroActivity(id: number): Promise<ApiResponse<LoginActivity>> {
+    const response = await apiClient.get(`/pos-empleados/${id}/activity`)
+    return { success: true, data: unwrap<LoginActivity>(response.data) }
   },
 
   async getCajero(id: number): Promise<ApiResponse<PosCajero>> {

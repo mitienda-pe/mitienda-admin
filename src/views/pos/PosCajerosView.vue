@@ -8,11 +8,30 @@ import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import { useToast } from 'primevue/usetoast'
+import LoginActivityDialog from '@/components/store/LoginActivityDialog.vue'
+import { posApi } from '@/api/pos.api'
+import { useFormatters } from '@/composables/useFormatters'
 import type { PosCajero, PosCajeroRol } from '@/types/pos.types'
 
 const router = useRouter()
 const store = usePosStore()
 const toast = useToast()
+
+const { formatRelativeDate } = useFormatters()
+
+const activityVisible = ref(false)
+const activityCajero = ref<PosCajero | null>(null)
+
+function openActivity(c: PosCajero) {
+  activityCajero.value = c
+  activityVisible.value = true
+}
+
+async function loadActivity() {
+  if (!activityCajero.value) return null
+  const response = await posApi.getCajeroActivity(activityCajero.value.empleado_id)
+  return response.data ?? null
+}
 
 const deleteDialogVisible = ref(false)
 const cajeroToDelete = ref<PosCajero | null>(null)
@@ -100,6 +119,19 @@ async function handleDelete() {
         icon="pi pi-user-plus"
         @click="router.push('/pos/cajeros/nuevo')"
       />
+    </div>
+
+    <!-- PINs fallidos -->
+    <div
+      v-if="!store.isLoading && store.pinFallidos30d > 0"
+      class="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4"
+    >
+      <i class="pi pi-lock text-amber-500 mt-0.5" />
+      <p class="text-sm text-amber-800">
+        <strong>{{ store.pinFallidos30d }}</strong>
+        {{ store.pinFallidos30d === 1 ? 'intento' : 'intentos' }} de ingreso con PIN incorrecto en
+        los últimos 30 días. Si no reconoces esa cantidad, cambia los PIN de tus cajeros.
+      </p>
     </div>
 
     <!-- Loading -->
@@ -192,6 +224,27 @@ async function handleDelete() {
           </template>
         </Column>
 
+        <Column header="Último ingreso" style="min-width: 140px">
+          <template #body="{ data }">
+            <span class="text-sm text-gray-600">
+              {{ data.empleado_fecha_ultimo_ingreso ? formatRelativeDate(data.empleado_fecha_ultimo_ingreso) : 'Nunca' }}
+            </span>
+          </template>
+        </Column>
+
+        <Column header="Ingresos (30 días)" style="min-width: 140px">
+          <template #body="{ data }">
+            <button
+              type="button"
+              class="text-sm text-primary hover:underline"
+              v-tooltip.top="'Ver actividad'"
+              @click="openActivity(data)"
+            >
+              {{ data.ingresos_30d ?? 0 }}
+            </button>
+          </template>
+        </Column>
+
         <Column header="Estado" style="min-width: 110px">
           <template #body="{ data }">
             <Tag
@@ -228,6 +281,13 @@ async function handleDelete() {
         </Column>
       </DataTable>
     </div>
+
+    <LoginActivityDialog
+      v-model:visible="activityVisible"
+      :title="activityCajero ? `Actividad de ${fullName(activityCajero)}` : 'Actividad'"
+      subtitle="Ingresos al POS con PIN."
+      :loader="loadActivity"
+    />
 
     <!-- Delete confirmation dialog -->
     <Dialog

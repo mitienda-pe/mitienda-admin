@@ -10,6 +10,8 @@ import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import Dialog from 'primevue/dialog'
 import { useToast } from 'primevue/usetoast'
+import LoginActivityDialog from '@/components/store/LoginActivityDialog.vue'
+import { storeUsersApi } from '@/api/store-users.api'
 import type { StoreUser } from '@/types/store-users.types'
 import { STORE_ROLE } from '@/types/store-users.types'
 
@@ -22,6 +24,20 @@ const toast = useToast()
 const deleteDialogVisible = ref(false)
 const userToDelete = ref<StoreUser | null>(null)
 const isDeleting = ref(false)
+
+const activityVisible = ref(false)
+const activityUser = ref<StoreUser | null>(null)
+
+function openActivity(user: StoreUser) {
+  activityUser.value = user
+  activityVisible.value = true
+}
+
+async function loadActivity() {
+  if (!activityUser.value) return null
+  const response = await storeUsersApi.getUserActivity(activityUser.value.id)
+  return response.data ?? null
+}
 
 const roleDialogVisible = ref(false)
 const userToPromote = ref<StoreUser | null>(null)
@@ -253,9 +269,25 @@ function fullName(user: StoreUser): string {
 
         <Column header="Último ingreso" style="min-width: 140px">
           <template #body="{ data }">
-            <span class="text-sm text-gray-600">
+            <span
+              class="text-sm text-gray-600"
+              v-tooltip.top="data.fecha_ultimo_ingreso ? 'Último login en cualquiera de sus tiendas' : undefined"
+            >
               {{ data.fecha_ultimo_ingreso ? formatDate(data.fecha_ultimo_ingreso) : 'Nunca' }}
             </span>
+          </template>
+        </Column>
+
+        <Column header="Ingresos (30 días)" style="min-width: 140px">
+          <template #body="{ data }">
+            <button
+              type="button"
+              class="text-sm text-primary hover:underline"
+              v-tooltip.top="'Ver actividad en esta tienda'"
+              @click="openActivity(data)"
+            >
+              {{ data.ingresos_30d ?? 0 }}
+            </button>
           </template>
         </Column>
 
@@ -312,6 +344,13 @@ function fullName(user: StoreUser): string {
         </Column>
       </DataTable>
     </div>
+
+    <LoginActivityDialog
+      v-model:visible="activityVisible"
+      :title="activityUser ? `Actividad de ${fullName(activityUser)}` : 'Actividad'"
+      subtitle="Ingresos a esta tienda desde el panel, el POS o la app."
+      :loader="loadActivity"
+    />
 
     <!-- Delete confirmation dialog -->
     <Dialog

@@ -21,6 +21,10 @@ export interface PosCajero {
   empleado_activo: 0 | 1
   sucursales?: PosCajeroSucursal[]
   sucursales_ids?: number[]
+  /** Último ingreso con PIN al POS. */
+  empleado_fecha_ultimo_ingreso?: string | null
+  /** Ingresos con PIN en los últimos 30 días (solo en el listado). */
+  ingresos_30d?: number
 }
 
 export interface PosCajeroCreatePayload {

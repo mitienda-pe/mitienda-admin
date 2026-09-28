@@ -27,7 +27,12 @@ export interface StoreUser {
   tipo_id: number
   tipo_nombre: string
   fecha_creacion: string
+  /** Último login en cualquier tienda (es global al usuario). */
   fecha_ultimo_ingreso: string | null
+  /** Ingresos a ESTA tienda en los últimos 30 días. */
+  ingresos_30d?: number
+  /** Último ingreso a ESTA tienda (null si no entró en 30 días o no hay registro). */
+  ultimo_ingreso_tienda?: string | null
 }
 
 /**
