@@ -975,12 +975,9 @@
             <span class="text-lg">Categorias</span>
           </template>
           <template #content>
-            <Tree
-              v-model:selectionKeys="selectedCategoryKeys"
-              :value="categoryTreeNodes"
-              v-model:expandedKeys="expandedCategoryKeys"
-              selectionMode="checkbox"
-              class="p-0 border-none"
+            <ProductCategoryTree
+              v-model="form.categories"
+              :categories="catalogStore.categories"
             />
           </template>
         </Card>
@@ -1183,7 +1180,7 @@ import InputNumber from 'primevue/inputnumber'
 import Textarea from 'primevue/textarea'
 import Dropdown from 'primevue/dropdown'
 import SelectButton from 'primevue/selectbutton'
-import Tree from 'primevue/tree'
+import ProductCategoryTree from '@/components/products/ProductCategoryTree.vue'
 import Checkbox from 'primevue/checkbox'
 import InputSwitch from 'primevue/inputswitch'
 import Dialog from 'primevue/dialog'
@@ -1444,60 +1441,6 @@ const saleUnitShortLabel = computed(() => {
     case 'libras': return 'lb'
     default: return 'kg'
   }
-})
-
-// ── Category tree for TreeSelect ──
-interface TreeNode {
-  key: string
-  label: string
-  children?: TreeNode[]
-}
-
-const toTreeNodes = (cats: any[]): TreeNode[] =>
-  cats.map(c => ({
-    key: String(c.id),
-    label: c.name,
-    ...(c.sub?.length ? { children: toTreeNodes(c.sub) } : {}),
-  }))
-
-const categoryTreeNodes = computed(() => toTreeNodes(catalogStore.categories))
-
-const collectAllKeys = (nodes: TreeNode[]): Record<string, boolean> => {
-  const keys: Record<string, boolean> = {}
-  const walk = (list: TreeNode[]) => {
-    for (const n of list) {
-      keys[n.key] = true
-      if (n.children) walk(n.children)
-    }
-  }
-  walk(nodes)
-  return keys
-}
-
-const expandedCategoryKeys = ref<Record<string, boolean>>({})
-
-watch(categoryTreeNodes, nodes => {
-  expandedCategoryKeys.value = collectAllKeys(nodes)
-}, { immediate: true })
-
-// Bridge: form.categories (number[]) <-> TreeSelect selectedKeys ({key: true})
-const selectedCategoryKeys = computed({
-  get() {
-    const obj: Record<string, any> = {}
-    for (const id of form.value.categories || []) {
-      obj[String(id)] = { checked: true, partialChecked: false }
-    }
-    return obj
-  },
-  set(val: Record<string, any> | null) {
-    if (!val) {
-      form.value.categories = []
-      return
-    }
-    form.value.categories = Object.entries(val)
-      .filter(([, v]) => v.checked)
-      .map(([k]) => Number(k))
-  },
 })
 
 // ── Populate form from product ──
