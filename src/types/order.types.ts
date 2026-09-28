@@ -296,6 +296,10 @@ export interface ErpSync {
   status: 'synced' | 'error' | 'not_synced'
   netsuite_invoice_id?: string | null
   netsuite_document_number?: string | null
+  /** ID interno del Sales Order en NetSuite (modo sales_order, sin invoice). */
+  netsuite_salesorder_id?: string | null
+  /** Código del Sales Order tal como lo nombra la tienda ("OV-646045"). */
+  netsuite_salesorder_tranid?: string | null
   error_message?: string | null
 }
 

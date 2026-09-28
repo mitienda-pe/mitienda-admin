@@ -1330,6 +1330,22 @@ const netsuiteInvoiceId = computed(() => {
     || null
 })
 
+// Orden de Venta (modo sales_order): el ID interno de NetSuite y el código con
+// el que la tienda la nombra ("OV-646045"). El código lo guarda el sync desde
+// set-2026; en las órdenes anteriores llega null y solo se muestra el ID, hasta
+// que corra `netsuite:backfill-so-tranid`.
+const netsuiteSalesOrderId = computed(() => {
+  return order.value?.erp_sync?.netsuite_salesorder_id
+    || erpSyncData.value?.salesorder_id
+    || null
+})
+
+const netsuiteSalesOrderCode = computed(() => {
+  return order.value?.erp_sync?.netsuite_salesorder_tranid
+    || erpSyncData.value?.salesorder_tranid
+    || null
+})
+
 const handleSendInvoiceEmail = async () => {
   if (!order.value) return
 
@@ -2564,6 +2580,22 @@ const handleDebugPayments = async () => {
                     <div>
                       <p class="text-xs text-gray-500 mb-1">Invoice ID</p>
                       <p class="font-mono text-sm font-semibold text-gray-900">{{ netsuiteInvoiceId }}</p>
+                    </div>
+                  </div>
+
+                  <!-- Orden de Venta (modo sales_order: no hay invoice) -->
+                  <div v-if="netsuiteSalesOrderId" class="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <p class="text-xs text-gray-500 mb-1">Orden de venta NetSuite</p>
+                        <p class="font-mono text-lg font-bold text-gray-900">
+                          {{ netsuiteSalesOrderCode || netsuiteSalesOrderId }}
+                        </p>
+                      </div>
+                      <div v-if="netsuiteSalesOrderCode" class="text-right">
+                        <p class="text-xs text-gray-500 mb-1">Internal ID</p>
+                        <p class="font-mono text-sm text-gray-700">{{ netsuiteSalesOrderId }}</p>
+                      </div>
                     </div>
                   </div>
 
