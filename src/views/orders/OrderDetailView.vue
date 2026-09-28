@@ -1107,6 +1107,9 @@ const integrationChipClass = (status: string) => {
   if (status === 'synced') return 'bg-green-100 text-green-800'
   if (status === 'error') return 'bg-red-100 text-red-800'
   if (status === 'pending') return 'bg-amber-100 text-amber-800'
+  // Morado y no rojo: rojo se lee como "falló, reintentá", y acá reintentar
+  // duplica la venta en el ERP. Tiene que verse distinto de un error.
+  if (status === 'review') return 'bg-purple-100 text-purple-800'
   return 'bg-gray-100 text-gray-700'
 }
 
@@ -1114,6 +1117,7 @@ const integrationChipIcon = (status: string) => {
   if (status === 'synced') return 'pi-check-circle'
   if (status === 'error') return 'pi-times-circle'
   if (status === 'pending') return 'pi-clock'
+  if (status === 'review') return 'pi-exclamation-triangle'
   return 'pi-question-circle'
 }
 

@@ -255,7 +255,12 @@ export interface OrderIntegration {
   provider: string
   /** Nombre para mostrar, ya resuelto por el backend. */
   name: string
-  status: 'synced' | 'error' | 'pending' | 'unknown'
+  /**
+   * `review` no es un error: el ERP confirmó el registro pero no devolvió con
+   * qué referenciar la venta, así que reintentar la duplicaría. Hay que
+   * verificar en el ERP antes de volver a enviar nada.
+   */
+  status: 'synced' | 'error' | 'pending' | 'review' | 'unknown'
   status_label: string
   status_code: number | null
   /** Respuesta cruda del ERP, o el motivo del fallo. */
