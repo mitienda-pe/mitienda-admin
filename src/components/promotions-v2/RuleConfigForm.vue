@@ -164,6 +164,7 @@
         optionLabel="label"
         optionValue="value"
         placeholder="Seleccionar categoría..."
+        :showClear="!field.required"
         class="w-full"
         :loading="loadingCategories"
       />
@@ -177,6 +178,7 @@
         optionLabel="label"
         optionValue="value"
         placeholder="Seleccionar marca..."
+        :showClear="!field.required"
         class="w-full"
         :loading="loadingBrands"
       />

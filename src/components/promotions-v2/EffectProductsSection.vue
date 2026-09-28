@@ -323,6 +323,9 @@ const effectLabel = computed(() => {
   if (props.effect.type === 'gift_product') {
     return `${config.gift_quantity || 1} unidad(es) gratis`
   }
+  if (props.effect.type === 'buy_x_pay_y') {
+    return `Lleva ${config.buy_quantity || '?'}, paga ${config.pay_quantity || '?'}`
+  }
   return props.effect.type
 })
 
@@ -362,7 +365,9 @@ const productConditions = computed(() =>
 )
 
 const uncoveredIds = computed<number[]>(() => {
-  if (isGiftEffect.value) return []
+  // El NxM tampoco rebaja en vitrina ni necesita condición: el efecto ya exige
+  // las N unidades.
+  if (isGiftEffect.value || props.effect.type === 'buy_x_pay_y') return []
   return productIds.value.filter(id =>
     productConditions.value.some(c => !conditionProductIds(c.config).includes(Number(id)))
   )

@@ -397,6 +397,45 @@ const effectSchemas: Record<string, ConfigFieldSchema[]> = {
       helpText: 'Unidades gratis. Los productos se vinculan abajo.',
     },
   ],
+  buy_x_pay_y: [
+    {
+      key: 'buy_quantity',
+      label: 'Lleva (N)',
+      type: 'number',
+      required: true,
+      min: 2,
+      defaultValue: 2,
+      helpText: 'Unidades que forman un grupo. 2 para un 2x1, 3 para un 3x2, 4 para un 4x3.',
+    },
+    {
+      key: 'pay_quantity',
+      label: 'Paga (M)',
+      type: 'number',
+      required: true,
+      min: 1,
+      defaultValue: 1,
+      helpText: 'Unidades que se cobran por grupo; debe ser menor que N. Las unidades gratis son las más baratas del grupo.',
+    },
+    {
+      key: 'category_id',
+      label: 'Categoría',
+      type: 'category-picker',
+      helpText: 'Opcional. Aplica a toda la categoría. Déjala vacía (y la marca también) para elegir productos abajo.',
+    },
+    {
+      key: 'brand_id',
+      label: 'Marca',
+      type: 'brand-picker',
+      helpText: 'Opcional. Aplica a toda la marca. Se ignora si elegiste una categoría.',
+    },
+    {
+      key: 'max_applications',
+      label: 'Máximo de grupos por pedido',
+      type: 'number',
+      min: 1,
+      helpText: 'Opcional. Vacío = se repite por cada grupo completo (6 unidades en un 3x2 = 2 gratis).',
+    },
+  ],
   override_price: [
     {
       key: 'new_price',
@@ -473,6 +512,15 @@ export function hasConfigFields(category: RuleCategory, type: string): boolean {
 /** Returns true when the type is registered in the schema map (even if empty) */
 export function isKnownType(category: RuleCategory, type: string): boolean {
   return allSchemas[category]?.[type] !== undefined
+}
+
+/**
+ * True si un efecto "Lleva N, paga M" se aplica a productos vinculados (y no a
+ * una categoría o marca completa): solo entonces necesita la sección de
+ * productos del efecto.
+ */
+export function buyXPayYUsesProducts(config: Record<string, any> | null | undefined): boolean {
+  return !config?.category_id && !config?.brand_id
 }
 
 /**
@@ -576,6 +624,15 @@ export function formatConfigHuman(
         ? 'auto-agregar'
         : 'BOGO'
       return `${config.gift_quantity || 1} unidad(es) gratis (${gpCount} producto(s)) · ${mode}`
+    }
+    case 'buy_x_pay_y': {
+      const scope = config.category_id
+        ? 'categoría'
+        : config.brand_id
+          ? 'marca'
+          : `${(config.product_ids || []).length} producto(s)`
+      const cap = config.max_applications ? ` · máx ${config.max_applications} por pedido` : ''
+      return `${config.buy_quantity || '?'}x${config.pay_quantity || '?'} (${scope})${cap}`
     }
     case 'override_price': {
       const opCount = (config.product_ids || []).length

@@ -349,7 +349,7 @@ import { useFormatters } from '@/composables/useFormatters'
 import RuleSection from '@/components/promotions-v2/RuleSection.vue'
 import CouponsSection from '@/components/promotions-v2/CouponsSection.vue'
 import EffectProductsSection from '@/components/promotions-v2/EffectProductsSection.vue'
-import { conditionProductIds } from '@/config/promotion-v2-config-schemas'
+import { buyXPayYUsesProducts, conditionProductIds } from '@/config/promotion-v2-config-schemas'
 import {
   STATUS_META,
   ACTIVATION_TYPE_LABELS,
@@ -391,10 +391,14 @@ const hasCouponActivation = computed(() =>
   (promotion.value?.activations || []).some((a: any) => a.type === 'coupon')
 )
 
-const PRODUCT_EFFECT_TYPES = ['percentage_discount_product', 'fixed_discount_product', 'override_price', 'gift_product']
+const PRODUCT_EFFECT_TYPES = ['percentage_discount_product', 'fixed_discount_product', 'override_price', 'gift_product', 'buy_x_pay_y']
 
+// "Lleva N, paga M" por categoría o marca no vincula productos.
 const productEffects = computed(() =>
-  (promotion.value?.effects || []).filter((e: any) => PRODUCT_EFFECT_TYPES.includes(e.type))
+  (promotion.value?.effects || []).filter((e: any) =>
+    PRODUCT_EFFECT_TYPES.includes(e.type)
+    && (e.type !== 'buy_x_pay_y' || buyXPayYUsesProducts(e.config))
+  )
 )
 
 // Varias condiciones de producto se evalúan con AND: exigen un producto de cada

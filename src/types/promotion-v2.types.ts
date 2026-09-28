@@ -30,6 +30,7 @@ export type EffectType =
   | 'free_shipping'
   | 'gift_product'
   | 'override_price'
+  | 'buy_x_pay_y'
 
 export type ConstraintType =
   | 'max_global_uses'
@@ -225,6 +226,7 @@ export const EFFECT_TYPE_LABELS: Record<EffectType, string> = {
   free_shipping: 'Envío gratis',
   gift_product: 'Producto gratis',
   override_price: 'Precio especial',
+  buy_x_pay_y: 'Lleva N, paga M (2x1, 3x2, 4x3)',
 }
 
 export const CONSTRAINT_TYPE_LABELS: Record<ConstraintType, string> = {

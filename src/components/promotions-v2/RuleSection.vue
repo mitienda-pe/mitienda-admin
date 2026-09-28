@@ -155,6 +155,7 @@ import {
   formatConfigHuman,
   getConfigSchema,
   type RuleCategory,
+  buyXPayYUsesProducts,
 } from '@/config/promotion-v2-config-schemas'
 
 const props = withDefaults(defineProps<{
@@ -190,11 +191,13 @@ const advancedMode = ref(false)
 
 // Efectos a nivel de producto: requieren productos vinculados (product_ids) para
 // surtir efecto. Se vinculan en EffectProductsSection, no en este diálogo.
-const PRODUCT_EFFECT_TYPES = ['percentage_discount_product', 'fixed_discount_product', 'override_price', 'gift_product']
+// "Lleva N, paga M" solo pide productos cuando no tiene categoría ni marca.
+const PRODUCT_EFFECT_TYPES = ['percentage_discount_product', 'fixed_discount_product', 'override_price', 'gift_product', 'buy_x_pay_y']
 
 function isIncompleteEffect(rule: any): boolean {
   if (props.ruleCategory !== 'effects') return false
   if (!PRODUCT_EFFECT_TYPES.includes(rule.type)) return false
+  if (rule.type === 'buy_x_pay_y' && !buyXPayYUsesProducts(rule.config)) return false
   const ids = rule.config?.product_ids
   return !Array.isArray(ids) || ids.length === 0
 }
@@ -267,9 +270,16 @@ function validateRequired(config: Record<string, any> | null): string {
       return v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0)
     })
     .map((f) => f.label)
-  return missing.length > 0
-    ? `Completa los campos obligatorios: ${missing.join(', ')}`
-    : ''
+  if (missing.length > 0) {
+    return `Completa los campos obligatorios: ${missing.join(', ')}`
+  }
+  if (dialogForm.type === 'buy_x_pay_y') {
+    const buy = Number(config?.buy_quantity)
+    const pay = Number(config?.pay_quantity)
+    if (buy < 2) return 'N debe ser 2 o más'
+    if (pay < 1 || pay >= buy) return 'M debe ser al menos 1 y menor que N (ej. 3x2)'
+  }
+  return ''
 }
 
 function formatConfigHumanReadable(type: string, config: Record<string, any> | null): string {
