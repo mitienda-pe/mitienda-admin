@@ -60,17 +60,28 @@ const handleSubmitResponse = async () => {
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-4">
-        <Button icon="pi pi-arrow-left" text rounded @click="goBack" />
+        <Button
+          icon="pi pi-arrow-left"
+          text
+          rounded
+          @click="goBack"
+        />
         <div>
           <h1 class="text-3xl font-bold text-gray-900">
             {{ complaint?.code || 'Reclamación' }}
           </h1>
-          <p v-if="complaint?.correlativo" class="text-gray-500 mt-1">
+          <p
+            v-if="complaint?.correlativo"
+            class="text-gray-500 mt-1"
+          >
             Hoja de reclamación: {{ complaint.correlativo }}
           </p>
         </div>
       </div>
-      <div v-if="complaint" class="flex gap-2">
+      <div
+        v-if="complaint"
+        class="flex gap-2"
+      >
         <Tag
           :value="complaint.complaint_type || ''"
           :severity="complaint.complaint_type_id === 1 ? 'warning' : 'info'"
@@ -83,7 +94,10 @@ const handleSubmitResponse = async () => {
     </div>
 
     <!-- Loading -->
-    <div v-if="complaintsStore.isLoading" class="flex justify-center items-center py-12">
+    <div
+      v-if="complaintsStore.isLoading"
+      class="flex justify-center items-center py-12"
+    >
       <ProgressSpinner />
     </div>
 
@@ -92,9 +106,16 @@ const handleSubmitResponse = async () => {
       v-else-if="complaintsStore.error"
       class="bg-red-50 border border-red-200 rounded-lg p-6 text-center"
     >
-      <i class="pi pi-exclamation-circle text-4xl text-red-500 mb-2"></i>
-      <p class="text-red-700">{{ complaintsStore.error }}</p>
-      <Button label="Volver" icon="pi pi-arrow-left" class="mt-4" @click="goBack" />
+      <i class="pi pi-exclamation-circle text-4xl text-red-500 mb-2" />
+      <p class="text-red-700">
+        {{ complaintsStore.error }}
+      </p>
+      <Button
+        label="Volver"
+        icon="pi pi-arrow-left"
+        class="mt-4"
+        @click="goBack"
+      />
     </div>
 
     <!-- Not Found -->
@@ -102,20 +123,29 @@ const handleSubmitResponse = async () => {
       v-else-if="!complaint"
       class="bg-white border border-gray-200 rounded-lg p-12 text-center"
     >
-      <i class="pi pi-book text-6xl text-gray-300 mb-4"></i>
-      <h3 class="text-xl font-semibold text-gray-900 mb-2">Reclamación no encontrada</h3>
-      <Button label="Volver" icon="pi pi-arrow-left" @click="goBack" />
+      <i class="pi pi-book text-6xl text-gray-300 mb-4" />
+      <h3 class="text-xl font-semibold text-gray-900 mb-2">
+        Reclamación no encontrada
+      </h3>
+      <Button
+        label="Volver"
+        icon="pi pi-arrow-left"
+        @click="goBack"
+      />
     </div>
 
     <!-- Content -->
-    <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div
+      v-else
+      class="grid grid-cols-1 lg:grid-cols-3 gap-6"
+    >
       <!-- Main Column -->
       <div class="lg:col-span-2 space-y-6">
         <!-- Detalle del Reclamo -->
         <Card>
           <template #title>
             <div class="flex items-center gap-2">
-              <i class="pi pi-file-edit text-primary"></i>
+              <i class="pi pi-file-edit text-primary" />
               Detalle de la solicitud
             </div>
           </template>
@@ -123,11 +153,17 @@ const handleSubmitResponse = async () => {
             <div class="space-y-4">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p class="text-sm text-gray-500">Tipo de bien</p>
-                  <p class="font-semibold text-gray-900">{{ complaint.good_type }}</p>
+                  <p class="text-sm text-gray-500">
+                    Tipo de bien
+                  </p>
+                  <p class="font-semibold text-gray-900">
+                    {{ complaint.good_type }}
+                  </p>
                 </div>
                 <div>
-                  <p class="text-sm text-gray-500">Monto reclamado</p>
+                  <p class="text-sm text-gray-500">
+                    Monto reclamado
+                  </p>
                   <p class="font-semibold text-gray-900">
                     {{ complaint.claimed_amount ? formatCurrency(complaint.claimed_amount) : '—' }}
                   </p>
@@ -135,19 +171,27 @@ const handleSubmitResponse = async () => {
               </div>
 
               <div>
-                <p class="text-sm text-gray-500">Descripción del bien</p>
-                <p class="text-gray-900 mt-1">{{ complaint.good_description || '—' }}</p>
+                <p class="text-sm text-gray-500">
+                  Descripción del bien
+                </p>
+                <p class="text-gray-900 mt-1">
+                  {{ complaint.good_description || '—' }}
+                </p>
               </div>
 
               <div>
-                <p class="text-sm text-gray-500">Detalle de la reclamación</p>
+                <p class="text-sm text-gray-500">
+                  Detalle de la reclamación
+                </p>
                 <p class="text-gray-900 mt-1 whitespace-pre-line">
                   {{ complaint.complaint_detail }}
                 </p>
               </div>
 
               <div v-if="complaint.order_detail">
-                <p class="text-sm text-gray-500">Detalle del pedido</p>
+                <p class="text-sm text-gray-500">
+                  Detalle del pedido
+                </p>
                 <p class="text-gray-900 mt-1 whitespace-pre-line">
                   {{ complaint.order_detail }}
                 </p>
@@ -160,7 +204,7 @@ const handleSubmitResponse = async () => {
         <Card>
           <template #title>
             <div class="flex items-center gap-2">
-              <i class="pi pi-reply text-primary"></i>
+              <i class="pi pi-reply text-primary" />
               Acciones Adoptadas por la Tienda
             </div>
           </template>
@@ -168,8 +212,13 @@ const handleSubmitResponse = async () => {
             <!-- Already responded -->
             <div v-if="complaint.response">
               <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                <p class="text-gray-900 whitespace-pre-line">{{ complaint.response }}</p>
-                <p v-if="complaint.response_date" class="text-sm text-gray-500 mt-3">
+                <p class="text-gray-900 whitespace-pre-line">
+                  {{ complaint.response }}
+                </p>
+                <p
+                  v-if="complaint.response_date"
+                  class="text-sm text-gray-500 mt-3"
+                >
                   Respondido el {{ formatDate(complaint.response_date) }}
                 </p>
               </div>
@@ -203,37 +252,59 @@ const handleSubmitResponse = async () => {
         <Card>
           <template #title>
             <div class="flex items-center gap-2">
-              <i class="pi pi-user text-primary"></i>
+              <i class="pi pi-user text-primary" />
               Datos del Reclamante
             </div>
           </template>
           <template #content>
             <div class="space-y-3">
               <div>
-                <p class="text-sm text-gray-500">Nombre</p>
-                <p class="font-semibold text-gray-900">{{ complaint.name }}</p>
+                <p class="text-sm text-gray-500">
+                  Nombre
+                </p>
+                <p class="font-semibold text-gray-900">
+                  {{ complaint.name }}
+                </p>
               </div>
               <div>
-                <p class="text-sm text-gray-500">Documento</p>
+                <p class="text-sm text-gray-500">
+                  Documento
+                </p>
                 <p class="font-semibold text-gray-900">
                   {{ complaint.document_type }}: {{ complaint.document_number }}
                 </p>
               </div>
               <div v-if="complaint.legal_representative">
-                <p class="text-sm text-gray-500">Padre o Madre</p>
-                <p class="font-semibold text-gray-900">{{ complaint.legal_representative }}</p>
+                <p class="text-sm text-gray-500">
+                  Padre o Madre
+                </p>
+                <p class="font-semibold text-gray-900">
+                  {{ complaint.legal_representative }}
+                </p>
               </div>
               <div>
-                <p class="text-sm text-gray-500">Domicilio</p>
-                <p class="font-semibold text-gray-900">{{ complaint.address }}</p>
+                <p class="text-sm text-gray-500">
+                  Domicilio
+                </p>
+                <p class="font-semibold text-gray-900">
+                  {{ complaint.address }}
+                </p>
               </div>
               <div>
-                <p class="text-sm text-gray-500">Email</p>
-                <p class="font-semibold text-gray-900">{{ complaint.email }}</p>
+                <p class="text-sm text-gray-500">
+                  Email
+                </p>
+                <p class="font-semibold text-gray-900">
+                  {{ complaint.email }}
+                </p>
               </div>
               <div>
-                <p class="text-sm text-gray-500">Teléfono</p>
-                <p class="font-semibold text-gray-900">{{ complaint.phone }}</p>
+                <p class="text-sm text-gray-500">
+                  Teléfono
+                </p>
+                <p class="font-semibold text-gray-900">
+                  {{ complaint.phone }}
+                </p>
               </div>
             </div>
           </template>
@@ -243,23 +314,35 @@ const handleSubmitResponse = async () => {
         <Card>
           <template #title>
             <div class="flex items-center gap-2">
-              <i class="pi pi-info-circle text-primary"></i>
+              <i class="pi pi-info-circle text-primary" />
               Información
             </div>
           </template>
           <template #content>
             <div class="space-y-3">
               <div>
-                <p class="text-sm text-gray-500">Fecha de registro</p>
-                <p class="font-semibold text-gray-900">{{ formatDate(complaint.date) }}</p>
+                <p class="text-sm text-gray-500">
+                  Fecha de registro
+                </p>
+                <p class="font-semibold text-gray-900">
+                  {{ formatDate(complaint.date) }}
+                </p>
               </div>
               <div>
-                <p class="text-sm text-gray-500">Código</p>
-                <p class="font-mono font-semibold text-gray-900">{{ complaint.code }}</p>
+                <p class="text-sm text-gray-500">
+                  Código
+                </p>
+                <p class="font-mono font-semibold text-gray-900">
+                  {{ complaint.code }}
+                </p>
               </div>
               <div v-if="complaint.correlativo">
-                <p class="text-sm text-gray-500">Hoja de reclamación</p>
-                <p class="font-mono font-semibold text-gray-900">{{ complaint.correlativo }}</p>
+                <p class="text-sm text-gray-500">
+                  Hoja de reclamación
+                </p>
+                <p class="font-mono font-semibold text-gray-900">
+                  {{ complaint.correlativo }}
+                </p>
               </div>
             </div>
           </template>

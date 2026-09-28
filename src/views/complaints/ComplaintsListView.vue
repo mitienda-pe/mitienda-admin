@@ -99,7 +99,9 @@ const goToDetail = (id: number) => {
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div class="flex items-center gap-3">
-        <h1 class="text-3xl font-bold text-secondary">Libro de Reclamaciones</h1>
+        <h1 class="text-3xl font-bold text-secondary">
+          Libro de Reclamaciones
+        </h1>
         <Tag
           v-if="complaintsStore.stats?.pending"
           :value="`${complaintsStore.stats.pending} pendientes`"
@@ -109,29 +111,48 @@ const goToDetail = (id: number) => {
     </div>
 
     <!-- Stats Cards -->
-    <div v-if="complaintsStore.stats" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div
+      v-if="complaintsStore.stats"
+      class="grid grid-cols-2 md:grid-cols-4 gap-4"
+    >
       <div class="bg-white rounded-lg border border-gray-200 p-4">
-        <p class="text-sm text-gray-500">Total</p>
-        <p class="text-2xl font-bold text-gray-900">{{ complaintsStore.stats.total }}</p>
+        <p class="text-sm text-gray-500">
+          Total
+        </p>
+        <p class="text-2xl font-bold text-gray-900">
+          {{ complaintsStore.stats.total }}
+        </p>
       </div>
       <div class="bg-white rounded-lg border border-yellow-200 p-4">
-        <p class="text-sm text-yellow-600">Pendientes</p>
-        <p class="text-2xl font-bold text-yellow-600">{{ complaintsStore.stats.pending }}</p>
+        <p class="text-sm text-yellow-600">
+          Pendientes
+        </p>
+        <p class="text-2xl font-bold text-yellow-600">
+          {{ complaintsStore.stats.pending }}
+        </p>
       </div>
       <div class="bg-white rounded-lg border border-green-200 p-4">
-        <p class="text-sm text-green-600">Atendidos</p>
-        <p class="text-2xl font-bold text-green-600">{{ complaintsStore.stats.attended }}</p>
+        <p class="text-sm text-green-600">
+          Atendidos
+        </p>
+        <p class="text-2xl font-bold text-green-600">
+          {{ complaintsStore.stats.attended }}
+        </p>
       </div>
       <div class="bg-white rounded-lg border border-primary/20 p-4">
-        <p class="text-sm text-primary">No vistos</p>
-        <p class="text-2xl font-bold text-primary">{{ complaintsStore.stats.unseen }}</p>
+        <p class="text-sm text-primary">
+          No vistos
+        </p>
+        <p class="text-2xl font-bold text-primary">
+          {{ complaintsStore.stats.unseen }}
+        </p>
       </div>
     </div>
 
     <!-- Search & Filters -->
     <div class="flex flex-wrap gap-3 items-center">
       <div class="relative flex-1 max-w-md">
-        <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+        <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
         <InputText
           v-model="searchQuery"
           placeholder="Buscar por nombre, código, email o documento..."
@@ -142,16 +163,16 @@ const goToDetail = (id: number) => {
       <Dropdown
         v-model="selectedStatus"
         :options="statusOptions"
-        optionLabel="label"
-        optionValue="value"
+        option-label="label"
+        option-value="value"
         placeholder="Estado"
         class="w-36"
       />
       <Dropdown
         v-model="selectedType"
         :options="typeOptions"
-        optionLabel="label"
-        optionValue="value"
+        option-label="label"
+        option-value="value"
         placeholder="Tipo"
         class="w-36"
       />
@@ -177,8 +198,10 @@ const goToDetail = (id: number) => {
       v-else-if="complaintsStore.error"
       class="bg-red-50 border border-red-200 rounded-lg p-6 text-center"
     >
-      <i class="pi pi-exclamation-circle text-4xl text-red-500 mb-2"></i>
-      <p class="text-red-700">{{ complaintsStore.error }}</p>
+      <i class="pi pi-exclamation-circle text-4xl text-red-500 mb-2" />
+      <p class="text-red-700">
+        {{ complaintsStore.error }}
+      </p>
       <Button
         label="Reintentar"
         icon="pi pi-refresh"
@@ -192,8 +215,10 @@ const goToDetail = (id: number) => {
       v-else-if="!complaintsStore.hasComplaints && !complaintsStore.isLoading"
       class="bg-white border border-gray-200 rounded-lg p-12 text-center"
     >
-      <i class="pi pi-book text-6xl text-gray-300 mb-4"></i>
-      <h3 class="text-xl font-semibold text-gray-900 mb-2">No hay reclamaciones</h3>
+      <i class="pi pi-book text-6xl text-gray-300 mb-4" />
+      <h3 class="text-xl font-semibold text-gray-900 mb-2">
+        No hay reclamaciones
+      </h3>
       <p class="text-gray-600">
         {{
           searchQuery
@@ -204,49 +229,67 @@ const goToDetail = (id: number) => {
     </div>
 
     <!-- Table -->
-    <div v-else class="bg-white rounded-lg shadow overflow-hidden">
+    <div
+      v-else
+      class="bg-white rounded-lg shadow overflow-hidden"
+    >
       <DataTable
         :value="complaintsStore.complaints"
         :loading="complaintsStore.isLoading"
         :paginator="true"
         :rows="complaintsStore.pagination.limit"
-        :totalRecords="complaintsStore.pagination.total"
+        :total-records="complaintsStore.pagination.total"
         :lazy="true"
         :first="(complaintsStore.pagination.page - 1) * complaintsStore.pagination.limit"
-        :rowsPerPageOptions="[10, 20, 50]"
-        :sortField="sortField"
-        :sortOrder="sortOrder"
+        :rows-per-page-options="[10, 20, 50]"
+        :sort-field="sortField"
+        :sort-order="sortOrder"
+        selection-mode="single"
+        :row-hover="true"
+        class="cursor-pointer"
+        responsive-layout="scroll"
+        striped-rows
+        removable-sort
+        data-key="id"
         @page="onPage"
         @sort="onSort"
         @row-click="(e: any) => goToDetail(e.data.id)"
-        selectionMode="single"
-        :rowHover="true"
-        class="cursor-pointer"
-        responsiveLayout="scroll"
-        stripedRows
-        removableSort
-        dataKey="id"
       >
-        <Column field="code" header="Código" sortable style="width: 130px">
+        <Column
+          field="code"
+          header="Código"
+          sortable
+          style="width: 130px"
+        >
           <template #body="{ data }">
             <div>
               <span class="font-mono font-semibold text-primary">{{ data.code }}</span>
               <span
                 v-if="!data.seen"
-                class="ml-2 inline-block w-2 h-2 bg-primary rounded-full"
                 v-tooltip.top="'No visto'"
+                class="ml-2 inline-block w-2 h-2 bg-primary rounded-full"
               />
             </div>
           </template>
         </Column>
 
-        <Column field="name" header="Nombre" sortable style="min-width: 160px">
+        <Column
+          field="name"
+          header="Nombre"
+          sortable
+          style="min-width: 160px"
+        >
           <template #body="{ data }">
-            <p class="font-semibold text-gray-900">{{ data.name }}</p>
+            <p class="font-semibold text-gray-900">
+              {{ data.name }}
+            </p>
           </template>
         </Column>
 
-        <Column header="Documento" style="width: 160px">
+        <Column
+          header="Documento"
+          style="width: 160px"
+        >
           <template #body="{ data }">
             <div class="text-sm">
               <span class="text-gray-500">{{ data.document_type }}: </span>
@@ -255,13 +298,21 @@ const goToDetail = (id: number) => {
           </template>
         </Column>
 
-        <Column header="Email" style="min-width: 160px">
+        <Column
+          header="Email"
+          style="min-width: 160px"
+        >
           <template #body="{ data }">
             <span class="text-sm text-gray-600">{{ data.email }}</span>
           </template>
         </Column>
 
-        <Column field="complaint_type" header="Tipo" sortable style="width: 100px">
+        <Column
+          field="complaint_type"
+          header="Tipo"
+          sortable
+          style="width: 100px"
+        >
           <template #body="{ data }">
             <Tag
               :value="data.complaint_type"
@@ -271,7 +322,10 @@ const goToDetail = (id: number) => {
           </template>
         </Column>
 
-        <Column header="Estado" style="width: 110px">
+        <Column
+          header="Estado"
+          style="width: 110px"
+        >
           <template #body="{ data }">
             <Tag
               :value="data.status === 'attended' ? 'Atendido' : 'Pendiente'"
@@ -281,7 +335,12 @@ const goToDetail = (id: number) => {
           </template>
         </Column>
 
-        <Column field="date" header="Fecha" sortable style="width: 120px">
+        <Column
+          field="date"
+          header="Fecha"
+          sortable
+          style="width: 120px"
+        >
           <template #body="{ data }">
             <span class="text-sm text-gray-600">{{ formatDate(data.date) }}</span>
           </template>
@@ -289,7 +348,7 @@ const goToDetail = (id: number) => {
 
         <Column style="width: 60px">
           <template #body>
-            <i class="pi pi-chevron-right text-gray-400"></i>
+            <i class="pi pi-chevron-right text-gray-400" />
           </template>
         </Column>
       </DataTable>
