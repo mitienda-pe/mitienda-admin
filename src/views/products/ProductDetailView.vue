@@ -893,6 +893,28 @@
                 </div>
               </div>
 
+              <!-- Cantidad mínima de compra. Siempre visible: a diferencia del
+                   tope, no depende de un interruptor de la tienda. Se cuenta
+                   por línea, así que con variantes aplica a cada una. -->
+              <div class="border-t border-gray-200 pt-4">
+                <h4 class="text-sm font-semibold text-secondary-700 mb-3">Cantidad mínima de compra</h4>
+                <div class="flex items-center gap-3">
+                  <InputNumber
+                    id="edit-min-purchase"
+                    v-model="form.min_purchase_qty"
+                    :min="0"
+                    :max="9999"
+                    :useGrouping="false"
+                    class="w-24"
+                  />
+                  <span class="text-sm text-secondary-500">unidades por compra</span>
+                </div>
+                <p v-if="validationErrors.min_purchase_qty" class="text-xs text-red-500 mt-1">{{ validationErrors.min_purchase_qty }}</p>
+                <p class="text-xs text-gray-500 mt-2">
+                  0 = sin mínimo. Con variantes, el mínimo aplica a cada una. Solo aplica a la tienda virtual.
+                </p>
+              </div>
+
               <!-- Cantidad máxima de compra. Va fuera del bloque de stock porque
                    el tope aplica igual a productos con variantes: es un límite
                    del producto, no del inventario. -->
@@ -1327,6 +1349,7 @@ const form = ref<FormState>({
   stock: undefined,
   unlimited_stock: false,
   max_purchase_qty: 0,
+  min_purchase_qty: 0,
   sold_by_weight: false,
   published: true,
   published_pos: true,
@@ -1468,6 +1491,7 @@ const populateForm = async () => {
     stock: p.stock ?? undefined,
     unlimited_stock: p.unlimited_stock || false,
     max_purchase_qty: p.max_purchase_qty ?? 0,
+    min_purchase_qty: p.min_purchase_qty ?? 0,
     sold_by_weight: p.sold_by_weight === true,
     published: p.published,
     published_pos: p.published_pos !== false,
@@ -1602,6 +1626,13 @@ const validate = (): boolean => {
   validationErrors.value = {}
   if (!form.value.name || form.value.name.trim().length < 3) {
     validationErrors.value.name = 'El nombre debe tener al menos 3 caracteres'
+  }
+  // Un mínimo mayor que el tope deja el producto imposible de comprar. El API
+  // también lo rechaza; acá se avisa antes, junto al campo.
+  const minQty = form.value.min_purchase_qty ?? 0
+  const maxQty = form.value.max_purchase_qty ?? 0
+  if (maxQty > 0 && minQty > maxQty) {
+    validationErrors.value.min_purchase_qty = `La cantidad mínima no puede ser mayor que la máxima (${maxQty})`
   }
   return Object.keys(validationErrors.value).length === 0
 }

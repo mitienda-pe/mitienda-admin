@@ -28,6 +28,7 @@ export const CSV_COLUMNS: CsvColumnDef[] = [
   // Tope de unidades por compra. Solo surte efecto si la tienda tiene encendido
   // el limite de compra por producto (Configuracion de tienda).
   { key: 'cantidad_maxima', apiField: 'max_purchase_qty', label: 'Cantidad Maxima de Compra (0 = sin limite)', required: false, type: 'number', group: 'Inventario' },
+  { key: 'cantidad_minima', apiField: 'min_purchase_qty', label: 'Cantidad Minima de Compra (0 = sin minimo)', required: false, type: 'number', group: 'Inventario' },
   // Contenido
   { key: 'descripcion', apiField: 'description', label: 'Descripcion', required: false, type: 'string', group: 'Contenido' },
   { key: 'descripcion_corta', apiField: 'description_short', label: 'Descripcion Corta', required: false, type: 'string', group: 'Contenido' },

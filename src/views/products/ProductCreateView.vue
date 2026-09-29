@@ -54,6 +54,7 @@ const form = ref<ProductCreatePayload>({
   stock: undefined,
   unlimited_stock: false,
   max_purchase_qty: 0,
+  min_purchase_qty: 0,
   description: '',
   description_short: '',
   brand_id: null,
@@ -213,6 +214,14 @@ const validate = (): boolean => {
 
   if (form.value.description_short && form.value.description_short.length > 360) {
     errors.value.description_short = 'La descripción no puede exceder 360 caracteres'
+  }
+
+  // Un mínimo mayor que el tope deja el producto imposible de comprar. El API
+  // también lo rechaza; acá se avisa antes, junto al campo.
+  const minQty = form.value.min_purchase_qty ?? 0
+  const maxQty = form.value.max_purchase_qty ?? 0
+  if (maxQty > 0 && minQty > maxQty) {
+    errors.value.min_purchase_qty = `La cantidad mínima no puede ser mayor que la máxima (${maxQty})`
   }
 
   if (skuStatus.value === 'taken') {
@@ -537,6 +546,23 @@ const handleSave = async () => {
             </label>
           </div>
         </div>
+      </div>
+
+      <!-- Cantidad mínima de compra: siempre disponible, es del producto -->
+      <div class="border-t border-gray-100 pt-4">
+        <h3 class="text-sm font-semibold text-gray-700 mb-3">Cantidad mínima de compra</h3>
+        <div class="flex items-center gap-3">
+          <InputNumber
+            id="min-purchase"
+            v-model="form.min_purchase_qty"
+            :min="0"
+            :max="9999"
+            :useGrouping="false"
+            class="max-w-[120px]"
+          />
+          <span class="text-sm text-gray-500">unidades por compra (0 = sin mínimo)</span>
+        </div>
+        <p v-if="errors.min_purchase_qty" class="text-xs text-red-500 mt-1">{{ errors.min_purchase_qty }}</p>
       </div>
 
       <!-- Cantidad máxima de compra (si la tienda usa límite por producto) -->

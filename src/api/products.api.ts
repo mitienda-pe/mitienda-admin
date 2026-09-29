@@ -124,6 +124,8 @@ export function normalizeProduct(rawData: any): Product {
     unlimited_stock: toBool(rawData.unlimited_stock),
     // Tope de unidades por compra (0 = sin tope).
     max_purchase_qty: rawData.max_purchase_qty ?? 0,
+    // Mínimo de unidades por línea (0 = sin mínimo).
+    min_purchase_qty: rawData.min_purchase_qty ?? 0,
     sold_by_weight: toBool(rawData.sold_by_weight),
     // Presentación en la que se vende (unidad, caja, blíster…). El API responde
     // el descriptor completo en `unit`; el formulario solo edita el código y el
@@ -256,6 +258,7 @@ export const productsApi = {
           stock: product.stock || 0,
           unlimited_stock: toBool(product.unlimited_stock),
           max_purchase_qty: product.max_purchase_qty ?? 0,
+          min_purchase_qty: product.min_purchase_qty ?? 0,
           // El listado devuelve `has_variants` y la ficha `has_variation_attributes`:
           // leer solo uno dejaba el flag SIEMPRE en false para los productos que
           // vienen de una busqueda, y con el los filtros que dependen de saber si
@@ -327,7 +330,7 @@ export const productsApi = {
     // Map all defined fields to payload
     const directFields = [
       'name', 'sku', 'barcode', 'price', 'price_without_tax', 'cost', 'stock',
-      'max_purchase_qty',
+      'max_purchase_qty', 'min_purchase_qty',
       'description', 'description_html', 'description_short',
       'brand_id', 'gamma_id', 'order', 'igv_percent', 'tax_affectation',
       'meta_title', 'meta_description', 'meta_image', 'slug',
