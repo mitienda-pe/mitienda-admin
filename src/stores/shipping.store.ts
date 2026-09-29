@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { shippingApi } from '@/api/shipping.api'
+import { apiErrorMessage } from '@/utils/api-error'
 import type {
   CountryCode,
   Country,
@@ -132,7 +133,7 @@ export const useShippingStore = defineStore('shipping', () => {
         return { success: false, error: error.value }
       }
     } catch (err) {
-      error.value = 'Error de conexión al crear tarifa'
+      error.value = apiErrorMessage(err, 'Error de conexión al crear tarifa')
       console.error('Error creating shipping rate:', err)
       return { success: false, error: error.value }
     } finally {
@@ -156,7 +157,7 @@ export const useShippingStore = defineStore('shipping', () => {
         return { success: false, error: error.value }
       }
     } catch (err) {
-      error.value = 'Error de conexión al guardar cobertura de la provincia'
+      error.value = apiErrorMessage(err, 'Error de conexión al guardar cobertura de la provincia')
       console.error('Error saving province coverage:', err)
       return { success: false, error: error.value }
     } finally {
@@ -181,7 +182,7 @@ export const useShippingStore = defineStore('shipping', () => {
         return { success: false, error: error.value }
       }
     } catch (err) {
-      error.value = 'Error de conexión al actualizar tarifa'
+      error.value = apiErrorMessage(err, 'Error de conexión al actualizar tarifa')
       console.error('Error updating shipping rate:', err)
       return { success: false, error: error.value }
     } finally {
@@ -206,7 +207,7 @@ export const useShippingStore = defineStore('shipping', () => {
         return { success: false, error: error.value }
       }
     } catch (err) {
-      error.value = 'Error de conexión al eliminar tarifa'
+      error.value = apiErrorMessage(err, 'Error de conexión al eliminar tarifa')
       console.error('Error deleting shipping rate:', err)
       return { success: false, error: error.value }
     } finally {
@@ -228,7 +229,7 @@ export const useShippingStore = defineStore('shipping', () => {
         return { success: false, error: error.value }
       }
     } catch (err) {
-      error.value = 'Error de conexión'
+      error.value = apiErrorMessage(err, 'Error de conexión')
       console.error('Error toggling shipping rate:', err)
       return { success: false, error: error.value }
     }
