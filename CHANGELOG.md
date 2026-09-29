@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.90.0] - 2026-09-29
+
+### Novedades
+
+- **clientes:** exportar por partes y por rango de fecha de registro ([`7be42da`](https://github.com/mitienda-pe/mitienda-admin/commit/7be42da346e13b2a5090e8065fe56bd9b29fc3e6))
+
 ## [v2.89.1] - 2026-09-29
 
 ### Novedades
