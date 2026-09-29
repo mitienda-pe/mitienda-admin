@@ -316,8 +316,9 @@
             {{ currentCountry?.levels[2] || 'Distrito' }} (opcional)
           </label>
           <Dropdown
+            v-if="unratedLevel3Options.length > 0"
             v-model="addForm.level3"
-            :options="level3Options"
+            :options="unratedLevel3Options"
             optionLabel="name"
             optionValue="code"
             placeholder="Seleccionar..."
@@ -325,7 +326,15 @@
             showClear
             :loading="store.isLoadingLocations"
           />
+          <p v-else class="text-sm text-gray-500">
+            Todos los {{ (currentCountry?.levels[2] || 'Distrito').toLowerCase() }}s de esta
+            {{ (currentCountry?.levels[1] || 'Provincia').toLowerCase() }} ya tienen tarifa.
+          </p>
         </div>
+
+        <Message v-if="selectedAlreadyRated" severity="warn" :closable="false" class="text-sm">
+          <strong>{{ selectedAddLocation?.name }}</strong> ya tiene una tarifa. Para cambiarla, edítala desde el listado.
+        </Message>
 
         <!-- Checklist de distritos (modo por distritos) -->
         <div v-if="provinceMode && addForm.level2 && level3Options.length > 0" class="border border-gray-200 rounded-lg">
@@ -608,11 +617,41 @@ const filteredRates = computed(() => {
   return filterTreeNodes(rates, query)
 })
 
+// ubigeo_id de cada ubicación con tarifa propia (dpto, provincia o distrito).
+// Crear otra sobre ellas da 400 "Ya existe una tarifa": eso se edita, no se crea.
+const ratedLocationIds = computed(() => {
+  const ids = new Set<number>()
+  const walk = (nodes: RateTreeNode[]) => {
+    for (const node of nodes) {
+      if (node.data.hasRate && node.data.locationId) ids.add(node.data.locationId)
+      if (node.children) walk(node.children)
+    }
+  }
+  walk(store.currentRates)
+  return ids
+})
+
+const unratedLevel3Options = computed(() =>
+  level3Options.value.filter(d => !ratedLocationIds.value.has(d.id))
+)
+
+// Ubicación sobre la que se crearía la tarifa: el nivel más específico elegido
+const selectedAddLocation = computed<Location | undefined>(() => {
+  if (addForm.value.level3) return level3Options.value.find(l => l.code === addForm.value.level3)
+  if (addForm.value.level2) return level2Options.value.find(l => l.code === addForm.value.level2)
+  if (addForm.value.level1) return level1Options.value.find(l => l.code === addForm.value.level1)
+  return undefined
+})
+
+const selectedAlreadyRated = computed(() =>
+  !provinceMode.value && !!selectedAddLocation.value && ratedLocationIds.value.has(selectedAddLocation.value.id)
+)
+
 const canSaveAdd = computed(() => {
   const base = addForm.value.level1 && addForm.value.price >= 0 && addForm.value.deliveryTime > 0
   if (!base) return false
   if (provinceMode.value) return checkedDistrictIds.value.length > 0
-  return true
+  return !selectedAlreadyRated.value
 })
 
 const canSaveEdit = computed(() => {
@@ -878,20 +917,7 @@ async function addProvinceDistricts() {
 }
 
 async function addRate() {
-  // Determine which level code to use
-  const locationCode = addForm.value.level3 || addForm.value.level2 || addForm.value.level1
-  if (!locationCode) return
-
-  // Find the location to get its ID
-  let location: Location | undefined
-  if (addForm.value.level3) {
-    location = level3Options.value.find(l => l.code === addForm.value.level3)
-  } else if (addForm.value.level2) {
-    location = level2Options.value.find(l => l.code === addForm.value.level2)
-  } else {
-    location = level1Options.value.find(l => l.code === addForm.value.level1)
-  }
-
+  const location = selectedAddLocation.value
   if (!location) {
     toast.add({ severity: 'error', summary: 'Ubicación no encontrada', life: 3000 })
     return
