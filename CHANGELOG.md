@@ -3,6 +3,32 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.88.0] - 2026-09-29
+
+### Novedades
+
+- **productos:** cantidad mínima de compra por producto ([`8800374`](https://github.com/mitienda-pe/mitienda-admin/commit/8800374ad0eecfa96ff973c4de37ca8fe8cdbde2))
+- **promociones:** efecto "Lleva N, paga M" (2x1, 3x2, 4x3) ([`764bb7f`](https://github.com/mitienda-pe/mitienda-admin/commit/764bb7fd2fb87e46fff2bb44cac6552fa2f1c272))
+- **usuarios:** ingresos de los últimos 30 días y actividad de usuarios y cajeros ([`f1fd778`](https://github.com/mitienda-pe/mitienda-admin/commit/f1fd7786aab85caa5f9374119604faa37b3db8be))
+- **ventas:** mostrar el código de la Orden de Venta de NetSuite ([`0af6f71`](https://github.com/mitienda-pe/mitienda-admin/commit/0af6f71396e64e4fb2abc0728babb8abed55e356))
+- **reclamaciones:** filtrar por Petición (PQR de Colombia) ([`5e486ce`](https://github.com/mitienda-pe/mitienda-admin/commit/5e486ceffa5a8ba57e9603189a3542773244aab9))
+- **usuarios:** asignar sucursales a un usuario ([`f22252c`](https://github.com/mitienda-pe/mitienda-admin/commit/f22252c5660e05b9e6e69379be48b54e0bba24f8))
+- **promociones:** condición de producto con varios productos y aviso de AND ([`5ecfc16`](https://github.com/mitienda-pe/mitienda-admin/commit/5ecfc167c749a33765f64c09476dbae27a4fd30b))
+- **plugins:** disponibilidad diaria y detalle de pedido del armador de sabores ([`7f48214`](https://github.com/mitienda-pe/mitienda-admin/commit/7f48214d44c49a78d36f616e7f1554d0f86bb5a5))
+- **ventas:** boton "Reenviar desde cero" para el ERP, con motivo ([`f9d569c`](https://github.com/mitienda-pe/mitienda-admin/commit/f9d569cc9f5e7df4b77508fa158c07a14082e71d))
+- **plugins:** ajustes y detalle de pedido del armador de tortas ([`904b480`](https://github.com/mitienda-pe/mitienda-admin/commit/904b480afa12892d353aec2d9f7f7c8e65bc219b))
+- **plantillas:** zona "Arriba de la descripción" en Detalle Producto ([`15b31b3`](https://github.com/mitienda-pe/mitienda-admin/commit/15b31b3a9620c1174839392061154a9b5a7105b0))
+- **plantillas:** bloque "Producto destacado" en el builder ([`5737e5d`](https://github.com/mitienda-pe/mitienda-admin/commit/5737e5dee98a7d5ae31501dffb282bea84e5a94e))
+- **catalogo-pdf:** tope de productos desde el API (500) ([`e8c837b`](https://github.com/mitienda-pe/mitienda-admin/commit/e8c837bc83dc45593743346bdd90f15db9e0af82))
+- **productos:** elegir una imagen de la galería al añadir imagen al producto ([`3dc010f`](https://github.com/mitienda-pe/mitienda-admin/commit/3dc010f8c340b950c65c6f0eefa24d0e8cca08f5))
+
+### Correcciones
+
+- **productos:** categorías con checkboxes independientes ([`4bbe485`](https://github.com/mitienda-pe/mitienda-admin/commit/4bbe485033063f4cbf4fb97be34f8768c58f2ca8))
+- **ventas:** estado "Requiere revision" para la venta que quedo sin documento ([`aeff9ce`](https://github.com/mitienda-pe/mitienda-admin/commit/aeff9ce436ee22a6e362d3d28998302a9dc304f8))
+- **envios:** mostrar las tarifas del país de la tienda ([`0f4c7fd`](https://github.com/mitienda-pe/mitienda-admin/commit/0f4c7fd0a7c2c54997dff9daefacc8e440e7f766))
+- **envios:** habilitar las zonas de envío del país de la tienda ([`094533f`](https://github.com/mitienda-pe/mitienda-admin/commit/094533f5e24bb1671136ef805e0436e3ad6d4724))
+
 ## [v2.87.0] - 2026-09-23
 
 ### Novedades
