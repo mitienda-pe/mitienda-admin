@@ -390,6 +390,51 @@ export const useCustomersStore = defineStore('customers', () => {
     currentCustomer.value = null
   }
 
+  /**
+   * Descarga los clientes con los filtros vigentes del listado.
+   * Devuelve el mensaje de error, o null si la descarga salió bien. No toca
+   * `error`: ese flag pinta el estado de error de la tabla entera.
+   */
+  async function exportCustomers(format: 'csv' | 'xlsx'): Promise<string | null> {
+    try {
+      const blob = await customersApi.exportCustomers(format, {
+        search: filters.value.search || undefined,
+        has_orders: hasOrders.value !== null ? hasOrders.value : undefined,
+        sort: sorting.value.field,
+        order: sorting.value.order
+      })
+
+      // Fecha local: `toISOString()` es UTC y de noche en Perú fecharía el
+      // archivo con el día siguiente.
+      const now = new Date()
+      const stamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `clientes-${stamp}.${format}`
+      link.click()
+      window.URL.revokeObjectURL(url)
+      return null
+    } catch (err: any) {
+      console.error('Error exporting customers:', err)
+
+      // Con responseType 'blob' el JSON de error del API también llega como Blob.
+      if (err.response?.data instanceof Blob) {
+        try {
+          const parsed = JSON.parse(await err.response.data.text())
+          return parsed.messages?.error || parsed.message || 'No se pudo generar el archivo'
+        } catch {
+          // No era JSON: cae al mensaje genérico.
+        }
+      }
+      if (err.code === 'ECONNABORTED') {
+        return 'La exportación tardó demasiado. Filtra la lista para acotarla e inténtalo de nuevo.'
+      }
+      return 'No se pudo generar el archivo'
+    }
+  }
+
   return {
     // State
     customers,
@@ -411,6 +456,7 @@ export const useCustomersStore = defineStore('customers', () => {
 
     // Actions
     fetchCustomers,
+    exportCustomers,
     fetchCustomer,
     fetchStats,
     createCustomer,

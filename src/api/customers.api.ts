@@ -114,6 +114,31 @@ export const customersApi = {
   },
 
   /**
+   * Descargar la base de clientes (CSV o Excel) con los mismos filtros del
+   * listado. Descifrar los correos cuesta ~1,5 ms por cliente en el API, así
+   * que en las tiendas grandes pasa del minuto: de ahí el timeout propio.
+   */
+  async exportCustomers(
+    format: 'csv' | 'xlsx',
+    filters: Pick<CustomersFilters, 'search' | 'has_orders' | 'sort' | 'order'> = {}
+  ): Promise<Blob> {
+    const params = new URLSearchParams({ format })
+
+    if (filters.search) params.append('search', filters.search)
+    if (filters.has_orders !== undefined)
+      params.append('has_orders', filters.has_orders ? '1' : '0')
+    if (filters.sort) params.append('sort', filters.sort)
+    if (filters.order) params.append('order', filters.order)
+
+    const response = await apiClient.get(`/customers/export?${params.toString()}`, {
+      responseType: 'blob',
+      timeout: 300000
+    })
+
+    return response.data
+  },
+
+  /**
    * Obtener detalle de un cliente
    */
   async getCustomer(id: number): Promise<ApiResponse<CustomerDetail>> {

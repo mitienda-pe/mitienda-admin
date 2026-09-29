@@ -10,11 +10,37 @@ import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import Dropdown from 'primevue/dropdown'
 import ProgressSpinner from 'primevue/progressspinner'
+import Menu from 'primevue/menu'
+import { useToast } from 'primevue/usetoast'
 import type { Customer } from '@/types/customer.types'
 
 const router = useRouter()
 const customersStore = useCustomersStore()
 const { formatDate } = useFormatters()
+const toast = useToast()
+
+// Exportación: descarga lo que la lista muestra filtrado (búsqueda, compras y orden).
+const exportMenu = ref<InstanceType<typeof Menu> | null>(null)
+const isExporting = ref(false)
+
+const exportMenuItems = [
+  { label: 'Excel (.xlsx)', icon: 'pi pi-file-excel', command: () => handleExport('xlsx') },
+  { label: 'CSV', icon: 'pi pi-file', command: () => handleExport('csv') }
+]
+
+const toggleExportMenu = (event: Event) => {
+  exportMenu.value?.toggle(event)
+}
+
+const handleExport = async (format: 'csv' | 'xlsx') => {
+  isExporting.value = true
+  const errorMessage = await customersStore.exportCustomers(format)
+  isExporting.value = false
+
+  if (errorMessage) {
+    toast.add({ severity: 'error', summary: 'No se pudo exportar', detail: errorMessage, life: 6000 })
+  }
+}
 
 const searchQuery = ref('')
 let searchTimeout: NodeJS.Timeout | null = null
@@ -92,11 +118,25 @@ const totalCustomers = computed(() => customersStore.pagination.total)
           {{ totalCustomers }} {{ totalCustomers === 1 ? 'cliente registrado' : 'clientes registrados' }}
         </p>
       </div>
-      <Button
-        label="Nuevo Cliente"
-        icon="pi pi-plus"
-        @click="router.push({ name: 'CustomerCreate' })"
-      />
+      <div class="flex gap-2">
+        <Button
+          :label="isExporting ? 'Exportando...' : 'Exportar'"
+          icon="pi pi-download"
+          severity="secondary"
+          outlined
+          :loading="isExporting"
+          :disabled="isExporting || !customersStore.hasCustomers"
+          aria-haspopup="true"
+          aria-controls="customers_export_menu"
+          @click="toggleExportMenu"
+        />
+        <Menu ref="exportMenu" id="customers_export_menu" :model="exportMenuItems" :popup="true" />
+        <Button
+          label="Nuevo Cliente"
+          icon="pi pi-plus"
+          @click="router.push({ name: 'CustomerCreate' })"
+        />
+      </div>
     </div>
 
     <!-- Búsqueda y Filtros -->
