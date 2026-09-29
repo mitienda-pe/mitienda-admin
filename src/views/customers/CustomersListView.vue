@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCustomersStore } from '@/stores/customers.store'
 import { useFormatters } from '@/composables/useFormatters'
@@ -10,7 +10,9 @@ import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import Dropdown from 'primevue/dropdown'
 import ProgressSpinner from 'primevue/progressspinner'
-import Menu from 'primevue/menu'
+import Dialog from 'primevue/dialog'
+import Calendar from 'primevue/calendar'
+import SelectButton from 'primevue/selectbutton'
 import { useToast } from 'primevue/usetoast'
 import type { Customer } from '@/types/customer.types'
 
@@ -19,27 +21,65 @@ const customersStore = useCustomersStore()
 const { formatDate } = useFormatters()
 const toast = useToast()
 
-// Exportación: descarga lo que la lista muestra filtrado (búsqueda, compras y orden).
-const exportMenu = ref<InstanceType<typeof Menu> | null>(null)
-const isExporting = ref(false)
+// Exportación: descarga lo que la lista muestra filtrado (búsqueda, compras y
+// orden), acotado opcionalmente por fecha de registro. Si la selección no cabe
+// en un archivo, el API devuelve cuántas partes hacen falta y se baja por bloques.
+const showExportDialog = ref(false)
+const exportFormat = ref<'xlsx' | 'csv'>('xlsx')
+const exportRange = ref<Date[] | null>(null)
+const exportParts = ref<{ parts: number; message: string } | null>(null)
+const exportingPart = ref<number | null>(null)
+const downloadedParts = ref<Set<number>>(new Set())
+const isExporting = computed(() => exportingPart.value !== null)
 
-const exportMenuItems = [
-  { label: 'Excel (.xlsx)', icon: 'pi pi-file-excel', command: () => handleExport('xlsx') },
-  { label: 'CSV', icon: 'pi pi-file', command: () => handleExport('csv') }
+const formatOptions = [
+  { label: 'Excel (.xlsx)', value: 'xlsx' },
+  { label: 'CSV', value: 'csv' }
 ]
 
-const toggleExportMenu = (event: Event) => {
-  exportMenu.value?.toggle(event)
+// Cambiar formato o fechas cambia qué contiene cada parte: se vuelve a preguntar.
+watch([exportFormat, exportRange], () => {
+  exportParts.value = null
+  downloadedParts.value = new Set()
+})
+
+const openExportDialog = () => {
+  exportParts.value = null
+  downloadedParts.value = new Set()
+  showExportDialog.value = true
 }
 
-const handleExport = async (format: 'csv' | 'xlsx') => {
-  isExporting.value = true
-  const errorMessage = await customersStore.exportCustomers(format)
-  isExporting.value = false
+// Fecha local en AAAA-MM-DD: `toISOString()` es UTC y correría el día.
+const toApiDate = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 
-  if (errorMessage) {
-    toast.add({ severity: 'error', summary: 'No se pudo exportar', detail: errorMessage, life: 6000 })
+const handleExport = async (part?: number) => {
+  const [from, to] = exportRange.value ?? []
+
+  exportingPart.value = part ?? 0
+  const result = await customersStore.exportCustomers(exportFormat.value, {
+    dateFrom: from ? toApiDate(from) : undefined,
+    // Con un solo día elegido, el rango es ese día.
+    dateTo: to ? toApiDate(to) : from ? toApiDate(from) : undefined,
+    part
+  })
+  exportingPart.value = null
+
+  if (result.ok) {
+    if (part) {
+      downloadedParts.value = new Set(downloadedParts.value).add(part)
+    } else {
+      showExportDialog.value = false
+    }
+    return
   }
+
+  if (result.parts) {
+    exportParts.value = { parts: result.parts, message: result.message }
+    return
+  }
+
+  toast.add({ severity: 'error', summary: 'No se pudo exportar', detail: result.message, life: 6000 })
 }
 
 const searchQuery = ref('')
@@ -120,17 +160,13 @@ const totalCustomers = computed(() => customersStore.pagination.total)
       </div>
       <div class="flex gap-2">
         <Button
-          :label="isExporting ? 'Exportando...' : 'Exportar'"
+          label="Exportar"
           icon="pi pi-download"
           severity="secondary"
           outlined
-          :loading="isExporting"
-          :disabled="isExporting || !customersStore.hasCustomers"
-          aria-haspopup="true"
-          aria-controls="customers_export_menu"
-          @click="toggleExportMenu"
+          :disabled="!customersStore.hasCustomers"
+          @click="openExportDialog"
         />
-        <Menu ref="exportMenu" id="customers_export_menu" :model="exportMenuItems" :popup="true" />
         <Button
           label="Nuevo Cliente"
           icon="pi pi-plus"
@@ -320,5 +356,88 @@ const totalCustomers = computed(() => customersStore.pagination.total)
         </Column>
       </DataTable>
     </div>
+    <!-- Exportar -->
+    <Dialog
+      v-model:visible="showExportDialog"
+      header="Exportar clientes"
+      modal
+      :closable="!isExporting"
+      :style="{ width: '32rem' }"
+      :breakpoints="{ '640px': '95vw' }"
+    >
+      <div class="space-y-5">
+        <p class="text-sm text-gray-600">
+          Se exportan los clientes con la búsqueda y el filtro de compras que tiene la lista.
+        </p>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium text-gray-700">Formato</label>
+          <SelectButton
+            v-model="exportFormat"
+            :options="formatOptions"
+            option-label="label"
+            option-value="value"
+            :allow-empty="false"
+            :disabled="isExporting"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-sm font-medium text-gray-700">Fecha de registro (opcional)</label>
+          <Calendar
+            v-model="exportRange"
+            selection-mode="range"
+            :manual-input="false"
+            :max-date="new Date()"
+            date-format="dd/mm/yy"
+            placeholder="Todas las fechas"
+            show-icon
+            show-button-bar
+            :disabled="isExporting"
+            class="w-full"
+          />
+        </div>
+
+        <!-- La selección no cabe en un archivo: se ofrece por partes. -->
+        <div v-if="exportParts" class="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 space-y-3">
+          <p>{{ exportParts.message }}</p>
+          <div class="flex flex-wrap gap-2">
+            <Button
+              v-for="part in exportParts.parts"
+              :key="part"
+              :label="`Parte ${part} de ${exportParts.parts}`"
+              :icon="downloadedParts.has(part) ? 'pi pi-check' : 'pi pi-download'"
+              size="small"
+              :severity="downloadedParts.has(part) ? 'success' : 'secondary'"
+              outlined
+              :loading="exportingPart === part"
+              :disabled="isExporting && exportingPart !== part"
+              @click="handleExport(part)"
+            />
+          </div>
+        </div>
+
+        <p v-if="isExporting" class="text-xs text-gray-500">
+          Preparando el archivo. En tiendas con muchos clientes puede tardar hasta un minuto.
+        </p>
+      </div>
+
+      <template #footer>
+        <Button
+          label="Cerrar"
+          severity="secondary"
+          text
+          :disabled="isExporting"
+          @click="showExportDialog = false"
+        />
+        <Button
+          v-if="!exportParts"
+          label="Descargar"
+          icon="pi pi-download"
+          :loading="exportingPart === 0"
+          @click="handleExport()"
+        />
+      </template>
+    </Dialog>
   </div>
 </template>

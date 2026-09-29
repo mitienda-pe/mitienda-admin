@@ -11,6 +11,11 @@ import type {
   DocumentLookupResult
 } from '@/types/customer.types'
 
+/** `parts` solo viene cuando la selección no cabe en un archivo. */
+export type CustomerExportResult =
+  | { ok: true }
+  | { ok: false; message: string; parts?: number }
+
 export const useCustomersStore = defineStore('customers', () => {
   // State
   const customers = ref<Customer[]>([])
@@ -391,31 +396,41 @@ export const useCustomersStore = defineStore('customers', () => {
   }
 
   /**
-   * Descarga los clientes con los filtros vigentes del listado.
-   * Devuelve el mensaje de error, o null si la descarga salió bien. No toca
-   * `error`: ese flag pinta el estado de error de la tabla entera.
+   * Descarga los clientes con los filtros vigentes del listado, más un rango
+   * opcional de fecha de registro (AAAA-MM-DD) y la parte pedida.
+   *
+   * No toca `error`: ese flag pinta el estado de error de la tabla entera.
+   * Si la selección excede lo que cabe en un archivo, devuelve `parts` para que
+   * la vista ofrezca bajarla por bloques.
    */
-  async function exportCustomers(format: 'csv' | 'xlsx'): Promise<string | null> {
+  async function exportCustomers(
+    format: 'csv' | 'xlsx',
+    options: { dateFrom?: string; dateTo?: string; part?: number } = {}
+  ): Promise<CustomerExportResult> {
     try {
       const blob = await customersApi.exportCustomers(format, {
         search: filters.value.search || undefined,
         has_orders: hasOrders.value !== null ? hasOrders.value : undefined,
         sort: sorting.value.field,
-        order: sorting.value.order
+        order: sorting.value.order,
+        date_from: options.dateFrom,
+        date_to: options.dateTo,
+        part: options.part
       })
 
       // Fecha local: `toISOString()` es UTC y de noche en Perú fecharía el
       // archivo con el día siguiente.
       const now = new Date()
       const stamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+      const suffix = options.part ? `-parte-${options.part}` : ''
 
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `clientes-${stamp}.${format}`
+      link.download = `clientes-${stamp}${suffix}.${format}`
       link.click()
       window.URL.revokeObjectURL(url)
-      return null
+      return { ok: true }
     } catch (err: any) {
       console.error('Error exporting customers:', err)
 
@@ -423,15 +438,24 @@ export const useCustomersStore = defineStore('customers', () => {
       if (err.response?.data instanceof Blob) {
         try {
           const parsed = JSON.parse(await err.response.data.text())
-          return parsed.messages?.error || parsed.message || 'No se pudo generar el archivo'
+          return {
+            ok: false,
+            message: parsed.messages?.error || parsed.message || 'No se pudo generar el archivo',
+            ...(parsed.code === 'EXPORT_TOO_LARGE'
+              ? { parts: Number(parsed.parts) }
+              : {})
+          }
         } catch {
           // No era JSON: cae al mensaje genérico.
         }
       }
       if (err.code === 'ECONNABORTED') {
-        return 'La exportación tardó demasiado. Filtra la lista para acotarla e inténtalo de nuevo.'
+        return {
+          ok: false,
+          message: 'La exportación tardó demasiado. Acota el rango de fechas e inténtalo de nuevo.'
+        }
       }
-      return 'No se pudo generar el archivo'
+      return { ok: false, message: 'No se pudo generar el archivo' }
     }
   }
 

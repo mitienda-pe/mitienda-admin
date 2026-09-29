@@ -115,12 +115,16 @@ export const customersApi = {
 
   /**
    * Descargar la base de clientes (CSV o Excel) con los mismos filtros del
-   * listado. Descifrar los correos cuesta ~1,5 ms por cliente en el API, así
-   * que en las tiendas grandes pasa del minuto: de ahí el timeout propio.
+   * listado, más un rango opcional de fecha de registro. El API arma archivos
+   * de hasta 10.000 clientes; por encima responde 400 `EXPORT_TOO_LARGE` con la
+   * cantidad de partes y cada una se pide con `part`. El timeout va holgado
+   * porque descifrar los correos de una parte completa toma decenas de segundos.
    */
   async exportCustomers(
     format: 'csv' | 'xlsx',
-    filters: Pick<CustomersFilters, 'search' | 'has_orders' | 'sort' | 'order'> = {}
+    filters: Pick<CustomersFilters, 'search' | 'has_orders' | 'sort' | 'order' | 'date_from' | 'date_to'> & {
+      part?: number
+    } = {}
   ): Promise<Blob> {
     const params = new URLSearchParams({ format })
 
@@ -129,10 +133,13 @@ export const customersApi = {
       params.append('has_orders', filters.has_orders ? '1' : '0')
     if (filters.sort) params.append('sort', filters.sort)
     if (filters.order) params.append('order', filters.order)
+    if (filters.date_from) params.append('date_from', filters.date_from)
+    if (filters.date_to) params.append('date_to', filters.date_to)
+    if (filters.part) params.append('part', filters.part.toString())
 
     const response = await apiClient.get(`/customers/export?${params.toString()}`, {
       responseType: 'blob',
-      timeout: 300000
+      timeout: 120000
     })
 
     return response.data
