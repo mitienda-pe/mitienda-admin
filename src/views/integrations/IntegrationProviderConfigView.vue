@@ -562,6 +562,26 @@ async function handleDelete() {
           </template>
         </div>
 
+        <!--
+          Qué está respondiendo el asistente. Va en su propia pantalla y no acá
+          abajo: leer conversaciones es una tarea, no un dato de configuración.
+        -->
+        <div v-if="code === 'shopping_chat'" class="bg-white rounded-lg shadow p-6">
+          <h3 class="font-semibold text-gray-700 mb-2">Conversaciones</h3>
+          <p class="text-sm text-gray-600 mb-4">
+            Lee qué le respondió tu asistente a quienes visitaron tu tienda. Se guardan
+            los últimos 30 días.
+          </p>
+          <AppButton
+            variant="secondary"
+            size="small"
+            @click="router.push('/integrations/asistente/conversaciones')"
+          >
+            <i class="pi pi-comments mr-2" />
+            Ver conversaciones
+          </AppButton>
+        </div>
+
         <!-- Last sync info (only for server-side providers) -->
         <div v-if="isConfigured && !isFrontendOnly" class="bg-white rounded-lg shadow p-6">
           <h3 class="font-semibold text-gray-700 mb-3">Estado de sincronización</h3>

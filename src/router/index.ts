@@ -1114,6 +1114,13 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/integrations/IntegrationProvidersView.vue')
       },
       {
+        // Antes de `providers/:code`, o el código capturaría esta ruta.
+        path: 'asistente/conversaciones',
+        name: 'AssistantConversations',
+        meta: { title: 'Conversaciones del asistente' },
+        component: () => import('@/views/integrations/AssistantConversationsView.vue')
+      },
+      {
         path: 'providers/:code',
         name: 'IntegrationProviderConfig',
         meta: { title: 'Configurar integración' },
