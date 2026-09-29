@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.89.0] - 2026-09-29
+
+### Novedades
+
+- **clientes:** exportar la lista de clientes en Excel o CSV ([`0092379`](https://github.com/mitienda-pe/mitienda-admin/commit/0092379b1ba0bb33e8adebf4984be90d2f9c0c79))
+
 ## [v2.88.0] - 2026-09-29
 
 ### Novedades
