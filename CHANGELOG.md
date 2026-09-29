@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.89.1] - 2026-09-29
+
+### Novedades
+
+- **asistente:** leer las conversaciones del asistente desde el panel ([`9842dc1`](https://github.com/mitienda-pe/mitienda-admin/commit/9842dc19f803a32b8cb4a9d9ae03b803da459a4c))
+
 ## [v2.89.0] - 2026-09-29
 
 ### Novedades
