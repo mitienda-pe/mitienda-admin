@@ -337,7 +337,7 @@ export const productsApi = {
       'height', 'width', 'length', 'dimensions_unit', 'weight', 'weight_unit',
       'unit_code', 'unit_content',
       'facebook_category_id', 'google_category_id',
-      'shipping_conversion_factor', 'product_type_id'
+      'shipping_conversion_factor', 'product_type_id', 'delivery_mode'
     ] as const
     for (const key of directFields) {
       if ((data as any)[key] !== undefined) payload[key] = (data as any)[key]

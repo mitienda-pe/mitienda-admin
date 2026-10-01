@@ -2,6 +2,9 @@
 import type { ProductVideo } from './product-video.types'
 import type { ProductDocument } from './product-document.types'
 
+/** Modo de entrega por producto: any = domicilio y recojo. */
+export type DeliveryMode = 'any' | 'delivery_only' | 'pickup_only'
+
 export interface ProductSEO {
   meta_title?: string
   meta_description?: string
@@ -118,6 +121,7 @@ export interface Product {
   volumetric_weight?: number
   shipping_conversion_factor?: number
   shipping_per_unit?: boolean
+  delivery_mode?: DeliveryMode
   igv_percent?: number
   tax_affectation?: number // 1=Gravado, 2=Exonerado, 3=Inafecto
   /**
@@ -433,6 +437,7 @@ export interface ProductCreatePayload {
   // Shipping per product
   shipping_conversion_factor?: number
   shipping_per_unit?: boolean
+  delivery_mode?: DeliveryMode
 }
 
 export type ProductUpdatePayload = Partial<ProductCreatePayload> & {

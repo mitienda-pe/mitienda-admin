@@ -558,6 +558,25 @@
                 </div>
                 <InputSwitch v-model="form.shipping_per_unit" />
               </div>
+
+              <!-- Modo de entrega -->
+              <div class="border-t border-gray-100 pt-4">
+                <label for="edit-delivery-mode" class="block text-sm font-medium text-secondary-700 mb-1">
+                  Modo de entrega
+                </label>
+                <Dropdown
+                  id="edit-delivery-mode"
+                  v-model="form.delivery_mode"
+                  :options="deliveryModeOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  class="w-full"
+                />
+                <small class="text-gray-400 mt-1 block">
+                  Si el carrito mezcla este producto con otros, manda la restricción. Un producto
+                  "solo envío" y otro "solo recojo" no se pueden comprar en el mismo pedido.
+                </small>
+              </div>
             </div>
           </template>
         </Card>
@@ -1222,7 +1241,7 @@ import { AI_BUTTON_IDS } from '@/config/ai-buttons.config'
 import ProductTagAssignment from '@/components/ProductTagAssignment.vue'
 import ProductStockNotifications from '@/components/products/ProductStockNotifications.vue'
 import ProductReviewsCard from '@/components/reviews/ProductReviewsCard.vue'
-import type { ProductUpdatePayload, ExternalCategoryOption, SaleUnitOption } from '@/types/product.types'
+import type { ProductUpdatePayload, ExternalCategoryOption, SaleUnitOption, DeliveryMode } from '@/types/product.types'
 import { useShippingConfigStore } from '@/stores/shipping-config.store'
 import { useProductCardStore } from '@/stores/product-card.store'
 import { useStoreConfigStore } from '@/stores/store-config.store'
@@ -1379,6 +1398,7 @@ const form = ref<FormState>({
   // Shipping per product
   shipping_conversion_factor: 1,
   shipping_per_unit: false,
+  delivery_mode: 'any' as DeliveryMode,
 })
 
 // AI context for field generators
@@ -1411,6 +1431,12 @@ const dimensionUnitOptions = [
   { label: 'Centimetros (cm)', value: 'centimetros' },
   { label: 'Metros (m)', value: 'metros' },
   { label: 'Pulgadas (in)', value: 'pulgadas' },
+]
+
+const deliveryModeOptions: { label: string; value: DeliveryMode }[] = [
+  { label: 'Envío a domicilio y recojo en tienda', value: 'any' },
+  { label: 'Solo envío a domicilio', value: 'delivery_only' },
+  { label: 'Solo recojo en tienda', value: 'pickup_only' },
 ]
 
 const weightUnitOptions = [
@@ -1521,6 +1547,7 @@ const populateForm = async () => {
     // Shipping per product
     shipping_conversion_factor: p.shipping_conversion_factor ?? 1,
     shipping_per_unit: p.shipping_per_unit ?? false,
+    delivery_mode: p.delivery_mode ?? 'any',
   }
 
   // Estado del control por lotes del producto.
