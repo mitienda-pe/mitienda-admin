@@ -61,8 +61,9 @@ export function printableFromOrder(order: Order): PrintableOrder {
     orderNumber: order.order_number,
     createdAt: order.created_at,
     items: order.items.map(item => ({
-      sku: item.product_sku || undefined,
+      sku: item.variant_sku || item.product_sku || undefined,
       name: item.product_name,
+      variant: item.product_variant,
       quantity: item.quantity
     })),
     // El documento del envío manda sobre el de facturación: en una Factura el
@@ -265,10 +266,12 @@ export function useOrderDownloads() {
     // Products table
     const tableStartY = Math.max(yPos, 110)
 
+    // La variante (talla, color) y su SKU propio: sin ellos el almacén no sabe
+    // qué prenda despachar, porque el nombre es el mismo para todas las tallas.
     const tableData = order.items.map((item, index) => [
       (index + 1).toString(),
-      item.product_sku || '-',
-      item.product_name,
+      item.variant_sku || item.product_sku || '-',
+      item.product_variant ? `${item.product_name}\n${item.product_variant}` : item.product_name,
       item.quantity.toString(),
       formatCurrency(item.price),
       formatCurrency(item.subtotal)
@@ -322,6 +325,26 @@ export function useOrderDownloads() {
     doc.setFont('helvetica', 'bold')
     const totalY = finalY + (hasShipping(order) || order.discount ? 22 : 6)
     doc.text(`TOTAL: ${formatCurrency(order.total)}`, totalsX, totalY, { align: 'right' })
+
+    // Nota que dejó el comprador en el checkout (agencia, forma de recojo, abonos).
+    if (order.notes) {
+      doc.setFontSize(10)
+      const noteLines = doc.splitTextToSize(order.notes, pageWidth - 36)
+      const noteHeight = noteLines.length * 5 + 12
+      let noteY = totalY + 10
+      if (noteY + noteHeight > doc.internal.pageSize.getHeight() - 20) {
+        doc.addPage()
+        noteY = 20
+      }
+
+      doc.setFillColor(255, 249, 219)
+      doc.setDrawColor(234, 179, 8)
+      doc.rect(14, noteY, pageWidth - 28, noteHeight, 'FD')
+      doc.setFont('helvetica', 'bold')
+      doc.text('NOTA DEL CLIENTE:', 18, noteY + 7)
+      doc.setFont('helvetica', 'normal')
+      doc.text(noteLines, 18, noteY + 13)
+    }
 
     // Footer
     doc.setFontSize(8)
@@ -400,6 +423,11 @@ export function useOrderDownloads() {
       const name = item.product_name.substring(0, 25)
       doc.text(name, margin, y)
       y += 4
+
+      if (item.product_variant) {
+        doc.text(item.product_variant.substring(0, 25), margin + 2, y)
+        y += 4
+      }
 
       // Quantity x Price = Total
       const line = `${item.quantity} x ${formatCurrency(item.price)}`
