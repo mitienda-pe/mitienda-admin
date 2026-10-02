@@ -558,26 +558,32 @@
                 </div>
                 <InputSwitch v-model="form.shipping_per_unit" />
               </div>
-
-              <!-- Modo de entrega -->
-              <div class="border-t border-gray-100 pt-4">
-                <label for="edit-delivery-mode" class="block text-sm font-medium text-secondary-700 mb-1">
-                  Modo de entrega
-                </label>
-                <Dropdown
-                  id="edit-delivery-mode"
-                  v-model="form.delivery_mode"
-                  :options="deliveryModeOptions"
-                  optionLabel="label"
-                  optionValue="value"
-                  class="w-full"
-                />
-                <small class="text-gray-400 mt-1 block">
-                  Si el carrito mezcla este producto con otros, manda la restricción. Un producto
-                  "solo envío" y otro "solo recojo" no se pueden comprar en el mismo pedido.
-                </small>
-              </div>
             </div>
+          </template>
+        </Card>
+
+        <!-- Modo de entrega. Fuera de "Opciones de Envío": esa tarjeta solo se ve
+             con envío por producto activo, y la restricción aplica a toda tienda. -->
+        <Card v-if="requiresShipping">
+          <template #title>
+            <span class="text-lg">Modo de entrega</span>
+          </template>
+          <template #content>
+            <label for="edit-delivery-mode" class="block text-sm font-medium text-secondary-700 mb-1">
+              ¿Cómo se puede entregar este producto?
+            </label>
+            <Dropdown
+              id="edit-delivery-mode"
+              v-model="form.delivery_mode"
+              :options="deliveryModeOptions"
+              optionLabel="label"
+              optionValue="value"
+              class="w-full"
+            />
+            <small class="text-gray-400 mt-1 block">
+              Si el carrito mezcla este producto con otros, manda la restricción. Un producto
+              "solo envío" y otro "solo recojo" no se pueden comprar en el mismo pedido.
+            </small>
           </template>
         </Card>
 
