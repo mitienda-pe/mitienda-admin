@@ -27,19 +27,15 @@ onMounted(() => {
 
 // Minimum plan required per integration category.
 // Plan tiers (ascending): Micro → Small → Medium → Large.
-const CATEGORY_MIN_PLAN: Record<string, string> = {
-  payments: 'Micro',
-  push_notifications: 'Micro',
-  shipping: 'Small',
-  ads: 'Small',
-  analytics: 'Small',
-  email_marketing: 'Medium',
-  lead_capture: 'Medium',
-  chat: 'Medium',
-  fulfillment: 'Large',
-  erp: 'Large',
-  crm: 'Large',
-}
+/**
+ * El mínimo de plan ya NO vive acá: lo sirve el backend con cada proveedor
+ * (`min_plan`, de `IntegrationPlanGate`), que es además quien lo hace cumplir.
+ * Esta vista pinta el candado; no decide quién pasa.
+ *
+ * Tener la copia acá significaba que el panel y la API podían discrepar, y
+ * discreparon: el candado era decorativo —ninguna ruta validaba el plan— y al
+ * mismo tiempo escondía proveedores que la API sí habría aceptado.
+ */
 
 const PLAN_RANK: Record<string, number> = {
   Micro: 1,
@@ -55,42 +51,71 @@ const currentPlanRank = computed(() => {
   return name ? (PLAN_RANK[name] ?? 0) : 0
 })
 
-function isCategoryLocked(categoryKey: string): boolean {
-  if (skipPlanGate.value) return false
-  const min = CATEGORY_MIN_PLAN[categoryKey]
+/**
+ * ¿El plan de la tienda se queda corto para este proveedor?
+ *
+ * Fuera de la jerarquía (`Prueba Gratis`, `PDV`, `Plan a la medida`…) devuelve
+ * false, igual que el backend: son 72 tiendas vigentes, 63 de ellas en prueba, y
+ * rankearlas a ojo les cambiaría el acceso sin que nadie lo decidiera.
+ */
+function planFallsShort(provider: IntegrationProvider): boolean {
+  const min = provider.min_plan
   if (!min) return false
-  if (!currentPlanRank.value) return false // Unknown plan: do not gate
+  if (!currentPlanRank.value) return false
   return currentPlanRank.value < (PLAN_RANK[min] ?? 0)
 }
 
-function getCategoryMinPlan(categoryKey: string): string | null {
-  return CATEGORY_MIN_PLAN[categoryKey] ?? null
+
+/**
+ * El candado que ve el comerciante: no puede activarla y la API lo rechazaría.
+ *
+ * El superadmin y quien impersona quedan fuera, pero no a ciegas: ven el aviso
+ * de `planInfoFor`, que dice qué plan haría falta. Que el candado simplemente
+ * desapareciera fue lo que dejó activar el Asistente IA en una tienda Small sin
+ * que nada avisara de que el widget no se iba a publicar.
+ */
+function isProviderLocked(provider: IntegrationProvider): boolean {
+  if (skipPlanGate.value) return false
+  return planFallsShort(provider)
 }
 
 /**
- * El candado es de la categoría, pero un proveedor puede escaparse.
- *
- * El Asistente IA está en beta abierta y vive en `chat`, que pide Medium para
- * los otros cuatro widgets. Quien decide es el backend (`beta` en el registro),
- * no esta vista: si el panel lo decidiera por su cuenta terminaría ofreciendo
- * algo que el backend rechaza, que es justo lo que pasó cuando el mínimo de acá
- * y el de allá se desincronizaron.
+ * Lo que ve el superadmin en vez del candado: qué plan pide y cuál tiene la
+ * tienda. Sin esto, soporte activa algo que para el comerciante no existe.
  */
-function isProviderLocked(provider: IntegrationProvider, categoryKey: string): boolean {
-  if (provider.beta) return false
-  return isCategoryLocked(categoryKey)
+function planInfoFor(provider: IntegrationProvider): string | null {
+  if (!skipPlanGate.value || !planFallsShort(provider)) return null
+  return `Requiere ${provider.min_plan} · esta tienda es ${planStore.plan?.name}`
 }
 
-function showCategoryUpgrade(categoryKey: string, categoryLabel: string) {
-  const min = CATEGORY_MIN_PLAN[categoryKey] ?? null
+/**
+ * El mismo modal del menú de navegación, pero nombrando el proveedor.
+ *
+ * Antes armaba el módulo sintético con el nombre de la CATEGORÍA, así que quien
+ * hacía clic en Tawk.to leía «Chat en vivo» y tenía que adivinar la relación.
+ */
+function showProviderUpgrade(provider: IntegrationProvider, categoryLabel: string) {
   const synthetic: PlanModule = {
-    code: `category_${categoryKey}`,
-    name: categoryLabel,
-    group: 'Integraciones',
+    code: `integration_${provider.code}`,
+    name: provider.name,
+    group: `Integraciones · ${categoryLabel}`,
     enabled: false,
-    minimum_plan: min,
+    minimum_plan: provider.min_plan ?? null,
   }
   planStore.showUpgradeModal(synthetic)
+}
+
+/**
+ * La categoría entera queda bloqueada cuando ninguno de sus proveedores se
+ * puede activar. Con el Asistente IA en beta, `chat` ya no lo está: el aviso de
+ * cabecera mentiría sobre la tarjeta que sí se puede usar.
+ */
+function isCategoryLocked(providers: IntegrationProvider[]): boolean {
+  return providers.length > 0 && providers.every((p) => isProviderLocked(p))
+}
+
+function categoryMinPlan(providers: IntegrationProvider[]): string | null {
+  return providers.find((p) => p.min_plan)?.min_plan ?? null
 }
 
 // Category definitions with display order
@@ -236,9 +261,9 @@ const providerIcons: Record<string, string> = {
   cr_hop: 'pi pi-truck',
 }
 
-function navigateToProvider(provider: IntegrationProvider, categoryKey: string, categoryLabel: string) {
-  if (isProviderLocked(provider, categoryKey)) {
-    showCategoryUpgrade(categoryKey, categoryLabel)
+function navigateToProvider(provider: IntegrationProvider, categoryLabel: string) {
+  if (isProviderLocked(provider)) {
+    showProviderUpgrade(provider, categoryLabel)
     return
   }
   if (provider.config_url) {
@@ -332,12 +357,12 @@ function getStatusVariant(provider: IntegrationProvider): BadgeVariant {
         <div class="flex items-center gap-3 mb-4">
           <h2 class="text-lg font-semibold text-gray-700">{{ category.label }}</h2>
           <span
-            v-if="isCategoryLocked(category.key)"
+            v-if="isCategoryLocked(category.providers)"
             class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold"
-            :class="planPillClass(getCategoryMinPlan(category.key))"
+            :class="planPillClass(categoryMinPlan(category.providers))"
           >
             <i class="pi pi-lock text-[0.65rem]"></i>
-            Disponible desde {{ getCategoryMinPlan(category.key) }}
+            Disponible desde {{ categoryMinPlan(category.providers) }}
           </span>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -346,12 +371,12 @@ function getStatusVariant(provider: IntegrationProvider): BadgeVariant {
             :key="provider.code"
             class="bg-white border rounded-lg p-5 cursor-pointer transition-shadow"
             :class="{
-              'border-green-400': !isProviderLocked(provider, category.key) && provider.configured && provider.enabled,
-              'border-yellow-400': !isProviderLocked(provider, category.key) && provider.configured && !provider.enabled,
-              'opacity-60 hover:shadow-sm': isProviderLocked(provider, category.key),
-              'hover:shadow-md': !isProviderLocked(provider, category.key)
+              'border-green-400': !isProviderLocked(provider) && provider.configured && provider.enabled,
+              'border-yellow-400': !isProviderLocked(provider) && provider.configured && !provider.enabled,
+              'opacity-60 hover:shadow-sm': isProviderLocked(provider),
+              'hover:shadow-md': !isProviderLocked(provider)
             }"
-            @click="navigateToProvider(provider, category.key, category.label)"
+            @click="navigateToProvider(provider, category.label)"
           >
             <div class="flex items-start justify-between mb-3">
               <div class="flex items-center gap-3">
@@ -371,9 +396,9 @@ function getStatusVariant(provider: IntegrationProvider): BadgeVariant {
                 </div>
               </div>
               <i
-                v-if="isProviderLocked(provider, category.key)"
+                v-if="isProviderLocked(provider)"
                 class="pi pi-lock text-gray-400"
-                :title="`Disponible desde ${getCategoryMinPlan(category.key)}`"
+                :title="`Disponible desde ${provider.min_plan}`"
               />
               <AppBadge v-else :variant="getStatusVariant(provider)">
                 {{ getStatusLabel(provider) }}
@@ -382,6 +407,9 @@ function getStatusVariant(provider: IntegrationProvider): BadgeVariant {
             <p class="text-sm text-gray-500 mb-3">{{ provider.description }}</p>
             <p v-if="provider.plan_note" class="text-xs text-primary mb-3">
               <i class="pi pi-info-circle mr-1 text-[0.65rem]" />{{ provider.plan_note }}
+            </p>
+            <p v-if="planInfoFor(provider)" class="text-xs text-amber-600 mb-3">
+              <i class="pi pi-lock mr-1 text-[0.65rem]" />{{ planInfoFor(provider) }}
             </p>
             <div v-if="provider.supported_events?.length" class="flex flex-wrap gap-1">
               <span

@@ -112,7 +112,22 @@ apiClient.interceptors.response.use(
         const planStore = usePlanStore()
         const moduleCode = responseData.module as string
         const mod = planStore.modules.find((m: { code: string }) => m.code === moduleCode)
-        planStore.showUpgradeModal(mod ?? null)
+
+        // Las integraciones no son módulos del plan, así que su código nunca va
+        // a estar en esa lista. La API manda el nombre y el mínimo con el 403;
+        // sin esto el modal saldría con el texto genérico y el comerciante no
+        // sabría ni qué integración ni qué plan.
+        const fallback = responseData.minimum_plan
+          ? {
+              code: moduleCode,
+              name: (responseData.module_name as string) ?? moduleCode,
+              group: 'Integraciones',
+              enabled: false,
+              minimum_plan: responseData.minimum_plan as string,
+            }
+          : null
+
+        planStore.showUpgradeModal(mod ?? fallback)
       })
       return Promise.reject(error)
     }

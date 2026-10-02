@@ -47,6 +47,12 @@ export interface IntegrationProvider extends IntegrationIndexingStatus {
   beta?: boolean
   /** Qué decirle al comerciante sobre esa excepción, si la hay. */
   plan_note?: string
+  /**
+   * Plan mínimo para activarla ('Micro' | 'Small' | 'Medium' | 'Large'), o null
+   * si no tiene piso. Lo calcula `IntegrationPlanGate` en el backend, que es
+   * también quien lo hace cumplir: esta vista pinta el candado, no lo decide.
+   */
+  min_plan?: string | null
   last_success_at?: string | null
   last_failure_at?: string | null
   last_error?: string | null
