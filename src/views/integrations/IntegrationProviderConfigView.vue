@@ -285,6 +285,12 @@ async function handleDelete() {
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <h1 class="text-2xl font-bold text-gray-800">{{ provider.name }}</h1>
+            <span
+              v-if="provider.beta"
+              class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary"
+            >
+              Beta
+            </span>
             <AppBadge v-if="indexBlocked !== null" variant="warning">Sin publicar</AppBadge>
             <AppBadge v-else-if="isIndexing" variant="warning">Indexando</AppBadge>
             <AppBadge
@@ -533,6 +539,9 @@ async function handleDelete() {
         <div class="bg-white rounded-lg shadow p-6">
           <h3 class="font-semibold text-gray-700 mb-3">Acerca de {{ provider.name }}</h3>
           <p class="text-sm text-gray-600 mb-4">{{ provider.description }}</p>
+          <p v-if="provider.plan_note" class="text-sm text-primary mb-4">
+            <i class="pi pi-info-circle mr-1 text-xs" />{{ provider.plan_note }}
+          </p>
 
           <template v-if="hasEvents">
             <h4 class="text-sm font-medium text-gray-700 mb-2">Eventos soportados</h4>

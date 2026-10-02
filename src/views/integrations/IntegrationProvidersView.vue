@@ -67,6 +67,20 @@ function getCategoryMinPlan(categoryKey: string): string | null {
   return CATEGORY_MIN_PLAN[categoryKey] ?? null
 }
 
+/**
+ * El candado es de la categoría, pero un proveedor puede escaparse.
+ *
+ * El Asistente IA está en beta abierta y vive en `chat`, que pide Medium para
+ * los otros cuatro widgets. Quien decide es el backend (`beta` en el registro),
+ * no esta vista: si el panel lo decidiera por su cuenta terminaría ofreciendo
+ * algo que el backend rechaza, que es justo lo que pasó cuando el mínimo de acá
+ * y el de allá se desincronizaron.
+ */
+function isProviderLocked(provider: IntegrationProvider, categoryKey: string): boolean {
+  if (provider.beta) return false
+  return isCategoryLocked(categoryKey)
+}
+
 function showCategoryUpgrade(categoryKey: string, categoryLabel: string) {
   const min = CATEGORY_MIN_PLAN[categoryKey] ?? null
   const synthetic: PlanModule = {
@@ -223,7 +237,7 @@ const providerIcons: Record<string, string> = {
 }
 
 function navigateToProvider(provider: IntegrationProvider, categoryKey: string, categoryLabel: string) {
-  if (isCategoryLocked(categoryKey)) {
+  if (isProviderLocked(provider, categoryKey)) {
     showCategoryUpgrade(categoryKey, categoryLabel)
     return
   }
@@ -332,10 +346,10 @@ function getStatusVariant(provider: IntegrationProvider): BadgeVariant {
             :key="provider.code"
             class="bg-white border rounded-lg p-5 cursor-pointer transition-shadow"
             :class="{
-              'border-green-400': !isCategoryLocked(category.key) && provider.configured && provider.enabled,
-              'border-yellow-400': !isCategoryLocked(category.key) && provider.configured && !provider.enabled,
-              'opacity-60 hover:shadow-sm': isCategoryLocked(category.key),
-              'hover:shadow-md': !isCategoryLocked(category.key)
+              'border-green-400': !isProviderLocked(provider, category.key) && provider.configured && provider.enabled,
+              'border-yellow-400': !isProviderLocked(provider, category.key) && provider.configured && !provider.enabled,
+              'opacity-60 hover:shadow-sm': isProviderLocked(provider, category.key),
+              'hover:shadow-md': !isProviderLocked(provider, category.key)
             }"
             @click="navigateToProvider(provider, category.key, category.label)"
           >
@@ -345,11 +359,19 @@ function getStatusVariant(provider: IntegrationProvider): BadgeVariant {
                   <i :class="[providerIcons[provider.code] || category.icon, 'text-xl', category.iconColor]" />
                 </div>
                 <div>
-                  <h3 class="font-semibold text-gray-800">{{ provider.name }}</h3>
+                  <div class="flex items-center gap-2">
+                    <h3 class="font-semibold text-gray-800">{{ provider.name }}</h3>
+                    <span
+                      v-if="provider.beta"
+                      class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.65rem] font-semibold bg-primary/10 text-primary"
+                    >
+                      Beta
+                    </span>
+                  </div>
                 </div>
               </div>
               <i
-                v-if="isCategoryLocked(category.key)"
+                v-if="isProviderLocked(provider, category.key)"
                 class="pi pi-lock text-gray-400"
                 :title="`Disponible desde ${getCategoryMinPlan(category.key)}`"
               />
@@ -358,6 +380,9 @@ function getStatusVariant(provider: IntegrationProvider): BadgeVariant {
               </AppBadge>
             </div>
             <p class="text-sm text-gray-500 mb-3">{{ provider.description }}</p>
+            <p v-if="provider.plan_note" class="text-xs text-primary mb-3">
+              <i class="pi pi-info-circle mr-1 text-[0.65rem]" />{{ provider.plan_note }}
+            </p>
             <div v-if="provider.supported_events?.length" class="flex flex-wrap gap-1">
               <span
                 v-for="evt in provider.supported_events"

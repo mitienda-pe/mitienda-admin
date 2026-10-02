@@ -39,6 +39,14 @@ export interface IntegrationProvider extends IntegrationIndexingStatus {
   frontend_only?: boolean
   consent_category?: string
   config_url?: string
+  /**
+   * En beta abierta: el proveedor se salta el mínimo de plan de su categoría.
+   * Lo marca el backend (`FrontendIntegrationRegistry`), no el panel, para que
+   * abrir o cerrar la beta sea un solo cambio y no dos que se desincronizan.
+   */
+  beta?: boolean
+  /** Qué decirle al comerciante sobre esa excepción, si la hay. */
+  plan_note?: string
   last_success_at?: string | null
   last_failure_at?: string | null
   last_error?: string | null
