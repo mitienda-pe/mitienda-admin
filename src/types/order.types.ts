@@ -354,6 +354,28 @@ export interface ShippingDetails {
   doc_type?: string
   doc_number?: string
   date_delivered?: string | null
+  /**
+   * Tiempo de envío de la tarifa del destino. `source = 'order'` es el que vio el
+   * comprador al pagar; `'current_rate'` es la tarifa de hoy (ventas anteriores
+   * al snapshot), y se rotula como estimado.
+   */
+  delivery_time?: {
+    value: number
+    unit: 'days' | 'hours' | 'minutes'
+    source: 'order' | 'current_rate'
+  } | null
+  /**
+   * `scheduled`: fecha (o día de la semana) que eligió el comprador.
+   * `estimated`: pago (o venta, si no está pagada) + tiempo de envío.
+   */
+  promised_delivery?: {
+    source: 'scheduled' | 'estimated'
+    base?: 'payment' | 'order'
+    date: string | null
+    datetime: string | null
+    weekday: number | null
+    window: string | null
+  } | null
 }
 
 export interface ShippingHistoryEvent {

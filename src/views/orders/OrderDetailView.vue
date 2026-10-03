@@ -866,6 +866,50 @@ const shippingCostLabel = computed(() => {
   return cost > 0 ? formatCurrency(cost) : 'Gratis'
 })
 
+// Tiempo de envío de la tarifa del destino ("3 días", "6 horas").
+const DELIVERY_TIME_UNITS = {
+  days: ['día', 'días'],
+  hours: ['hora', 'horas'],
+  minutes: ['minuto', 'minutos'],
+} as const
+
+const deliveryTime = computed(() => order.value?.shipping_details?.delivery_time ?? null)
+
+const deliveryTimeLabel = computed(() => {
+  const time = deliveryTime.value
+  if (!time) return ''
+  const [singular, plural] = DELIVERY_TIME_UNITS[time.unit]
+  return `${time.value} ${time.value === 1 ? singular : plural}`
+})
+
+const WEEKDAYS = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo']
+
+// Fecha prometida: la que programó el comprador o, si no eligió, pago + tiempo
+// de envío. Con horas/minutos se muestra también la hora.
+const promisedDelivery = computed(() => order.value?.shipping_details?.promised_delivery ?? null)
+
+const promisedDeliveryLabel = computed(() => {
+  const promise = promisedDelivery.value
+  if (!promise) return ''
+  if (promise.datetime) return formatDateTime(promise.datetime)
+  if (promise.date) {
+    const [y, m, d] = promise.date.split('-').map(Number)
+    const weekday = WEEKDAYS[(new Date(y, m - 1, d).getDay() + 6) % 7]
+    return `${weekday} ${formatDate(promise.date)}`
+  }
+  if (promise.weekday) return `El ${WEEKDAYS[promise.weekday - 1]}`
+  return ''
+})
+
+const promisedDeliveryHint = computed(() => {
+  const promise = promisedDelivery.value
+  if (!promise) return ''
+  if (promise.source === 'scheduled') return 'Programada por el comprador'
+  const base = promise.base === 'payment' ? 'el pago' : 'la venta (aún sin pagar)'
+  const estimated = deliveryTime.value?.source === 'current_rate' ? ' · estimada con la tarifa actual' : ''
+  return `Calculada desde ${base}${estimated}`
+})
+
 // Subtotal de productos + envío (antes de promociones a nivel de orden)
 const subtotalAntesPromociones = computed(() => {
   if (!order.value?.items) return 0
@@ -1801,6 +1845,19 @@ const handleDebugPayments = async () => {
                   <i v-if="shippingServiceType.icon" :class="['pi', shippingServiceType.icon, 'text-primary']"></i>
                   {{ shippingServiceType.name }}
                 </p>
+              </div>
+              <div v-if="deliveryTimeLabel">
+                <p class="text-sm text-gray-500">Tiempo de envío</p>
+                <p class="text-gray-900">
+                  {{ deliveryTimeLabel }}
+                  <span v-if="deliveryTime?.source === 'current_rate'" class="text-xs text-gray-500">(tarifa actual)</span>
+                </p>
+              </div>
+              <div v-if="promisedDeliveryLabel">
+                <p class="text-sm text-gray-500">Fecha prometida</p>
+                <p class="font-semibold text-gray-900 first-letter:uppercase">{{ promisedDeliveryLabel }}</p>
+                <p v-if="promisedDelivery?.window" class="text-gray-900 text-sm">{{ promisedDelivery.window }}</p>
+                <p class="text-xs text-gray-500">{{ promisedDeliveryHint }}</p>
               </div>
               <div v-if="hasShippingCost">
                 <p class="text-sm text-gray-500">Costo de envío</p>

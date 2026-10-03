@@ -378,6 +378,8 @@ export const ordersApi = {
           doc_type: shipping.doc_type || undefined,
           doc_number: shipping.doc_number || undefined,
           date_delivered: shipping.date_delivered || undefined,
+          delivery_time: shipping.delivery_time ?? null,
+          promised_delivery: shipping.promised_delivery ?? null,
         },
         shipping_history: Array.isArray(rawData.shipping_history)
           ? rawData.shipping_history.map((ev: any) => ({
