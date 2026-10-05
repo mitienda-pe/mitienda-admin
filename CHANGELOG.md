@@ -3,6 +3,26 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.91.0] - 2026-10-05
+
+### Novedades
+
+- **blog:** selector de plantilla de la entrada ([`ba45512`](https://github.com/mitienda-pe/mitienda-admin/commit/ba455124ad2c4736be33c43feaaa481dff72cebc))
+- **apariencia:** selector de ajuste de la foto en la ficha del producto ([`213305e`](https://github.com/mitienda-pe/mitienda-admin/commit/213305e53e853f407d295de69e56efc9e72d2d6b))
+- **plantillas:** el bloque de categorías elige entre primer nivel o subcategorías ([`a77d32c`](https://github.com/mitienda-pe/mitienda-admin/commit/a77d32c60c160fc0ae9e7b878d0ad19764b032c8))
+- **ventas:** tiempo de envío y fecha prometida en el card Envío del detalle ([`771759a`](https://github.com/mitienda-pe/mitienda-admin/commit/771759a3072565409927e0a363e6c5f0b7da6c7d))
+- **integraciones:** candado por proveedor, aviso para soporte y modal que nombra ([`941bf28`](https://github.com/mitienda-pe/mitienda-admin/commit/941bf28ec92c5e0081e7c6f7789ef45867d99cae))
+- **integraciones:** insignia Beta y excepción de plan por proveedor ([`dd166c7`](https://github.com/mitienda-pe/mitienda-admin/commit/dd166c7aadf45e8599b72e6529e9743bbf57df70))
+- **productos:** selector de modo de entrega en la ficha ([`88587f5`](https://github.com/mitienda-pe/mitienda-admin/commit/88587f54ce328c6a8091809c748c66e4ab727e55))
+- **plugins:** ajustes y detalle de pedido de la calculadora de pisos ([`6dc042a`](https://github.com/mitienda-pe/mitienda-admin/commit/6dc042a49adb8a0ca86be97d95d6c557f466080b))
+
+### Correcciones
+
+- **productos:** el modo de entrega no aparecía en la ficha ([`b4332e0`](https://github.com/mitienda-pe/mitienda-admin/commit/b4332e0e33154dc7e3f138ae2114cd098823d6ed))
+- **pedidos:** talla, SKU de variante y nota del cliente en el PDF del pedido ([`c0511b3`](https://github.com/mitienda-pe/mitienda-admin/commit/c0511b37279e808b7eef6566637fd27c8442a1f5))
+- **envios:** no ofrecer ubicaciones que ya tienen tarifa al crear ([`7d34dde`](https://github.com/mitienda-pe/mitienda-admin/commit/7d34dde041b9f6ea0ca84b78ea27de1c4cd72447))
+- **envios:** mostrar el error real del API al guardar tarifas ([`32b7c3e`](https://github.com/mitienda-pe/mitienda-admin/commit/32b7c3e3f7cec813c07af43cf448974ea4f7481c))
+
 ## [v2.90.0] - 2026-09-29
 
 ### Novedades
