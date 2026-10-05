@@ -8,7 +8,14 @@
           {{ blogStore.posts.length }} entradas registradas
         </p>
       </div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 flex-wrap">
+        <Button
+          label="Plantilla"
+          icon="pi pi-palette"
+          severity="secondary"
+          outlined
+          @click="openLayoutDialog"
+        />
         <Button
           label="Autores"
           icon="pi pi-users"
@@ -151,6 +158,62 @@
       />
     </div>
 
+    <!-- Dialog Plantilla de la entrada -->
+    <Dialog
+      v-model:visible="showLayoutDialog"
+      header="Plantilla de la entrada"
+      :modal="true"
+      :style="{ width: '560px' }"
+      :breakpoints="{ '640px': '95vw' }"
+    >
+      <p class="text-sm text-secondary-500 mb-4">
+        Elige cómo se muestran la foto principal y el título en todas las entradas de tu blog.
+      </p>
+      <div v-if="isLoadingLayout" class="flex justify-center py-8">
+        <ProgressSpinner />
+      </div>
+      <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <button
+          v-for="option in layoutOptions"
+          :key="option.value"
+          type="button"
+          class="text-left rounded-lg border-2 p-3 transition-colors"
+          :class="selectedLayout === option.value ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-gray-300'"
+          :aria-pressed="selectedLayout === option.value"
+          @click="selectedLayout = option.value"
+        >
+          <!-- Miniatura de la disposición -->
+          <div class="h-28 rounded bg-gray-50 border border-gray-200 overflow-hidden mb-3">
+            <div v-if="option.value === 0" class="h-16 bg-gray-300 flex flex-col justify-end p-2 gap-1">
+              <div class="h-2 w-2/3 rounded bg-white"></div>
+              <div class="h-1 w-1/4 rounded bg-white/70"></div>
+            </div>
+            <div v-else class="px-6 pt-2">
+              <div class="h-12 rounded bg-gray-300"></div>
+              <div class="h-2 w-2/3 rounded bg-gray-500 mt-2"></div>
+              <div class="h-1 w-1/4 rounded bg-gray-300 mt-1"></div>
+            </div>
+            <div class="px-6 pt-2 space-y-1">
+              <div class="h-1 rounded bg-gray-200"></div>
+              <div class="h-1 rounded bg-gray-200"></div>
+              <div class="h-1 w-3/4 rounded bg-gray-200"></div>
+            </div>
+          </div>
+          <p class="font-semibold text-secondary">{{ option.label }}</p>
+          <p class="text-sm text-secondary-500">{{ option.description }}</p>
+        </button>
+      </div>
+      <template #footer>
+        <Button label="Cancelar" text @click="showLayoutDialog = false" />
+        <Button
+          label="Guardar"
+          :loading="isSavingLayout"
+          :disabled="isLoadingLayout"
+          @click="saveLayout"
+        />
+      </template>
+    </Dialog>
+
     <!-- Dialog Confirmar Eliminación -->
     <Dialog
       v-model:visible="showDeleteDialog"
@@ -176,6 +239,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useBlogStore } from '@/stores/blog.store'
+import { blogSettingsApi, type BlogPostLayout } from '@/api/blog.api'
 import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
@@ -194,6 +258,43 @@ const searchQuery = ref('')
 const showDeleteDialog = ref(false)
 const postToDelete = ref<BlogPost | null>(null)
 const isDeleting = ref(false)
+
+const showLayoutDialog = ref(false)
+const isLoadingLayout = ref(false)
+const isSavingLayout = ref(false)
+const selectedLayout = ref<BlogPostLayout>(0)
+
+const layoutOptions: { value: BlogPostLayout; label: string; description: string }[] = [
+  { value: 0, label: 'Foto a todo el ancho', description: 'La foto ocupa todo el ancho de la página y el título va encima.' },
+  { value: 1, label: 'Foto al ancho del texto', description: 'La foto tiene el mismo ancho que el texto y el título va debajo.' },
+]
+
+const openLayoutDialog = async () => {
+  showLayoutDialog.value = true
+  isLoadingLayout.value = true
+  try {
+    const response = await blogSettingsApi.get()
+    selectedLayout.value = response.data?.post_layout === 1 ? 1 : 0
+  } catch (error: any) {
+    showLayoutDialog.value = false
+    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.message || 'No se pudo cargar la plantilla', life: 5000 })
+  } finally {
+    isLoadingLayout.value = false
+  }
+}
+
+const saveLayout = async () => {
+  try {
+    isSavingLayout.value = true
+    await blogSettingsApi.update({ post_layout: selectedLayout.value })
+    toast.add({ severity: 'success', summary: 'Guardado', detail: 'La plantilla se aplicó a todas las entradas', life: 3000 })
+    showLayoutDialog.value = false
+  } catch (error: any) {
+    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.messages?.error || error.response?.data?.message || 'No se pudo guardar la plantilla', life: 5000 })
+  } finally {
+    isSavingLayout.value = false
+  }
+}
 
 const postsPerPage = 20
 const currentPage = ref(0)

@@ -183,3 +183,22 @@ export const blogAuthorsApi = {
     return { success: true }
   },
 }
+
+// 0 = foto a todo el ancho con el título encima, 1 = foto al ancho del texto con el título debajo
+export type BlogPostLayout = 0 | 1
+
+export interface BlogSettings {
+  post_layout: BlogPostLayout
+}
+
+export const blogSettingsApi = {
+  async get(): Promise<ApiResponse<BlogSettings>> {
+    const response = await apiClient.get('/blog-settings')
+    return response.data
+  },
+
+  async update(settings: BlogSettings): Promise<ApiResponse<BlogSettings>> {
+    const response = await apiClient.put('/blog-settings', settings)
+    return response.data
+  },
+}
