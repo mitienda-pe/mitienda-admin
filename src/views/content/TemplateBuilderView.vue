@@ -464,6 +464,24 @@
           </div>
         </div>
 
+        <!-- Origen (solo bloque `categorias`): primer nivel o hijas de una madre -->
+        <div v-if="blockConfigCode === 'categorias'">
+          <label class="block text-sm font-medium text-secondary mb-1.5">Qué mostrar</label>
+          <Dropdown
+            v-model="blockConfigForm.padre"
+            :options="blockCategoryParentOptions"
+            option-label="name"
+            option-value="id"
+            :loading="blockConfigItemsLoading"
+            class="w-full"
+            filter
+            @change="onBlockCategoryParentChange"
+          />
+          <p class="text-xs text-secondary-400 mt-1">
+            Elige una categoría con subcategorías para armar un bloque aparte, por ejemplo "Compra por ambiente".
+          </p>
+        </div>
+
         <!-- Limit -->
         <div v-if="!getPredefinedBlock(blockConfigCode)?.sinLimite">
           <label class="block text-sm font-medium text-secondary mb-1.5">
@@ -574,7 +592,7 @@ import {
   SECTION_WIDTH_OPTIONS,
 } from '@/types/template-section.types'
 import type { SectionColumn, BlockConfig, HomeModo, ZoneKey } from '@/types/template-section.types'
-import type { Product } from '@/types/product.types'
+import type { Category, Product } from '@/types/product.types'
 import { useAuthStore } from '@/stores/auth.store'
 import HomeModePreview from '@/components/content/HomeModePreview.vue'
 import { catalogApi } from '@/api/catalog.api'
@@ -830,9 +848,48 @@ function applyComponent(componentId: number) {
 const blockConfigVisible = ref(false)
 const blockConfigTarget = ref<{ ubicacion: ZoneKey; sIdx: number; cIdx: number } | null>(null)
 const blockConfigCode = ref('')
-const blockConfigForm = ref<BlockConfig>({ titulo: '', subtitulo: '', bg_color: '', limite: 0, limite_listas: 0, items: [] })
+const blockConfigForm = ref<BlockConfig>({ titulo: '', subtitulo: '', bg_color: '', limite: 0, limite_listas: 0, items: [], padre: 0 })
 const blockConfigItems = ref<{ id: number; name: string }[]>([])
 const blockConfigItemsLoading = ref(false)
+// Bloque `categorias`: árbol completo, para ofrecer como origen el primer nivel
+// o las hijas de cualquier categoría que las tenga.
+const blockCategoryTree = ref<Category[]>([])
+
+function findBlockCategory(nodes: Category[], id: number): Category | null {
+  for (const node of nodes) {
+    if (node.id === id) return node
+    const match = findBlockCategory(node.sub ?? [], id)
+    if (match) return match
+  }
+  return null
+}
+
+const blockCategoryParentOptions = computed(() => {
+  const options = [{ id: 0, name: 'Categorías principales' }]
+  const walk = (nodes: Category[]) => {
+    for (const node of nodes) {
+      if (!node.sub?.length) continue
+      options.push({ id: node.id, name: `Subcategorías de ${node.name}` })
+      walk(node.sub)
+    }
+  }
+  walk(blockCategoryTree.value)
+  return options
+})
+
+function refreshBlockCategoryItems() {
+  const padre = blockConfigForm.value.padre || 0
+  const level = padre
+    ? (findBlockCategory(blockCategoryTree.value, padre)?.sub ?? [])
+    : blockCategoryTree.value
+  blockConfigItems.value = level.map(c => ({ id: c.id, name: c.name }))
+}
+
+// Los `items` elegidos son de otro nivel: no aplican al nuevo origen.
+function onBlockCategoryParentChange() {
+  blockConfigForm.value.items = []
+  refreshBlockCategoryItems()
+}
 // Picker del bloque `producto`: el AutoComplete guarda el objeto elegido (o el
 // texto tipeado mientras se busca).
 const blockProductQuery = ref<Product | string | null>(null)
@@ -847,6 +904,7 @@ const blockConfigBgHex = computed({
 function blockConfigSummary(col: SectionColumn): string {
   const parts: string[] = []
   if (col.config?.titulo) parts.push(`"${col.config.titulo}"`)
+  if (col.config?.padre) parts.push('subcategorías')
   if (col.config?.limite) parts.push(`máx ${col.config.limite}`)
   if (col.config?.limite_listas) parts.push(`${col.config.limite_listas} listas`)
   if (getPredefinedBlock(col.bloque_codigo ?? '')?.productoUnico) {
@@ -868,6 +926,7 @@ function openBlockConfig(ubicacion: ZoneKey, sIdx: number, cIdx: number, col: Se
     limite: col.config?.limite ?? 0,
     limite_listas: col.config?.limite_listas ?? 0,
     items: col.config?.items ? [...col.config.items] : [],
+    padre: col.config?.padre ?? 0,
   }
   blockConfigVisible.value = true
   loadBlockConfigItems(col.bloque_codigo!)
@@ -891,7 +950,13 @@ async function loadBlockConfigItems(bloqueCodigo: string) {
     switch (blockDef.itemsType) {
       case 'categorias': {
         const res = await catalogApi.getCategories()
-        blockConfigItems.value = (res.data ?? []).map((c: any) => ({ id: c.id, name: c.name }))
+        blockCategoryTree.value = res.data ?? []
+        // La madre guardada pudo borrarse o quedarse sin hijas: vuelve al primer nivel.
+        if (!blockCategoryParentOptions.value.some(o => o.id === (blockConfigForm.value.padre || 0))) {
+          blockConfigForm.value.padre = 0
+          blockConfigForm.value.items = []
+        }
+        refreshBlockCategoryItems()
         break
       }
       case 'marcas': {
@@ -975,6 +1040,7 @@ function saveBlockConfig() {
   if (blockConfigCode.value === 'listas' && blockConfigForm.value.limite_listas && blockConfigForm.value.limite_listas > 0) {
     config.limite_listas = blockConfigForm.value.limite_listas
   }
+  if (blockConfigCode.value === 'categorias' && blockConfigForm.value.padre) config.padre = blockConfigForm.value.padre
   if (blockConfigForm.value.items?.length) config.items = blockConfigForm.value.items
   sectionsStore.updateBlockConfig(activePage.value, ubicacion, sIdx, cIdx, Object.keys(config).length ? config : undefined as any)
   blockConfigVisible.value = false

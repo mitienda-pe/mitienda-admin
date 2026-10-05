@@ -11,6 +11,9 @@ export interface BlockConfig {
    *  listas específicas con `items`. Sin valor, el storefront usa su default. */
   limite_listas?: number
   items?: number[]
+  /** Solo `categorias`: id de la categoría madre cuyas hijas pinta el bloque.
+   *  Sin valor, el bloque pinta las categorías de primer nivel. */
+  padre?: number
 }
 
 export interface SectionColumn {
@@ -41,7 +44,7 @@ export interface PredefinedBlock {
 
 export const PREDEFINED_BLOCKS: PredefinedBlock[] = [
   { codigo: 'carrusel', label: 'Carrusel', icon: 'pi pi-images', descripcion: 'Slider de banners principal', limiteLabel: 'Cantidad de banners' },
-  { codigo: 'categorias', label: 'Categorías', icon: 'pi pi-th-large', descripcion: 'Cuadrícula de categorías', itemsType: 'categorias', itemsLabel: 'Categorías', limiteLabel: 'Cantidad de categorías' },
+  { codigo: 'categorias', label: 'Categorías', icon: 'pi pi-th-large', descripcion: 'Cuadrícula de categorías o de las subcategorías de una — puedes agregar varias', itemsType: 'categorias', itemsLabel: 'Categorías', limiteLabel: 'Cantidad de categorías' },
   { codigo: 'marcas', label: 'Marcas', icon: 'pi pi-tag', descripcion: 'Galería de marcas con logo', itemsType: 'marcas', itemsLabel: 'Marcas', limiteLabel: 'Cantidad de marcas' },
   { codigo: 'productos_destacados', label: 'Productos Destacados', icon: 'pi pi-star', descripcion: 'Los productos más populares (automático)', limiteLabel: 'Cantidad de productos' },
   { codigo: 'producto', label: 'Producto destacado', icon: 'pi pi-shopping-bag', descripcion: 'Un solo producto en grande: imagen, precio y botón', sinLimite: true, productoUnico: true },
