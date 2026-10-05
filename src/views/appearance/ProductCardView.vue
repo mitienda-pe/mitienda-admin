@@ -9,6 +9,7 @@ import HoverEffectSelector from '@/components/appearance/HoverEffectSelector.vue
 import ButtonTypeSelector from '@/components/appearance/ButtonTypeSelector.vue'
 import ImageDisplaySelector from '@/components/appearance/ImageDisplaySelector.vue'
 import ImageAspectRatioSelector from '@/components/appearance/ImageAspectRatioSelector.vue'
+import ImageFitSelector from '@/components/appearance/ImageFitSelector.vue'
 import ProductCardPreview from '@/components/appearance/ProductCardPreview.vue'
 import type {
   CardStyle,
@@ -16,7 +17,8 @@ import type {
   HoverEffect,
   ButtonType,
   ImageDisplay,
-  ImageAspectRatio
+  ImageAspectRatio,
+  ImageFit
 } from '@/types/product-card.types'
 
 const toast = useToast()
@@ -159,6 +161,12 @@ onMounted(() => {
             <ImageAspectRatioSelector
               :modelValue="store.draftConfig.image_aspect_ratio"
               @update:modelValue="store.updateField('image_aspect_ratio', $event as ImageAspectRatio)"
+            />
+            <ImageFitSelector
+              class="mt-6"
+              :modelValue="store.draftConfig.image_fit ?? 'cover'"
+              :aspectRatio="store.draftConfig.image_aspect_ratio"
+              @update:modelValue="store.updateField('image_fit', $event as ImageFit)"
             />
           </div>
         </div>

@@ -21,6 +21,8 @@ export type ImageDisplay = 'none' | 'hover-swap' | 'carousel' | 'thumbnails'
 
 export type ImageAspectRatio = '1/1' | '4/5'
 
+export type ImageFit = 'cover' | 'contain'
+
 export interface ProductCardConfig {
   card_style: CardStyle
   border_radius: BorderRadius
@@ -28,6 +30,7 @@ export interface ProductCardConfig {
   button_type: ButtonType
   image_display: ImageDisplay
   image_aspect_ratio: ImageAspectRatio
+  image_fit: ImageFit
   show_color_swatches: boolean
   show_size_buttons: boolean
 }
@@ -39,6 +42,7 @@ export const DEFAULT_PRODUCT_CARD_CONFIG: ProductCardConfig = {
   button_type: 0,
   image_display: 'none',
   image_aspect_ratio: '1/1',
+  image_fit: 'cover',
   show_color_swatches: false,
   show_size_buttons: false
 }
@@ -154,6 +158,25 @@ export const IMAGE_ASPECT_RATIO_OPTIONS: ImageAspectRatioOption[] = [
     label: 'Vertical',
     description: 'Proporción 4:5',
     cssRatio: '4 / 5'
+  }
+]
+
+export interface ImageFitOption {
+  value: ImageFit
+  label: string
+  description: string
+}
+
+export const IMAGE_FIT_OPTIONS: ImageFitOption[] = [
+  {
+    value: 'cover',
+    label: 'Llenar el espacio',
+    description: 'Recorta lo que sobra'
+  },
+  {
+    value: 'contain',
+    label: 'Mostrar completa',
+    description: 'Sin recortes'
   }
 ]
 
