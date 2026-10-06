@@ -11,6 +11,17 @@ export type TagPosition =
 
 export const MAX_TAGS_PER_PRODUCT = 8
 
+export type TagLinkType = 'categoria' | 'marca' | 'gama' | 'lista' | 'promocion'
+
+/** Ids de las categorías, marcas, gamas, listas y promociones cuyos productos
+ *  llevan la etiqueta sin asignarla uno por uno. La pertenencia se resuelve al
+ *  mostrar el catálogo: el producto que sale de la categoría pierde la etiqueta. */
+export type ProductTagLinks = Record<TagLinkType, number[]>
+
+export function emptyTagLinks(): ProductTagLinks {
+  return { categoria: [], marca: [], gama: [], lista: [], promocion: [] }
+}
+
 export interface ProductTag {
   id: number
   nombre: string
@@ -24,6 +35,7 @@ export interface ProductTag {
   orden: number
   oculta_agotado?: boolean
   oculta_descuento?: boolean
+  links?: ProductTagLinks
   created_at?: string
   updated_at?: string
 }
@@ -50,6 +62,7 @@ export interface ProductTagFormData {
   orden: number
   oculta_agotado: boolean
   oculta_descuento: boolean
+  links: ProductTagLinks
 }
 
 export interface ProductTagAssignmentFormData {

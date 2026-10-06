@@ -240,6 +240,39 @@
               </div>
             </template>
           </Card>
+
+          <!-- Vínculos: la etiqueta se aplica sola a lo que pertenezca a estos grupos -->
+          <Card class="mt-8">
+            <template #title>
+              <span class="text-lg">Aplicar automáticamente</span>
+            </template>
+            <template #content>
+              <p class="text-sm text-secondary-500 mb-5">
+                Los productos que pertenezcan a lo que elijas aquí llevan la etiqueta sin asignarla uno por uno.
+                Si un producto sale de la categoría o la promoción termina, la etiqueta se quita sola.
+              </p>
+              <div class="space-y-5">
+                <div v-for="group in linkGroups" :key="group.tipo">
+                  <label class="block text-sm font-medium text-secondary-700 mb-2">{{ group.label }}</label>
+                  <MultiSelect
+                    v-model="formData.links[group.tipo]"
+                    :options="linkOptions[group.tipo]"
+                    option-label="name"
+                    option-value="id"
+                    :loading="linkOptionsLoading"
+                    :placeholder="group.placeholder"
+                    :max-selected-labels="3"
+                    selected-items-label="{0} seleccionados"
+                    class="w-full"
+                    display="chip"
+                    filter
+                    show-clear
+                  />
+                  <small v-if="group.hint" class="text-secondary-500">{{ group.hint }}</small>
+                </div>
+              </div>
+            </template>
+          </Card>
         </div>
 
         <!-- Vista Previa -->
@@ -274,7 +307,9 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductTagsStore } from '@/stores/product-tags.store'
-import type { ProductTag, ProductTagFormData, TagType, TagPosition } from '@/types/product-tag.types'
+import type { ProductTag, ProductTagFormData, ProductTagLinks, TagLinkType, TagType, TagPosition } from '@/types/product-tag.types'
+import { emptyTagLinks } from '@/types/product-tag.types'
+import type { Category } from '@/types/product.types'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
@@ -283,8 +318,13 @@ import InputSwitch from 'primevue/inputswitch'
 import SelectButton from 'primevue/selectbutton'
 import Divider from 'primevue/divider'
 import Checkbox from 'primevue/checkbox'
+import MultiSelect from 'primevue/multiselect'
 import { useToast } from 'primevue/usetoast'
 import { productTagsApi } from '@/api/product-tags.api'
+import { catalogApi } from '@/api/catalog.api'
+import { gammaApi } from '@/api/gamma.api'
+import { productListApi } from '@/api/product-list.api'
+import { getPromotionsV2 } from '@/api/promotion-v2.api'
 
 const route = useRoute()
 const router = useRouter()
@@ -310,10 +350,67 @@ const defaultFormData: ProductTagFormData = {
   activo: true,
   orden: 0,
   oculta_agotado: false,
-  oculta_descuento: false
+  oculta_descuento: false,
+  links: emptyTagLinks()
 }
 
-const formData = reactive<ProductTagFormData>({ ...defaultFormData })
+const formData = reactive<ProductTagFormData>({ ...defaultFormData, links: emptyTagLinks() })
+
+// Vínculos: opciones de cada selector
+interface LinkOption { id: number; name: string }
+
+const linkGroups: { tipo: TagLinkType; label: string; placeholder: string; hint?: string }[] = [
+  { tipo: 'categoria', label: 'Categorías', placeholder: 'Ninguna', hint: 'Incluye los productos de sus subcategorías.' },
+  { tipo: 'marca', label: 'Marcas', placeholder: 'Ninguna' },
+  { tipo: 'gama', label: 'Gamas', placeholder: 'Ninguna' },
+  { tipo: 'lista', label: 'Listas de productos', placeholder: 'Ninguna' },
+  { tipo: 'promocion', label: 'Promociones', placeholder: 'Ninguna', hint: 'Solo mientras la promoción esté activa y dentro de sus fechas.' }
+]
+
+const linkOptions = reactive<Record<TagLinkType, LinkOption[]>>({
+  categoria: [], marca: [], gama: [], lista: [], promocion: []
+})
+const linkOptionsLoading = ref(false)
+
+// El árbol se aplana con la ruta completa: hay tiendas con varias «Accesorios».
+function flattenCategories(nodes: Category[], prefix = ''): LinkOption[] {
+  return nodes.flatMap(node => {
+    const name = prefix ? `${prefix} › ${node.name}` : node.name
+    return [{ id: node.id, name }, ...flattenCategories(node.sub ?? [], name)]
+  })
+}
+
+// Cada lista se carga por separado: una que falle (o un módulo que el plan no
+// incluye, como promociones) no debe dejar los demás selectores vacíos.
+async function loadLinkOptions() {
+  linkOptionsLoading.value = true
+  const [categories, brands, gammas, lists, promotions] = await Promise.allSettled([
+    catalogApi.getCategories(),
+    catalogApi.getBrands(),
+    gammaApi.getAll(),
+    productListApi.getAll(),
+    getPromotionsV2({ limit: 200 })
+  ])
+  if (categories.status === 'fulfilled') linkOptions.categoria = flattenCategories(categories.value.data ?? [])
+  if (brands.status === 'fulfilled') linkOptions.marca = (brands.value.data ?? []).map(b => ({ id: b.id, name: b.name }))
+  if (gammas.status === 'fulfilled') {
+    linkOptions.gama = (gammas.value.data ?? []).map(g => ({ id: Number(g.tiendagamma_id), name: g.tiendagamma_nombre }))
+  }
+  if (lists.status === 'fulfilled') {
+    linkOptions.lista = (lists.value.data ?? []).map(l => ({ id: Number(l.productolista_id), name: l.productolista_nombre }))
+  }
+  if (promotions.status === 'fulfilled') {
+    linkOptions.promocion = (promotions.value.data ?? []).map(p => ({ id: Number(p.promotions_v2_id), name: p.name }))
+  }
+  linkOptionsLoading.value = false
+}
+
+function applyLinks(links?: ProductTagLinks) {
+  const source = links ?? emptyTagLinks()
+  for (const group of linkGroups) {
+    formData.links[group.tipo] = [...(source[group.tipo] ?? [])].map(Number)
+  }
+}
 
 // Options
 const tipoOptions = [
@@ -508,6 +605,7 @@ watch(() => formData.imagen_url, () => {
 
 // Lifecycle
 onMounted(async () => {
+  loadLinkOptions()
   const tagId = route.params.id
   if (tagId && tagId !== 'new') {
     await tagsStore.fetchTags()
@@ -526,6 +624,7 @@ onMounted(async () => {
       formData.orden = editingTag.value.orden
       formData.oculta_agotado = !!editingTag.value.oculta_agotado
       formData.oculta_descuento = !!editingTag.value.oculta_descuento
+      applyLinks(editingTag.value.links)
     }
   }
 })
