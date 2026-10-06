@@ -168,6 +168,36 @@ export const SHORTCODE_TYPES: ShortcodeType[] = [
     ],
   },
   {
+    value: 'calendly',
+    label: 'Calendly (agenda de citas)',
+    group: 'Widgets externos',
+    help: 'Pega el enlace de tu evento de Calendly: es el que compartes para que te reserven, y también el valor de data-url en el código para insertar.',
+    fields: [
+      {
+        key: 'url',
+        label: 'Enlace del evento',
+        type: 'text',
+        placeholder: 'https://calendly.com/tu-usuario/reunion-30min',
+        required: true,
+      },
+    ],
+  },
+  {
+    value: 'tidycal',
+    label: 'TidyCal (agenda de citas)',
+    group: 'Widgets externos',
+    help: 'Pega el enlace de tu página de reservas de TidyCal. En el código para insertar es lo que sigue a tidycal.com/ (el valor de data-path).',
+    fields: [
+      {
+        key: 'url',
+        label: 'Enlace de reservas',
+        type: 'text',
+        placeholder: 'https://tidycal.com/tu-usuario/reunion-30min',
+        required: true,
+      },
+    ],
+  },
+  {
     value: 'ar',
     label: 'Visor 3D / Realidad Aumentada',
     group: 'Add-ons',

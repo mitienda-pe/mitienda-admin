@@ -9,7 +9,7 @@
     <div class="space-y-4">
       <p class="text-sm text-secondary-500">
         Los shortcodes insertan bloques dinámicos (productos, categorías,
-        marcas, mapas, reseñas) que se renderizan en tu tienda al verla.
+        marcas, mapas, reseñas, agendas) que se renderizan en tu tienda al verla.
       </p>
 
       <!-- Tipo de shortcode -->
