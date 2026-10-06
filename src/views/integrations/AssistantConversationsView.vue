@@ -100,6 +100,7 @@ const NOMBRE_HERRAMIENTA: Record<string, string> = {
   buscar_productos: 'Buscó en tu catálogo',
   estado_pedido: 'Consultó un pedido',
   consultar_politica: 'Leyó tus políticas',
+  buscar_informacion: 'Leyó tu base de conocimiento',
 }
 
 function etiquetaHerramienta(h: string): string {

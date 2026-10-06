@@ -1121,6 +1121,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/integrations/AssistantConversationsView.vue')
       },
       {
+        path: 'asistente/conocimiento',
+        name: 'AssistantKnowledge',
+        meta: { title: 'Base de conocimiento del asistente' },
+        component: () => import('@/views/integrations/AssistantKnowledgeView.vue')
+      },
+      {
         path: 'providers/:code',
         name: 'IntegrationProviderConfig',
         meta: { title: 'Configurar integración' },

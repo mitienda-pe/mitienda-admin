@@ -572,6 +572,26 @@ async function handleDelete() {
         </div>
 
         <!--
+          Lo que el asistente sabe más allá del catálogo. Se escribe en su propia
+          pantalla: es contenido, no un ajuste de la integración.
+        -->
+        <div v-if="code === 'shopping_chat'" class="bg-white rounded-lg shadow p-6">
+          <h3 class="font-semibold text-gray-700 mb-2">Base de conocimiento</h3>
+          <p class="text-sm text-gray-600 mb-4">
+            Escribe lo que tus clientes suelen preguntar —tallas, cuidados, horarios,
+            cómo comprar— y tu asistente lo usa para responder.
+          </p>
+          <AppButton
+            variant="secondary"
+            size="small"
+            @click="router.push('/integrations/asistente/conocimiento')"
+          >
+            <i class="pi pi-book mr-2" />
+            Escribir artículos
+          </AppButton>
+        </div>
+
+        <!--
           Qué está respondiendo el asistente. Va en su propia pantalla y no acá
           abajo: leer conversaciones es una tarea, no un dato de configuración.
         -->
