@@ -38,16 +38,6 @@ export interface IzipayCredentials {
   secret: string
   password: string // REST password (Lyra back-office)
   environment: GatewayEnvironment
-  payment_methods: IzipayPaymentMethods
-}
-
-export interface IzipayPaymentMethods {
-  card: boolean
-  yape: boolean
-  banca_movil: boolean
-  agente: boolean
-  billetera: boolean
-  cuotealo: boolean
 }
 
 // Niubiz

@@ -141,70 +141,12 @@
 
             <!-- Métodos de pago -->
             <div>
-              <h3 class="text-lg font-semibold text-secondary-800 mb-4">Métodos de pago habilitados</h3>
-              <p class="text-sm text-gray-600 mb-4">Selecciona los métodos de pago que deseas ofrecer a tus clientes</p>
-
-              <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <div class="flex items-center gap-2">
-                  <Checkbox
-                    v-model="formData.payment_methods.card"
-                    inputId="method_card"
-                    :binary="true"
-                    disabled
-                  />
-                  <label for="method_card" class="cursor-pointer">
-                    <i class="pi pi-credit-card mr-1"></i> Tarjeta
-                  </label>
-                  <Tag value="Siempre activo" severity="info" class="ml-1" />
-                </div>
-
-                <div class="flex items-center gap-2">
-                  <Checkbox
-                    v-model="formData.payment_methods.yape"
-                    inputId="method_yape"
-                    :binary="true"
-                  />
-                  <label for="method_yape" class="cursor-pointer">Yape</label>
-                </div>
-
-                <div class="flex items-center gap-2">
-                  <Checkbox
-                    v-model="formData.payment_methods.banca_movil"
-                    inputId="method_banca_movil"
-                    :binary="true"
-                  />
-                  <label for="method_banca_movil" class="cursor-pointer">Banca Móvil</label>
-                </div>
-
-                <div class="flex items-center gap-2">
-                  <Checkbox
-                    v-model="formData.payment_methods.agente"
-                    inputId="method_agente"
-                    :binary="true"
-                  />
-                  <label for="method_agente" class="cursor-pointer">Agente</label>
-                </div>
-
-                <div class="flex items-center gap-2">
-                  <Checkbox
-                    v-model="formData.payment_methods.billetera"
-                    inputId="method_billetera"
-                    :binary="true"
-                  />
-                  <label for="method_billetera" class="cursor-pointer">Billetera</label>
-                </div>
-
-                <div class="flex items-center gap-2">
-                  <Checkbox
-                    v-model="formData.payment_methods.cuotealo"
-                    inputId="method_cuotealo"
-                    :binary="true"
-                    disabled
-                  />
-                  <label for="method_cuotealo" class="cursor-pointer text-gray-400">Cuotéalo</label>
-                  <Tag value="Próximamente" severity="secondary" class="ml-1" />
-                </div>
-              </div>
+              <h3 class="text-lg font-semibold text-secondary-800 mb-4">Métodos de pago</h3>
+              <Message severity="info" :closable="false">
+                Los métodos que ve tu cliente al pagar (tarjeta, Yape y otros) los habilita Izipay
+                en tu cuenta de comercio. Si quieres ofrecer uno que no aparece en tu tienda,
+                solicítalo a Izipay: no se activa desde aquí.
+              </Message>
             </div>
 
             <Divider />
@@ -355,11 +297,9 @@ import Button from 'primevue/button'
 import Card from 'primevue/card'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
-import Checkbox from 'primevue/checkbox'
 import RadioButton from 'primevue/radiobutton'
 import Divider from 'primevue/divider'
 import Message from 'primevue/message'
-import Tag from 'primevue/tag'
 import { UnsavedChangesBar } from '@/components/ui'
 import GatewayWebhookUrl from '@/components/payments/GatewayWebhookUrl.vue'
 
@@ -374,15 +314,7 @@ const formData = reactive<IzipayCredentials>({
   merchant_code: '',
   secret: '',
   password: '',
-  environment: 'integracion',
-  payment_methods: {
-    card: true,
-    yape: false,
-    banca_movil: false,
-    agente: false,
-    billetera: false,
-    cuotealo: false
-  }
+  environment: 'integracion'
 })
 
 const { isDirty, reset: resetDirty } = useDirtyForm(() => formData)
@@ -404,9 +336,6 @@ watch(() => store.currentConfig, (config) => {
     formData.secret = c.secret ?? ''
     formData.password = c.password ?? ''
     formData.environment = c.environment ?? 'integracion'
-    if (c.payment_methods && typeof c.payment_methods === 'object') {
-      Object.assign(formData.payment_methods, c.payment_methods)
-    }
   }
   resetDirty()
 }, { immediate: true })
@@ -524,15 +453,7 @@ function handleDelete() {
           merchant_code: '',
           secret: '',
           password: '',
-          environment: 'integracion',
-          payment_methods: {
-            card: true,
-            yape: false,
-            banca_movil: false,
-            agente: false,
-            billetera: false,
-            cuotealo: false
-          }
+          environment: 'integracion'
         })
       } else {
         toast.add({
