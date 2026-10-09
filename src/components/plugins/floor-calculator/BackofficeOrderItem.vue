@@ -19,6 +19,9 @@ interface Props {
         coverage?: number
         boxesNeeded?: number
         areaCovered?: number
+        unit?: 'box' | 'm2'
+        rollWidth?: number | null
+        linearMeters?: number | null
       } | null
     } | null
     summary?: string | null
@@ -48,8 +51,15 @@ const m2 = (n?: number) => `${Number(n ?? 0).toFixed(2)} m²`
       </ul>
       <p v-if="snap" class="mt-1.5 text-gray-700">
         Total {{ m2(snap.areaBeforeWaste) }}<template v-if="waste > 0"> + merma {{ waste }}% = {{ m2(snap.totalArea) }}</template>
-        · recomendó <span class="font-medium text-gray-900">{{ snap.boxesNeeded }} caja(s)</span>
-        de {{ m2(snap.coverage) }} ({{ m2(snap.areaCovered) }})
+        · recomendó
+        <template v-if="snap.unit === 'm2'">
+          <span class="font-medium text-gray-900">{{ snap.boxesNeeded }} m²</span>
+          <template v-if="snap.linearMeters"> ({{ Number(snap.linearMeters).toFixed(2) }} m lineales de rollo de {{ Number(snap.rollWidth).toFixed(2) }} m)</template>
+        </template>
+        <template v-else>
+          <span class="font-medium text-gray-900">{{ snap.boxesNeeded }} caja(s)</span>
+          de {{ m2(snap.coverage) }} ({{ m2(snap.areaCovered) }})
+        </template>
       </p>
     </template>
     <p v-else class="text-gray-700">{{ summary }}</p>
