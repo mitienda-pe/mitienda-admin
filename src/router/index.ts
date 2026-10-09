@@ -425,6 +425,24 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/catalog/GammaFormView.vue')
       },
       {
+        path: 'ar-widgets',
+        name: 'ar-widgets',
+        meta: { title: 'Visores 3D / AR' },
+        component: () => import('@/views/catalog/ArWidgetsListView.vue')
+      },
+      {
+        path: 'ar-widgets/new',
+        name: 'ar-widget-create',
+        meta: { title: 'Nuevo visor 3D' },
+        component: () => import('@/views/catalog/ArWidgetFormView.vue')
+      },
+      {
+        path: 'ar-widgets/:id/edit',
+        name: 'ar-widget-edit',
+        meta: { title: 'Editar visor 3D' },
+        component: () => import('@/views/catalog/ArWidgetFormView.vue')
+      },
+      {
         path: 'product-lists',
         name: 'product-lists',
         meta: { title: 'Listas de productos' },

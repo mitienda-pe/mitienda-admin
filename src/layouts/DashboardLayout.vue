@@ -1407,7 +1407,19 @@ const catalogMenuItemsSource = [
   { label: 'Configuración', icon: 'pi pi-cog', to: '/catalog/config' }
 ]
 
-const catalogMenuItems = computed(() => visibleItems(catalogMenuItemsSource))
+/**
+ * El visor 3D/AR es un add-on que activa MiTienda (el proveedor licencia por
+ * dominio), así que la tienda promedio no debe ver la sección: no tendría qué
+ * hacer con ella.
+ */
+const hasArWidgets = computed(() => storeConfigStore.savedConfig.tiendageneral_sw_ar_3d === 1)
+
+const catalogMenuItems = computed(() => visibleItems([
+  ...catalogMenuItemsSource,
+  ...(hasArWidgets.value
+    ? [{ label: 'Visores 3D / AR', icon: 'pi pi-box', to: '/catalog/ar-widgets' }]
+    : [])
+]))
 
 // Items del grupo Marketing
 // - 'Cupones' (mod_cupones, Small+): subset de promotions V2 con activation_type=coupon
