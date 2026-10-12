@@ -560,6 +560,24 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, requiresStore: true },
     children: [
       {
+        path: 'embeds',
+        name: 'embeds',
+        meta: { title: 'Bloques interactivos' },
+        component: () => import('@/views/embeds/EmbedsListView.vue')
+      },
+      {
+        path: 'embeds/new',
+        name: 'embed-create',
+        meta: { title: 'Nuevo bloque interactivo' },
+        component: () => import('@/views/embeds/EmbedFormView.vue')
+      },
+      {
+        path: 'embeds/:id/edit',
+        name: 'embed-edit',
+        meta: { title: 'Editar bloque interactivo' },
+        component: () => import('@/views/embeds/EmbedFormView.vue')
+      },
+      {
         path: 'carousel',
         name: 'content-carousel',
         meta: { title: 'Carrusel' },

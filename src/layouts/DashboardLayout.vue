@@ -1329,7 +1329,18 @@ const contentMenuItemsSource = [
   { label: 'Mensajes', icon: 'pi pi-comment', to: '/content/messages' }
 ]
 
-const contentMenuItems = computed(() => visibleItems(contentMenuItemsSource))
+/**
+ * Los bloques interactivos (HTML con JavaScript en un iframe aislado) los
+ * activa MiTienda tienda por tienda: el resto no debe ver la sección.
+ */
+const hasEmbeds = computed(() => storeConfigStore.savedConfig.tiendageneral_sw_embeds === 1)
+
+const contentMenuItems = computed(() => visibleItems([
+  ...contentMenuItemsSource,
+  ...(hasEmbeds.value
+    ? [{ label: 'Bloques interactivos', icon: 'pi pi-code', to: '/content/embeds' }]
+    : [])
+]))
 
 // Items del grupo Apariencia
 const appearanceMenuItemsSource = [

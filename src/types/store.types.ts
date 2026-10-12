@@ -159,6 +159,7 @@ export interface StoreConfig {
   // dominio de la tienda al proveedor (licencia por dominio, no por cuenta).
   // Habilita el botón que inserta el shortcode [ar] en la descripción.
   tiendageneral_sw_ar_3d?: number
+  tiendageneral_sw_embeds?: number
   // Derivado (solo lectura): la tienda tiene webhooks legacy configurados.
   // El sidebar muestra "Webhooks (legacy)" solo cuando es true.
   has_legacy_webhooks?: boolean
