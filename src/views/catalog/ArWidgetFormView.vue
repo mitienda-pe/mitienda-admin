@@ -349,7 +349,10 @@ const save = async () => {
         isSaving.value = false
         confirm.require({
           header: 'Esto genera un modelo nuevo',
-          message: `${result.message} ¿Guardamos igual?`,
+          // El tiempo importa tanto como el costo: el proveedor tarda minutos y
+          // mientras tanto sigue mostrando el modelo actual. Sin decirlo, el
+          // comerciante guarda, recarga, no ve nada y vuelve a guardar.
+          message: `${result.message} Tarda unos minutos en estar listo y, mientras tanto, la tienda sigue mostrando el modelo actual. ¿Guardamos igual?`,
           acceptLabel: 'Guardar y generar',
           rejectLabel: 'Cancelar',
           accept: async () => {
