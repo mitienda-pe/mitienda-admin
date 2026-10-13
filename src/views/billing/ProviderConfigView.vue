@@ -34,6 +34,11 @@
       <SunatConfigView />
     </div>
 
+    <!-- KeyFácil (Perú) -->
+    <div v-else-if="providerId === 8">
+      <KeyfacilConfigView />
+    </div>
+
     <!-- Other providers (not yet implemented) -->
     <Card v-else>
       <template #content>
@@ -63,6 +68,7 @@ import NubefactConfigView from './NubefactConfigView.vue'
 import BizlinksConfigView from './BizlinksConfigView.vue'
 import DatilConfigView from './DatilConfigView.vue'
 import SunatConfigView from './SunatConfigView.vue'
+import KeyfacilConfigView from './KeyfacilConfigView.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -75,6 +81,7 @@ const providerNames: Record<number, string> = {
   3: 'Bizlinks',
   6: 'Dátil (Ecuador)',
   7: 'Facturación MiTienda',
+  8: 'KeyFácil',
 }
 
 const providerName = computed(() => providerNames[providerId.value] || 'Proveedor Desconocido')

@@ -15,6 +15,7 @@ export const useBillingStore = defineStore('billing', () => {
   const bizlinksConfig = ref<BizlinksConfigResponse | null>(null)
   const datilConfig = ref<any>(null)
   const sunatConfig = ref<any>(null)
+  const keyfacilConfig = ref<any>(null)
   const isLoading = ref(false)
   const isSaving = ref(false)
   const isTesting = ref(false)
@@ -455,12 +456,92 @@ export const useBillingStore = defineStore('billing', () => {
     }
   }
 
+  // Actions para KeyFácil (Perú)
+  async function fetchKeyfacilConfig() {
+    try {
+      isLoading.value = true
+      error.value = null
+      const response = await billingApi.getKeyfacilConfig()
+      if (response.success && response.data) {
+        keyfacilConfig.value = response.data
+      } else {
+        error.value = 'Error al cargar la configuración de KeyFácil'
+      }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Error de conexión'
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function saveKeyfacilCredentials(data: any, isUpdate = false) {
+    try {
+      isSaving.value = true
+      error.value = null
+      successMessage.value = null
+      const response = isUpdate
+        ? await billingApi.updateKeyfacilCredentials(data)
+        : await billingApi.saveKeyfacilCredentials(data)
+      if (response.success) {
+        successMessage.value = 'KeyFácil configurado correctamente'
+        await fetchKeyfacilConfig()
+        return { success: true }
+      }
+      error.value = response.message || 'No se pudo guardar la configuración'
+      return { success: false, error: error.value }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'No se pudo guardar la configuración'
+      return { success: false, error: error.value }
+    } finally {
+      isSaving.value = false
+    }
+  }
+
+  async function deleteKeyfacilCredentials() {
+    try {
+      isSaving.value = true
+      error.value = null
+      const response = await billingApi.deleteKeyfacilCredentials()
+      if (response.success) {
+        keyfacilConfig.value = null
+        successMessage.value = 'Configuración eliminada'
+        return { success: true }
+      }
+      error.value = response.message || 'No se pudo eliminar la configuración'
+      return { success: false, error: error.value }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'No se pudo eliminar la configuración'
+      return { success: false, error: error.value }
+    } finally {
+      isSaving.value = false
+    }
+  }
+
+  async function testKeyfacilConnection(): Promise<{ success: boolean; error?: string }> {
+    try {
+      isTesting.value = true
+      error.value = null
+      const response = await billingApi.testKeyfacilConnection()
+      if (response.success) {
+        return { success: true }
+      }
+      error.value = response.message || 'No se pudo probar la conexión'
+      return { success: false, error: error.value ?? undefined }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'No se pudo probar la conexión'
+      return { success: false, error: error.value ?? undefined }
+    } finally {
+      isTesting.value = false
+    }
+  }
+
   return {
     // State
     nubefactConfig,
     bizlinksConfig,
     datilConfig,
     sunatConfig,
+    keyfacilConfig,
     isLoading,
     isSaving,
     isTesting,
@@ -489,6 +570,10 @@ export const useBillingStore = defineStore('billing', () => {
     deleteSunatConfig,
     testSunatConnection,
     inspectSunatCertificate,
+    fetchKeyfacilConfig,
+    saveKeyfacilCredentials,
+    deleteKeyfacilCredentials,
+    testKeyfacilConnection,
     clearMessages
   }
 })

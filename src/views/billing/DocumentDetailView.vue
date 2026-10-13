@@ -239,7 +239,8 @@ const getProviderName = (providerId: number) => {
   const providers: Record<number, string> = {
     1: 'Factura en Una',
     2: 'NubeFact',
-    3: 'Bizlinks'
+    3: 'Bizlinks',
+    8: 'KeyFácil'
   }
   return providers[providerId] || 'Desconocido'
 }

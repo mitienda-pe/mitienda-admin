@@ -119,6 +119,42 @@
         </template>
       </Card>
 
+      <!-- KeyFácil Card -->
+      <Card
+        class="cursor-pointer hover:shadow-lg transition-shadow border-2 border-transparent hover:border-primary"
+        @click="goToProviderConfig(8)"
+      >
+        <template #header>
+          <div class="flex items-center justify-center p-6 bg-gradient-to-br from-primary/5 to-primary/10">
+            <img
+              src="@/assets/images/keyfacil.webp"
+              alt="KeyFácil"
+              class="h-20 object-contain"
+            />
+          </div>
+        </template>
+        <template #title>
+          <div class="flex items-center justify-between">
+            <span>KeyFácil</span>
+            <Tag
+              v-if="providersConfig[8]?.configured"
+              value="Configurado"
+              severity="success"
+              icon="pi pi-check"
+            />
+          </div>
+        </template>
+        <template #content>
+          <p class="text-sm text-gray-600">
+            Facturación electrónica para Perú. Se conecta con el token de tu empresa.
+          </p>
+          <div class="mt-4 flex items-center gap-2 text-sm">
+            <i class="pi pi-cog text-primary"></i>
+            <span class="text-primary font-medium">Configurar proveedor</span>
+          </div>
+        </template>
+      </Card>
+
       <!-- Factura en Una Card -->
       <Card
         class="cursor-pointer hover:shadow-lg transition-shadow border-2 border-transparent hover:border-primary opacity-60"
@@ -244,7 +280,8 @@ const providersConfig = ref<Record<number, { configured: boolean; available?: bo
   2: { configured: false }, // NubeFact
   3: { configured: false }, // Bizlinks
   6: { configured: false }, // Dátil (Ecuador)
-  7: { configured: false, available: false }  // Facturación MiTienda (SEE propio)
+  7: { configured: false, available: false }, // Facturación MiTienda (SEE propio)
+  8: { configured: false }  // KeyFácil
 })
 
 onMounted(async () => {
@@ -252,6 +289,7 @@ onMounted(async () => {
   await checkBizlinksConfig()
   await checkDatilConfig()
   await checkSunatConfig()
+  await checkKeyfacilConfig()
 })
 
 async function checkNubefactConfig() {
@@ -291,8 +329,17 @@ async function checkSunatConfig() {
   }
 }
 
+async function checkKeyfacilConfig() {
+  try {
+    await billingStore.fetchKeyfacilConfig()
+    providersConfig.value[8].configured = billingStore.keyfacilConfig?.configured || false
+  } catch (error) {
+    console.error('Error checking KeyFácil config:', error)
+  }
+}
+
 function goToProviderConfig(providerId: number) {
-  const availableProviders = [2, 3, 6, 7] // NubeFact, Bizlinks, Dátil, Facturación MiTienda
+  const availableProviders = [2, 3, 6, 7, 8] // NubeFact, Bizlinks, Dátil, Facturación MiTienda, KeyFácil
   if (providerId === 7 && !providersConfig.value[7]?.available) return
   if (availableProviders.includes(providerId)) {
     router.push(`/billing/providers/${providerId}`)

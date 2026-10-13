@@ -197,6 +197,35 @@ export const billingApi = {
     return response.data
   },
 
+  // ========== KeyFácil (Perú) ==========
+
+  /** Configuración actual. Nunca devuelve el token: solo `has_token`. */
+  async getKeyfacilConfig(): Promise<ApiResponse<any>> {
+    const response = await apiClient.get('/billing/keyfacil')
+    return response.data
+  },
+
+  /** El backend prueba el token contra KeyFácil antes de guardarlo. */
+  async saveKeyfacilCredentials(data: any): Promise<ApiResponse<any>> {
+    const response = await apiClient.post('/billing/keyfacil', data)
+    return response.data
+  },
+
+  async updateKeyfacilCredentials(data: any): Promise<ApiResponse<any>> {
+    const response = await apiClient.put('/billing/keyfacil', data)
+    return response.data
+  },
+
+  async deleteKeyfacilCredentials(): Promise<ApiResponse<any>> {
+    const response = await apiClient.delete('/billing/keyfacil')
+    return response.data
+  },
+
+  async testKeyfacilConnection(): Promise<ApiResponse<any>> {
+    const response = await apiClient.post('/billing/keyfacil/test')
+    return response.data
+  },
+
   // ========== Series por sucursal API (SUNAT, fuera de NetSuite) ==========
 
   /**
