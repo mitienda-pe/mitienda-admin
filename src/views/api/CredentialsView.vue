@@ -244,7 +244,9 @@ const showToken = ref(false)
 
 const hasToken = computed(() => !!apiCredentialsStore.token)
 const displayToken = computed(() => apiCredentialsStore.token || '')
-const apiBaseUrl = computed(() => import.meta.env.VITE_API_BASE_URL || 'https://api2.mitienda.pe')
+// El token de tienda solo vale en el API público. VITE_API_BASE_URL apunta al
+// API del panel (api2), que espera un JWT de sesión y lo rechaza con 401.
+const apiBaseUrl = 'https://publicapi.mitienda.pe'
 
 onMounted(async () => {
   apiCredentialsStore.clearMessages()
@@ -370,7 +372,6 @@ const handleDeleteToken = () => {
 }
 
 const openDocs = () => {
-  // TODO: Update with actual documentation URL
-  window.open('https://docs.mitienda.pe/api', '_blank')
+  window.open(`${apiBaseUrl}/docs`, '_blank')
 }
 </script>
