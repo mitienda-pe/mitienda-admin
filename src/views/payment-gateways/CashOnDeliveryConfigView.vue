@@ -49,6 +49,27 @@
               </div>
             </div>
 
+            <div>
+              <h3 class="text-lg font-semibold text-secondary-800 mb-1">Disponible para</h3>
+              <p class="text-sm text-secondary-600 mb-4">
+                Elige con qué formas de entrega se ofrece este método en el checkout de tu tienda.
+              </p>
+              <div class="space-y-3">
+                <div v-for="option in deliveryOptions" :key="option.value" class="flex items-start gap-2">
+                  <RadioButton
+                    v-model="formData.delivery_restriction"
+                    :inputId="`delivery_${option.value}`"
+                    :value="option.value"
+                    class="mt-0.5"
+                  />
+                  <label :for="`delivery_${option.value}`">
+                    <span class="block text-secondary-800">{{ option.label }}</span>
+                    <small class="text-secondary-600">{{ option.hint }}</small>
+                  </label>
+                </div>
+              </div>
+            </div>
+
             <Message v-if="store.error" severity="error" :closable="false">{{ store.error }}</Message>
 
             <div v-if="isConfigured" class="flex gap-3 pt-4">
@@ -104,9 +125,11 @@ import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { usePaymentGatewaysStore } from '@/stores/payment-gateways.store'
 import { useDirtyForm } from '@/composables/useDirtyForm'
+import type { CashOnDeliveryCredentials } from '@/types/payment-gateway.types'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Textarea from 'primevue/textarea'
+import RadioButton from 'primevue/radiobutton'
 import Divider from 'primevue/divider'
 import Message from 'primevue/message'
 import { UnsavedChangesBar } from '@/components/ui'
@@ -118,8 +141,15 @@ const GATEWAY_CODE = 'cash-on-delivery'
 
 const formData = reactive({
   instructions: 'Para coordinar la entrega puedes llamar al {telefono} o escríbenos a {email}',
-  optional_text: ''
+  optional_text: '',
+  delivery_restriction: 'any' as CashOnDeliveryCredentials['delivery_restriction']
 })
+
+const deliveryOptions: { value: NonNullable<CashOnDeliveryCredentials['delivery_restriction']>; label: string; hint: string }[] = [
+  { value: 'any', label: 'Todas las formas de entrega', hint: 'Se ofrece con envío a domicilio y con recojo en tienda.' },
+  { value: 'pickup_only', label: 'Solo recojo en tienda', hint: 'No se ofrece cuando el cliente elige envío a domicilio.' },
+  { value: 'delivery_only', label: 'Solo envío a domicilio', hint: 'No se ofrece cuando el cliente elige recojo en tienda.' }
+]
 
 const { isDirty, reset: resetDirty } = useDirtyForm(() => formData)
 
@@ -130,6 +160,7 @@ watch(() => store.currentConfig, (config) => {
     const c = config.credentials as Record<string, any>
     formData.instructions = c.instructions || ''
     formData.optional_text = c.optional_text || ''
+    formData.delivery_restriction = c.delivery_restriction || 'any'
   }
   resetDirty()
 }, { immediate: true })

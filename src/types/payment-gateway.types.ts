@@ -139,6 +139,8 @@ export interface BankTransferCredentials {
 export interface CashOnDeliveryCredentials {
   instructions: string
   optional_text?: string
+  // Con qué formas de entrega se ofrece en el checkout. Ausente = todas.
+  delivery_restriction?: 'any' | 'pickup_only' | 'delivery_only'
 }
 
 // Transbank (Chile)
