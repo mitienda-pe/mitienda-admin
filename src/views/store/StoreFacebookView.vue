@@ -79,6 +79,11 @@ const domainVerificationError = computed(() => {
   return !domainVerificationTokenPattern.test(trimmed)
 })
 
+// El token se escribe en un campo local y solo pasa al borrador al guardar (o
+// al pulsar "Aplicar"). Si la barra mirara solo el borrador, pegar el token por
+// primera vez no la mostraría y no habría con qué guardarlo.
+const hasPendingToken = computed(() => newToken.value.trim() !== '')
+
 const hasValidationErrors = computed(
   () => pixelError.value || testEventError.value || domainVerificationError.value
 )
@@ -581,7 +586,7 @@ onMounted(() => {
     </div>
 
     <UnsavedChangesBar
-      :dirty="store.hasChanges"
+      :dirty="store.hasChanges || hasPendingToken"
       :save-disabled="hasValidationErrors"
       :loading="store.isSaving"
       save-label="Guardar configuración"
