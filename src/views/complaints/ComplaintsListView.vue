@@ -10,10 +10,62 @@ import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import Dropdown from 'primevue/dropdown'
 import ProgressSpinner from 'primevue/progressspinner'
+import Dialog from 'primevue/dialog'
+import { useToast } from 'primevue/usetoast'
+import { complaintsApi } from '@/api/complaints.api'
 
 const router = useRouter()
 const complaintsStore = useComplaintsStore()
 const { formatDate } = useFormatters()
+const toast = useToast()
+
+// Libro de Reclamaciones propio: la tienda indica la URL del suyo y el
+// storefront manda ahí el enlace del pie. null = el de MiTienda.
+const externalUrl = ref<string | null>(null)
+const showSettingsDialog = ref(false)
+const isSavingSettings = ref(false)
+const settingsMode = ref<'mitienda' | 'external'>('mitienda')
+const settingsUrl = ref('')
+const settingsError = ref('')
+
+const loadSettings = async () => {
+  try {
+    const response = await complaintsApi.getSettings()
+    externalUrl.value = response.data?.external_url ?? null
+  } catch {
+    // Sin la configuración la página funciona igual: solo falta el aviso.
+  }
+}
+
+const openSettingsDialog = () => {
+  settingsMode.value = externalUrl.value ? 'external' : 'mitienda'
+  settingsUrl.value = externalUrl.value ?? ''
+  settingsError.value = ''
+  showSettingsDialog.value = true
+}
+
+const saveSettings = async () => {
+  settingsError.value = ''
+  const url = settingsMode.value === 'external' ? settingsUrl.value.trim() : ''
+  if (settingsMode.value === 'external' && !url.startsWith('https://')) {
+    settingsError.value = 'Ingresa la URL completa de tu libro, empezando con https://'
+    return
+  }
+
+  try {
+    isSavingSettings.value = true
+    const response = await complaintsApi.updateSettings({ external_url: url || null })
+    externalUrl.value = response.data?.external_url ?? null
+    toast.add({ severity: 'success', summary: 'Guardado', detail: response.message || 'Configuración guardada', life: 3000 })
+    showSettingsDialog.value = false
+  } catch (error: any) {
+    settingsError.value = error.response?.data?.messages?.error
+      || error.response?.data?.message
+      || 'No se pudo guardar la configuración'
+  } finally {
+    isSavingSettings.value = false
+  }
+}
 
 const searchQuery = ref('')
 let searchTimeout: NodeJS.Timeout | null = null
@@ -45,6 +97,7 @@ const selectedType = computed({
 onMounted(() => {
   complaintsStore.fetchComplaints()
   complaintsStore.fetchStats()
+  loadSettings()
 })
 
 const handleSearch = () => {
@@ -107,6 +160,36 @@ const goToDetail = (id: number) => {
           :value="`${complaintsStore.stats.pending} pendientes`"
           severity="warning"
         />
+      </div>
+      <Button
+        label="Configuración"
+        icon="pi pi-cog"
+        severity="secondary"
+        outlined
+        @click="openSettingsDialog"
+      />
+    </div>
+
+    <!-- Libro propio -->
+    <div
+      v-if="externalUrl"
+      class="bg-primary/5 border border-primary/30 rounded-lg p-4 flex gap-3"
+    >
+      <i class="pi pi-external-link text-primary mt-0.5" />
+      <div class="text-sm text-secondary">
+        <p class="font-semibold">
+          Tu tienda usa su propio Libro de Reclamaciones
+        </p>
+        <p class="mt-1">
+          El enlace de tu tienda lleva a
+          <a
+            :href="externalUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-primary underline break-all"
+          >{{ externalUrl }}</a>.
+          Los reclamos nuevos llegan allí y no aparecen en esta lista; aquí quedan los que recibiste antes.
+        </p>
       </div>
     </div>
 
@@ -353,5 +436,91 @@ const goToDetail = (id: number) => {
         </Column>
       </DataTable>
     </div>
+
+    <!-- Dialog Configuración -->
+    <Dialog
+      v-model:visible="showSettingsDialog"
+      header="Libro de Reclamaciones de tu tienda"
+      :modal="true"
+      :style="{ width: '560px' }"
+      :breakpoints="{ '640px': '95vw' }"
+    >
+      <p class="text-sm text-secondary-500 mb-4">
+        Elige a dónde lleva el enlace del Libro de Reclamaciones de tu tienda.
+      </p>
+      <div class="space-y-3">
+        <button
+          type="button"
+          class="w-full text-left rounded-lg border-2 p-3 transition-colors"
+          :class="settingsMode === 'mitienda' ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-gray-300'"
+          :aria-pressed="settingsMode === 'mitienda'"
+          @click="settingsMode = 'mitienda'"
+        >
+          <p class="font-semibold text-secondary">
+            Usar el de MiTienda
+          </p>
+          <p class="text-sm text-secondary-500">
+            Tus clientes registran el reclamo en tu tienda, te avisamos por correo y lo respondes desde aquí.
+          </p>
+        </button>
+        <button
+          type="button"
+          class="w-full text-left rounded-lg border-2 p-3 transition-colors"
+          :class="settingsMode === 'external' ? 'border-primary bg-primary/5' : 'border-gray-200 hover:border-gray-300'"
+          :aria-pressed="settingsMode === 'external'"
+          @click="settingsMode = 'external'"
+        >
+          <p class="font-semibold text-secondary">
+            Usar mi propio libro
+          </p>
+          <p class="text-sm text-secondary-500">
+            El enlace lleva a tu libro en otra web. Los reclamos llegan allí y no a este panel.
+          </p>
+        </button>
+      </div>
+
+      <div
+        v-if="settingsMode === 'external'"
+        class="mt-4 space-y-2"
+      >
+        <label
+          for="complaints-external-url"
+          class="block text-sm font-medium text-secondary"
+        >
+          URL de tu Libro de Reclamaciones
+        </label>
+        <InputText
+          id="complaints-external-url"
+          v-model="settingsUrl"
+          type="url"
+          placeholder="https://www.tuempresa.com/libro-de-reclamaciones"
+          class="w-full"
+          :invalid="!!settingsError"
+        />
+        <p class="text-xs text-secondary-500">
+          Responder cada reclamo dentro del plazo legal (15 días hábiles) queda a cargo de tu empresa.
+        </p>
+      </div>
+
+      <p
+        v-if="settingsError"
+        class="mt-3 text-sm text-red-600"
+      >
+        {{ settingsError }}
+      </p>
+
+      <template #footer>
+        <Button
+          label="Cancelar"
+          text
+          @click="showSettingsDialog = false"
+        />
+        <Button
+          label="Guardar"
+          :loading="isSavingSettings"
+          @click="saveSettings"
+        />
+      </template>
+    </Dialog>
   </div>
 </template>

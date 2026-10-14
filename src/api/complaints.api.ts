@@ -64,4 +64,19 @@ export const complaintsApi = {
     const response = await apiClient.get('/complaints/stats')
     return { success: true, data: response.data?.data || response.data }
   },
+
+  async getSettings(): Promise<ApiResponse<ComplaintSettings>> {
+    const response = await apiClient.get('/complaints/settings')
+    return { success: true, data: response.data?.data || response.data }
+  },
+
+  async updateSettings(settings: ComplaintSettings): Promise<ApiResponse<ComplaintSettings>> {
+    const response = await apiClient.put('/complaints/settings', settings)
+    return { success: true, data: response.data?.data, message: response.data?.message }
+  },
+}
+
+/** `external_url` null = la tienda usa el Libro de Reclamaciones de MiTienda. */
+export interface ComplaintSettings {
+  external_url: string | null
 }
