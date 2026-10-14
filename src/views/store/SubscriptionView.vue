@@ -111,6 +111,9 @@
         </div>
       </div>
 
+      <!-- Programa de convenio (Tu Empresa): meses gratis y qué falta -->
+      <ProgramCard @enrolled="loadData" />
+
       <!-- Card 3: Metodo de pago -->
       <PaymentMethodCard />
 
@@ -193,6 +196,7 @@ import { usePlanStore } from '@/stores/plan.store'
 import { useFormatters } from '@/composables/useFormatters'
 import { AppBadge, AppEmptyState, AppErrorState } from '@/components/ui'
 import PaymentMethodCard from './components/PaymentMethodCard.vue'
+import ProgramCard from './components/ProgramCard.vue'
 import ProgressSpinner from 'primevue/progressspinner'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
