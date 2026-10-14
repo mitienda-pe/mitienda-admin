@@ -19,7 +19,10 @@ export const useAuthStore = defineStore('auth', () => {
   // Getters
   const isAuthenticated = computed(() => !!accessToken.value && !!user.value)
   const hasMultipleStores = computed(() => stores.value.length > 1)
-  const isSuperAdmin = computed(() => superAdminInfo.value?.is_superadmin || false)
+  // Da soporte a todas las tiendas (lista e impersona). Ventas también, sin ser
+  // del equipo técnico: lo exclusivo del equipo va por `isStaff`.
+  const isSuperAdmin = computed(() => !!(superAdminInfo.value?.is_superadmin || superAdminInfo.value?.can_support))
+  const isStaff = computed(() => superAdminInfo.value?.is_superadmin || false)
 
   // Actions
   async function login(credentials: LoginCredentials) {
@@ -341,6 +344,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     hasMultipleStores,
     isSuperAdmin,
+    isStaff,
     // Actions
     login,
     fetchStores,

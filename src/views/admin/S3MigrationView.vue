@@ -242,7 +242,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 onMounted(() => {
-  if (!authStore.isSuperAdmin) {
+  if (!authStore.isStaff) {
     router.push('/dashboard')
     return
   }

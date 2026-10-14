@@ -1,7 +1,10 @@
 // Tipos para el módulo de Super-Administrador
 
 export interface SuperAdminInfo {
+  /** Equipo técnico (Master y desarrollo): migraciones de imágenes. */
   is_superadmin: boolean
+  /** Lista todas las tiendas y entra como ellas: Master, desarrollo y ventas. */
+  can_support?: boolean
   superadmin_type_id?: number
   superadmin_type_name?: string
   partner_id?: number

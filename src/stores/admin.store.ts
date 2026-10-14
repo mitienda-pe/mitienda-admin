@@ -25,7 +25,7 @@ export const useAdminStore = defineStore('admin', () => {
   const error = ref<string | null>(null)
 
   // Getters
-  const isSuperAdmin = computed(() => superAdminInfo.value?.is_superadmin || false)
+  const isSuperAdmin = computed(() => !!(superAdminInfo.value?.is_superadmin || superAdminInfo.value?.can_support))
   const isImpersonating = computed(() => !!impersonationContext.value)
   const impersonatedStore = computed(() => {
     if (!impersonationContext.value) return null
@@ -46,7 +46,7 @@ export const useAdminStore = defineStore('admin', () => {
         // Guardar en localStorage
         localStorage.setItem('superadmin_info', JSON.stringify(response.data))
 
-        return response.data.is_superadmin
+        return !!(response.data.is_superadmin || response.data.can_support)
       }
 
       return false

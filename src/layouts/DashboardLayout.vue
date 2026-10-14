@@ -88,7 +88,7 @@
               </router-link>
             </li>
 
-            <li>
+            <li v-if="authStore.isStaff">
               <router-link
                 to="/admin/s3-migration"
                 class="flex items-center gap-3 px-4 py-3 rounded-lg text-primary hover:bg-primary/5 hover:text-primary transition-colors font-medium"
