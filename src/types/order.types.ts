@@ -30,6 +30,11 @@ export interface Order {
   billing_address?: Address
   notes?: string
   store_notes?: string
+  /**
+   * Si alguien de la tienda ya abrió la venta (`tiendaventa_visto`). El listado
+   * pone en negrita las que no, como una bandeja de entrada.
+   */
+  viewed?: boolean
   /** Estado de despacho vigente. Solo viene en el listado de pedidos. */
   dispatch_state?: { id: number; name: string | null } | null
   /**

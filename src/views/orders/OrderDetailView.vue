@@ -523,6 +523,12 @@ onMounted(async () => {
   ordersStore.clearCurrentOrder()
   await ordersStore.fetchOrder(orderId)
 
+  // Abrir la venta la marca como vista (sale de negrita en el listado).
+  // No bloquea: si falla, sigue en negrita y se reintenta la próxima vez.
+  if (ordersStore.currentOrder?.viewed === false) {
+    ordersApi.setViewed(orderId).catch(() => {})
+  }
+
   // Load sender info, order reviews, fulfillment provider and billing mode in parallel
   await Promise.all([
     loadSenderInfo(),

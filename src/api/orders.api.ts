@@ -203,6 +203,9 @@ export const ordersApi = {
               // Estado de sincronización con el ERP/WMS. Solo viene si la tienda
               // tiene una integración que escriba estado.
               sync: order.sync || null,
+              // Si el backend no manda el campo, se asume vista: mejor perder la
+              // negrita que pintar todo el listado.
+              viewed: order.viewed !== false,
               billing_document: eBilling ? {
                 id: eBilling.id || 0,
                 status: eBilling.status || 0,
@@ -309,6 +312,7 @@ export const ordersApi = {
           created_at: rawData.date_created || ''
         },
         customer_segment: rawData.customer_segment ?? null,
+        viewed: rawData.viewed !== false,
         items: (rawData.order_items || []).map((item: any) => {
           return {
             id: item.id,
@@ -550,6 +554,14 @@ export const ordersApi = {
    * Guardar la nota interna de la tienda (campo `tiendaventa_observaciontienda`,
    * el mismo que edita el modal "Observaciones" del panel legacy).
    */
+  async setViewed(orderId: number, viewed = true): Promise<ApiResponse<{ viewed: boolean }>> {
+    const response = await apiClient.put(`/orders/${orderId}/viewed`, { viewed })
+    return {
+      success: response.data?.success === true,
+      data: response.data?.data
+    }
+  },
+
   async updateStoreNotes(orderId: number, storeNotes: string): Promise<ApiResponse<{ store_notes: string }>> {
     const response = await apiClient.put(`/orders/${orderId}/store-notes`, { store_notes: storeNotes })
     return {

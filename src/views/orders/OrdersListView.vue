@@ -152,6 +152,9 @@ const customerDisplay = (order: Order) => {
   }
 }
 
+// Bandeja de entrada: las ventas que nadie abrió van en negrita.
+const rowClass = (order: Order) => (order.viewed === false ? 'order-unread' : '')
+
 const billingNumber = (order: Order) => {
   if (!order.billing_document) return ''
   const { serie, correlative } = order.billing_document
@@ -230,6 +233,7 @@ const billingType = (order: Order) => {
         :rows-per-page-options="[10, 20, 50, 100]"
         current-page-report-template="Mostrando {first} a {last} de {totalRecords} pedidos"
         row-hover
+        :row-class="rowClass"
         class="cursor-pointer"
       >
         <template #empty>
@@ -256,7 +260,14 @@ const billingType = (order: Order) => {
 
         <Column field="code" header="Pedido" :sortable="true">
           <template #body="{ data }">
-            <span class="font-medium text-secondary">#{{ data.order_number }}</span>
+            <span class="inline-flex items-center gap-2">
+              <span
+                v-if="data.viewed === false"
+                class="w-2 h-2 rounded-full bg-primary shrink-0"
+                aria-label="No visto"
+              ></span>
+              <span class="font-medium text-secondary">#{{ data.order_number }}</span>
+            </span>
           </template>
         </Column>
 
@@ -337,3 +348,11 @@ const billingType = (order: Order) => {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Negrita en toda la fila, incluido lo que trae font-medium/font-semibold. */
+:deep(.order-unread td),
+:deep(.order-unread td *) {
+  font-weight: 700;
+}
+</style>
