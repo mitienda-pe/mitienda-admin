@@ -20,6 +20,7 @@
       <RouterLink to="/login" class="btn btn-primary">
         Iniciar sesión
       </RouterLink>
+      <AuthSupportLink class="mt-4" />
     </div>
   </div>
 </template>
@@ -29,6 +30,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import { authApi } from '@/api/auth.api'
+import AuthSupportLink from '@/components/auth/AuthSupportLink.vue'
 
 const router = useRouter()
 const route  = useRoute()

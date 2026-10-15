@@ -10,7 +10,10 @@
         <router-view />
       </div>
 
-      <div class="text-center mt-6 text-sm text-secondary-400">
+      <!-- El botón de ayuda del panel no existe antes de ingresar: este es el canal -->
+      <AuthSupportLink class="text-center mt-6" />
+
+      <div class="text-center mt-4 text-sm text-secondary-400">
         <p>&copy; {{ new Date().getFullYear() }} {{ brand.name }} - Todos los derechos reservados</p>
       </div>
     </div>
@@ -19,4 +22,5 @@
 
 <script setup lang="ts">
 import { brand } from '@/config/branding'
+import AuthSupportLink from '@/components/auth/AuthSupportLink.vue'
 </script>
