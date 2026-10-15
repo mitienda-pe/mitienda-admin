@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.92.2] - 2026-10-15
+
+### Correcciones
+
+- **login:** mostrar "Credenciales inválidas" en vez de "Error de conexión" ([`fa052f2`](https://github.com/mitienda-pe/mitienda-admin/commit/fa052f28b088a12fad736f0b66cc02b39e67b913))
+
 ## [v2.92.1] - 2026-10-15
 
 ### Correcciones
