@@ -179,3 +179,44 @@ describe('auth.store - logout', () => {
     expect(localStorage.getItem('impersonation_context')).toBeNull()
   })
 })
+
+describe('auth.store - login errors', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    localStorage.clear()
+    vi.clearAllMocks()
+  })
+
+  it('shows the API reason from a CI4 fail() response', async () => {
+    const { authApi } = await import('@/api/auth.api')
+    vi.mocked(authApi.login).mockRejectedValue({
+      response: { status: 401, data: { status: 401, error: 401, messages: { error: 'Credenciales inválidas' } } }
+    })
+
+    const store = useAuthStore()
+    const ok = await store.login({ email: 'a@b.pe', password: 'x' })
+
+    expect(ok).toBe(false)
+    expect(store.error).toBe('Credenciales inválidas')
+  })
+
+  it('says it is a connection problem only when there is no response', async () => {
+    const { authApi } = await import('@/api/auth.api')
+    vi.mocked(authApi.login).mockRejectedValue(new Error('Network Error'))
+
+    const store = useAuthStore()
+    await store.login({ email: 'a@b.pe', password: 'x' })
+
+    expect(store.error).toMatch(/conectar con el servidor/)
+  })
+
+  it('uses a generic message when the response has no reason', async () => {
+    const { authApi } = await import('@/api/auth.api')
+    vi.mocked(authApi.login).mockRejectedValue({ response: { status: 500, data: '<html>' } })
+
+    const store = useAuthStore()
+    await store.login({ email: 'a@b.pe', password: 'x' })
+
+    expect(store.error).toBe('No pudimos iniciar sesión. Inténtalo de nuevo en unos minutos.')
+  })
+})

@@ -117,6 +117,7 @@ import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
+import { apiErrorMessage } from '@/utils/api-error'
 
 const router = useRouter()
 const route = useRoute()
@@ -164,11 +165,6 @@ const validateForm = (): boolean => {
 
   if (!credentials.value.password) {
     passwordError.value = 'La contraseña es requerida'
-    return false
-  }
-
-  if (credentials.value.password.length < 8) {
-    passwordError.value = 'La contraseña debe tener al menos 8 caracteres'
     return false
   }
 
@@ -298,7 +294,7 @@ async function handleOAuthCallback(code: string, state: string) {
     toast.add({
       severity: 'error',
       summary: 'Error',
-      detail: err.response?.data?.message || 'Error al procesar la autenticación',
+      detail: apiErrorMessage(err, 'Error al procesar la autenticación'),
       life: 5000
     })
   } finally {

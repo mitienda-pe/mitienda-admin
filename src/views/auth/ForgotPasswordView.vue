@@ -73,6 +73,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { authApi } from '@/api/auth.api'
+import { apiErrorMessage } from '@/utils/api-error'
 import InputText from 'primevue/inputtext'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
@@ -98,7 +99,7 @@ async function handleSubmit() {
     await authApi.forgotPassword({ email: email.value })
     emailSent.value = true
   } catch (e: any) {
-    error.value = e?.response?.data?.message || 'Error al enviar el enlace. Intenta de nuevo.'
+    error.value = apiErrorMessage(e, 'Error al enviar el enlace. Intenta de nuevo.')
   } finally {
     isLoading.value = false
   }

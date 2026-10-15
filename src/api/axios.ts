@@ -47,6 +47,21 @@ function addRefreshSubscriber(callback: (token: string) => void) {
   refreshSubscribers.push(callback)
 }
 
+const SESSIONLESS_AUTH_PATHS = [
+  '/auth/login',
+  '/auth/social-login',
+  '/auth/oauth/callback',
+  '/auth/magic-login',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+  '/auth/validate-reset-token'
+]
+
+function isSessionlessAuthRequest(url: string | undefined): boolean {
+  if (!url) return false
+  return SESSIONLESS_AUTH_PATHS.some(path => url.includes(path))
+}
+
 function clearAuthAndRedirect() {
   localStorage.removeItem('access_token')
   localStorage.removeItem('refresh_token')
@@ -129,6 +144,14 @@ apiClient.interceptors.response.use(
 
         planStore.showUpgradeModal(mod ?? fallback)
       })
+      return Promise.reject(error)
+    }
+
+    // Un 401 de login, recuperar contraseña o enlace mágico es una respuesta
+    // ("credenciales inválidas", "enlace vencido"), no una sesión vencida: no
+    // hay token que renovar. Si se intentaba igual, un refresh_token viejo en
+    // localStorage reintentaba el login y el error real se perdía.
+    if (error.response?.status === 401 && isSessionlessAuthRequest(originalRequest.url)) {
       return Promise.reject(error)
     }
 

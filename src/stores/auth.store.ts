@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { apiErrorMessage } from '@/utils/api-error'
 import { ref, computed } from 'vue'
 import { authApi } from '@/api/auth.api'
 import { adminApi } from '@/api/admin.api'
@@ -61,7 +62,11 @@ export const useAuthStore = defineStore('auth', () => {
         return false
       }
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Error de conexión'
+      // Sin respuesta es un problema de red; con respuesta, el API dice qué
+      // pasó ("Credenciales inválidas", "Usuario sin tiendas asignadas").
+      error.value = err.response
+        ? apiErrorMessage(err, 'No pudimos iniciar sesión. Inténtalo de nuevo en unos minutos.')
+        : 'No pudimos conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo.'
       return false
     } finally {
       isLoading.value = false
@@ -93,7 +98,7 @@ export const useAuthStore = defineStore('auth', () => {
         }
       }
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Error al cargar tiendas'
+      error.value = apiErrorMessage(err, 'Error al cargar tiendas')
     }
   }
 
@@ -193,7 +198,7 @@ export const useAuthStore = defineStore('auth', () => {
         return false
       }
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Error al seleccionar tienda'
+      error.value = apiErrorMessage(err, 'Error al seleccionar tienda')
       return false
     } finally {
       isLoading.value = false
