@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.92.3] - 2026-10-15
+
+### Correcciones
+
+- **broadcasts:** el modal de aviso no tapa la pantalla de Suscripción ([`b389d8b`](https://github.com/mitienda-pe/mitienda-admin/commit/b389d8bdbbfd120666735da5a85b234002cc12e8))
+
 ## [v2.92.2] - 2026-10-15
 
 ### Correcciones
