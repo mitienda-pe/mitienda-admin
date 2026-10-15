@@ -84,21 +84,13 @@
           Uso del Plan
         </h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Products -->
           <QuotaBar
             label="Productos"
             icon="pi pi-box"
             :current="planStore.quotas.current_products"
             :max="planStore.quotas.max_products"
-          />
-
-          <!-- Pages -->
-          <QuotaBar
-            label="Paginas"
-            icon="pi pi-file"
-            :current="planStore.quotas.current_pages"
-            :max="planStore.quotas.max_pages"
           />
 
           <!-- Users -->

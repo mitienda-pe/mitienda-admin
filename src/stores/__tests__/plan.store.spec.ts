@@ -282,35 +282,6 @@ describe('plan.store', () => {
     })
   })
 
-  describe('canAddPage', () => {
-    it('returns true when quotas are not loaded', () => {
-      const store = usePlanStore()
-      expect(store.canAddPage()).toBe(true)
-    })
-
-    it('returns true when max_pages is 0 (unlimited)', () => {
-      const store = usePlanStore()
-      store.planInfo = makePlanInfo({ quotas: makeQuotas({ max_pages: 0 }) })
-      expect(store.canAddPage()).toBe(true)
-    })
-
-    it('returns true when under quota', () => {
-      const store = usePlanStore()
-      store.planInfo = makePlanInfo({
-        quotas: makeQuotas({ max_pages: 10, current_pages: 5 })
-      })
-      expect(store.canAddPage()).toBe(true)
-    })
-
-    it('returns false when at quota limit', () => {
-      const store = usePlanStore()
-      store.planInfo = makePlanInfo({
-        quotas: makeQuotas({ max_pages: 10, current_pages: 10 })
-      })
-      expect(store.canAddPage()).toBe(false)
-    })
-  })
-
   // ── fetchPlan ─────────────────────────────────────────────
 
   describe('fetchPlan', () => {

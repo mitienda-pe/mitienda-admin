@@ -185,12 +185,6 @@ export const usePlanStore = defineStore('plan', () => {
     return quotas.value.current_products < quotas.value.max_products
   }
 
-  function canAddPage(): boolean {
-    if (!quotas.value) return true
-    if (quotas.value.max_pages === 0) return true // 0 = unlimited
-    return quotas.value.current_pages < quotas.value.max_pages
-  }
-
   function canAddUser(): boolean {
     if (!quotas.value) return true
     if (quotas.value.max_users === 0) return true // 0 = unlimited
@@ -240,7 +234,6 @@ export const usePlanStore = defineStore('plan', () => {
     fetchSubscriptionHistory,
     // Quota helpers
     canAddProduct,
-    canAddPage,
     canAddUser,
     // Modal
     showUpgradeModal,
