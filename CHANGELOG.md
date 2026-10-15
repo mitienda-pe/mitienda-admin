@@ -3,6 +3,34 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.92.0] - 2026-10-15
+
+### Novedades
+
+- **ayuda:** Mi Perfil y Mis Tiendas abren su artículo de ayuda ([`cfb7ca6`](https://github.com/mitienda-pe/mitienda-admin/commit/cfb7ca69651d805bd3d8c3b363cfa4a2d973525a))
+- **asistente:** votar con 👍/👎 cada respuesta del asistente ([`9a5a6f6`](https://github.com/mitienda-pe/mitienda-admin/commit/9a5a6f6d9cb72b5b8c5e4d96543dce62f454ec1f))
+- **soporte:** el botón de ayuda es el único canal; WhatsApp en el login ([`f025d07`](https://github.com/mitienda-pe/mitienda-admin/commit/f025d070c22eef9718110d7d323404d98b4dbff5))
+- **programas:** estado de Tu Empresa y activación con código en Suscripción ([`885c77f`](https://github.com/mitienda-pe/mitienda-admin/commit/885c77fa7e101ebf9089fdb1883720cbe795a0f0))
+- **admin:** ventas gestiona todas las tiendas para dar soporte ([`dd0dbe0`](https://github.com/mitienda-pe/mitienda-admin/commit/dd0dbe01dc00695eaea7f86474d43878f5e5f362))
+- **reclamos:** configurar un Libro de Reclamaciones propio ([`021651e`](https://github.com/mitienda-pe/mitienda-admin/commit/021651ede30bbf83520731ed17ed37d46491342f))
+- **facturación:** configurar KeyFácil como proveedor de facturación ([`3b3ca81`](https://github.com/mitienda-pe/mitienda-admin/commit/3b3ca81d5318dc1e1b6c79483056a03530840674))
+- **pasarelas:** elegir con qué formas de entrega se ofrece contra entrega ([`4953d99`](https://github.com/mitienda-pe/mitienda-admin/commit/4953d990c81d3ef0be6afea87f4358b36a5c19b6))
+- **ar:** avisar que el modelo nuevo tarda minutos ([`7f7b4e8`](https://github.com/mitienda-pe/mitienda-admin/commit/7f7b4e802d61d2216a15cf6fcd65ec83ba4ae6a4))
+- **embeds:** pantalla de bloques interactivos en Contenido ([`5728034`](https://github.com/mitienda-pe/mitienda-admin/commit/5728034abd878693f0ff1fc1fdc07432922d1da5))
+- **plugins:** agregar y quitar productos de la calculadora de pisos ([`e269605`](https://github.com/mitienda-pe/mitienda-admin/commit/e269605714adcdd7e09705557e9453c0f8dce852))
+- **ar:** pantalla del modulo Grymala AR en Catalogo ([`59ee347`](https://github.com/mitienda-pe/mitienda-admin/commit/59ee347a349ffa471122b3e324b70855b0d13b5e))
+- **shortcodes:** Calendly y TidyCal en el diálogo de insertar shortcode ([`adf019a`](https://github.com/mitienda-pe/mitienda-admin/commit/adf019adf14e7b00369ddb35b02b3ff899a787ea))
+- **asistente:** pantalla de base de conocimiento del Asistente IA ([`731d5b8`](https://github.com/mitienda-pe/mitienda-admin/commit/731d5b8479133a89c51a6cc1174c4f7153db23cf))
+- **etiquetas:** aplicar una etiqueta automáticamente por categoría, marca, gama, lista o promoción ([`a1a9bce`](https://github.com/mitienda-pe/mitienda-admin/commit/a1a9bce2ba8dcde02173e2103cc28f0b470d4af4))
+
+### Correcciones
+
+- **credenciales-api:** el ejemplo de uso apunta al API público ([`8ab736e`](https://github.com/mitienda-pe/mitienda-admin/commit/8ab736e0f7428091ee94534dec5d900406b2ce89))
+- **facebook:** la barra de guardar aparece al pegar el token de la API de conversiones ([`f9807df`](https://github.com/mitienda-pe/mitienda-admin/commit/f9807df26ce8d92cf7553fb639a9beeed5c49216))
+- **embeds:** la CSP del backoffice permite el iframe de la vista previa ([`b9a3869`](https://github.com/mitienda-pe/mitienda-admin/commit/b9a38694d43d3c7c56fe9daa2e534825575808bd))
+- **seguridad:** el sanitizador de HTML trabaja sobre un árbol, igual que el del storefront ([`fb1a832`](https://github.com/mitienda-pe/mitienda-admin/commit/fb1a83256ca74a0b6ddff4bc2e8bca578a367558))
+- **pasarelas:** Izipay ya no ofrece checkboxes de métodos de pago que no hacían nada ([`e9e2c0b`](https://github.com/mitienda-pe/mitienda-admin/commit/e9e2c0bc30145afcddcaff34d410dcde656aeaf4))
+
 ## [v2.91.0] - 2026-10-05
 
 ### Novedades
