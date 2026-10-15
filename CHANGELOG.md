@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.92.1] - 2026-10-15
+
+### Correcciones
+
+- **paginas:** las páginas no tienen límite por plan ([`0d8009c`](https://github.com/mitienda-pe/mitienda-admin/commit/0d8009c7db31b80192921c22d4409a04cc0fa412))
+
 ## [v2.92.0] - 2026-10-15
 
 ### Novedades
