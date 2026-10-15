@@ -110,6 +110,10 @@ export const routeToDocMap: [string, string][] = [
   ['/store/subscription', '12-configuracion/10-suscripcion'],
   ['/store/doppler', '13-integraciones/04-email-marketing'],
 
+  // Cuenta
+  ['/profile', '23-cuenta/05-acceso-y-contrasena'],
+  ['/my-stores', '12-configuracion/12-link-de-tu-tienda'],
+
   // Notifications
   ['/notifications', '12-configuracion/09-notificaciones'],
 
