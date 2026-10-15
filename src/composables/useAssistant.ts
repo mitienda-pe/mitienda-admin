@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useAdminStore } from '@/stores/admin.store'
 import { getDocSlugForRoute } from '@/config/help-docs.config'
 import { assistantChangesApi, type PendingChange } from '@/api/assistant-changes.api'
+import { assistantTurnsApi, type AssistantVote } from '@/api/assistant-turns.api'
 
 /**
  * El asistente del panel: conversación con el agente del comerciante.
@@ -24,6 +25,15 @@ export interface AssistantMessage {
   content: string
   /** Se está escribiendo ahora mismo. */
   streaming?: boolean
+  /**
+   * Id del turno en la bitácora del asistente, para el 👍/👎. Solo lo traen las
+   * respuestas que terminaron y quedaron registradas.
+   */
+  turnoId?: string
+  /** El voto del comerciante a esta respuesta. */
+  feedback?: AssistantVote | null
+  /** Se está guardando el voto. */
+  voting?: boolean
 }
 
 function generateId(): string {
@@ -102,6 +112,29 @@ export function useAssistant() {
       lastError.value = 'No se pudo descartar el cambio.'
     } finally {
       resolvingChange.value = null
+    }
+  }
+
+  /**
+   * Califica una respuesta. Un voto por turno; se puede cambiar y gana el último.
+   *
+   * Si falla, el voto vuelve a como estaba: un 👍 que se ve marcado pero no se
+   * guardó engaña más que uno que no se marcó.
+   */
+  async function rate(messageId: string, valor: AssistantVote) {
+    const msg = messages.value.find((m) => m.id === messageId)
+    if (!msg?.turnoId || msg.voting || msg.feedback === valor) return
+
+    const anterior = msg.feedback ?? null
+    msg.feedback = valor
+    msg.voting = true
+    try {
+      await assistantTurnsApi.vote(msg.turnoId, valor)
+    } catch {
+      msg.feedback = anterior
+      lastError.value = 'No se pudo guardar tu calificación. Intenta de nuevo.'
+    } finally {
+      msg.voting = false
     }
   }
 
@@ -202,6 +235,7 @@ export function useAssistant() {
               break
             case 'done':
               if (evento.reply) msg.content = evento.reply
+              if (typeof evento.turno_id === 'string') msg.turnoId = evento.turno_id
               msg.streaming = false
               break
             case 'error':
@@ -242,6 +276,7 @@ export function useAssistant() {
     currentScreen,
     send,
     reset,
+    rate,
     pendingChanges,
     resolvingChange,
     loadPendingChanges,

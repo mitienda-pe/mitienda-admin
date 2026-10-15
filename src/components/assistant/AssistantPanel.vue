@@ -12,6 +12,7 @@ const {
   hasConversation,
   send,
   reset,
+  rate,
   pendingChanges,
   resolvingChange,
   loadPendingChanges,
@@ -90,7 +91,12 @@ watch(() => messages.value.length, scrollAlFinal)
         </div>
       </div>
 
-      <div v-for="m in messages" :key="m.id" class="flex" :class="m.role === 'user' ? 'justify-end' : 'justify-start'">
+      <div
+        v-for="m in messages"
+        :key="m.id"
+        class="flex flex-col"
+        :class="m.role === 'user' ? 'items-end' : 'items-start'"
+      >
         <div
           class="max-w-[85%] rounded-2xl px-4 py-2.5 text-sm"
           :class="m.role === 'user'
@@ -109,6 +115,52 @@ watch(() => messages.value.length, scrollAlFinal)
             v-if="m.streaming && !m.content"
             class="inline-block w-2 h-4 align-middle bg-gray-400 animate-pulse rounded-sm"
           />
+        </div>
+
+        <!--
+          ¿Te sirvió? Solo en respuestas terminadas y registradas (con turno_id).
+          Un voto por respuesta: el elegido queda marcado y deshabilitado, el
+          otro sigue disponible para cambiar de opinión.
+        -->
+        <div
+          v-if="m.role === 'assistant' && !m.streaming && m.turnoId"
+          class="flex items-center gap-1 mt-1 ml-1"
+          role="group"
+          aria-label="¿Te sirvió esta respuesta?"
+        >
+          <span class="text-[11px] text-gray-400 mr-1">
+            {{ m.feedback ? '¡Gracias!' : '¿Te sirvió?' }}
+          </span>
+          <button
+            type="button"
+            class="w-7 h-7 rounded-md flex items-center justify-center transition-colors
+                   disabled:cursor-default"
+            :class="m.feedback === 1
+              ? 'text-primary bg-primary/10'
+              : 'text-gray-400 hover:text-primary hover:bg-gray-100'"
+            :disabled="m.voting || m.feedback === 1"
+            :aria-pressed="m.feedback === 1"
+            aria-label="Me sirvió"
+            title="Me sirvió"
+            @click="rate(m.id, 1)"
+          >
+            <i class="pi text-xs" :class="m.feedback === 1 ? 'pi-thumbs-up-fill' : 'pi-thumbs-up'"></i>
+          </button>
+          <button
+            type="button"
+            class="w-7 h-7 rounded-md flex items-center justify-center transition-colors
+                   disabled:cursor-default"
+            :class="m.feedback === -1
+              ? 'text-red-500 bg-red-50'
+              : 'text-gray-400 hover:text-red-500 hover:bg-gray-100'"
+            :disabled="m.voting || m.feedback === -1"
+            :aria-pressed="m.feedback === -1"
+            aria-label="No me sirvió"
+            title="No me sirvió"
+            @click="rate(m.id, -1)"
+          >
+            <i class="pi text-xs" :class="m.feedback === -1 ? 'pi-thumbs-down-fill' : 'pi-thumbs-down'"></i>
+          </button>
         </div>
       </div>
 
