@@ -1,6 +1,6 @@
 <template>
   <Dialog
-    v-if="current"
+    v-if="current && !onPaymentScreen"
     :visible="true"
     :modal="true"
     :closable="closable"
@@ -61,6 +61,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import Dialog from 'primevue/dialog'
 import { useBroadcastsStore } from '@/stores/broadcasts.store'
 import type { BroadcastSeverity } from '@/types/broadcast.types'
@@ -70,6 +71,12 @@ import { formatCountdown } from '@/utils/broadcast-countdown'
 const store = useBroadcastsStore()
 
 const current = computed(() => store.currentModal)
+
+// En la pantalla de suscripción no se muestra ningún modal: el aviso de plan
+// vencido puede ser no cerrable (desde el día 5) y taparía justo el formulario
+// para pagar o cambiar la tarjeta. Las barras sí siguen visibles ahí.
+const route = useRoute()
+const onPaymentScreen = computed(() => route.name === 'store-subscription')
 
 const waitSeconds = computed(() =>
   current.value ? store.secondsUntilClosable(current.value) : 0
