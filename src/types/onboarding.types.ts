@@ -12,6 +12,8 @@ export interface OnboardingStepProgress {
   done: boolean
   /** false = el paso no aplica a esta tienda (p. ej. elegir plan con un plan pagado). */
   applicable: boolean
+  /** true = recomendado: no cuenta para el progreso ni para "completado". */
+  optional?: boolean
   meta: Record<string, unknown>
 }
 
@@ -26,4 +28,8 @@ export interface OnboardingProgress {
 }
 
 /** Eventos que el API acepta en POST /onboarding/events. */
-export type OnboardingEventKey = 'store_link_opened' | 'dismissed' | `tour_completed:${string}`
+export type OnboardingEventKey =
+  | 'store_link_opened'
+  | 'dismissed'
+  | 'restored'
+  | `tour_completed:${string}`

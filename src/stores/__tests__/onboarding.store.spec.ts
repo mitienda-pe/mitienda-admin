@@ -86,6 +86,34 @@ describe('onboarding.store', () => {
     expect(store.totalCount).toBe(5)
   })
 
+  it('el logo es recomendado: se muestra pero no cuenta para el progreso', async () => {
+    const progress = makeProgress()
+    progress.steps[3] = { ...step('branding'), optional: true }
+    vi.mocked(onboardingApi.getProgress).mockResolvedValue({ success: true, data: progress })
+    const store = useOnboardingStore()
+
+    await store.fetchProgress()
+
+    expect(store.steps.find(s => s.key === 'branding')?.optional).toBe(true)
+    expect(store.totalCount).toBe(5)
+  })
+
+  it('mostrar de nuevo borra el ocultar y lo registra', async () => {
+    vi.mocked(onboardingApi.getProgress).mockResolvedValue({
+      success: true,
+      data: makeProgress({ dismissed_at: '2026-10-16 10:00:00' })
+    })
+    vi.mocked(onboardingApi.recordEvent).mockResolvedValue({ success: true, data: {} } as never)
+    const store = useOnboardingStore()
+    await store.fetchProgress()
+    expect(store.isDismissed).toBe(true)
+
+    await store.showAgain()
+
+    expect(store.isDismissed).toBe(false)
+    expect(onboardingApi.recordEvent).toHaveBeenCalledWith('restored')
+  })
+
   it('reutiliza la petición en curso', async () => {
     vi.mocked(onboardingApi.getProgress).mockResolvedValue({ success: true, data: makeProgress() })
     const store = useOnboardingStore()

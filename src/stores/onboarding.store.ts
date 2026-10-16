@@ -11,6 +11,8 @@ import type {
 
 export interface OnboardingChecklistStep extends OnboardingStepDefinition {
   done: boolean
+  /** Recomendado (logo): se muestra pero no cuenta para el progreso. */
+  optional: boolean
   meta: Record<string, unknown>
 }
 
@@ -47,12 +49,13 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     return ONBOARDING_STEPS.flatMap(def => {
       const p = byKey.get(def.key)
       if (!p || !p.applicable) return []
-      return [{ ...def, done: p.done, meta: p.meta ?? {} }]
+      return [{ ...def, done: p.done, optional: !!p.optional, meta: p.meta ?? {} }]
     })
   })
 
-  const completedCount = computed(() => steps.value.filter(s => s.done).length)
-  const totalCount = computed(() => steps.value.length)
+  const requiredSteps = computed(() => steps.value.filter(s => !s.optional))
+  const completedCount = computed(() => requiredSteps.value.filter(s => s.done).length)
+  const totalCount = computed(() => requiredSteps.value.length)
   const isAllComplete = computed(
     () => totalCount.value > 0 && completedCount.value === totalCount.value
   )
@@ -149,6 +152,22 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     await recordEvent('dismissed')
   }
 
+  /** "Mostrar de nuevo": vuelve a mostrar el checklist después de ocultarlo. */
+  async function showAgain() {
+    if (progress.value) progress.value.dismissed_at = null
+    legacyDismissedAt.value = null
+    if (legacyStorageKey.value) {
+      try {
+        const saved = JSON.parse(localStorage.getItem(legacyStorageKey.value) || '{}')
+        delete saved.dismissedAt
+        localStorage.setItem(legacyStorageKey.value, JSON.stringify(saved))
+      } catch {
+        /* almacenamiento no disponible: el API es la fuente */
+      }
+    }
+    await recordEvent('restored')
+  }
+
   async function completeTour(tourId: string) {
     if (progress.value && !progress.value.tours_completed.includes(tourId)) {
       progress.value.tours_completed = [...progress.value.tours_completed, tourId]
@@ -178,6 +197,7 @@ export const useOnboardingStore = defineStore('onboarding', () => {
     recordEvent,
     markStoreLinkOpened,
     dismiss,
+    showAgain,
     completeTour,
     setActiveTour
   }

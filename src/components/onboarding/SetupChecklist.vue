@@ -86,6 +86,7 @@
               :class="step.done ? 'text-green-700 line-through' : 'text-gray-800'"
             >
               {{ step.title }}
+              <AppBadge v-if="step.optional" label="Recomendado" variant="neutral" class="ml-1 align-middle" />
             </p>
             <p v-if="!step.done" class="text-xs text-gray-500 mt-0.5">{{ whyFor(step) }}</p>
 
@@ -151,13 +152,24 @@
       </div>
     </template>
   </div>
+
+  <!-- Oculto: un enlace discreto para volver a mostrarlo -->
+  <div v-else-if="onboardingStore.progress" class="mb-4 flex justify-end">
+    <button
+      type="button"
+      class="text-xs text-primary hover:underline inline-flex items-center gap-1"
+      @click="onboardingStore.showAgain()"
+    >
+      <i class="pi pi-list-check text-xs" /> Mostrar «Configura tu tienda»
+    </button>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
-import { AppButton, AppErrorState } from '@/components/ui'
+import { AppBadge, AppButton, AppErrorState } from '@/components/ui'
 import { useOnboardingStore, type OnboardingChecklistStep } from '@/stores/onboarding.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useOnboarding } from '@/composables/useOnboarding'
@@ -173,7 +185,9 @@ const { openVideo, hasVideo } = useOnboardingVideo()
 const visible = computed(() => !onboardingStore.isDismissed)
 
 /** El primer paso pendiente se resalta y lleva el botón principal. */
-const currentKey = computed(() => onboardingStore.steps.find(s => !s.done)?.key ?? null)
+const currentKey = computed(
+  () => onboardingStore.steps.find(s => !s.done && !s.optional)?.key ?? null
+)
 
 const storefrontUrl = computed(() => {
   const store = authStore.selectedStore
@@ -211,6 +225,8 @@ async function copyStoreLink() {
   if (!storefrontUrl.value) return
   try {
     await navigator.clipboard.writeText(storefrontUrl.value)
+    // Copiar el link es compartir la tienda: también completa el paso.
+    void onboardingStore.markStoreLinkOpened()
     toast.add({
       severity: 'success',
       summary: 'Link copiado',
