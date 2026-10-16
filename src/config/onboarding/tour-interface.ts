@@ -5,36 +5,38 @@ export const interfaceTourSteps: DriveStep[] = [
     element: '[data-tour="header"]',
     popover: {
       title: 'Barra superior',
-      description: 'Aqui puedes ver tu tienda actual y acceder a tu perfil de usuario.',
+      description: 'Aquí puedes ver tu tienda actual y acceder a tu perfil de usuario.',
       side: 'bottom',
-      align: 'center',
-    },
+      align: 'center'
+    }
   },
   {
     element: '[data-tour="sidebar"]',
     popover: {
-      title: 'Menu de navegacion',
-      description: 'Desde aqui accedes a todas las secciones: productos, pedidos, marketing, configuracion y mas.',
+      title: 'Menú de navegación',
+      description:
+        'Desde aquí accedes a todas las secciones: productos, pedidos, marketing, configuración y más.',
       side: 'right',
-      align: 'start',
-    },
+      align: 'start'
+    }
   },
   {
     element: '[data-tour="main-content"]',
     popover: {
-      title: 'Area de contenido',
-      description: 'Aqui se muestra el contenido de la seccion que selecciones en el menu.',
+      title: 'Área de contenido',
+      description: 'Aquí se muestra el contenido de la sección que selecciones en el menú.',
       side: 'left',
-      align: 'start',
-    },
+      align: 'start'
+    }
   },
   {
     element: '[data-tour="help-fab"]',
     popover: {
-      title: 'Boton de ayuda',
-      description: 'Si necesitas ayuda, presiona este boton. Se abrira una guia contextual segun la pagina en la que estes.',
+      title: 'Botón de ayuda',
+      description:
+        'Si necesitas ayuda, presiona este botón. Se abrirá una guía contextual según la página en la que estés.',
       side: 'left',
-      align: 'end',
-    },
-  },
+      align: 'end'
+    }
+  }
 ]

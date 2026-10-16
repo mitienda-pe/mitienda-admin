@@ -3,32 +3,35 @@ import type { DriveStep } from 'driver.js'
 export const shippingTourSteps: DriveStep[] = [
   {
     popover: {
-      title: 'Tarifas de envio',
-      description: 'Configura cuanto le costara el envio a tus clientes segun su ubicacion.',
-    },
+      title: 'Tarifas de envío',
+      description:
+        'Configura cuánto le costará el envío a tus clientes según su ubicación. Si prefieres que recojan en tu local, activa el recojo en tienda en la configuración de envíos.'
+    }
   },
   {
     element: '[data-tour="shipping-tabs"]',
     popover: {
-      title: 'Paises habilitados',
-      description: 'Las tarifas se organizan por pais. Selecciona un pais para ver sus ubicaciones.',
-      side: 'bottom',
-    },
+      title: 'Países habilitados',
+      description:
+        'Las tarifas se organizan por país. Selecciona un país para ver sus ubicaciones.',
+      side: 'bottom'
+    }
   },
   {
     element: '[data-tour="shipping-add-location"]',
     popover: {
-      title: 'Agregar ubicacion',
-      description: 'Haz clic aqui para agregar una nueva ubicacion con su tarifa de envio.',
-      side: 'bottom',
-    },
+      title: 'Agregar ubicación',
+      description: 'Haz clic aquí para agregar una nueva ubicación con su tarifa de envío.',
+      side: 'bottom'
+    }
   },
   {
     element: '[data-tour="shipping-table"]',
     popover: {
       title: 'Tabla de tarifas',
-      description: 'Aqui ves todas las ubicaciones con su precio, tiempo de entrega y estado. Puedes editar cada tarifa haciendo clic en ella.',
-      side: 'top',
-    },
-  },
+      description:
+        'Aquí ves todas las ubicaciones con su precio, tiempo de entrega y estado. Puedes editar cada tarifa haciendo clic en ella.',
+      side: 'top'
+    }
+  }
 ]

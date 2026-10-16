@@ -10,13 +10,13 @@ export const welcomeTourSteps: DriveStep[] = [
           <p style="margin-top:8px">Para empezar a vender necesitas:</p>
           <ul style="margin-top:6px;padding-left:20px">
             <li><strong>Productos</strong> — lo que vas a vender</li>
-            <li><strong>Formas de pago</strong> — como te van a pagar</li>
-            <li><strong>Tarifas de envio</strong> — cuanto cuesta el envio</li>
+            <li><strong>Formas de pago</strong> — cómo te van a pagar</li>
+            <li><strong>Envío o recojo</strong> — cómo llega el pedido a tu cliente</li>
           </ul>
-          <p style="margin-top:10px;font-size:12px;color:#9ca3af">Este tour dura menos de 2 minutos.</p>
+          <p style="margin-top:10px;font-size:12px;color:#9ca3af">Este recorrido dura menos de 2 minutos.</p>
         </div>
       `,
-      popoverClass: 'onboarding-popover onboarding-welcome',
-    },
-  },
+      popoverClass: 'onboarding-popover onboarding-welcome'
+    }
+  }
 ]

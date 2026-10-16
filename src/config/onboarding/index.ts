@@ -4,7 +4,7 @@ import { productsTourSteps } from './tour-products'
 import { paymentsTourSteps } from './tour-payments'
 import { shippingTourSteps } from './tour-shipping'
 import type { DriveStep } from 'driver.js'
-import type { OnboardingState } from '@/stores/onboarding.store'
+import type { OnboardingStepKey } from '@/types/onboarding.types'
 
 export interface TourDefinition {
   id: string
@@ -12,8 +12,12 @@ export interface TourDefinition {
   description: string
   route: string
   steps: DriveStep[]
-  /** Keys to mark as complete when this tour finishes */
-  completionKeys: (keyof Omit<OnboardingState, 'dismissedAt' | 'completedAt'>)[]
+  /**
+   * Paso del checklist al que acompaña este recorrido. Solo se usa para
+   * ofrecer "Ver video" en el último paso: terminar el recorrido ya NO marca
+   * el paso como hecho (eso lo deciden los datos reales de la tienda).
+   */
+  stepKey?: OnboardingStepKey
   icon: string
 }
 
@@ -21,11 +25,10 @@ export const TOUR_DEFINITIONS: TourDefinition[] = [
   {
     id: 'welcome-flow',
     label: 'Conoce tu panel',
-    description: 'Recorre la interfaz del backoffice',
+    description: 'Recorre la interfaz del panel',
     route: '/dashboard',
     steps: [...welcomeTourSteps, ...interfaceTourSteps],
-    completionKeys: ['welcome'],
-    icon: 'pi pi-home',
+    icon: 'pi pi-home'
   },
   {
     id: 'products',
@@ -33,8 +36,8 @@ export const TOUR_DEFINITIONS: TourDefinition[] = [
     description: 'Agrega los productos que vas a vender',
     route: '/products/create',
     steps: productsTourSteps,
-    completionKeys: ['products'],
-    icon: 'pi pi-box',
+    stepKey: 'first_product',
+    icon: 'pi pi-box'
   },
   {
     id: 'payments',
@@ -42,16 +45,16 @@ export const TOUR_DEFINITIONS: TourDefinition[] = [
     description: 'Activa una pasarela de pago',
     route: '/payment-gateways',
     steps: paymentsTourSteps,
-    completionKeys: ['payments'],
-    icon: 'pi pi-credit-card',
+    stepKey: 'payments',
+    icon: 'pi pi-credit-card'
   },
   {
     id: 'shipping',
-    label: 'Configura tarifas de envio',
-    description: 'Define los costos de envio',
+    label: 'Configura tarifas de envío',
+    description: 'Define los costos de envío',
     route: '/shipping/rates',
     steps: shippingTourSteps,
-    completionKeys: ['shipping'],
-    icon: 'pi pi-truck',
-  },
+    stepKey: 'shipping',
+    icon: 'pi pi-truck'
+  }
 ]

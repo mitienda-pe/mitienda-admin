@@ -1031,6 +1031,9 @@
 
     <!-- Novedades (clic en el número de versión) -->
     <ChangelogDialog v-model:visible="changelogVisible" />
+
+    <!-- Video de un paso del checklist / recorrido guiado -->
+    <OnboardingVideoDialog />
   </div>
 </template>
 
@@ -1055,6 +1058,7 @@ import UpgradeModal from '@/components/plan/UpgradeModal.vue'
 import HelpFab from '@/components/help/HelpFab.vue'
 import HelpDrawer from '@/components/help/HelpDrawer.vue'
 import ChangelogDialog from '@/components/changelog/ChangelogDialog.vue'
+import OnboardingVideoDialog from '@/components/onboarding/OnboardingVideoDialog.vue'
 import { useOnboardingStore } from '@/stores/onboarding.store'
 import { useStoreConfigStore } from '@/stores/store-config.store'
 import { pluginsApi } from '@/api/plugins.api'

@@ -130,10 +130,21 @@ function formatDateRange(from: string, to: string): string {
 onMounted(() => {
   dashboardStore.fetchAnalytics()
 
-  // Auto-start welcome tour for trial stores
-  if (planStore.isPlanTrial && onboardingStore.shouldAutoStart) {
+  // Progreso del checklist "Configura tu tienda" (una petición por carga del
+  // dashboard). Con el progreso a mano se decide si lanzar el recorrido de
+  // bienvenida: tienda a prueba, nunca lo terminó, no ocultó el checklist y
+  // no se lanzó ya en esta sesión del navegador.
+  onboardingStore.fetchProgress().then(() => {
+    if (!planStore.isPlanTrial || !onboardingStore.shouldAutoStart) return
+    const sessionKey = `onboarding_autostart_${authStore.selectedStore?.id ?? ''}`
+    try {
+      if (sessionStorage.getItem(sessionKey)) return
+      sessionStorage.setItem(sessionKey, '1')
+    } catch {
+      /* sin sessionStorage: se lanza igual */
+    }
     setTimeout(() => startTour('welcome-flow'), 1000)
-  }
+  })
 
   // Resume pending tour if navigated from checklist
   resumeTourIfPending()
