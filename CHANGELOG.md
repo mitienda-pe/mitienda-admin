@@ -3,6 +3,14 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.93.0] - 2026-10-16
+
+### Novedades
+
+- **onboarding:** logo como recomendado, copiar el link completa el paso y "Mostrar de nuevo" ([`885a735`](https://github.com/mitienda-pe/mitienda-admin/commit/885a735227688467bc94ba788027b064f4d43d7a))
+- **onboarding:** "Configura tu tienda" con progreso real y videos por paso ([`6ae736c`](https://github.com/mitienda-pe/mitienda-admin/commit/6ae736cace4b2b54392ed64ff81e28921822bae4))
+- **orders:** ventas no vistas en negrita en el listado ([`7d1e256`](https://github.com/mitienda-pe/mitienda-admin/commit/7d1e256e2b50a68d8ae5ba2b9aa8971b13925477))
+
 ## [v2.92.3] - 2026-10-15
 
 ### Correcciones
