@@ -478,8 +478,10 @@ export const ordersApi = {
    * - 'paid' y 'cancelled' van al endpoint dedicado /payment-status, que
    *   además de actualizar el estado emite el evento OrderPaid (factura en
    *   Nubefact, email al cliente, sync NetSuite, loyalty).
-   * - 'chargeback' y 'refunded' usan el endpoint genérico con la etiqueta
-   *   semántica que espera el backend.
+   * - 'refunded' usa el endpoint genérico con la etiqueta semántica que espera
+   *   el backend.
+   * - 'chargeback' NO pasa por aquí: el backend lo rechaza. Va por
+   *   `markChargeback`, que pide contraseña y motivo.
    */
   async updateOrderStatus(id: number, status: OrderStatus): Promise<ApiResponse<Order>> {
     if (status === 'paid' || status === 'cancelled') {
@@ -682,5 +684,34 @@ export const ordersApi = {
       success: response.data?.success === true,
       data: response.data?.data
     }
+  },
+
+  /**
+   * Marcar una venta pagada como contracargo.
+   *
+   * Registra un fraude confirmado: el correo, documento y teléfono del
+   * comprador quedan bloqueados en el checkout de TODAS las tiendas. Por eso
+   * el backend exige la contraseña del usuario y un motivo, y consulta la
+   * pasarela antes de marcar (si la pasarela no lo reporta queda como manual).
+   */
+  async markChargeback(
+    orderId: number,
+    params: { motivo: string; password: string }
+  ): Promise<ApiResponse<ChargebackResult>> {
+    const response = await apiClient.post(`/orders/${orderId}/chargeback`, {
+      motivo: params.motivo,
+      password: params.password
+    })
+    return {
+      success: response.data?.success === true,
+      data: response.data?.data
+    }
   }
+}
+
+export interface ChargebackResult {
+  id: number
+  /** true si la pasarela reportó el contracargo; false si quedó como manual. */
+  gateway_confirmed: boolean
+  gateway_summary: string
 }

@@ -191,6 +191,33 @@ export const useOrdersStore = defineStore('orders', () => {
     }
   }
 
+  /**
+   * Marcar una venta pagada como contracargo. Como anular, pide la contraseña
+   * del usuario y un motivo: bloquea al comprador en todas las tiendas.
+   */
+  async function markChargeback(id: number, params: { motivo: string; password: string }) {
+    try {
+      isLoading.value = true
+      error.value = null
+
+      const response = await ordersApi.markChargeback(id, params)
+
+      if (!response.success) {
+        throw new Error('No se pudo registrar el contracargo')
+      }
+
+      await fetchOrder(id)
+      await fetchOrders()
+
+      return response.data
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Error desconocido'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   function setFilters(newFilters: Partial<OrderFilters>) {
     filters.value = { ...filters.value, ...newFilters }
     pagination.value.page = 1
@@ -292,6 +319,7 @@ export const useOrdersStore = defineStore('orders', () => {
     fetchStats,
     updateOrderStatus,
     voidOrder,
+    markChargeback,
     setFilters,
     setSearch,
     setStatus,

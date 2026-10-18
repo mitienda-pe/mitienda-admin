@@ -311,17 +311,89 @@ async function handleRejectPayment() {
   }
 }
 
-async function handleMarkAsChargeback() {
-  if (!order.value || isUpdatingPayment.value) return
-  if (!window.confirm('¿Estás seguro de marcar esta venta como contracargo? Esta acción registrará un fraude confirmado.')) return
-  isUpdatingPayment.value = true
+// Contracargo. Antes era un window.confirm() y bastó un clic de más para
+// bloquear a un comprador legítimo en todas las tiendas (venta 893899). Ahora
+// el diálogo muestra qué dice la pasarela y pide motivo y contraseña.
+const showChargebackDialog = ref(false)
+const chargebackMotivo = ref('')
+const chargebackPassword = ref('')
+const chargebackError = ref<string | null>(null)
+const isMarkingChargeback = ref(false)
+const isCheckingChargebackGateway = ref(false)
+const chargebackGateway = ref<GatewayStatusResult | null>(null)
+const chargebackGatewayError = ref<string | null>(null)
+// OrderPaymentComments carga al montar: se remonta para mostrar el motivo.
+const paymentCommentsKey = ref(0)
+
+const canSubmitChargeback = computed(() =>
+  chargebackMotivo.value.trim().length >= 10 && chargebackPassword.value.length > 0
+)
+
+/** Qué dijo la pasarela, en una línea, o null si no se pudo saber. */
+const chargebackGatewayVerdict = computed(() => {
+  const status = chargebackGateway.value
+  if (!status) return null
+  const lookup = status.lookup
+  if (!status.gateway.supported || !lookup || lookup.error || !lookup.found) {
+    return { reported: null as boolean | null, text: status.message || 'No se pudo consultar la pasarela.' }
+  }
+  if (lookup.is_chargeback) {
+    return { reported: true, text: `${status.gateway.name} reporta el contracargo (estado "${lookup.status}").` }
+  }
+  return {
+    reported: false,
+    text: `${status.gateway.name} NO reporta contracargo: el cobro figura como "${lookup.status}".`
+  }
+})
+
+async function openChargebackDialog() {
+  if (!order.value) return
+  chargebackMotivo.value = ''
+  chargebackPassword.value = ''
+  chargebackError.value = null
+  chargebackGateway.value = null
+  chargebackGatewayError.value = null
+  showChargebackDialog.value = true
+
+  isCheckingChargebackGateway.value = true
   try {
-    await ordersStore.updateOrderStatus(order.value.id, 'chargeback')
-    toast.add({ severity: 'error', summary: 'Contracargo registrado', detail: 'La venta fue marcada como contracargo', life: 5000 })
+    const response = await ordersApi.getGatewayStatus(order.value.id)
+    if (!response.success || !response.data) throw new Error('No se pudo consultar la pasarela')
+    chargebackGateway.value = response.data
   } catch (err: any) {
-    toast.add({ severity: 'error', summary: 'Error', detail: err.message || 'No se pudo registrar el contracargo', life: 5000 })
+    chargebackGatewayError.value = err?.message || 'No se pudo consultar la pasarela'
   } finally {
-    isUpdatingPayment.value = false
+    isCheckingChargebackGateway.value = false
+  }
+}
+
+async function handleMarkAsChargeback() {
+  if (!order.value || isMarkingChargeback.value || !canSubmitChargeback.value) return
+  isMarkingChargeback.value = true
+  chargebackError.value = null
+  try {
+    const result = await ordersStore.markChargeback(order.value.id, {
+      motivo: chargebackMotivo.value.trim(),
+      password: chargebackPassword.value
+    })
+    showChargebackDialog.value = false
+    chargebackPassword.value = ''
+    paymentCommentsKey.value++
+    toast.add({
+      severity: 'warn',
+      summary: 'Contracargo registrado',
+      detail: result?.gateway_summary
+        ? `La venta fue marcada como contracargo. ${result.gateway_summary}.`
+        : 'La venta fue marcada como contracargo',
+      life: 8000
+    })
+  } catch (err: any) {
+    chargebackError.value = err?.response?.data?.messages?.error
+      || err?.response?.data?.message
+      || err?.message
+      || 'No se pudo registrar el contracargo'
+  } finally {
+    isMarkingChargeback.value = false
   }
 }
 
@@ -2038,14 +2110,14 @@ const handleDebugPayments = async () => {
                     severity="danger"
                     outlined
                     size="small"
-                    :loading="isUpdatingPayment"
                     class="w-full"
-                    @click="handleMarkAsChargeback"
+                    @click="openChargebackDialog"
                   />
                 </div>
 
                 <OrderPaymentComments
                   v-if="order.id"
+                  :key="paymentCommentsKey"
                   :order-id="order.id"
                   class="pt-3 border-t border-gray-200"
                 />
@@ -3263,6 +3335,108 @@ const handleDebugPayments = async () => {
           :loading="isVoiding"
           :disabled="!canSubmitVoid"
           @click="handleVoidOrder"
+        />
+      </template>
+    </Dialog>
+
+    <!-- Contracargo -->
+    <Dialog
+      v-model:visible="showChargebackDialog"
+      modal
+      header="Marcar contracargo"
+      :style="{ width: '32rem' }"
+      :breakpoints="{ '640px': '90vw' }"
+      :closable="!isMarkingChargeback"
+    >
+      <div class="space-y-4">
+        <div class="rounded-lg border border-gray-200 bg-gray-50 p-3">
+          <p class="text-xs font-medium text-gray-500 uppercase mb-1">Qué dice la pasarela</p>
+          <p v-if="isCheckingChargebackGateway" class="text-sm text-gray-600">
+            <i class="pi pi-spin pi-spinner mr-1"></i>Consultando la pasarela…
+          </p>
+          <p v-else-if="chargebackGatewayError" class="text-sm text-gray-600">
+            {{ chargebackGatewayError }}
+          </p>
+          <p
+            v-else-if="chargebackGatewayVerdict"
+            class="text-sm"
+            :class="chargebackGatewayVerdict.reported === false ? 'text-red-700 font-semibold' : 'text-gray-700'"
+          >
+            <i
+              v-if="chargebackGatewayVerdict.reported === false"
+              class="pi pi-exclamation-circle mr-1"
+            ></i>
+            {{ chargebackGatewayVerdict.text }}
+          </p>
+          <p
+            v-if="chargebackGatewayVerdict?.reported === false"
+            class="text-xs text-gray-600 mt-1"
+          >
+            Márcala solo si el banco o la pasarela te notificaron el contracargo por otro medio.
+          </p>
+        </div>
+
+        <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <p class="text-sm font-semibold text-amber-800 mb-1">
+            <i class="pi pi-exclamation-triangle mr-1"></i>
+            Esto bloquea al comprador en todas las tiendas
+          </p>
+          <ul class="text-sm text-amber-700 list-disc pl-5 space-y-0.5">
+            <li>La venta pasa a <strong>Contracargo</strong>.</li>
+            <li>
+              El correo, documento y teléfono del comprador
+              <template v-if="order?.customer?.email">({{ order.customer.email }})</template>
+              no podrán comprar en <strong>ninguna tienda de la plataforma</strong> durante 18 meses.
+            </li>
+            <li>Tu nombre y el motivo quedan registrados en los comentarios del pago.</li>
+          </ul>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-secondary-700 mb-2">
+            Motivo <span class="text-red-500">*</span>
+          </label>
+          <Textarea
+            v-model="chargebackMotivo"
+            rows="3"
+            maxlength="500"
+            class="w-full"
+            placeholder="Ej: OpenPay notificó el contracargo por correo el 15/10, caso 12345"
+            :disabled="isMarkingChargeback"
+          />
+          <p class="text-xs text-gray-500 mt-1">Mínimo 10 caracteres.</p>
+        </div>
+
+        <AppInput
+          v-model="chargebackPassword"
+          type="password"
+          label="Tu contraseña"
+          required
+          placeholder="Contraseña de tu usuario"
+          :disabled="isMarkingChargeback"
+          @keyup.enter="handleMarkAsChargeback"
+        />
+
+        <p v-if="chargebackError" class="text-sm text-red-600">
+          <i class="pi pi-times-circle mr-1"></i>{{ chargebackError }}
+        </p>
+      </div>
+
+      <template #footer>
+        <Button
+          label="Cancelar"
+          severity="secondary"
+          text
+          :disabled="isMarkingChargeback"
+          @click="showChargebackDialog = false"
+        />
+        <Button
+          label="Marcar contracargo"
+          icon="pi pi-exclamation-triangle"
+          severity="danger"
+          :loading="isMarkingChargeback"
+          :disabled="!canSubmitChargeback || isCheckingChargebackGateway"
+          @click="handleMarkAsChargeback"
         />
       </template>
     </Dialog>
