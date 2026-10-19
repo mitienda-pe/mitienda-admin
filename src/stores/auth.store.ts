@@ -62,6 +62,16 @@ export const useAuthStore = defineStore('auth', () => {
         return false
       }
     } catch (err: any) {
+      // Cuenta creada en la landing que nunca configuró su tienda: el API
+      // manda a terminar el registro en vez de responder "sin tiendas".
+      const pending = err.response?.status === 409 && err.response?.data?.error === 'pending_setup'
+        ? String(err.response.data.setup_url ?? '')
+        : ''
+      if (/^https:\/\/(mitienda\.pe|tiendabox\.ec|tiendabox\.co)\/registro-v2\?/.test(pending)) {
+        error.value = err.response.data.message || 'Falta configurar tu tienda. Te llevamos a terminarla.'
+        setTimeout(() => window.location.assign(pending), 1500)
+        return false
+      }
       // Sin respuesta es un problema de red; con respuesta, el API dice qué
       // pasó ("Credenciales inválidas", "Usuario sin tiendas asignadas").
       error.value = err.response
