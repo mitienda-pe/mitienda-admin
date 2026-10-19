@@ -10,6 +10,8 @@ import type {
   UpdateShippingRateRequest,
   Country,
   ShippingConfig,
+  ShippingSchedule,
+  ShippingScheduleDay,
   ShippingServiceType,
   ServiceTypeRate
 } from '@/types/shipping.types'
@@ -795,6 +797,39 @@ export const serviceRatesApi = {
 }
 
 // Map API response (DB column names) to frontend ShippingConfig
+/** Índice de media hora del panel legacy → "HH:MM" (0 = 00:30, 21 = 11:00, 47 = fin del día). */
+function legacyHalfHour(index: unknown): string | null {
+  const n = Number(index)
+  if (!Number.isInteger(n) || n < 0 || n > 47) return null
+  if (n === 47) return '23:59'
+  const minutes = (n + 1) * 30
+  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
+}
+
+/**
+ * Horarios guardados por el panel legacy traen solo {dia, horarios:[{from,to}]}:
+ * sin esto el editor los mostraba como "No disponible" y, al tocar un día, el
+ * resto quedaba apagado. Se completa enabled/start/end desde las franjas
+ * (de la primera apertura al último cierre) sin perder los campos legacy.
+ */
+function normalizeSchedule(raw: unknown): ShippingSchedule | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
+  const schedule: ShippingSchedule = {}
+  for (const [day, value] of Object.entries(raw as Record<string, Partial<ShippingScheduleDay>>)) {
+    if (!value || typeof value !== 'object') continue
+    const ranges = (value.horarios || [])
+      .map(h => [legacyHalfHour(h.from), legacyHalfHour(h.to)] as const)
+      .filter((r): r is readonly [string, string] => r[0] !== null && r[1] !== null && r[0] < r[1])
+    schedule[day] = {
+      ...value,
+      enabled: value.enabled ?? ranges.length > 0,
+      start: value.start || (ranges.length ? ranges.map(r => r[0]).sort()[0] : '09:00'),
+      end: value.end || (ranges.length ? ranges.map(r => r[1]).sort().slice(-1)[0] : '18:00'),
+    }
+  }
+  return schedule
+}
+
 function mapConfigFromApi(raw: Record<string, unknown>): ShippingConfig {
   return {
     swEntregaADomicilio: raw.tiendageneral_swentregaadomicilio === 1 || raw.tiendageneral_swentregaadomicilio === '1',
@@ -808,15 +843,17 @@ function mapConfigFromApi(raw: Record<string, unknown>): ShippingConfig {
     envioporProducto: Number(raw.tiendageneral_sw_envioporproducto) || 0,
     swServiciosEnvio: raw.tiendageneral_sw_servicios_envio === 1 || raw.tiendageneral_sw_servicios_envio === '1',
     swMostrarHorarioEnvio: raw.tiendageneral_sw_mostrarhorarioenvio === 1 || raw.tiendageneral_sw_mostrarhorarioenvio === '1',
-    horarioEnvio: (raw.tiendageneral_horarioenvio as ShippingConfig['horarioEnvio']) || null,
+    horarioEnvio: normalizeSchedule(raw.tiendageneral_horarioenvio),
     tipoMostrarFecha: (Number(raw.tiendageneral_tipomostrarfecha) || 1) as 1 | 2,
     swRepartoHoy: Number(raw.sw_repartohoy) || 0,
     diasBloqueados: (raw.tiendageneral_dias_bloqueados as ShippingConfig['diasBloqueados']) || [],
     swMostrarHorarioRecojoTienda: raw.tiendageneral_sw_mostrarhorariorecojoTienda === 1 || raw.tiendageneral_sw_mostrarhorariorecojoTienda === '1',
-    horarioRecojoTienda: (raw.tiendageneral_horariorecojoTienda as ShippingConfig['horarioRecojoTienda']) || null,
+    horarioRecojoTienda: normalizeSchedule(raw.tiendageneral_horariorecojoTienda),
     tipoMostrarFechaRecojoTienda: (Number(raw.tiendageneral_tipomostrarfechaRecojoTienda) || 1) as 1 | 2,
     swRecojoTiendaHoy: Number(raw.sw_recojoTiendaHoy) || 0,
     plazoMaximoRecojoTienda: Number(raw.tiendageneral_plazomaximoRecojoTienda) || 30,
+    horaCorteEnvio: (raw.tiendageneral_horacorteenvio as string) || null,
+    horaCorteRecojoTienda: (raw.tiendageneral_horacorteRecojoTienda as string) || null,
     labelRecojoEnTienda: (raw.tiendageneral_label_recojoentienda as string) || ''
   }
 }
@@ -863,6 +900,10 @@ function mapConfigToApi(config: Partial<ShippingConfig>): Record<string, unknown
     map.sw_recojoTiendaHoy = config.swRecojoTiendaHoy
   if (config.plazoMaximoRecojoTienda !== undefined)
     map.tiendageneral_plazomaximoRecojoTienda = config.plazoMaximoRecojoTienda
+  if (config.horaCorteEnvio !== undefined)
+    map.tiendageneral_horacorteenvio = config.horaCorteEnvio || null
+  if (config.horaCorteRecojoTienda !== undefined)
+    map.tiendageneral_horacorteRecojoTienda = config.horaCorteRecojoTienda || null
 
   return map
 }

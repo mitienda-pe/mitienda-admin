@@ -195,9 +195,13 @@ export interface ShippingScheduleDay {
   enabled: boolean
   start: string // "09:00"
   end: string // "18:00"
+  // Panel legacy: franjas por índice de media hora (21 = 11:00). Se conservan
+  // al guardar; el API prefiere start/end cuando están.
+  dia?: string
+  horarios?: Array<{ orden?: number; from: number | string; to: number | string }>
 }
 
-// Legacy format: { "1": { enabled, start, end }, ..., "7": {...} }
+// { "1": { enabled, start, end }, ..., "7": {...} } — día ISO (1 = lunes)
 export type ShippingSchedule = Record<string, ShippingScheduleDay>
 
 // [year, month, day]
@@ -230,6 +234,10 @@ export interface ShippingConfig {
   tipoMostrarFechaRecojoTienda: 1 | 2
   swRecojoTiendaHoy: number
   plazoMaximoRecojoTienda: number
+  // Hora de corte ("HH:MM"): pasada esa hora la primera fecha se corre un día.
+  // null = sin corte.
+  horaCorteEnvio: string | null
+  horaCorteRecojoTienda: string | null
   /**
    * Nombre del método de recojo en el checkout. Vacío = "Recojo en tienda".
    * No siempre es una tienda: puede ser un almacén o el local de un operador.

@@ -145,6 +145,19 @@ const daysOptions = Array.from({ length: 11 }, (_, i) => ({
   value: i
 }))
 
+function dayLabel(days: number): string {
+  if (days === 0) return 'hoy mismo'
+  if (days === 1) return 'mañana'
+  if (days === 2) return 'pasado mañana'
+  return `dentro de ${days} días`
+}
+
+// Explica la regla con los valores actuales: el corte corre la primera fecha un día.
+function cutoffHint(cutoff: string | null, days: number, what: string): string {
+  if (!cutoff) return 'Sin corte: la anticipación se cuenta igual a cualquier hora'
+  return `Antes de las ${cutoff}, primera ${what}: ${dayLabel(days)}. Desde las ${cutoff}: ${dayLabel(days + 1)}.`
+}
+
 async function handleSave() {
   const ok = await store.saveConfig()
   if (ok) {
@@ -527,6 +540,20 @@ watch(hasPickupPoint, (has) => {
               />
             </div>
           </div>
+          <div class="mt-4">
+            <label class="block text-sm font-medium text-secondary-700 mb-1">
+              Hora de corte
+            </label>
+            <div class="flex items-center gap-3">
+              <input
+                type="time"
+                :value="draftConfig.horaCorteEnvio || ''"
+                class="border border-gray-300 rounded px-2 py-1 text-sm w-32"
+                @input="store.updateField('horaCorteEnvio', ($event.target as HTMLInputElement).value || null)"
+              />
+              <span class="text-xs text-gray-500">{{ cutoffHint(draftConfig.horaCorteEnvio, draftConfig.swRepartoHoy, 'entrega') }}</span>
+            </div>
+          </div>
         </div>
 
         <!-- Días bloqueados -->
@@ -597,6 +624,20 @@ watch(hasPickupPoint, (has) => {
                 optionValue="value"
                 class="w-full"
               />
+            </div>
+          </div>
+          <div class="mt-4">
+            <label class="block text-sm font-medium text-secondary-700 mb-1">
+              Hora de corte
+            </label>
+            <div class="flex items-center gap-3">
+              <input
+                type="time"
+                :value="draftConfig.horaCorteRecojoTienda || ''"
+                class="border border-gray-300 rounded px-2 py-1 text-sm w-32"
+                @input="store.updateField('horaCorteRecojoTienda', ($event.target as HTMLInputElement).value || null)"
+              />
+              <span class="text-xs text-gray-500">{{ cutoffHint(draftConfig.horaCorteRecojoTienda, draftConfig.swRecojoTiendaHoy, 'recojo') }}</span>
             </div>
           </div>
         </div>

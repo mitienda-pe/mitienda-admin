@@ -26,7 +26,9 @@ const DEFAULT_CONFIG: ShippingConfig = {
   horarioRecojoTienda: null,
   tipoMostrarFechaRecojoTienda: 1,
   swRecojoTiendaHoy: 0,
-  plazoMaximoRecojoTienda: 30
+  plazoMaximoRecojoTienda: 30,
+  horaCorteEnvio: null,
+  horaCorteRecojoTienda: null
 }
 
 export const useShippingConfigStore = defineStore('shipping-config', () => {
