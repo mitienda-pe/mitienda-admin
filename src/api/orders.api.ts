@@ -326,7 +326,12 @@ export const ordersApi = {
             price: parseFloat(item.price || '0'),
             tax_affectation: item.tax_affectation,
             tax_exempt: item.tax_exempt,
-            subtotal: parseFloat(item.total || '0')
+            subtotal: parseFloat(item.total || '0'),
+            // Configuración del plugin (torta, sabores, calculadora): sin esto el
+            // detalle del pedido no sabe qué armó el cliente.
+            plugin_slug: item.plugin_slug ?? null,
+            plugin_summary: item.plugin_summary ?? null,
+            plugin_data: item.plugin_data ?? null
           }
         }),
         // subtotal/tax vienen del backend (OrderTransformer) ya conscientes de la
