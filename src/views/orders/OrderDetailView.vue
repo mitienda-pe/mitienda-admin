@@ -3,6 +3,7 @@ import { onMounted, computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useOrdersStore } from '@/stores/orders.store'
 import { useStoreInfoStore } from '@/stores/store-info.store'
+import { useBadgeCountsStore } from '@/stores/badge-counts.store'
 import { useFormatters } from '@/composables/useFormatters'
 import { useOrderDownloads, printableFromOrder, type PrintableOrder } from '@/composables/useOrderDownloads'
 import ShippingLabelDialog from '@/components/orders/ShippingLabelDialog.vue'
@@ -40,6 +41,7 @@ import type { SenderInfo } from '@/types/store.types'
 const route = useRoute()
 const router = useRouter()
 const ordersStore = useOrdersStore()
+const badgeCountsStore = useBadgeCountsStore()
 const storeInfoStore = useStoreInfoStore()
 const authStore = useAuthStore()
 const toast = useToast()
@@ -598,7 +600,10 @@ onMounted(async () => {
   // Abrir la venta la marca como vista (sale de negrita en el listado).
   // No bloquea: si falla, sigue en negrita y se reintenta la próxima vez.
   if (ordersStore.currentOrder?.viewed === false) {
-    ordersApi.setViewed(orderId).catch(() => {})
+    ordersApi
+      .setViewed(orderId)
+      .then(() => badgeCountsStore.fetchCounts())
+      .catch(() => {})
   }
 
   // Load sender info, order reviews, fulfillment provider and billing mode in parallel

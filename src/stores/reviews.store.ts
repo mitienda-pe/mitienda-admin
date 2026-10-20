@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { reviewsApi } from '@/api/reviews.api'
+import { useBadgeCountsStore } from '@/stores/badge-counts.store'
 import type { Review, ReviewFilters, ReviewStats } from '@/types/review.types'
 
 export const useReviewsStore = defineStore('reviews', () => {
@@ -93,6 +94,7 @@ export const useReviewsStore = defineStore('reviews', () => {
           review.status = status
           review.moderated_at = new Date().toISOString()
         }
+        useBadgeCountsStore().fetchCounts()
         await fetchStats()
         return true
       }
@@ -110,6 +112,7 @@ export const useReviewsStore = defineStore('reviews', () => {
       const response = await reviewsApi.bulkModerate(selectedIds.value, status)
       if (response.success) {
         selectedIds.value = []
+        useBadgeCountsStore().fetchCounts()
         await Promise.all([fetchReviews(), fetchStats()])
         return true
       }
@@ -126,6 +129,7 @@ export const useReviewsStore = defineStore('reviews', () => {
       if (response.success) {
         reviews.value = reviews.value.filter((r) => r.id !== id)
         pagination.value.total--
+        useBadgeCountsStore().fetchCounts()
         await fetchStats()
         return true
       }

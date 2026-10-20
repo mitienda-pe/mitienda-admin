@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { complaintsApi } from '@/api/complaints.api'
+import { useBadgeCountsStore } from '@/stores/badge-counts.store'
 import type { Complaint, ComplaintFilters, ComplaintStats } from '@/types/complaint.types'
 
 export const useComplaintsStore = defineStore('complaints', () => {
@@ -76,6 +77,8 @@ export const useComplaintsStore = defineStore('complaints', () => {
       const response = await complaintsApi.getComplaint(id)
       if (response.success && response.data) {
         currentComplaint.value = response.data
+        // Abrir el detalle lo marca como visto en el servidor: el badge baja.
+        useBadgeCountsStore().fetchCounts()
       } else {
         throw new Error('Error al cargar reclamación')
       }
@@ -107,6 +110,7 @@ export const useComplaintsStore = defineStore('complaints', () => {
           currentComplaint.value.response_date = new Date().toISOString()
           currentComplaint.value.status = 'attended'
         }
+        useBadgeCountsStore().fetchCounts()
         await fetchStats()
         return true
       }
