@@ -236,33 +236,40 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (err) {
       // Silently handle logout errors
     } finally {
-      // Limpiar estado
-      user.value = null
-      stores.value = []
-      selectedStore.value = null
-      accessToken.value = null
-      refreshToken.value = null
-      superAdminInfo.value = null
-      error.value = null
-
-      // Limpiar localStorage
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
-      localStorage.removeItem('user')
-      localStorage.removeItem('selected_store')
-      localStorage.removeItem('superadmin_info')
-      localStorage.removeItem('impersonation_context')
-
-      // Clear plan data
-      import('@/stores/plan.store').then(({ usePlanStore }) => {
-        const planStore = usePlanStore()
-        planStore.clearPlan()
-      })
-
-      import('@/stores/permissions.store').then(({ usePermissionsStore }) => {
-        usePermissionsStore().clearPermissions()
-      })
+      clearSession()
     }
+  }
+
+  // Borra la sesión solo del lado del cliente (sin llamar al API). La usa el
+  // enlace mágico: si quedaba otra sesión abierta en el navegador, su tienda
+  // seleccionada y su refresh_token se mezclaban con la sesión nueva.
+  function clearSession() {
+    // Limpiar estado
+    user.value = null
+    stores.value = []
+    selectedStore.value = null
+    accessToken.value = null
+    refreshToken.value = null
+    superAdminInfo.value = null
+    error.value = null
+
+    // Limpiar localStorage
+    localStorage.removeItem('access_token')
+    localStorage.removeItem('refresh_token')
+    localStorage.removeItem('user')
+    localStorage.removeItem('selected_store')
+    localStorage.removeItem('superadmin_info')
+    localStorage.removeItem('impersonation_context')
+
+    // Clear plan data
+    import('@/stores/plan.store').then(({ usePlanStore }) => {
+      const planStore = usePlanStore()
+      planStore.clearPlan()
+    })
+
+    import('@/stores/permissions.store').then(({ usePermissionsStore }) => {
+      usePermissionsStore().clearPermissions()
+    })
   }
 
   function isTokenExpired(token: string): boolean {
@@ -362,6 +369,7 @@ export const useAuthStore = defineStore('auth', () => {
     isStaff,
     // Actions
     login,
+    clearSession,
     fetchStores,
     selectStore,
     sendStoreOtp,

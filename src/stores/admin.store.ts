@@ -221,6 +221,12 @@ export const useAdminStore = defineStore('admin', () => {
     }
   }
 
+  // Solo memoria: el localStorage lo limpia authStore.clearSession()
+  function clearSession() {
+    superAdminInfo.value = null
+    impersonationContext.value = null
+  }
+
   function clearFilters() {
     filters.value = {
       status: '',
@@ -254,6 +260,7 @@ export const useAdminStore = defineStore('admin', () => {
     impersonate,
     exitImpersonation,
     restoreSession,
+    clearSession,
     clearFilters,
     setPage
   }

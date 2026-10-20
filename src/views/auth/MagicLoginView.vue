@@ -29,6 +29,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
+import { useAdminStore } from '@/stores/admin.store'
 import { authApi } from '@/api/auth.api'
 import AuthSupportLink from '@/components/auth/AuthSupportLink.vue'
 
@@ -45,6 +46,12 @@ onMounted(async () => {
     status.value = 'error'
     return
   }
+
+  // El enlace abre una sesión nueva: si había otra abierta en el navegador
+  // (otra pestaña, otra cuenta, una impersonación), se cierra antes. Si no,
+  // su tienda seleccionada sobrevive y el panel arranca en la tienda ajena.
+  auth.clearSession()
+  useAdminStore().clearSession()
 
   try {
     const response = await authApi.magicLogin(token)
