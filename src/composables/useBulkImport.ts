@@ -70,8 +70,11 @@ export function useBulkImport() {
 
   // ── Reference Data Loading ──
 
-  async function loadReferenceData() {
-    if (refDataLoaded.value) return
+  // force: volver a pedir categorias/marcas aunque ya esten cargadas. Se usa al
+  // subir el archivo, para que lo creado en otra pestaña tras ver la advertencia
+  // de "no encontrada" se reconozca sin recargar la pantalla.
+  async function loadReferenceData(force = false) {
+    if (refDataLoaded.value && !force) return
     isLoadingRef.value = true
     try {
       const [catRes, brandRes, gammaRes, unitRes] = await Promise.all([

@@ -8,6 +8,8 @@ export interface CsvColumnDef {
   type: 'string' | 'number' | 'boolean'
   group: string
   editOnly?: boolean
+  /** Formato esperado del valor; se muestra bajo la columna al armar la plantilla. */
+  hint?: string
 }
 
 export const CSV_COLUMNS: CsvColumnDef[] = [
@@ -33,9 +35,11 @@ export const CSV_COLUMNS: CsvColumnDef[] = [
   { key: 'descripcion', apiField: 'description', label: 'Descripcion', required: false, type: 'string', group: 'Contenido' },
   { key: 'descripcion_corta', apiField: 'description_short', label: 'Descripcion Corta', required: false, type: 'string', group: 'Contenido' },
   // Clasificacion
-  { key: 'categorias', apiField: 'categories', label: 'Categorias', required: false, type: 'string', group: 'Clasificacion' },
-  { key: 'marca', apiField: 'brand_id', label: 'Marca', required: false, type: 'string', group: 'Clasificacion' },
-  { key: 'gamma', apiField: 'gamma_id', label: 'Gamma', required: false, type: 'string', group: 'Clasificacion' },
+  // Las tres se resuelven contra lo que ya existe en la tienda (useBulkImport):
+  // un nombre que no existe no se crea, solo deja una advertencia en la fila.
+  { key: 'categorias', apiField: 'categories', label: 'Categorias', required: false, type: 'string', group: 'Clasificacion', hint: 'Subcategorías con ">": Hombre > Ropa > Polos. Varias, separadas por coma. Deben existir en la tienda.' },
+  { key: 'marca', apiField: 'brand_id', label: 'Marca', required: false, type: 'string', group: 'Clasificacion', hint: 'Debe existir en la tienda.' },
+  { key: 'gamma', apiField: 'gamma_id', label: 'Gamma', required: false, type: 'string', group: 'Clasificacion', hint: 'Debe existir dentro de la marca de la fila.' },
   // Estado
   { key: 'publicado', apiField: 'published', label: 'Publicado (0/1)', required: false, type: 'boolean', group: 'Estado' },
   { key: 'orden', apiField: 'order', label: 'Orden', required: false, type: 'number', group: 'Estado' },

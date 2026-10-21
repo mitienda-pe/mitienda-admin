@@ -91,7 +91,7 @@ const priceLabel = computed(() =>
           <div
             v-for="col in group.columns"
             :key="col.key"
-            class="flex items-center gap-2"
+            class="flex items-start gap-2"
           >
             <Checkbox
               :modelValue="isSelected(col.key)"
@@ -99,15 +99,18 @@ const priceLabel = computed(() =>
               :disabled="isLocked(col.key)"
               @update:modelValue="toggleColumn(col.key)"
             />
-            <label
-              class="text-sm cursor-pointer"
-              :class="isLocked(col.key) ? 'text-gray-400' : 'text-secondary-700'"
-              @click="toggleColumn(col.key)"
-            >
-              {{ col.key === 'precio' ? priceLabel : col.label }}
-              <span v-if="col.required && mode === 'create'" class="text-red-500">*</span>
-              <span v-if="isLocked(col.key) && mode === 'edit'" class="text-xs text-gray-400 ml-1">(identificador)</span>
-            </label>
+            <div>
+              <label
+                class="text-sm cursor-pointer"
+                :class="isLocked(col.key) ? 'text-gray-400' : 'text-secondary-700'"
+                @click="toggleColumn(col.key)"
+              >
+                {{ col.key === 'precio' ? priceLabel : col.label }}
+                <span v-if="col.required && mode === 'create'" class="text-red-500">*</span>
+                <span v-if="isLocked(col.key) && mode === 'edit'" class="text-xs text-gray-400 ml-1">(identificador)</span>
+              </label>
+              <p v-if="col.hint" class="text-xs text-gray-500 mt-0.5">{{ col.hint }}</p>
+            </div>
           </div>
         </div>
       </div>

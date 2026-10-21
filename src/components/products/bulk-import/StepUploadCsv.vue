@@ -33,6 +33,24 @@ const warningCount = computed(() =>
 
 const previewRows = computed(() => props.parsedRows.slice(0, 50))
 
+// La vista previa corta en 50 filas: sin este resumen, una categoria o marca
+// que no existe en la fila 51+ pasaba sin que nadie la viera y el producto se
+// importaba sin ella.
+const MAX_WARNING_GROUPS = 10
+const warningGroups = computed(() => {
+  const counts = new Map<string, number>()
+  for (const row of props.parsedRows) {
+    if (!row.isValid) continue
+    for (const w of row.warnings) counts.set(w, (counts.get(w) ?? 0) + 1)
+  }
+  return [...counts.entries()]
+    .map(([message, rows]) => ({ message, rows }))
+    .sort((a, b) => b.rows - a.rows)
+})
+const hasMissingCategories = computed(() =>
+  warningGroups.value.some(g => g.message.startsWith('Categoria no encontrada')),
+)
+
 const visibleColumns = computed(() => {
   if (props.parsedRows.length === 0) return []
   const raw = props.parsedRows[0].raw
@@ -121,6 +139,33 @@ function getRowClass(row: BulkCsvParsedRow): string {
           <div class="text-2xl font-bold text-red-600">{{ errorCount }}</div>
           <div class="text-sm text-gray-500">Con errores</div>
         </div>
+      </div>
+
+      <div
+        v-if="warningGroups.length > 0"
+        class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800"
+      >
+        <p class="font-semibold">
+          <i class="pi pi-exclamation-triangle mr-2" />
+          Estos datos no se van a asignar: los productos se importan igual, pero sin ellos.
+        </p>
+        <ul class="mt-2 space-y-1">
+          <li v-for="g in warningGroups.slice(0, MAX_WARNING_GROUPS)" :key="g.message">
+            {{ g.message }}
+            <span class="text-yellow-600">· {{ g.rows }} {{ g.rows === 1 ? 'fila' : 'filas' }}</span>
+          </li>
+        </ul>
+        <p v-if="warningGroups.length > MAX_WARNING_GROUPS" class="mt-1 text-yellow-600">
+          y {{ warningGroups.length - MAX_WARNING_GROUPS }} más.
+        </p>
+        <p v-if="hasMissingCategories" class="mt-2">
+          Las categorías y subcategorías tienen que existir antes de importar. Créalas en
+          <RouterLink :to="{ name: 'categories-list' }" target="_blank" class="font-semibold underline">
+            Categorías
+          </RouterLink>
+          y vuelve a subir el archivo. Para una subcategoría escribe la ruta completa:
+          <code>Hombre &gt; Ropa &gt; Polos</code>.
+        </p>
       </div>
 
       <!-- Preview table -->

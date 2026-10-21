@@ -135,6 +135,7 @@ async function handleDownloadTemplate() {
 async function handleFileSelected(file: File) {
   isParsing.value = true
   try {
+    await loadReferenceData(true)
     await parseCsvFile(file)
   } catch (err: any) {
     toast.add({
