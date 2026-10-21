@@ -445,9 +445,11 @@ export interface ShippingDetails {
   /**
    * `scheduled`: fecha (o día de la semana) que eligió el comprador.
    * `estimated`: pago (o venta, si no está pagada) + tiempo de envío.
+   * `kind`: `pickup` en recojo en tienda (siempre `scheduled`).
    */
   promised_delivery?: {
     source: 'scheduled' | 'estimated'
+    kind?: 'delivery' | 'pickup'
     base?: 'payment' | 'order'
     date: string | null
     datetime: string | null

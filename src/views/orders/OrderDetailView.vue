@@ -1942,7 +1942,7 @@ const handleDebugPayments = async () => {
                 </p>
               </div>
               <div v-if="promisedDeliveryLabel">
-                <p class="text-sm text-gray-500">Fecha prometida</p>
+                <p class="text-sm text-gray-500">{{ promisedDelivery?.kind === 'pickup' ? 'Fecha de recojo' : 'Fecha prometida' }}</p>
                 <p class="font-semibold text-gray-900 first-letter:uppercase">{{ promisedDeliveryLabel }}</p>
                 <p v-if="promisedDelivery?.window" class="text-gray-900 text-sm">{{ promisedDelivery.window }}</p>
                 <p class="text-xs text-gray-500">{{ promisedDeliveryHint }}</p>
