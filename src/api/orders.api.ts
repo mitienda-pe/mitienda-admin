@@ -1,6 +1,9 @@
 import apiClient from './axios'
 import type {
   Order,
+  OrderAbonoPayload,
+  OrderAbonoResolution,
+  OrderAbonosSummary,
   OrderPaymentComment,
   OrderPaymentHistoryEntry,
   OrderStatus,
@@ -27,7 +30,8 @@ export interface OrdersFilters {
   page?: number
   limit?: number
   search?: string
-  status?: OrderStatus | 'all'
+  /** 'with_balance': pendientes con abonos, no es un estado de pago. */
+  status?: OrderStatus | 'all' | 'with_balance'
   date_from?: string
   date_to?: string
   billed?: '1' | '0' | 'all'
@@ -142,7 +146,9 @@ export const ordersApi = {
     if (filters.page) params.append('page', filters.page.toString())
     if (filters.limit) params.append('limit', filters.limit.toString())
     if (filters.search) params.append('search', filters.search)
-    if (filters.status && filters.status !== 'all') {
+    if (filters.status === 'with_balance') {
+      params.append('with_balance', '1')
+    } else if (filters.status && filters.status !== 'all') {
       // Convertir el status del frontend al código de pago del backend
       params.append('status', statusToPaymentCode(filters.status))
     }
@@ -201,6 +207,7 @@ export const ordersApi = {
               updated_at: order.date_created || '',
               notes: shipping.receiver_address?.comment || undefined,
               dispatch_state: order.dispatch_state || null,
+              partial_payment: order.partial_payment || null,
               // Estado de sincronización con el ERP/WMS. Solo viene si la tienda
               // tiene una integración que escriba estado.
               sync: order.sync || null,
@@ -403,6 +410,7 @@ export const ordersApi = {
         payment_comments_count: typeof rawData.payment_comments_count === 'number'
           ? rawData.payment_comments_count
           : Number(rawData.payment_comments_count) || 0,
+        partial_payment: rawData.partial_payment || null,
         created_at: rawData.date_created || '',
         // El backend no expone un `updated_at` de la venta. Antes se copiaba
         // `date_created` en ambos, y el timeline del detalle terminaba mostrando
@@ -592,6 +600,29 @@ export const ordersApi = {
   },
 
   /** Quién aprobó, rechazó o devolvió a pendiente el pago, del más viejo al más nuevo. */
+  /** Abonos (anticipo y saldo): total, cobrado, saldo y la lista. */
+  async getAbonos(orderId: number): Promise<ApiResponse<OrderAbonosSummary>> {
+    const response = await apiClient.get(`/orders/${orderId}/abonos`)
+    return response.data
+  },
+
+  async createAbono(orderId: number, payload: OrderAbonoPayload): Promise<ApiResponse<OrderAbonosSummary>> {
+    const response = await apiClient.post(`/orders/${orderId}/abonos`, payload)
+    return response.data
+  },
+
+  /** Anula un abono registrado por error. */
+  async cancelAbono(orderId: number, abonoId: number, note?: string): Promise<ApiResponse<OrderAbonosSummary>> {
+    const response = await apiClient.post(`/orders/${orderId}/abonos/${abonoId}/anular`, { note })
+    return response.data
+  },
+
+  /** Qué pasó con el dinero antes de cancelar un pedido con abonos. */
+  async resolveAbonos(orderId: number, payload: OrderAbonoResolution): Promise<ApiResponse<OrderAbonosSummary>> {
+    const response = await apiClient.post(`/orders/${orderId}/abonos/resolver`, payload)
+    return response.data
+  },
+
   async listPaymentHistory(orderId: number): Promise<ApiResponse<OrderPaymentHistoryEntry[]>> {
     const response = await apiClient.get(`/orders/${orderId}/payment-history`)
     return {

@@ -290,11 +290,20 @@ const billingType = (order: Order) => {
 
         <Column field="status" header="Pago" :sortable="true">
           <template #body="{ data }">
-            <Tag
-              :value="statusConfig(data.status).label"
-              :severity="statusConfig(data.status).severity"
-              :icon="`pi ${statusConfig(data.status).icon}`"
-            />
+            <div class="flex flex-col items-start gap-1">
+              <Tag
+                :value="statusConfig(data.status).label"
+                :severity="statusConfig(data.status).severity"
+                :icon="`pi ${statusConfig(data.status).icon}`"
+              />
+              <!-- Pago parcial: el pedido sigue pendiente hasta cubrir el saldo. -->
+              <span
+                v-if="data.partial_payment && data.partial_payment.balance > 0"
+                class="text-xs text-gray-600"
+              >
+                Debe {{ formatCurrency(data.partial_payment.balance) }}
+              </span>
+            </div>
           </template>
         </Column>
 

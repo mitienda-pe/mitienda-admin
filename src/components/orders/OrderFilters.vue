@@ -8,7 +8,7 @@ import type { OrderStatus } from '@/types/order.types'
 export type BilledFilter = 'all' | '1' | '0'
 
 export interface OrderFiltersData {
-  status: OrderStatus | 'all'
+  status: OrderStatus | 'all' | 'with_balance'
   dateFrom: Date | null
   dateTo: Date | null
   billed: BilledFilter
@@ -31,6 +31,8 @@ const localFilters = ref<OrderFiltersData>({ ...props.modelValue })
 const statusOptions = [
   { label: 'Todos los estados', value: 'all' },
   { label: 'Pendiente', value: 'pending' },       // 2
+  // Pendientes con abonos registrados: lo que todavía le deben a la tienda.
+  { label: 'Con saldo por cobrar', value: 'with_balance' },
   // 9: pagos asíncronos (PagoEfectivo, agentes) que se cobran después del
   // checkout. El listado los esconde por defecto; este filtro es la única
   // forma de revisarlos sin buscarlos uno por uno.

@@ -13,7 +13,8 @@ export type BilledFilter = 'all' | '1' | '0'
 
 export interface OrderFilters {
   search: string
-  status: OrderStatus | 'all'
+  /** 'with_balance': pendientes con abonos, no es un estado de pago. */
+  status: OrderStatus | 'all' | 'with_balance'
   dateFrom: string | null
   dateTo: string | null
   billed: BilledFilter

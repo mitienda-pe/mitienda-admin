@@ -70,6 +70,8 @@ export interface Order {
   referrer_code?: string | null // Referrer/affiliate code
   shipping_history?: ShippingHistoryEvent[] // Eventos de despacho (tiendasestadosdespacho)
   payment_comments_count?: number // Comentarios del seller sobre el pago (anotaciones manuales)
+  /** Abonos vigentes (anticipo y saldo). Null si el pedido no tiene. */
+  partial_payment?: OrderPartialPayment | null
   created_at: string
   /** Fecha real de confirmación del pago (`date_payment` del backend). Null si aún no se pagó. */
   paid_at?: string | null
@@ -92,6 +94,59 @@ export interface OrderPaymentComment {
 }
 
 /** Cambio manual del estado de pago (aprobar / rechazar / pendiente). */
+/** Resumen de abonos que trae cada pedido en el listado y el detalle. */
+export interface OrderPartialPayment {
+  paid: number
+  balance: number
+  count: number
+}
+
+export type OrderAbonoStatus = 'vigente' | 'anulado' | 'devuelto' | 'retenido'
+
+/** Un abono (pago parcial) de un pedido. */
+export interface OrderAbono {
+  id: number
+  date: string
+  amount: number
+  method: string
+  reference: string | null
+  note: string | null
+  /** backoffice: lo registró el vendedor. cierre: el saldo, al marcar pagado. */
+  origin: 'backoffice' | 'cierre'
+  status: OrderAbonoStatus
+  author: { id: number; name: string | null } | null
+  impersonated: boolean
+  created_at: string
+  change: { at: string; by: number | null; note: string | null } | null
+  refund: { date: string; method: string | null; reference: string | null } | null
+}
+
+/** GET /orders/{id}/abonos */
+export interface OrderAbonosSummary {
+  order_id: number
+  payment_status: number
+  currency_id: number
+  total: number
+  paid: number
+  balance: number
+  /** Saldo cubierto en un pedido todavía pendiente: falta aprobar el pago. */
+  settled: boolean
+  can_register: boolean
+  payments: OrderAbono[]
+}
+
+export interface OrderAbonoPayload {
+  amount: number
+  date: string
+  method: string
+  reference?: string
+  note?: string
+}
+
+export type OrderAbonoResolution =
+  | { outcome: 'devuelto'; date: string; method: string; reference?: string; note?: string }
+  | { outcome: 'retenido'; note: string }
+
 export interface OrderPaymentHistoryEntry {
   id: number
   from_status: number | null

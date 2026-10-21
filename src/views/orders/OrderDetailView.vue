@@ -27,6 +27,7 @@ import StarRating from '@/components/reviews/StarRating.vue'
 import PluginSlot from '@/components/plugins/PluginSlot.vue'
 import OrderPaymentComments from './components/OrderPaymentComments.vue'
 import OrderPaymentHistory from './components/OrderPaymentHistory.vue'
+import OrderAbonos from './components/OrderAbonos.vue'
 import OrderNotificationsCard from './components/OrderNotificationsCard.vue'
 import { ordersApi, type GatewayStatusResult } from '@/api/orders.api'
 import { reviewsApi } from '@/api/reviews.api'
@@ -308,7 +309,10 @@ async function handleRejectPayment() {
     await ordersStore.updateOrderStatus(order.value.id, 'cancelled')
     toast.add({ severity: 'warn', summary: 'Pago rechazado', detail: 'El pedido fue marcado como rechazado', life: 3000 })
   } catch (err: any) {
-    toast.add({ severity: 'error', summary: 'Error', detail: err.message || 'No se pudo rechazar el pago', life: 5000 })
+    // 409 abonos_sin_resolver: el pedido tiene pagos parciales y hay que decir
+    // antes qué pasó con ese dinero (tarjeta de Pago → "Registrar devolución").
+    const detail = err?.response?.data?.messages?.mensaje || err.message || 'No se pudo rechazar el pago'
+    toast.add({ severity: 'error', summary: 'Error', detail, life: 6000 })
   } finally {
     isUpdatingPayment.value = false
   }
@@ -2120,6 +2124,14 @@ const handleDebugPayments = async () => {
                     @click="openChargebackDialog"
                   />
                 </div>
+
+                <OrderAbonos
+                  v-if="order.id"
+                  :order-id="order.id"
+                  :status="order.status"
+                  class="pt-3 border-t border-gray-200"
+                  @confirm-payment="handleConfirmPayment"
+                />
 
                 <OrderPaymentHistory
                   v-if="order.id"
