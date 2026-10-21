@@ -26,6 +26,7 @@ import FraudRiskCard from '@/components/fraud/FraudRiskCard.vue'
 import StarRating from '@/components/reviews/StarRating.vue'
 import PluginSlot from '@/components/plugins/PluginSlot.vue'
 import OrderPaymentComments from './components/OrderPaymentComments.vue'
+import OrderPaymentHistory from './components/OrderPaymentHistory.vue'
 import OrderNotificationsCard from './components/OrderNotificationsCard.vue'
 import { ordersApi, type GatewayStatusResult } from '@/api/orders.api'
 import { reviewsApi } from '@/api/reviews.api'
@@ -2119,6 +2120,13 @@ const handleDebugPayments = async () => {
                     @click="openChargebackDialog"
                   />
                 </div>
+
+                <OrderPaymentHistory
+                  v-if="order.id"
+                  :order-id="order.id"
+                  :status="order.status"
+                  class="pt-3 border-t border-gray-200"
+                />
 
                 <OrderPaymentComments
                   v-if="order.id"

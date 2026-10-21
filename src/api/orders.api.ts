@@ -2,6 +2,7 @@ import apiClient from './axios'
 import type {
   Order,
   OrderPaymentComment,
+  OrderPaymentHistoryEntry,
   OrderStatus,
   OrderNotificationsStatus,
   ResendNotificationChannel,
@@ -584,6 +585,15 @@ export const ordersApi = {
    */
   async listPaymentComments(orderId: number): Promise<ApiResponse<OrderPaymentComment[]>> {
     const response = await apiClient.get(`/orders/${orderId}/payment-comments`)
+    return {
+      success: response.data?.success === true,
+      data: Array.isArray(response.data?.data) ? response.data.data : []
+    }
+  },
+
+  /** Quién aprobó, rechazó o devolvió a pendiente el pago, del más viejo al más nuevo. */
+  async listPaymentHistory(orderId: number): Promise<ApiResponse<OrderPaymentHistoryEntry[]>> {
+    const response = await apiClient.get(`/orders/${orderId}/payment-history`)
     return {
       success: response.data?.success === true,
       data: Array.isArray(response.data?.data) ? response.data.data : []

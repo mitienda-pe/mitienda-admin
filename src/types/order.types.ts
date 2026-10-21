@@ -91,6 +91,24 @@ export interface OrderPaymentComment {
   can_delete: boolean
 }
 
+/** Cambio manual del estado de pago (aprobar / rechazar / pendiente). */
+export interface OrderPaymentHistoryEntry {
+  id: number
+  from_status: number | null
+  to_status: number
+  action: 'approved' | 'rejected' | 'pending' | null
+  author: {
+    id: number
+    name: string | null
+    email: string | null
+  } | null
+  impersonated: boolean
+  source: string | null
+  transaction_id: string | null
+  notes: string | null
+  created_at: string
+}
+
 export interface OrderPromotion {
   name: string
   code?: string
