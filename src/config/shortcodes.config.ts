@@ -19,7 +19,7 @@ export interface ShortcodeField {
   options?: { label: string; value: string }[]
 }
 
-export type ShortcodeGroup = 'Catálogo' | 'Widgets externos' | 'Add-ons'
+export type ShortcodeGroup = 'Catálogo' | 'Video' | 'Widgets externos' | 'Add-ons'
 
 export interface ShortcodeType {
   value: string
@@ -38,7 +38,7 @@ const ORDEN_OPTIONS = [
   { label: 'Nombre: Z-A', value: 'nombre_desc' },
 ]
 
-export const SHORTCODE_GROUPS: ShortcodeGroup[] = ['Catálogo', 'Widgets externos', 'Add-ons']
+export const SHORTCODE_GROUPS: ShortcodeGroup[] = ['Catálogo', 'Video', 'Widgets externos', 'Add-ons']
 
 export const SHORTCODE_TYPES: ShortcodeType[] = [
   {
@@ -79,6 +79,30 @@ export const SHORTCODE_TYPES: ShortcodeType[] = [
     label: 'Lista de marcas',
     group: 'Catálogo',
     fields: [{ key: 'titulo', label: 'Título (opcional)', type: 'text', placeholder: 'Marcas' }],
+  },
+  {
+    value: 'youtube',
+    label: 'Video o Short de YouTube',
+    group: 'Video',
+    help: 'Pega el enlace tal como lo copias de YouTube (video, Short o youtu.be). Los Shorts se muestran verticales (9:16) y los videos horizontales (16:9), salvo que elijas otro formato.',
+    fields: [
+      {
+        key: 'url',
+        label: 'Enlace del video',
+        type: 'text',
+        placeholder: 'https://www.youtube.com/shorts/XXXXXXXXXXX',
+        required: true,
+      },
+      {
+        key: 'formato',
+        label: 'Formato',
+        type: 'select',
+        options: [
+          { label: 'Vertical 9:16 (Short)', value: 'vertical' },
+          { label: 'Horizontal 16:9', value: 'horizontal' },
+        ],
+      },
+    ],
   },
   {
     value: 'storemapper',

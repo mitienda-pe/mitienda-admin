@@ -44,6 +44,14 @@
             outlined
             @click="openAiEnhancer"
           />
+          <Button
+            label="Insertar shortcode"
+            icon="pi pi-bolt"
+            size="small"
+            severity="secondary"
+            outlined
+            @click="showShortcodeDialog = true"
+          />
           <!-- Visor 3D/AR: sólo para tiendas con el add-on activo. El shortcode
                va sin atributos porque el storefront completa foto y medidas
                desde el propio producto. -->
@@ -63,6 +71,13 @@
         </div>
       </div>
     </template>
+
+    <!-- `[ar]` queda fuera: acá va sin atributos y tiene su propio botón. -->
+    <ShortcodeInsertDialog
+      v-model:visible="showShortcodeDialog"
+      :exclude="['ar']"
+      @insert="insertAtCursor"
+    />
   </Dialog>
 </template>
 
@@ -71,6 +86,7 @@ import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import { QuillEditor } from '@/components/ui'
+import ShortcodeInsertDialog from '@/components/pages/ShortcodeInsertDialog.vue'
 import type * as MonacoTypes from 'monaco-editor'
 import 'ai-text-enhancer'
 import { useAuthStore } from '@/stores/auth.store'
@@ -125,13 +141,10 @@ const quillRef = ref<{ insertText: (text: string) => void } | null>(null)
 let monacoEditor: MonacoTypes.editor.IStandaloneCodeEditor | null = null
 
 const ar3dEnabled = computed(() => storeConfig.savedConfig.tiendageneral_sw_ar_3d === 1)
+const showShortcodeDialog = ref(false)
 
-/**
- * Inserta `[ar]` donde esté el cursor. El shortcode no lleva atributos: la ficha
- * del storefront le pasa al visor la foto principal y las medidas del producto.
- */
-const insertArShortcode = () => {
-  const text = '[ar]'
+/** Inserta un shortcode donde esté el cursor, en cualquiera de los dos editores. */
+const insertAtCursor = (text: string) => {
   if (editorMode.value === 'code') {
     monacoEditor?.trigger('shortcode', 'type', { text })
     monacoEditor?.focus()
@@ -139,6 +152,12 @@ const insertArShortcode = () => {
   }
   quillRef.value?.insertText(text)
 }
+
+/**
+ * `[ar]` sin atributos: la ficha del storefront le pasa al visor la foto
+ * principal y las medidas del producto.
+ */
+const insertArShortcode = () => insertAtCursor('[ar]')
 
 const aiEnhancerRef = ref<HTMLElement | null>(null)
 const userId = computed(() => String(authStore.selectedStore?.id || ''))

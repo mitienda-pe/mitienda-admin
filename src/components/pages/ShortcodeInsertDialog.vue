@@ -9,7 +9,7 @@
     <div class="space-y-4">
       <p class="text-sm text-secondary-500">
         Los shortcodes insertan bloques dinámicos (productos, categorías,
-        marcas, mapas, reseñas, agendas) que se renderizan en tu tienda al verla.
+        marcas, videos, mapas, reseñas, agendas) que se renderizan en tu tienda al verla.
       </p>
 
       <!-- Tipo de shortcode -->
@@ -153,7 +153,11 @@ import { productsApi } from '@/api/products.api'
 import { SHORTCODE_GROUPS, SHORTCODE_TYPES } from '@/config/shortcodes.config'
 import type { Product } from '@/types/product.types'
 
-const props = defineProps<{ visible: boolean }>()
+const props = defineProps<{
+  visible: boolean
+  /** Shortcodes que no se ofrecen en este editor (p. ej. `ar`, que la descripción de producto inserta con su propio botón). */
+  exclude?: string[]
+}>()
 const emit = defineEmits<{
   'update:visible': [value: boolean]
   insert: [shortcode: string]
@@ -175,7 +179,9 @@ const productResults = ref<Product[]>([])
 // para esta tienda (el proveedor licencia el widget por dominio).
 const availableShortcodes = computed(() =>
   SHORTCODE_TYPES.filter(
-    (s) => s.value !== 'ar' || storeConfig.savedConfig.tiendageneral_sw_ar_3d === 1
+    (s) =>
+      !props.exclude?.includes(s.value) &&
+      (s.value !== 'ar' || storeConfig.savedConfig.tiendageneral_sw_ar_3d === 1)
   )
 )
 
@@ -225,7 +231,7 @@ watch(
   () => props.visible,
   (open) => {
     if (!open) return
-    shortcodeType.value = SHORTCODE_TYPES[0].value
+    shortcodeType.value = availableShortcodes.value[0]?.value ?? SHORTCODE_TYPES[0].value
     resetShortcodeValues()
     if (!catalogStore.categories.length) catalogStore.fetchCategories()
     if (!catalogStore.brands.length) catalogStore.fetchBrands()
