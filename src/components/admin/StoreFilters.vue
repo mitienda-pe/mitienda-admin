@@ -8,7 +8,7 @@
           <input
             v-model="localFilters.search"
             type="text"
-            placeholder="ID, nombre, URL, slug..."
+            placeholder="ID, nombre, slug o email completo"
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
             @keyup.enter="emitFilters"
           />
@@ -38,6 +38,7 @@
             @change="emitFilters"
           >
             <option value="">Todos</option>
+            <option value="trial">Prueba gratis</option>
             <option value="micro">Micro</option>
             <option value="small">Small</option>
             <option value="medium">Medium</option>
