@@ -1,4 +1,5 @@
-import { defineStore } from 'pinia'
+import { defineStore, getActivePinia } from 'pinia'
+import { resetTenantStores } from './plugins/tenant-reset'
 import { apiErrorMessage } from '@/utils/api-error'
 import { ref, computed } from 'vue'
 import { authApi } from '@/api/auth.api'
@@ -175,6 +176,9 @@ export const useAuthStore = defineStore('auth', () => {
         // Guardar la tienda seleccionada
         selectedStore.value = store
         localStorage.setItem('selected_store', JSON.stringify(store))
+
+        // Nada de lo cargado para la tienda anterior sirve en esta.
+        resetTenantStores(getActivePinia()!)
 
         // Fetch plan info for the selected store (fire-and-forget)
         import('@/stores/plan.store').then(({ usePlanStore }) => {

@@ -1,4 +1,5 @@
-import { defineStore } from 'pinia'
+import { defineStore, getActivePinia } from 'pinia'
+import { resetTenantStores } from './plugins/tenant-reset'
 import { ref, computed } from 'vue'
 import { adminApi } from '@/api/admin.api'
 import type {
@@ -125,6 +126,9 @@ export const useAdminStore = defineStore('admin', () => {
           authStore.selectedStore = fakeStore
         }
 
+        // Nada de lo cargado para la tienda anterior sirve en la impersonada.
+        resetTenantStores(getActivePinia()!)
+
         // Recargar la config de la tienda impersonada: de ahí sale la moneda con
         // la que los formatters muestran los montos. Impersonar no pasa por
         // `selectStore()` y /admin usa el mismo DashboardLayout, así que el
@@ -176,6 +180,8 @@ export const useAdminStore = defineStore('admin', () => {
         // Limpiar contexto de impersonación
         impersonationContext.value = null
         localStorage.removeItem('impersonation_context')
+
+        resetTenantStores(getActivePinia()!)
 
         // Descartar la config y los permisos de la tienda impersonada (ver nota
         // en impersonate). Se limpian sin volver a pedirlos: el superadmin sale

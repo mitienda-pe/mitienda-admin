@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import { tenantResetPlugin } from './stores/plugins/tenant-reset'
 import PrimeVue from 'primevue/config'
 import ToastService from 'primevue/toastservice'
 import ConfirmationService from 'primevue/confirmationservice'
@@ -54,7 +55,9 @@ if (sentryDsn) {
   })
 }
 
-app.use(createPinia())
+const pinia = createPinia()
+pinia.use(tenantResetPlugin)
+app.use(pinia)
 app.use(router)
 app.use(PrimeVue, { ripple: true })
 app.use(ToastService)
