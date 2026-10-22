@@ -560,7 +560,7 @@ watch(hasPickupPoint, (has) => {
         <div class="border-t border-gray-100 pt-4">
           <p class="font-medium text-gray-900 mb-1">Días bloqueados</p>
           <p class="text-sm text-gray-500 mb-3">
-            Fechas en las que no se realizan entregas
+            Fechas en las que no se realizan entregas ni recojos en tienda
           </p>
           <BlockedDatesEditor
             :modelValue="draftConfig.diasBloqueados"
