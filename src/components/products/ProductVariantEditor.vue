@@ -411,6 +411,39 @@ function handleToggle() {
   emit('variantsToggle', hasVariants.value)
 }
 
+/**
+ * Claves con las que una variante generada reconoce a una que ya existe.
+ *
+ * NO sirve comparar `names`: el API lo arma distinto al listar ("Negro / Talla S",
+ * en el orden de las filas) y al generar ("Talla S, Negro", en el orden de los
+ * atributos), así que nunca coincidía. Cada combinación se trataba como nueva y
+ * se insertaba duplicada al guardar (le pasó a la 10616: 16 variantes repetidas
+ * de un golpe).
+ *
+ * Primero por el conjunto de `option_id`. Las variantes del panel viejo llegan
+ * con `option_id` 0, así que de respaldo va el conjunto de textos normalizados.
+ */
+function variantKeys(v: ProductVariant): string[] {
+  const keys: string[] = []
+  const ids = v.details.map(d => Number(d.option_id)).filter(id => id > 0).sort((a, b) => a - b)
+  if (ids.length > 0 && ids.length === v.details.length) keys.push('ids:' + ids.join(','))
+
+  const textos = v.details.map(d => (d.option_text ?? '').trim().toLowerCase()).filter(Boolean)
+  const partes = textos.length === v.details.length && textos.length > 0
+    ? textos
+    : (v.names ?? '').split(/\s*\/\s*|\s*,\s*/).map(t => t.trim().toLowerCase()).filter(Boolean)
+  if (partes.length > 0) keys.push('txt:' + [...partes].sort().join('|'))
+
+  return keys
+}
+
+/**
+ * Variantes guardadas que una generación anterior sacó de la tabla. Siguen
+ * siendo candidatas: si la siguiente generación vuelve a incluir su combinación,
+ * se recuperan (con su id, stock y precio) en vez de insertar otra igual.
+ */
+const removedByGenerate = ref<ProductVariant[]>([])
+
 async function handleGenerate(payload: GenerateVariantsPayload) {
   if (selectorRef.value) {
     selectorRef.value.generating = true
@@ -419,22 +452,50 @@ async function handleGenerate(payload: GenerateVariantsPayload) {
   try {
     const response = await productsApi.generateVariants(props.productId, payload)
     if (response.success && response.data) {
-      // Merge with existing variants: keep existing ones that match, add new ones
-      const existingMap = new Map<string, ProductVariant>()
-      for (const v of variants.value) {
-        existingMap.set(v.names, v)
+      const candidatas = [...variants.value, ...removedByGenerate.value]
+      const porClave = new Map<string, ProductVariant>()
+      for (const v of candidatas) {
+        for (const k of variantKeys(v)) {
+          if (!porClave.has(k)) porClave.set(k, v)
+        }
       }
 
+      const usadas = new Set<ProductVariant>()
       const newVariants: ProductVariant[] = []
       for (const generated of response.data.variants) {
-        const existing = existingMap.get(generated.names)
+        const existing = variantKeys(generated)
+          .map(k => porClave.get(k))
+          .find(v => v && !usadas.has(v))
         if (existing) {
-          // Keep existing data (price, stock, sku)
+          // Se conserva la fila existente (id, precio, stock, SKU).
+          usadas.add(existing)
           newVariants.push(existing)
         } else {
           newVariants.push(generated)
         }
       }
+
+      // Las guardadas que quedan fuera de la nueva combinación se desactivan al
+      // guardar. Antes solo se sacaban de la tabla: seguían activas en la base y
+      // "volvían" al recargar.
+      const salen = candidatas.filter(v => v.id && !usadas.has(v))
+      const salenAhora = variants.value.filter(v => v.id && !usadas.has(v))
+      if (salenAhora.length > 0) {
+        const confirmed = window.confirm(
+          `${salenAhora.length} variante(s) existente(s) no están en la nueva combinación ` +
+          `y se desactivarán al guardar:\n\n` +
+          salenAhora.map(v => `• ${v.names || 'Sin nombre'}`).join('\n') +
+          `\n\n¿Continuar?`
+        )
+        if (!confirmed) return
+      }
+
+      const idsQueSalen = new Set(salen.map(v => v.id as number))
+      const idsRecuperados = new Set([...usadas].map(v => v.id).filter(Boolean) as number[])
+      deletedIds.value = [
+        ...new Set([...deletedIds.value.filter(id => !idsRecuperados.has(id)), ...idsQueSalen]),
+      ]
+      removedByGenerate.value = salen
 
       variants.value = newVariants
       showSelector.value = false
@@ -537,6 +598,7 @@ async function handleSave() {
     if (response.success) {
       isDirty.value = false
       deletedIds.value = []
+      removedByGenerate.value = []
 
       toast.add({
         severity: 'success',

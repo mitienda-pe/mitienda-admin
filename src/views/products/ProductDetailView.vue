@@ -1350,6 +1350,10 @@ const saving = ref(false)
 const isDirty = ref(false)
 useUnsavedChanges(isDirty)
 const skipDirtyWatch = ref(false)
+// El formulario tal como quedó en la última carga desde el servidor: contra
+// esto se mide qué campos cambió el comerciante (ver populateForm).
+const formBaseline = ref<Record<string, unknown> | null>(null)
+const baselineProductId = ref<number | null>(null)
 const validationErrors = ref<Record<string, string>>({})
 
 interface FormState extends ProductUpdatePayload {
@@ -1505,6 +1509,20 @@ const populateForm = async () => {
 
   skipDirtyWatch.value = true
 
+  // Lo que había en el formulario antes de esta recarga, para no perderlo: el
+  // producto se recarga solo al guardar variantes, tocar imágenes o documentos,
+  // y antes eso pisaba lo que el comerciante llevaba escrito sin guardar ("el
+  // cambio vuelve a lo que tenía").
+  const pendientes: Record<string, unknown> = {}
+  if (isDirty.value && formBaseline.value && baselineProductId.value === p.id) {
+    const actual = form.value as Record<string, unknown>
+    for (const [key, original] of Object.entries(formBaseline.value)) {
+      if (JSON.stringify(actual[key]) !== JSON.stringify(original)) {
+        pendientes[key] = actual[key]
+      }
+    }
+  }
+
   form.value = {
     name: p.name || '',
     // Sembrar el tipo desde el producto. Si el producto no lo trae (raro),
@@ -1555,6 +1573,12 @@ const populateForm = async () => {
     shipping_per_unit: p.shipping_per_unit ?? false,
     delivery_mode: p.delivery_mode ?? 'any',
   }
+  formBaseline.value = JSON.parse(JSON.stringify(form.value))
+  baselineProductId.value = p.id
+  const hayPendientes = Object.keys(pendientes).length > 0
+  if (hayPendientes) {
+    Object.assign(form.value, pendientes)
+  }
 
   // Estado del control por lotes del producto.
   productLotsManaged.value = p.lots_managed === true
@@ -1567,7 +1591,7 @@ const populateForm = async () => {
   }
 
   await nextTick()
-  isDirty.value = false
+  isDirty.value = hayPendientes
   skipDirtyWatch.value = false
 }
 
@@ -1716,6 +1740,8 @@ const handleSave = async () => {
 }
 
 const resetForm = () => {
+  // Descartar: sin esto populateForm conservaría lo pendiente.
+  isDirty.value = false
   populateForm()
 }
 
