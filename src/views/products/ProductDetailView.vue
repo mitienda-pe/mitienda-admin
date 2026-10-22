@@ -12,7 +12,10 @@
     </div>
 
     <!-- Loading -->
-    <div v-if="productsStore.isLoading" class="flex justify-center py-20">
+    <!-- Solo en la carga inicial (o al cambiar de producto). Las recargas tras
+         guardar no tapan la ficha: desmontarla tiraba lo que los editores hijos
+         (variantes, precios por mayor) tenían sin guardar. -->
+    <div v-if="productsStore.isLoading && !hasLoadedThisProduct" class="flex justify-center py-20">
       <i class="pi pi-spin pi-spinner text-4xl text-primary"></i>
     </div>
 
@@ -114,6 +117,7 @@
         <!-- Variantes del Producto -->
         <ProductVariantEditor
           v-if="product"
+          ref="variantEditorRef"
           :product-id="product.id"
           :has-variants-prop="product.has_variation_attributes || false"
           :default-price="form.price"
@@ -1196,7 +1200,7 @@
     </Dialog>
 
     <UnsavedChangesBar
-      :dirty="isDirty"
+      :dirty="isDirty || variantsDirty"
       :loading="saving"
       save-label="Guardar Cambios"
       show-discard
@@ -1348,7 +1352,12 @@ const hasErpIntegration = ref(false)
 // ── Form state ──
 const saving = ref(false)
 const isDirty = ref(false)
-useUnsavedChanges(isDirty)
+const variantEditorRef = ref<InstanceType<typeof ProductVariantEditor> | null>(null)
+const variantsDirty = computed(() => variantEditorRef.value?.isDirty === true)
+useUnsavedChanges(computed(() => isDirty.value || variantsDirty.value))
+const hasLoadedThisProduct = computed(
+  () => !!product.value && product.value.id === Number(route.params.id)
+)
 const skipDirtyWatch = ref(false)
 // El formulario tal como quedó en la última carga desde el servidor: contra
 // esto se mide qué campos cambió el comerciante (ver populateForm).
@@ -1696,7 +1705,19 @@ const validate = (): boolean => {
 
 // ── Save ──
 const handleSave = async () => {
-  if (!product.value || !validate()) return
+  if (!product.value) return
+
+  // Variantes pendientes primero: tienen su propio botón, pero la barra de
+  // "Guardar Cambios" es la que usan los comerciantes.
+  if (variantsDirty.value && variantEditorRef.value) {
+    saving.value = true
+    const ok = await variantEditorRef.value.save()
+    saving.value = false
+    if (!ok) return
+    if (!isDirty.value) return
+  }
+
+  if (!validate()) return
 
   saving.value = true
 

@@ -555,7 +555,7 @@ function variantesSinOpcion(): number[] {
   return fallan
 }
 
-async function handleSave() {
+async function handleSave(): Promise<boolean> {
   const sinOpcion = variantesSinOpcion()
   if (sinOpcion.length > 0) {
     toast.add({
@@ -566,7 +566,7 @@ async function handleSave() {
         `Complétalas: ${sinOpcion.map(n => `variante ${n}`).join(', ')}.`,
       life: 6000,
     })
-    return
+    return false
   }
 
   isSaving.value = true
@@ -610,7 +610,9 @@ async function handleSave() {
       // Reload to get server-generated IDs
       await loadExistingVariants()
       emit('variantsSaved')
+      return true
     }
+    return false
   } catch (err: any) {
     toast.add({
       severity: 'error',
@@ -621,10 +623,17 @@ async function handleSave() {
         'Error al guardar las variantes',
       life: 6000,
     })
+    return false
   } finally {
     isSaving.value = false
   }
 }
+
+// La ficha tiene un "Guardar Cambios" general y este editor el suyo propio. Los
+// comerciantes usan el general y daban por guardadas las variantes (la imagen
+// elegida, el stock) cuando nunca se habían enviado. La ficha consulta esto para
+// mostrar la barra de cambios y guardar las variantes junto con el producto.
+defineExpose({ isDirty, save: handleSave })
 
 // Lifecycle
 onMounted(() => {
