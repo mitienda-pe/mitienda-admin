@@ -175,7 +175,9 @@ async function handleSubmit() {
   const result = isConfigured.value
     ? await store.updateCredentials(GATEWAY_CODE, { credentials: formData, environment: 'produccion', enabled: true })
     : await store.saveCredentials(GATEWAY_CODE, { credentials: formData, environment: 'produccion', enabled: true })
-  toast.add({ severity: result.success ? 'success' : 'error', summary: result.success ? 'Éxito' : 'Error', life: 3000 })
+  toast.add(result.success
+    ? { severity: 'success', summary: 'Éxito', life: 3000 }
+    : { severity: 'error', summary: 'Error', detail: result.error, life: 5000 })
   if (result.success) resetDirty()
 }
 

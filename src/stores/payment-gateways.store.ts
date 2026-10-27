@@ -46,7 +46,7 @@ export const usePaymentGatewaysStore = defineStore('payment-gateways', () => {
         error.value = response.message || 'Error al cargar pasarelas'
       }
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Error de conexión'
+      error.value = err.response?.data?.messages?.error || err.response?.data?.message || 'Error de conexión'
       console.error('Error al cargar pasarelas:', err)
     } finally {
       isLoading.value = false
@@ -70,7 +70,7 @@ export const usePaymentGatewaysStore = defineStore('payment-gateways', () => {
         error.value = response.message || 'Error al cargar configuración'
       }
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Error de conexión'
+      error.value = err.response?.data?.messages?.error || err.response?.data?.message || 'Error de conexión'
       console.error('Error al cargar configuración:', err)
     } finally {
       isLoading.value = false
@@ -101,7 +101,7 @@ export const usePaymentGatewaysStore = defineStore('payment-gateways', () => {
         return { success: false, error: error.value }
       }
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Error al guardar credenciales'
+      error.value = err.response?.data?.messages?.error || err.response?.data?.message || 'Error al guardar credenciales'
       console.error('Error al guardar credenciales:', err)
       return { success: false, error: error.value }
     } finally {
@@ -130,7 +130,7 @@ export const usePaymentGatewaysStore = defineStore('payment-gateways', () => {
         return { success: false, error: error.value }
       }
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Error al actualizar credenciales'
+      error.value = err.response?.data?.messages?.error || err.response?.data?.message || 'Error al actualizar credenciales'
       console.error('Error al actualizar credenciales:', err)
       return { success: false, error: error.value }
     } finally {
@@ -160,7 +160,7 @@ export const usePaymentGatewaysStore = defineStore('payment-gateways', () => {
         return { success: false, error: error.value }
       }
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Error al eliminar configuración'
+      error.value = err.response?.data?.messages?.error || err.response?.data?.message || 'Error al eliminar configuración'
       console.error('Error al eliminar configuración:', err)
       return { success: false, error: error.value }
     } finally {
@@ -189,7 +189,7 @@ export const usePaymentGatewaysStore = defineStore('payment-gateways', () => {
         return { success: false, error: error.value }
       }
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Error al probar conexión'
+      error.value = err.response?.data?.messages?.error || err.response?.data?.message || 'Error al probar conexión'
       console.error('Error al probar conexión:', err)
       return { success: false, error: error.value ?? undefined }
     } finally {
@@ -215,7 +215,7 @@ export const usePaymentGatewaysStore = defineStore('payment-gateways', () => {
         return { success: false, error: error.value }
       }
     } catch (err: any) {
-      error.value = err.response?.data?.message || 'Error al cambiar estado'
+      error.value = err.response?.data?.messages?.error || err.response?.data?.message || 'Error al cambiar estado'
       console.error('Error al cambiar estado:', err)
       return { success: false, error: error.value }
     }
