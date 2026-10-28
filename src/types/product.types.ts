@@ -174,6 +174,7 @@ export interface Category {
   order?: number
   meta_title?: string
   meta_description?: string
+  description?: string // HTML del editor; el storefront lo pinta bajo la cover
   product_count?: number // Cantidad de productos en esta categoría
   sub?: Category[] // Subcategorías anidadas
 }
@@ -186,6 +187,7 @@ export interface CategoryFormData {
   order?: number
   meta_title?: string
   meta_description?: string
+  description?: string
 }
 
 /**

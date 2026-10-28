@@ -85,6 +85,22 @@
           <small class="text-secondary-500">Menor número = aparece primero</small>
         </div>
 
+        <!-- Descripción -->
+        <div>
+          <label class="block text-sm font-medium text-secondary-700 mb-2">
+            Descripción
+          </label>
+          <p class="text-xs text-secondary-500 mb-2">
+            Se muestra en la tienda debajo de la imagen de portada, antes de los
+            productos. Admite los mismos shortcodes que la descripción de un producto.
+          </p>
+          <QuillEditor
+            v-model="formData.description"
+            height="220px"
+            toolbar="compact"
+          />
+        </div>
+
         <!-- SEO Section -->
         <Divider />
         <h3 class="text-lg font-semibold text-secondary mb-4">SEO (Opcional)</h3>
@@ -214,6 +230,7 @@ import InputNumber from 'primevue/inputnumber'
 import Textarea from 'primevue/textarea'
 import Divider from 'primevue/divider'
 import ProgressSpinner from 'primevue/progressspinner'
+import { QuillEditor } from '@/components/ui'
 import CatalogImageUploader from '@/components/catalog/CatalogImageUploader.vue'
 import type { CatalogImageType } from '@/components/catalog/CatalogImageUploader.vue'
 import type { Category, CategoryFormData } from '@/types/product.types'
@@ -249,7 +266,8 @@ const formData = ref<CategoryFormData>({
   parent_id: null,
   order: 0,
   meta_title: '',
-  meta_description: ''
+  meta_description: '',
+  description: ''
 })
 
 const isEditMode = computed(() => !!route.params.id)
@@ -349,7 +367,8 @@ const loadCategory = async () => {
         parent_id: category.parent_id || null,
         order: category.order || 0,
         meta_title: category.meta_title || '',
-        meta_description: category.meta_description || ''
+        meta_description: category.meta_description || '',
+        description: category.description || ''
       }
     }
   } catch (error) {

@@ -15,6 +15,7 @@ const transformCategory = (raw: any): Category => ({
   order: raw.tiendacategoria_orden !== undefined ? parseInt(raw.tiendacategoria_orden) : undefined,
   meta_title: raw.tiendacategoria_meta_tittle || undefined,
   meta_description: raw.tiendacategoria_meta_description || undefined,
+  description: raw.tiendacategoria_descripcion || undefined,
   product_count: raw.product_count !== undefined ? parseInt(raw.product_count) : 0,
   sub: raw.sub ? raw.sub.map(transformCategory) : undefined
 })
@@ -26,7 +27,8 @@ const transformToApi = (data: CategoryFormData): Record<string, any> => {
     slug: data.slug,
     order: data.order,
     meta_title: data.meta_title,
-    meta_description: data.meta_description
+    meta_description: data.meta_description,
+    description: data.description
   }
 
   // Only include parent_id if it has a valid value (not null/undefined/0)
