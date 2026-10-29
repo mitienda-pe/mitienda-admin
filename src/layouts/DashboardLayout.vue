@@ -1446,6 +1446,7 @@ const marketingMenuItemsSource = [
   { label: 'Promociones avanzadas', icon: 'pi pi-sparkles', to: '/marketing/promotions-v2' },
   { label: 'Barras y popups', icon: 'pi pi-megaphone', to: '/marketing/announcement-bars' },
   { label: 'Recuperación de carritos', icon: 'pi pi-replay', to: '/marketing/cart-recovery' },
+  { label: 'Solicitud de opiniones', icon: 'pi pi-star', to: '/marketing/review-requests' },
   { label: 'Doppler', icon: 'pi pi-envelope', to: '/store/doppler' },
   { label: 'Upsales', icon: 'pi pi-arrow-up', to: '/marketing/upsales' },
   { label: 'Combos', icon: 'pi pi-box', to: '/marketing/combos' },

@@ -806,6 +806,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/marketing/CartRecoveryConfigView.vue')
       },
       {
+        path: 'review-requests',
+        name: 'ReviewRequestConfig',
+        meta: { title: 'Solicitud de opiniones' },
+        component: () => import('@/views/marketing/ReviewRequestConfigView.vue')
+      },
+      {
         path: 'referrals',
         name: 'Referrals',
         meta: { title: 'Referidos' },

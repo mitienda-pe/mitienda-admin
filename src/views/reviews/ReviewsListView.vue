@@ -175,6 +175,13 @@ const truncate = (text: string | null, len = 80) => {
           severity="warning"
         />
       </div>
+      <router-link
+        to="/marketing/review-requests"
+        class="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+      >
+        <i class="pi pi-envelope"></i>
+        Pedir opiniones por email
+      </router-link>
     </div>
 
     <!-- Stats Cards -->
