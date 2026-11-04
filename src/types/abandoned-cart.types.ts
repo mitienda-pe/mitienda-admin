@@ -39,6 +39,10 @@ export interface AbandonedCartDetail {
     id: number
     reference_code: string
     payment_date: string | null
+    /** tiendaventa_pagado: 1 pagada, 2 pago pendiente, 9 creada, 0 sin pagar */
+    payment_status: number
+    /** Solo una orden pagada es un carrito recuperado */
+    paid: boolean
   } | null
   items: AbandonedCartItem[]
   total_amount: string

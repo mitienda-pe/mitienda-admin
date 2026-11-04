@@ -386,9 +386,23 @@ const totalCarts = computed(() => cartsStore.pagination.total)
       </div>
 
       <div v-else-if="cartsStore.currentCart" class="space-y-4">
-        <!-- Order info if recovered -->
-        <div v-if="cartsStore.currentCart.order" class="bg-green-50 border border-green-200 rounded-lg p-4">
-          <h5 class="font-semibold text-green-900 mb-2">Carrito recuperado</h5>
+        <!-- Orden asociada: solo es "recuperado" si se pagó; si no, es una orden generada sin cobrar -->
+        <div
+          v-if="cartsStore.currentCart.order"
+          :class="cartsStore.currentCart.order.paid
+            ? 'bg-green-50 border border-green-200 rounded-lg p-4'
+            : 'bg-amber-50 border border-amber-200 rounded-lg p-4'"
+        >
+          <h5
+            class="font-semibold mb-2"
+            :class="cartsStore.currentCart.order.paid ? 'text-green-900' : 'text-amber-900'"
+          >
+            {{ cartsStore.currentCart.order.paid
+              ? 'Carrito recuperado'
+              : cartsStore.currentCart.order.payment_status === 2
+                ? 'Orden generada con pago pendiente'
+                : 'Orden generada sin pagar' }}
+          </h5>
           <div class="space-y-1 text-sm">
             <p>
               <span class="font-medium">Código de venta:</span>
