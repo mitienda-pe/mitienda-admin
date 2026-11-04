@@ -1225,11 +1225,9 @@ function isMarketingRoute(): boolean {
   return route.path.startsWith('/marketing') && !route.path.includes('abandoned-carts')
 }
 
-// Qué grupo del menú corresponde a la ruta actual. La ruta solo ABRE su grupo
-// al entrar en él; no lo mantiene abierto a la fuerza. Antes el getter era
-// `ref || ruta`, y estando dentro del grupo el clic en el encabezado no podía
-// cerrarlo (el `|| ruta` lo reabría al instante).
-const menuGroupRoutes: Array<[typeof salesExpandedRef, () => boolean]> = [
+// Respaldo para rutas que no son un ítem del menú (legacy, o subrutas cuyo
+// prefijo no está en la lista). Lo normal es que gane activeMenuGroup().
+const menuGroupFallbackRoutes: Array<[typeof salesExpandedRef, () => boolean]> = [
   [salesExpandedRef, () => route.path.startsWith('/orders') || route.path.startsWith('/reviews') || route.path.startsWith('/complaints') || route.path.includes('abandoned-carts') || route.path.startsWith('/payment-links')],
   [reportsExpandedRef, () => route.path.startsWith('/reports')],
   [catalogExpandedRef, () => route.path.startsWith('/products') || route.path.startsWith('/catalog')],
@@ -1243,16 +1241,6 @@ const menuGroupRoutes: Array<[typeof salesExpandedRef, () => boolean]> = [
   [storeExpandedRef, () => route.path.startsWith('/store') || route.path.startsWith('/notifications') || route.path.startsWith('/payment-gateways')],
   [posExpandedRef, () => route.path.startsWith('/pos')],
 ]
-
-watch(
-  () => route.path,
-  () => {
-    for (const [expandedRef, matchesRoute] of menuGroupRoutes) {
-      if (matchesRoute()) expandedRef.value = true
-    }
-  },
-  { immediate: true }
-)
 
 const salesExpanded = salesExpandedRef
 const reportsExpanded = reportsExpandedRef
@@ -1511,6 +1499,66 @@ const posMenuItemsSource: PosMenuItem[] = [
 ]
 
 const posMenuItems = computed(() => visibleItems(posMenuItemsSource))
+
+// ── Grupo del menú abierto según la ruta ───────────────────────────────────
+// Al navegar queda abierto SOLO el grupo de la página actual; el resto se
+// cierra (en Dashboard o Analítica Web, todos). El clic en un encabezado sigue
+// mandando hasta la próxima navegación.
+//
+// El grupo se deduce de los ítems del menú y no del prefijo de la ruta, porque
+// varios no calzan: Doppler (Marketing) vive en /store/doppler, Stock por
+// almacén (Catálogo) en /store/branch-stock, Carritos Abandonados (Ventas) en
+// /marketing/abandoned-carts y Analítica Web (suelto) en /reports/... Gana el
+// ítem con la ruta más larga que calce.
+const menuGroups = [
+  { expanded: salesExpandedRef, items: salesMenuItems },
+  { expanded: reportsExpandedRef, items: reportsMenuItems },
+  { expanded: catalogExpandedRef, items: catalogMenuItems },
+  { expanded: marketingExpandedRef, items: marketingMenuItems },
+  { expanded: billingExpandedRef, items: billingMenuItems },
+  { expanded: integrationExpandedRef, items: integrationMenuItems },
+  { expanded: configExpandedRef, items: configMenuItems },
+  { expanded: contentExpandedRef, items: contentMenuItems },
+  { expanded: appearanceExpandedRef, items: appearanceMenuItems },
+  { expanded: shippingExpandedRef, items: shippingMenuItems },
+  { expanded: storeExpandedRef, items: storeMenuItems },
+  { expanded: posExpandedRef, items: posMenuItems }
+]
+
+function routeMatchLength(path: string, to?: string): number {
+  if (!to) return 0
+  return path === to || path.startsWith(to + '/') ? to.length : 0
+}
+
+/** Ref del grupo de la ruta actual, o null si es un ítem suelto o no está en el menú. */
+function activeMenuGroup(path: string): typeof salesExpandedRef | null {
+  let best: typeof salesExpandedRef | null = null
+  let bestLength = 0
+  for (const item of simpleMenuItems.value) {
+    const len = routeMatchLength(path, item.to)
+    if (len > bestLength) { best = null; bestLength = len }
+  }
+  for (const group of menuGroups) {
+    for (const item of group.items.value as Array<{ to?: string }>) {
+      const len = routeMatchLength(path, item.to)
+      if (len > bestLength) { best = group.expanded; bestLength = len }
+    }
+  }
+  if (bestLength > 0) return best
+  const fallback = menuGroupFallbackRoutes.find(([, matchesRoute]) => matchesRoute())
+  return fallback ? fallback[0] : null
+}
+
+watch(
+  () => route.path,
+  (path) => {
+    const active = activeMenuGroup(path)
+    for (const group of menuGroups) {
+      group.expanded.value = group.expanded === active
+    }
+  },
+  { immediate: true }
+)
 
 function isPosItemLocked(item: PosMenuItem): boolean {
   if (item.action === 'open-pos') {
