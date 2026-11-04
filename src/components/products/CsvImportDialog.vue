@@ -8,7 +8,12 @@ import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import { useToast } from 'primevue/usetoast'
 import { productManagementApi } from '@/api/product-management.api'
+import { useProductManagementStore } from '@/stores/product-management.store'
 import type { CsvImportPreview } from '@/types/product.types'
+
+// El import de orden respeta la numeración de la tienda (el API decide igual;
+// esto solo ajusta el texto de ayuda).
+const ownOrderNumbering = computed(() => useProductManagementStore().orderNumberingMode === 1)
 
 interface Props {
   visible: boolean
@@ -185,7 +190,11 @@ const handleClose = () => {
         </template>
         <template v-else-if="mode === 'order'">
           <code>producto_id, sku, orden</code>
-          <p class="mt-1">
+          <p v-if="ownOrderNumbering" class="mt-1">
+            <code>orden</code> se guarda tal cual (número entero, 0 o mayor). Los productos que no
+            incluyas conservan su número actual.
+          </p>
+          <p v-else class="mt-1">
             <code>orden</code> se usa como prioridad: el catalogo se ordena por ese valor y se
             renumera de 1 a N. Los productos que no incluyas quedan al final conservando su orden actual.
           </p>

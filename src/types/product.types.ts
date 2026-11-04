@@ -299,6 +299,13 @@ export interface VariantStockItem {
   unlimited_stock: boolean
 }
 
+/**
+ * Numeración del orden manual (por tienda, `tiendageneral_orden_numeracion`):
+ *  0 = automática: escribir un número mueve el producto y se reenumera 1..N
+ *  1 = propia: el número se guarda tal cual; los demás no se tocan
+ */
+export type OrderNumberingMode = 0 | 1
+
 export interface ProductOrderItem {
   id: number
   sku: string

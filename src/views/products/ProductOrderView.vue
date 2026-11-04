@@ -7,14 +7,17 @@ import DataTable, {
 import Column from 'primevue/column'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
+import SelectButton from 'primevue/selectbutton'
 import { useToast } from 'primevue/usetoast'
+import { useConfirm } from 'primevue/useconfirm'
 import SearchBar from '@/components/common/SearchBar.vue'
 import CsvImportDialog from '@/components/products/CsvImportDialog.vue'
 import { AppBadge } from '@/components/ui'
-import type { ProductOrderItem } from '@/types/product.types'
+import type { OrderNumberingMode, ProductOrderItem } from '@/types/product.types'
 
 const store = useProductManagementStore()
 const toast = useToast()
+const confirm = useConfirm()
 
 const searchQuery = ref('')
 const importDialogVisible = ref(false)
@@ -39,6 +42,57 @@ onMounted(() => {
   store.fetchAllOrder()
 })
 
+// ── Numeración: automática (1..N) o propia (se guarda tal cual) ──
+
+const NUMBERING_OPTIONS: { label: string; value: OrderNumberingMode }[] = [
+  { label: 'Automática', value: 0 },
+  { label: 'Mi propia numeración', value: 1 },
+]
+
+const isOwnNumbering = computed(() => store.orderNumberingMode === 1)
+
+const applyNumberingMode = async (mode: OrderNumberingMode) => {
+  const ok = await store.setOrderNumberingMode(mode)
+  toast.add(
+    ok
+      ? {
+          severity: 'success',
+          summary: 'Numeración actualizada',
+          detail: mode === 1
+            ? 'Los números que escribas se guardan tal cual'
+            : 'Al guardar se reenumera el catálogo de 1 en adelante',
+          life: 3000,
+        }
+      : {
+          severity: 'error',
+          summary: 'Error',
+          detail: store.orderError || 'No se pudo cambiar la numeración',
+          life: 5000,
+        },
+  )
+}
+
+const onNumberingChange = (mode: OrderNumberingMode | null) => {
+  // SelectButton emite null al volver a pulsar la opción activa.
+  if (mode == null || mode === store.orderNumberingMode) return
+  if (mode === 0) {
+    // Volver a automática no toca nada al instante, pero el próximo guardado
+    // compacta todo a 1..N y los números propios se pierden.
+    confirm.require({
+      header: 'Volver a numeración automática',
+      message:
+        'La próxima vez que guardes un cambio de orden, todo el catálogo se ' +
+        'reenumerará de 1 en adelante y se perderán tus números actuales. ¿Continuar?',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Sí, cambiar',
+      rejectLabel: 'Cancelar',
+      accept: () => applyNumberingMode(0),
+    })
+    return
+  }
+  applyNumberingMode(mode)
+}
+
 // ── Handlers ──
 
 const onSearch = (value: string) => {
@@ -48,15 +102,23 @@ const onSearch = (value: string) => {
 // ── Row reorder (drag & drop) — only enabled on the full unfiltered list ──
 
 const onRowReorder = (event: DataTableRowReorderEvent) => {
-  if (isFiltered.value) return
+  if (isFiltered.value || isOwnNumbering.value) return
   const reordered = event.value as ProductOrderItem[]
   store.reorderItems([...reordered])
 }
 
-// ── Inline order edit: move the product to the typed absolute position ──
+// ── Inline order edit ──
+// Automática: mueve el producto a esa posición y reenumera.
+// Propia: guarda el número tal cual (entero >= 0; 0 = al final).
 
 const onOrderChange = (productId: number, value: number) => {
-  if (value == null || value < 1) return
+  if (value == null || Number.isNaN(value)) return
+  if (isOwnNumbering.value) {
+    if (value < 0 || !Number.isInteger(value)) return
+    store.setOwnOrderNumber(productId, value)
+    return
+  }
+  if (value < 1) return
   store.moveToPosition(productId, value)
 }
 
@@ -127,6 +189,19 @@ const hasDirtyChanges = computed(() => store.dirtyOrderCount > 0)
         <span class="text-sm text-secondary-500">
           {{ store.orderPagination.total }} productos
         </span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-secondary-500">Numeración:</span>
+        <SelectButton
+          :modelValue="store.orderNumberingMode"
+          :options="NUMBERING_OPTIONS"
+          optionLabel="label"
+          optionValue="value"
+          :allowEmpty="false"
+          :disabled="hasDirtyChanges || store.orderLoading"
+          v-tooltip.bottom="hasDirtyChanges ? 'Guarda o descarta los cambios antes de cambiar la numeración' : undefined"
+          @update:modelValue="onNumberingChange"
+        />
       </div>
     </div>
 
@@ -206,7 +281,7 @@ const hasDirtyChanges = computed(() => store.dirtyOrderCount > 0)
 
     <!-- Filtered banner: reorder by dragging is disabled while searching -->
     <div
-      v-if="isFiltered"
+      v-if="isFiltered && !isOwnNumbering"
       class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-sm text-amber-800 flex items-center gap-2"
     >
       <i class="pi pi-info-circle"></i>
@@ -243,7 +318,8 @@ const hasDirtyChanges = computed(() => store.dirtyOrderCount > 0)
         size="small"
       >
         <!-- Drag handle (only when not filtered — order is global) -->
-        <Column v-if="!isFiltered" :rowReorder="true" style="width: 40px" />
+        <!-- Con numeración propia no se arrastra: la posición no es el número -->
+        <Column v-if="!isFiltered && !isOwnNumbering" :rowReorder="true" style="width: 40px" />
 
         <!-- Imagen -->
         <Column header="" style="width: 50px">
@@ -279,12 +355,13 @@ const hasDirtyChanges = computed(() => store.dirtyOrderCount > 0)
           </template>
         </Column>
 
-        <!-- Orden — type an absolute position to move the product there -->
+        <!-- Orden — automática: posición absoluta; propia: número literal -->
         <Column field="order" header="Orden" style="min-width: 100px">
           <template #body="{ data }">
             <input
               type="number"
-              min="1"
+              :min="isOwnNumbering ? 0 : 1"
+              step="1"
               :value="data.order"
               @change="e => onOrderChange(data.id, Number((e.target as HTMLInputElement).value))"
               class="w-20 text-center text-sm border border-gray-300 rounded px-2 py-1 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
@@ -328,9 +405,17 @@ const hasDirtyChanges = computed(() => store.dirtyOrderCount > 0)
     <!-- Help text -->
     <div class="text-sm text-gray-500 flex items-center gap-2">
       <i class="pi pi-info-circle"></i>
-      Arrastra las filas para reordenar todo el catálogo, o escribe el número de
-      orden para mover un producto a esa posición. El orden es global: al guardar
-      se reenumera de 1 a {{ store.orderPagination.total }}.
+      <template v-if="isOwnNumbering">
+        Escribe el número de orden de cada producto: se guarda tal cual y los
+        demás conservan el suyo. Puedes dejar huecos (10, 20, 30…). Si dos
+        productos tienen el mismo número, va primero el más reciente; con 0 el
+        producto va al final.
+      </template>
+      <template v-else>
+        Arrastra las filas para reordenar todo el catálogo, o escribe el número de
+        orden para mover un producto a esa posición. El orden es global: al guardar
+        se reenumera de 1 a {{ store.orderPagination.total }}.
+      </template>
     </div>
 
     <!-- Import CSV dialog -->

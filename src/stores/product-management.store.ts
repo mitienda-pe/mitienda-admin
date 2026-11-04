@@ -6,6 +6,7 @@ import type {
   ProductPriceItem,
   ProductStockItem,
   ProductOrderItem,
+  OrderNumberingMode,
   BatchPriceUpdate,
   BatchStockUpdate,
   BatchOrderUpdate,
@@ -31,6 +32,7 @@ export const useProductManagementStore = defineStore('productManagement', () => 
   const orderItems = ref<ProductOrderItem[]>([])
   const orderPagination = ref({ page: 1, limit: 50, total: 0, totalPages: 0 })
   const orderLoading = ref(false)
+  const orderNumberingMode = ref<OrderNumberingMode>(0)
   const orderError = ref<string | null>(null)
   const dirtyOrderItems = ref<Map<number, BatchOrderUpdate>>(new Map())
 
@@ -310,6 +312,7 @@ export const useProductManagementStore = defineStore('productManagement', () => 
       })
       if (response.success && response.data) {
         orderItems.value = response.data
+        orderNumberingMode.value = response.numberingMode
         dirtyOrderItems.value.clear()
         orderPagination.value = {
           page: 1,
@@ -362,24 +365,57 @@ export const useProductManagementStore = defineStore('productManagement', () => 
     renumberOrder()
   }
 
+  // Numeración propia: el producto toma el número escrito tal cual y los demás
+  // conservan el suyo. La lista se reordena con el mismo criterio que el API
+  // (Product::listOrder): 0 al final, número ASC, empates por id DESC.
+  function setOwnOrderNumber(productId: number, order: number) {
+    updateLocalOrder(productId, order)
+    orderItems.value.sort((a, b) => {
+      const aLast = a.order > 0 ? 0 : 1
+      const bLast = b.order > 0 ? 0 : 1
+      return aLast - bLast || a.order - b.order || b.id - a.id
+    })
+  }
+
+  async function setOrderNumberingMode(mode: OrderNumberingMode): Promise<boolean> {
+    try {
+      orderLoading.value = true
+      await productManagementApi.updateOrderNumbering(mode)
+      orderNumberingMode.value = mode
+      return true
+    } catch (err: any) {
+      orderError.value = err.response?.data?.message || 'Error al cambiar la numeración'
+      return false
+    } finally {
+      orderLoading.value = false
+    }
+  }
+
   async function saveOrderChanges(): Promise<boolean> {
     if (dirtyOrderItems.value.size === 0) return true
     try {
       orderLoading.value = true
-      // Commit the ENTIRE current order (contiguous 1..N), not just the dirty
-      // items. This wipes stale duplicates / zeros from older per-page saves.
-      const allItems = orderItems.value.map((item, index) => ({
-        id: item.id,
-        order: index + 1,
-      }))
+      const ownNumbering = orderNumberingMode.value === 1
+      // Automática: commit the ENTIRE current order (contiguous 1..N), not just
+      // the dirty items. This wipes stale duplicates / zeros from older
+      // per-page saves. Propia: solo lo editado, con el número que escribió la
+      // tienda — mandar todo pisaría sus números con la posición.
+      const allItems = ownNumbering
+        ? Array.from(dirtyOrderItems.value.values())
+        : orderItems.value.map((item, index) => ({
+            id: item.id,
+            order: index + 1,
+          }))
       // Backend caps each batch at 100 items.
       const CHUNK = 100
       for (let i = 0; i < allItems.length; i += CHUNK) {
         await productManagementApi.batchUpdateOrder(allItems.slice(i, i + CHUNK))
       }
-      orderItems.value.forEach((item, index) => {
-        item.order = index + 1
-      })
+      if (!ownNumbering) {
+        orderItems.value.forEach((item, index) => {
+          item.order = index + 1
+        })
+      }
       dirtyOrderItems.value.clear()
       return true
     } catch (err: any) {
@@ -435,8 +471,11 @@ export const useProductManagementStore = defineStore('productManagement', () => 
     orderError,
     dirtyOrderCount,
     fetchOrder,
+    orderNumberingMode,
     fetchAllOrder,
     updateLocalOrder,
+    setOwnOrderNumber,
+    setOrderNumberingMode,
     moveToPosition,
     reorderItems,
     saveOrderChanges,

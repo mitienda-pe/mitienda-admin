@@ -215,6 +215,8 @@ export interface CatalogPreferences {
   logo_position: number
   cart_icon: number
   product_order: number
+  /** Numeración en Productos → Orden: 0 = automática (1..N), 1 = propia */
+  order_numbering?: number
   hide_out_of_stock: number
   pricing_mode: number // 0 = con IGV (default), 1 = sin IGV
   layout_width: number // 0 = contained (1280px), 1 = fluid (100%)

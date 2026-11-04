@@ -4,6 +4,7 @@ import type {
   ProductPriceItem,
   ProductStockItem,
   ProductOrderItem,
+  OrderNumberingMode,
   BatchPriceUpdate,
   BatchStockUpdate,
   BatchOrderUpdate,
@@ -65,13 +66,14 @@ export const productManagementApi = {
 
   async listOrder(
     filters: ProductManagementFilters = {}
-  ): Promise<PaginatedResponse<ProductOrderItem>> {
+  ): Promise<PaginatedResponse<ProductOrderItem> & { numberingMode: OrderNumberingMode }> {
     const params = buildParams(filters)
     const response = await apiClient.get(`/products/list-order?${params.toString()}`)
     const apiResponse = response.data
     return {
       success: true,
       data: apiResponse.data || [],
+      numberingMode: apiResponse.settings?.numbering_mode === 1 ? 1 : 0,
       meta: apiResponse.pagination || {
         page: 1,
         total: 0,
@@ -94,6 +96,12 @@ export const productManagementApi = {
     items: BatchStockUpdate[]
   ): Promise<ApiResponse<{ updated_products: number; updated_variants: number }>> {
     const response = await apiClient.put('/products/batch-stock', { items })
+    return response.data
+  },
+
+  // Se guarda en las preferencias del catálogo; PUT parcial, solo este campo.
+  async updateOrderNumbering(mode: OrderNumberingMode): Promise<ApiResponse<unknown>> {
+    const response = await apiClient.put('/appearance/catalog', { order_numbering: mode })
     return response.data
   },
 
