@@ -1219,67 +1219,53 @@ const shippingExpandedRef = ref(false)
 const storeExpandedRef = ref(false)
 const posExpandedRef = ref(false)
 
-// Computar dinámicamente qué menú debe estar expandido según la ruta
-const salesExpanded = computed({
-  get: () => salesExpandedRef.value || route.path.startsWith('/orders') || route.path.startsWith('/reviews') || route.path.startsWith('/complaints') || route.path.includes('abandoned-carts') || route.path.startsWith('/payment-links'),
-  set: (val) => { salesExpandedRef.value = val }
-})
+// Carritos abandonados vive en /marketing/abandoned-carts pero en el menú está
+// bajo Ventas: no cuenta como ruta de Marketing (si no, abre y resalta los dos).
+function isMarketingRoute(): boolean {
+  return route.path.startsWith('/marketing') && !route.path.includes('abandoned-carts')
+}
 
-const reportsExpanded = computed({
-  get: () => reportsExpandedRef.value || route.path.startsWith('/reports'),
-  set: (val) => { reportsExpandedRef.value = val }
-})
+// Qué grupo del menú corresponde a la ruta actual. La ruta solo ABRE su grupo
+// al entrar en él; no lo mantiene abierto a la fuerza. Antes el getter era
+// `ref || ruta`, y estando dentro del grupo el clic en el encabezado no podía
+// cerrarlo (el `|| ruta` lo reabría al instante).
+const menuGroupRoutes: Array<[typeof salesExpandedRef, () => boolean]> = [
+  [salesExpandedRef, () => route.path.startsWith('/orders') || route.path.startsWith('/reviews') || route.path.startsWith('/complaints') || route.path.includes('abandoned-carts') || route.path.startsWith('/payment-links')],
+  [reportsExpandedRef, () => route.path.startsWith('/reports')],
+  [catalogExpandedRef, () => route.path.startsWith('/products') || route.path.startsWith('/catalog')],
+  [marketingExpandedRef, isMarketingRoute],
+  [billingExpandedRef, () => route.path.startsWith('/billing')],
+  [integrationExpandedRef, () => route.path.startsWith('/integrations') || route.path.startsWith('/api')],
+  [configExpandedRef, () => route.path.startsWith('/configuracion')],
+  [contentExpandedRef, () => route.path.startsWith('/pages') || route.path.startsWith('/blog') || route.path.startsWith('/legal') || (route.path.startsWith('/content') && !route.path.startsWith('/content/template') && !route.path.startsWith('/content/components'))],
+  [appearanceExpandedRef, () => route.path.startsWith('/appearance') || route.path.startsWith('/content/template') || route.path.startsWith('/content/components')],
+  [shippingExpandedRef, () => route.path.startsWith('/shipping')],
+  [storeExpandedRef, () => route.path.startsWith('/store') || route.path.startsWith('/notifications') || route.path.startsWith('/payment-gateways')],
+  [posExpandedRef, () => route.path.startsWith('/pos')],
+]
 
-const catalogExpanded = computed({
-  get: () => catalogExpandedRef.value || route.path.startsWith('/products') || route.path.startsWith('/catalog'),
-  set: (val) => { catalogExpandedRef.value = val }
-})
+watch(
+  () => route.path,
+  () => {
+    for (const [expandedRef, matchesRoute] of menuGroupRoutes) {
+      if (matchesRoute()) expandedRef.value = true
+    }
+  },
+  { immediate: true }
+)
 
-const marketingExpanded = computed({
-  get: () => marketingExpandedRef.value || route.path.startsWith('/marketing'),
-  set: (val) => { marketingExpandedRef.value = val }
-})
-
-const billingExpanded = computed({
-  get: () => billingExpandedRef.value || route.path.startsWith('/billing'),
-  set: (val) => { billingExpandedRef.value = val }
-})
-
-
-const integrationExpanded = computed({
-  get: () => integrationExpandedRef.value || route.path.startsWith('/integrations') || route.path.startsWith('/api'),
-  set: (val) => { integrationExpandedRef.value = val }
-})
-
-const configExpanded = computed({
-  get: () => configExpandedRef.value || route.path.startsWith('/configuracion'),
-  set: (val) => { configExpandedRef.value = val }
-})
-
-const contentExpanded = computed({
-  get: () => contentExpandedRef.value || route.path.startsWith('/pages') || route.path.startsWith('/blog') || route.path.startsWith('/legal') || (route.path.startsWith('/content') && !route.path.startsWith('/content/template') && !route.path.startsWith('/content/components')),
-  set: (val) => { contentExpandedRef.value = val }
-})
-
-const appearanceExpanded = computed({
-  get: () => appearanceExpandedRef.value || route.path.startsWith('/appearance') || route.path.startsWith('/content/template') || route.path.startsWith('/content/components'),
-  set: (val) => { appearanceExpandedRef.value = val }
-})
-
-const shippingExpanded = computed({
-  get: () => shippingExpandedRef.value || route.path.startsWith('/shipping'),
-  set: (val) => { shippingExpandedRef.value = val }
-})
-
-const storeExpanded = computed({
-  get: () => storeExpandedRef.value || route.path.startsWith('/store') || route.path.startsWith('/notifications') || route.path.startsWith('/payment-gateways'),
-  set: (val) => { storeExpandedRef.value = val }
-})
-
-const posExpanded = computed({
-  get: () => posExpandedRef.value || route.path.startsWith('/pos'),
-  set: (val) => { posExpandedRef.value = val }
-})
+const salesExpanded = salesExpandedRef
+const reportsExpanded = reportsExpandedRef
+const catalogExpanded = catalogExpandedRef
+const marketingExpanded = marketingExpandedRef
+const billingExpanded = billingExpandedRef
+const integrationExpanded = integrationExpandedRef
+const configExpanded = configExpandedRef
+const contentExpanded = contentExpandedRef
+const appearanceExpanded = appearanceExpandedRef
+const shippingExpanded = shippingExpandedRef
+const storeExpanded = storeExpandedRef
+const posExpanded = posExpandedRef
 
 /**
  * Esconde del menú los ítems cuyo módulo no le fue concedido a ESTE usuario
@@ -1588,9 +1574,7 @@ const isCatalogActive = computed(() => {
 })
 
 // Detectar si estamos en alguna ruta de marketing
-const isMarketingActive = computed(() => {
-  return route.path.startsWith('/marketing')
-})
+const isMarketingActive = computed(isMarketingRoute)
 
 // Detectar si estamos en alguna ruta de facturación
 const isBillingActive = computed(() => {
