@@ -13,7 +13,7 @@
           severity="secondary"
           outlined
           :loading="syncingStock"
-          :disabled="syncingPrices || syncingProducts"
+          :disabled="syncingPrices || syncingProducts || syncingBarcodes"
           @click="onSyncTiendaStock"
         />
         <Button
@@ -22,8 +22,17 @@
           severity="secondary"
           outlined
           :loading="syncingPrices"
-          :disabled="syncingStock || syncingProducts"
+          :disabled="syncingStock || syncingProducts || syncingBarcodes"
           @click="onSyncTiendaPrices"
+        />
+        <Button
+          label="Sincronizar códigos de barras"
+          icon="pi pi-barcode"
+          severity="secondary"
+          outlined
+          :loading="syncingBarcodes"
+          :disabled="syncingStock || syncingPrices || syncingProducts"
+          @click="onPreviewSyncBarcodes"
         />
         <Button
           label="Importar productos nuevos"
@@ -31,7 +40,7 @@
           severity="primary"
           outlined
           :loading="syncingProducts"
-          :disabled="syncingStock || syncingPrices"
+          :disabled="syncingStock || syncingPrices || syncingBarcodes"
           @click="onPreviewSyncProducts"
         />
         <Button
@@ -287,6 +296,95 @@
           </template>
         </Dialog>
 
+        <!-- Barcode sync preview dialog -->
+        <Dialog
+          v-model:visible="showBarcodePreview"
+          modal
+          header="Sincronizar códigos de barras desde NetSuite"
+          :style="{ width: '90vw', maxWidth: '1000px' }"
+          :closable="!barcodeExecuting"
+        >
+          <div class="space-y-3">
+            <Message v-if="barcodePreviewError" severity="error" :closable="false">
+              {{ barcodePreviewError }}
+            </Message>
+
+            <div v-if="syncingBarcodes && !barcodePreview" class="text-center py-8 text-secondary-500">
+              <i class="pi pi-spin pi-spinner text-2xl mb-2 block"></i>
+              Consultando NetSuite...
+            </div>
+
+            <div v-if="barcodePreview && !barcodePreviewError" class="space-y-4">
+              <div class="flex flex-wrap gap-2 text-sm">
+                <Tag :value="`Productos con NetSuite: ${barcodePreview.productos}`" severity="info" />
+                <Tag :value="`Con código en NetSuite: ${barcodePreview.con_upc}`" severity="secondary" />
+                <Tag :value="`Ya coinciden: ${barcodePreview.coinciden}`" severity="secondary" />
+                <Tag :value="`A actualizar: ${barcodePreview.escritos.length}`" severity="success" />
+              </div>
+
+              <div>
+                <h3 class="font-semibold text-secondary-800 mb-2">Se van a actualizar</h3>
+                <DataTable :value="barcodePreview.escritos" striped-rows class="p-datatable-sm" scrollable scroll-height="35vh">
+                  <template #empty>
+                    <div class="text-center py-4 text-secondary-500">
+                      <i class="pi pi-check-circle text-2xl mb-2 block text-green-500"></i>
+                      Todos los códigos ya coinciden con NetSuite.
+                    </div>
+                  </template>
+                  <Column field="sku" header="SKU" style="min-width: 100px">
+                    <template #body="{ data }"><span class="font-mono text-xs">{{ data.sku }}</span></template>
+                  </Column>
+                  <Column field="titulo" header="Producto" style="min-width: 240px" />
+                  <Column header="Actual" style="min-width: 140px">
+                    <template #body="{ data }">
+                      <span v-if="data.actual" class="font-mono text-xs line-through text-secondary-500">{{ data.actual }}</span>
+                      <span v-else class="text-secondary-400 italic text-xs">sin código</span>
+                    </template>
+                  </Column>
+                  <Column header="Nuevo" style="min-width: 140px">
+                    <template #body="{ data }"><span class="font-mono text-xs font-semibold">{{ data.nuevo }}</span></template>
+                  </Column>
+                </DataTable>
+              </div>
+
+              <div v-if="barcodeIssues.length > 0">
+                <h3 class="font-semibold text-secondary-800 mb-1">Para revisar a mano</h3>
+                <p class="text-sm text-secondary-600 mb-2">Estos no se cambian: hay que decidir cuál es el código correcto en NetSuite o en el producto.</p>
+                <DataTable :value="barcodeIssues" striped-rows class="p-datatable-sm" scrollable scroll-height="30vh">
+                  <Column field="sku" header="SKU" style="min-width: 100px">
+                    <template #body="{ data }"><span class="font-mono text-xs">{{ data.sku }}</span></template>
+                  </Column>
+                  <Column field="titulo" header="Producto" style="min-width: 220px" />
+                  <Column header="Motivo" style="min-width: 120px">
+                    <template #body="{ data }"><Tag :severity="data.severity" :value="data.motivo" /></template>
+                  </Column>
+                  <Column field="detalle" header="Detalle" style="min-width: 260px">
+                    <template #body="{ data }"><span class="text-xs">{{ data.detalle }}</span></template>
+                  </Column>
+                </DataTable>
+              </div>
+            </div>
+          </div>
+
+          <template #footer>
+            <Button
+              label="Cancelar"
+              icon="pi pi-times"
+              text
+              :disabled="barcodeExecuting"
+              @click="showBarcodePreview = false"
+            />
+            <Button
+              v-if="barcodePreview && barcodePreview.escritos.length > 0"
+              :label="`Actualizar ${barcodePreview.escritos.length} código${barcodePreview.escritos.length === 1 ? '' : 's'}`"
+              icon="pi pi-check"
+              severity="primary"
+              :loading="barcodeExecuting"
+              @click="onConfirmSyncBarcodes"
+            />
+          </template>
+        </Dialog>
+
         <!-- Pagination -->
         <div v-if="pagination.pages > 1" class="flex items-center justify-between mt-4 pt-4 border-t">
           <span class="text-sm text-secondary-600">
@@ -311,6 +409,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { netsuiteApi } from '@/api/netsuite.api'
+import type { BarcodeSyncResult } from '@/types/netsuite.types'
 
 import Card from 'primevue/card'
 import Button from 'primevue/button'
@@ -361,6 +460,22 @@ const loadingProductId = ref<number | null>(null)
 const syncingStock = ref(false)
 const syncingPrices = ref(false)
 const syncingProducts = ref(false)
+const syncingBarcodes = ref(false)
+const showBarcodePreview = ref(false)
+const barcodePreview = ref<BarcodeSyncResult | null>(null)
+const barcodePreviewError = ref<string | null>(null)
+const barcodeExecuting = ref(false)
+
+// Lo que la sincronización no toca, en una sola tabla para revisarlo a mano.
+const barcodeIssues = computed(() => {
+  const r = barcodePreview.value
+  if (!r) return []
+  return [
+    ...r.conflictos.map(f => ({ ...f, motivo: 'Conflicto', severity: 'warn', detalle: `Nuestro ${f.actual} ≠ NetSuite ${f.origen} (caja contra unidad)` })),
+    ...r.duplicados.map(f => ({ ...f, motivo: 'Duplicado', severity: 'warn', detalle: `${f.codigo} ya lo usa el producto #${f.otro}` })),
+    ...r.invalidos.map(f => ({ ...f, motivo: 'Inválido', severity: 'danger', detalle: `NetSuite tiene "${f.crudo.trim() || '(solo espacios)'}", que no es un código legible` })),
+  ]
+})
 const lastSyncMessage = ref('')
 const lastSyncSeverity = ref<'success' | 'warn' | 'error'>('success')
 
@@ -570,6 +685,52 @@ async function onConfirmSyncProducts() {
     toast.add({ severity: 'error', summary: 'Error', detail: msg, life: 6000 })
   } finally {
     importExecuting.value = false
+  }
+}
+
+async function onPreviewSyncBarcodes() {
+  syncingBarcodes.value = true
+  barcodePreviewError.value = null
+  barcodePreview.value = null
+  showBarcodePreview.value = true
+  try {
+    const res = await netsuiteApi.syncTiendaBarcodes(true)
+    barcodePreview.value = res.data
+  } catch (err: any) {
+    console.error('Error preview sync barcodes:', err)
+    barcodePreviewError.value = err?.response?.data?.messages?.error
+      || err?.response?.data?.error
+      || err?.message
+      || 'Error consultando códigos de barras en NetSuite'
+  } finally {
+    syncingBarcodes.value = false
+  }
+}
+
+async function onConfirmSyncBarcodes() {
+  barcodeExecuting.value = true
+  try {
+    const res = await netsuiteApi.syncTiendaBarcodes(false)
+    const data = res.data
+    const pendientes = data.conflictos.length + data.duplicados.length + data.invalidos.length
+
+    lastSyncSeverity.value = pendientes > 0 ? 'warn' : 'success'
+    lastSyncMessage.value = `Códigos de barras: ${data.escritos.length} actualizado(s)`
+      + (pendientes > 0 ? `, ${pendientes} para revisar a mano` : '')
+      + '.'
+
+    toast.add({ severity: lastSyncSeverity.value, summary: 'Códigos de barras', detail: lastSyncMessage.value, life: 5000 })
+    showBarcodePreview.value = false
+    barcodePreview.value = null
+  } catch (err: any) {
+    console.error('Error executing sync barcodes:', err)
+    const msg = err?.response?.data?.messages?.error
+      || err?.response?.data?.error
+      || err?.message
+      || 'Error sincronizando códigos de barras'
+    toast.add({ severity: 'error', summary: 'Error', detail: msg, life: 6000 })
+  } finally {
+    barcodeExecuting.value = false
   }
 }
 

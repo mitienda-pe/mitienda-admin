@@ -21,7 +21,8 @@ import type {
   AvailableGateway,
   NetsuiteSyncedPromotion,
   NetsuitePromotionProduct,
-  NetsuitePromotionDiagnosis
+  NetsuitePromotionDiagnosis,
+  BarcodeSyncResult
 } from '@/types/netsuite.types'
 
 export const netsuiteApi = {
@@ -321,6 +322,22 @@ export const netsuiteApi = {
   }> {
     const qs = dryRun ? '?dry_run=1' : ''
     const response = await apiClient.post(`/tienda/sync-prices${qs}`, {}, { timeout: 900000 })
+    return response.data
+  },
+
+  /**
+   * Trae los códigos de barras (UpcCode) de NetSuite: rellena los vacíos y
+   * reemplaza los que cambiaron. Conflictos, inválidos y duplicados no se
+   * escriben, vuelven en la respuesta. dryRun=true solo muestra lo que haría.
+   */
+  async syncTiendaBarcodes(dryRun = true): Promise<{
+    success: boolean
+    dry_run: boolean
+    data: BarcodeSyncResult
+    finished_at: string
+  }> {
+    const qs = dryRun ? '?dry_run=1' : ''
+    const response = await apiClient.post(`/tienda/sync-barcodes${qs}`, {}, { timeout: 300000 })
     return response.data
   },
 

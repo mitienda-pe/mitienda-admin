@@ -388,3 +388,25 @@ export interface NetsuitePromotionDiagnosis {
   }
   errors: string[]
 }
+
+/** Producto del resultado de POST /tienda/sync-barcodes. */
+export interface BarcodeSyncRow {
+  producto_id: number
+  sku: string
+  titulo: string
+}
+
+/**
+ * Resultado de sincronizar códigos de barras con NetSuite.
+ * `escritos.actual` null = el producto no tenía código (relleno).
+ */
+export interface BarcodeSyncResult {
+  productos: number
+  con_upc: number
+  escritos: (BarcodeSyncRow & { actual: string | null; nuevo: string })[]
+  conflictos: (BarcodeSyncRow & { actual: string; origen: string })[]
+  invalidos: (BarcodeSyncRow & { crudo: string })[]
+  duplicados: (BarcodeSyncRow & { codigo: string; otro: number })[]
+  coinciden: number
+  sin_codigo: number
+}
