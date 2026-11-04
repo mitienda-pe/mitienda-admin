@@ -109,17 +109,42 @@ const onRowReorder = (event: DataTableRowReorderEvent) => {
 
 // ── Inline order edit ──
 // Automática: mueve el producto a esa posición y reenumera.
-// Propia: guarda el número tal cual (entero >= 0; 0 = al final).
+// Propia: guarda el número tal cual (entero 0..ORDER_NUMBER_MAX; 0 = al final).
 
-const onOrderChange = (productId: number, value: number) => {
-  if (value == null || Number.isNaN(value)) return
-  if (isOwnNumbering.value) {
-    if (value < 0 || !Number.isInteger(value)) return
-    store.setOwnOrderNumber(productId, value)
+// Mismo tope que el API (Product::ORDER_NUMBER_MAX), que si no lo recorta en
+// silencio.
+const ORDER_NUMBER_MAX = 999999
+
+const onOrderChange = (item: ProductOrderItem, input: HTMLInputElement) => {
+  const raw = input.value.trim()
+  const value = Number(raw)
+  const valid =
+    raw !== '' &&
+    Number.isInteger(value) &&
+    (isOwnNumbering.value ? value >= 0 && value <= ORDER_NUMBER_MAX : value >= 1)
+
+  if (!valid) {
+    // El input no está ligado en dos sentidos: sin esto seguiría mostrando el
+    // valor rechazado como si se hubiera aplicado.
+    input.value = String(item.order)
+    if (raw !== '') {
+      toast.add({
+        severity: 'warn',
+        summary: 'Número no válido',
+        detail: isOwnNumbering.value
+          ? `Usa un número entero entre 0 y ${ORDER_NUMBER_MAX}`
+          : 'Usa un número entero desde 1',
+        life: 3000,
+      })
+    }
     return
   }
-  if (value < 1) return
-  store.moveToPosition(productId, value)
+
+  if (isOwnNumbering.value) {
+    store.setOwnOrderNumber(item.id, value)
+    return
+  }
+  store.moveToPosition(item.id, value)
 }
 
 // ── Save ──
@@ -361,10 +386,12 @@ const hasDirtyChanges = computed(() => store.dirtyOrderCount > 0)
             <input
               type="number"
               :min="isOwnNumbering ? 0 : 1"
+              :max="isOwnNumbering ? ORDER_NUMBER_MAX : undefined"
               step="1"
               :value="data.order"
-              @change="e => onOrderChange(data.id, Number((e.target as HTMLInputElement).value))"
-              class="w-20 text-center text-sm border border-gray-300 rounded px-2 py-1 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
+              @change="e => onOrderChange(data, e.target as HTMLInputElement)"
+              :class="isOwnNumbering ? 'w-28' : 'w-20'"
+              class="text-center text-sm border border-gray-300 rounded px-2 py-1 focus:border-primary focus:ring-1 focus:ring-primary outline-none"
             />
           </template>
         </Column>
