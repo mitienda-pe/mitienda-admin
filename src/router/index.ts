@@ -112,6 +112,20 @@ const routes: RouteRecordRaw[] = [
     ]
   },
   {
+    // Beneficios de partners y apps propias (los gestiona el superadmin).
+    path: '/benefits',
+    component: DashboardLayout,
+    meta: { requiresAuth: true, requiresStore: true },
+    children: [
+      {
+        path: '',
+        name: 'Benefits',
+        meta: { title: 'Beneficios' },
+        component: () => import('@/views/benefits/BenefitsView.vue')
+      }
+    ]
+  },
+  {
     // Inventario multi-almacén: kardex y transferencias. Gateado por
     // `mod_stock_sucursal`, el mismo módulo que el stock por sucursal.
     path: '/inventory',

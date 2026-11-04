@@ -23,6 +23,8 @@
       />
     </div>
 
+    <BenefitSlot class="mb-6" placement="dashboard" />
+
     <!-- Loading state -->
     <div v-if="dashboardStore.isLoading" class="flex justify-center items-center py-20">
       <i class="pi pi-spin pi-spinner text-4xl text-primary"></i>
@@ -90,6 +92,7 @@
 </template>
 
 <script setup lang="ts">
+import BenefitSlot from '@/components/benefits/BenefitSlot.vue'
 import { onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth.store'
 import { useDashboardStore } from '@/stores/dashboard.store'

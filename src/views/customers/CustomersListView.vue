@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BenefitSlot from '@/components/benefits/BenefitSlot.vue'
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCustomersStore } from '@/stores/customers.store'
@@ -439,5 +440,7 @@ const totalCustomers = computed(() => customersStore.pagination.total)
         />
       </template>
     </Dialog>
+
+    <BenefitSlot class="mt-6" placement="customers" />
   </div>
 </template>

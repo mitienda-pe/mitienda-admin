@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BenefitSlot from '@/components/benefits/BenefitSlot.vue'
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useOrdersStore } from '@/stores/orders.store'
@@ -355,6 +356,8 @@ const billingType = (order: Order) => {
         </Column>
       </DataTable>
     </div>
+
+    <BenefitSlot class="mt-6" placement="orders" />
   </div>
 </template>
 

@@ -556,6 +556,7 @@
             </li>
           </ul>
         </nav>
+        <BenefitSlot class="mx-4 mb-3" placement="sidebar" />
         <button
           type="button"
           class="w-full px-4 py-2 text-left text-[11px] text-gray-400 border-t border-gray-100 hover:text-primary transition-colors"
@@ -1011,6 +1012,7 @@
             </li>
           </ul>
         </nav>
+        <BenefitSlot class="mt-4" placement="sidebar" @click="sidebarVisible = false" />
       </Sidebar>
 
       <!-- Main Content -->
@@ -1049,6 +1051,7 @@ import Menu from 'primevue/menu'
 import ImpersonationPill from '@/components/admin/ImpersonationPill.vue'
 import BroadcastBar from '@/components/broadcasts/BroadcastBar.vue'
 import BroadcastModal from '@/components/broadcasts/BroadcastModal.vue'
+import BenefitSlot from '@/components/benefits/BenefitSlot.vue'
 import { useBroadcasts } from '@/composables/useBroadcasts'
 import { useOneSignal } from '@/composables/useOneSignal'
 import { brand } from '@/config/branding'
@@ -1305,7 +1308,8 @@ const simpleMenuItems = computed(() => visibleItems([
   { label: 'Clientes', icon: 'pi pi-users', to: '/customers' },
   ...(hasActivePlugins.value
     ? [{ label: 'Plugins', icon: 'pi pi-microchip', to: '/plugins' }]
-    : [])
+    : []),
+  { label: 'Beneficios', icon: 'pi pi-gift', to: '/benefits' }
 ]))
 
 // Items del grupo Tu Tienda

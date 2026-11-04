@@ -93,10 +93,13 @@
           <Button label="Limpiar filtros" outlined @click="productsStore.resetFilters" />
         </div>
       </div>
+
+    <BenefitSlot class="mt-6" placement="products" />
   </div>
 </template>
 
 <script setup lang="ts">
+import BenefitSlot from '@/components/benefits/BenefitSlot.vue'
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useProductsStore } from '@/stores/products.store'
