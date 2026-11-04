@@ -32,7 +32,9 @@ describe('benefits store', () => {
     setActivePinia(createPinia())
     vi.mocked(benefitsApi.list).mockReset()
   })
-  afterEach(() => vi.restoreAllMocks())
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
 
   it('pide la lista una sola vez por tienda', async () => {
     vi.mocked(benefitsApi.list).mockResolvedValue([benefit(1, ['dashboard'])])
