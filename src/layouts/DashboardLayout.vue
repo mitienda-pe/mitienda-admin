@@ -1257,7 +1257,7 @@ const menuGroupFallbackRoutes: Array<[typeof salesExpandedRef, () => boolean]> =
   [catalogExpandedRef, () => route.path.startsWith('/products') || route.path.startsWith('/catalog')],
   [marketingExpandedRef, isMarketingRoute],
   [billingExpandedRef, () => route.path.startsWith('/billing')],
-  [integrationExpandedRef, () => route.path.startsWith('/integrations') || route.path.startsWith('/api')],
+  [integrationExpandedRef, () => route.path.startsWith('/integrations') || route.path.startsWith('/api') || route.path.startsWith('/plugins')],
   [configExpandedRef, () => route.path.startsWith('/configuracion')],
   [contentExpandedRef, () => route.path.startsWith('/pages') || route.path.startsWith('/blog') || route.path.startsWith('/legal') || (route.path.startsWith('/content') && !route.path.startsWith('/content/template') && !route.path.startsWith('/content/components'))],
   [appearanceExpandedRef, () => route.path.startsWith('/appearance') || route.path.startsWith('/content/template') || route.path.startsWith('/content/components')],
@@ -1298,15 +1298,11 @@ function visibleItems<T extends { to?: string; action?: string }>(items: T[]): T
   })
 }
 
-// Items simples del menú. "Plugins" solo se muestra si la tienda tiene plugins
-// activos asignados (hasActivePlugins); oculto por defecto para todos los planes.
+// Items simples del menú (sin grupo).
 const simpleMenuItems = computed(() => visibleItems([
   { label: 'Dashboard', icon: 'pi pi-home', to: '/dashboard' },
   { label: 'Analítica Web', icon: 'pi pi-chart-line', to: '/reports/web-analytics' },
-  { label: 'Clientes', icon: 'pi pi-users', to: '/customers' },
-  ...(hasActivePlugins.value
-    ? [{ label: 'Plugins', icon: 'pi pi-microchip', to: '/plugins' }]
-    : [])
+  { label: 'Clientes', icon: 'pi pi-users', to: '/customers' }
 ]))
 
 // Items del grupo Tu Tienda
@@ -1488,7 +1484,12 @@ const integrationMenuItems = computed(() => {
     { label: 'Proveedores', icon: 'pi pi-th-large', to: '/integrations/providers' },
     { label: 'Webhooks', icon: 'pi pi-link', to: '/integrations/webhooks' },
     { label: 'Credenciales', icon: 'pi pi-key', to: '/api/credentials' },
-    { label: 'Cola de Trabajos', icon: 'pi pi-server', to: '/integrations/queue' }
+    { label: 'Cola de Trabajos', icon: 'pi pi-server', to: '/integrations/queue' },
+    // Solo si la tienda tiene plugins activos asignados (hasActivePlugins);
+    // oculto por defecto para todos los planes.
+    ...(hasActivePlugins.value
+      ? [{ label: 'Plugins', icon: 'pi pi-microchip', to: '/plugins' }]
+      : [])
   ]
 
   if (storeConfigStore.savedConfig.has_legacy_webhooks) {
@@ -1655,7 +1656,7 @@ const isBillingActive = computed(() => {
 // Detectar si estamos en alguna ruta de Integraciones (incluye las antiguas
 // rutas /api de Credenciales y Webhooks legacy, ahora bajo este grupo).
 const isIntegrationActive = computed(() => {
-  return route.path.startsWith('/integrations') || route.path.startsWith('/api')
+  return route.path.startsWith('/integrations') || route.path.startsWith('/api') || route.path.startsWith('/plugins')
 })
 
 // Detectar si estamos en alguna ruta de configuración
