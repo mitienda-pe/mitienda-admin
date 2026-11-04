@@ -543,6 +543,18 @@
               </ul>
             </li>
 
+            <!-- Beneficios (al final del menú) -->
+            <li>
+              <router-link
+                to="/benefits"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                active-class="bg-primary-50 text-primary font-medium"
+              >
+                <i class="pi pi-gift"></i>
+                <span>Beneficios</span>
+              </router-link>
+            </li>
+
             <!-- Volver a Administración (solo si está impersonando) -->
             <li v-if="adminStore.isImpersonating">
               <div class="border-t border-gray-200 my-4"></div>
@@ -1010,6 +1022,18 @@
                 </li>
               </ul>
             </li>
+            <!-- Beneficios (al final del menú) -->
+            <li>
+              <router-link
+                to="/benefits"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
+                active-class="bg-primary-50 text-primary font-medium"
+                @click="sidebarVisible = false"
+              >
+                <i class="pi pi-gift"></i>
+                <span>Beneficios</span>
+              </router-link>
+            </li>
           </ul>
         </nav>
         <BenefitSlot class="mt-4" placement="sidebar" @click="sidebarVisible = false" />
@@ -1282,8 +1306,7 @@ const simpleMenuItems = computed(() => visibleItems([
   { label: 'Clientes', icon: 'pi pi-users', to: '/customers' },
   ...(hasActivePlugins.value
     ? [{ label: 'Plugins', icon: 'pi pi-microchip', to: '/plugins' }]
-    : []),
-  { label: 'Beneficios', icon: 'pi pi-gift', to: '/benefits' }
+    : [])
 ]))
 
 // Items del grupo Tu Tienda
