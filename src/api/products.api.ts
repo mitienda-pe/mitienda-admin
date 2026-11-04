@@ -568,6 +568,18 @@ export const productsApi = {
     return response.data
   },
 
+  // Acción masiva desde el listado: publicar, ocultar (despublicar) o eliminar
+  async batchAction(
+    action: 'publish' | 'unpublish' | 'delete',
+    ids: number[]
+  ): Promise<ApiResponse<{ action: string; updated: number; ids: number[]; skipped: number[] }>> {
+    const response = await apiClient.post('/products/batch-action', { action, ids })
+    return {
+      success: true,
+      data: response.data?.data,
+    }
+  },
+
   // Eliminar producto (soft delete: el backend pone producto_status = 0)
   async deleteProduct(id: number): Promise<ApiResponse<void>> {
     const response = await apiClient.delete(`/products/${id}`)

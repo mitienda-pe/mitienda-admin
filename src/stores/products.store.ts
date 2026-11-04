@@ -218,6 +218,29 @@ export const useProductsStore = defineStore('products', () => {
     }
   }
 
+  async function batchAction(action: 'publish' | 'unpublish' | 'delete', ids: number[]) {
+    try {
+      const response = await productsApi.batchAction(action, ids)
+      const affected = new Set(response.data?.ids ?? [])
+
+      if (action === 'delete') {
+        products.value = products.value.filter(p => !affected.has(p.id))
+        pagination.value.total = Math.max(pagination.value.total - affected.size, 0)
+      } else {
+        const published = action === 'publish'
+        products.value = products.value.map(p =>
+          affected.has(p.id) ? { ...p, published } : p
+        )
+      }
+
+      return { success: true, updated: affected.size, skipped: response.data?.skipped?.length ?? 0 }
+    } catch (err: any) {
+      const message = err.response?.data?.messages?.error || err.response?.data?.message || 'No se pudo aplicar la acción'
+      console.error('Error en acción masiva de productos:', err)
+      return { success: false, updated: 0, skipped: 0, message }
+    }
+  }
+
   return {
     // State
     products,
@@ -236,6 +259,7 @@ export const useProductsStore = defineStore('products', () => {
     loadMore,
     resetFilters,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    batchAction
   }
 })
