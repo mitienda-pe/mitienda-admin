@@ -3,6 +3,48 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.94.0] - 2026-11-05
+
+### Novedades
+
+- **menu:** Beneficios dentro de Tu Tienda y NetSuite solo para quien lo tiene ([`19743cd`](https://github.com/mitienda-pe/mitienda-admin/commit/19743cd74bb3d73c46bbee245838fe4021d86f18))
+- **productos:** vista lista con acciones masivas (publicar, ocultar, eliminar) ([`1f1f445`](https://github.com/mitienda-pe/mitienda-admin/commit/1f1f44581c46d9cfeb9a0ca54183d553ed0c09ac))
+- **menu:** al cambiar de página, cerrar los grupos que no son de ella ([`9726ddc`](https://github.com/mitienda-pe/mitienda-admin/commit/9726ddc2ae533ee3091210371eb322c0d0e17347))
+- **productos:** opción de numeración propia en Orden del catálogo ([`ebc4358`](https://github.com/mitienda-pe/mitienda-admin/commit/ebc4358e05143c6065b226fccd0b68a21c4e0a4b))
+- **beneficios:** tarjetas de partners y apps propias, y página de Beneficios ([`965244c`](https://github.com/mitienda-pe/mitienda-admin/commit/965244c4e0ebf114dfca5491f01de352b2938de7))
+- **netsuite:** botón para sincronizar códigos de barras en Configuración → NetSuite → Stock ([`259a39a`](https://github.com/mitienda-pe/mitienda-admin/commit/259a39a4716a351bf37655f94a991be523eef859))
+- **opiniones:** pantalla para activar la solicitud de opiniones por email ([`936facb`](https://github.com/mitienda-pe/mitienda-admin/commit/936facb2bcaedc562d5082434246ad1e649f2ee0))
+- **categorias:** descripcion con editor en el formulario de categoria ([`8f581da`](https://github.com/mitienda-pe/mitienda-admin/commit/8f581daa30ef5501fae371bdb9a1812e31003146))
+- **admin:** filtro de prueba gratis en el listado de tiendas ([`b3f8f17`](https://github.com/mitienda-pe/mitienda-admin/commit/b3f8f172db721aa4367021a13269cba9a736fe8e))
+- **productos:** insertar shortcodes en la descripción del producto; shortcode de YouTube ([`ad6a23a`](https://github.com/mitienda-pe/mitienda-admin/commit/ad6a23a8cb6cb2b4291491c1e7db3dcc3cfd0230))
+- **pedidos:** registrar pagos parciales (anticipo y saldo) en el pedido ([`c8945fe`](https://github.com/mitienda-pe/mitienda-admin/commit/c8945fe04b32d9f1b59359ea2a8253d1788a187c))
+- **pedidos:** mostrar en la tarjeta de Pago quién aprobó o rechazó el pago ([`c8ea2b6`](https://github.com/mitienda-pe/mitienda-admin/commit/c8ea2b6de85565505d9d1117546ca298b3b3bc59))
+- **envio:** hora de corte de reparto y recojo, y horarios legacy en el editor ([`b47bc52`](https://github.com/mitienda-pe/mitienda-admin/commit/b47bc52faf88aed2b06cb58961ee401c46e0d622))
+
+### Correcciones
+
+- **menu:** mover Beneficios al final del menú lateral ([`5f8d6e2`](https://github.com/mitienda-pe/mitienda-admin/commit/5f8d6e21778f63a0049c6cd32b23e7c277c08ad8))
+- **menu:** permitir colapsar los grupos del menú lateral ([`107a843`](https://github.com/mitienda-pe/mitienda-admin/commit/107a843013f59715a19d920c7df68c08703d1a44))
+- **carritos-abandonados:** no rotular "recuperado" a una orden sin pagar ([`e255a84`](https://github.com/mitienda-pe/mitienda-admin/commit/e255a8422be8085e1bf5f16ea16d6688c4588a6e))
+- **productos:** validar el número de orden y dar espacio a números de 6 cifras ([`5be4349`](https://github.com/mitienda-pe/mitienda-admin/commit/5be434920ac1f2a790e0201ddf03f8b296bacb9b))
+- **beneficios:** el afterEach del test no devuelve valor (rompía el type-check del build) ([`1a6e9d3`](https://github.com/mitienda-pe/mitienda-admin/commit/1a6e9d3fd97fca6c3983787a4a733529ec8523ab))
+- **pasarelas:** mostrar el motivo cuando falla al grabar una pasarela ([`a1c8a14`](https://github.com/mitienda-pe/mitienda-admin/commit/a1c8a148f653e528eadb70c7d6f33bb7c8c5a2c3))
+- **productos:** "Guardar Cambios" también guarda las variantes y las recargas no las borran ([`b7e1993`](https://github.com/mitienda-pe/mitienda-admin/commit/b7e19937695a4abf18f4d68d36112839ba4aa4e2))
+- **productos:** generar variantes ya no duplica las existentes ni deja vivas las quitadas ([`c6c3d94`](https://github.com/mitienda-pe/mitienda-admin/commit/c6c3d94ddf9d98598c30f9b78865b064f3d3641d))
+- **envio:** aclarar que los días bloqueados también cierran el recojo en tienda ([`5b768a0`](https://github.com/mitienda-pe/mitienda-admin/commit/5b768a036d396bde62ebb6e8398440778efa5b68))
+- **tiendas:** resetear los stores al cambiar de tienda ([`7aa1fe6`](https://github.com/mitienda-pe/mitienda-admin/commit/7aa1fe69fd29af2ff8df24f34bbd8c9dbbe8eecd))
+- **pedidos:** rotular "Fecha de recojo" en ventas con recojo en tienda ([`6efd924`](https://github.com/mitienda-pe/mitienda-admin/commit/6efd92426a4579e6d4e7ee3ae34b21e628a7c161))
+- **importación:** explicar el formato de subcategorías y resumir categorías no encontradas ([`8c2aecc`](https://github.com/mitienda-pe/mitienda-admin/commit/8c2aecca50f6b19d499540205c08f2144c50f3fb))
+- **badges:** refrescar los contadores del sidebar al atender ([`b914e8a`](https://github.com/mitienda-pe/mitienda-admin/commit/b914e8a482d8010bf25041c0072a0db0219143d8))
+- **auth:** el enlace mágico cierra la sesión que quedaba abierta ([`3801454`](https://github.com/mitienda-pe/mitienda-admin/commit/3801454caed8fc7f8555337d94357beebb1fc0b9))
+- **login:** llevar a terminar el registro a la cuenta que nunca configuró su tienda ([`18e0d30`](https://github.com/mitienda-pe/mitienda-admin/commit/18e0d30cdda21f03c33bba39bfa5458240d8d9c6))
+- **pedidos:** el detalle del pedido no mostraba la configuración del plugin ([`6501e86`](https://github.com/mitienda-pe/mitienda-admin/commit/6501e86881b6ce51fce8fad732394fd39b7c1bfa))
+- **ventas:** marcar contracargo con diálogo, consulta a la pasarela y contraseña ([`9c699e6`](https://github.com/mitienda-pe/mitienda-admin/commit/9c699e69550ab9c0107b8ac06bfc77dccef05ef1))
+
+### Refactor
+
+- **menu:** mover Plugins dentro de Integraciones ([`cfcefd0`](https://github.com/mitienda-pe/mitienda-admin/commit/cfcefd05a8b7baecd742b631d697d7f11fa1e84f))
+
 ## [v2.93.0] - 2026-10-16
 
 ### Novedades
