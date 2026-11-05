@@ -38,7 +38,8 @@ const DEFAULT_CONFIG: StoreConfig = {
   sw_limitarproducto: 0,
   tiendageneral_sw_ar_3d: 0,
   tiendageneral_sw_embeds: 0,
-  has_legacy_webhooks: false
+  has_legacy_webhooks: false,
+  has_netsuite: false
 }
 
 export const useStoreConfigStore = defineStore('store-config', () => {

@@ -163,6 +163,9 @@ export interface StoreConfig {
   // Derivado (solo lectura): la tienda tiene webhooks legacy configurados.
   // El sidebar muestra "Webhooks (legacy)" solo cuando es true.
   has_legacy_webhooks?: boolean
+  // Derivado (solo lectura): la tienda tiene NetSuite activo con credenciales
+  // completas. El sidebar muestra el grupo "NetSuite" solo cuando es true.
+  has_netsuite?: boolean
 }
 
 export interface StoreConfigUpdate {

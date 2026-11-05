@@ -543,18 +543,6 @@
               </ul>
             </li>
 
-            <!-- Beneficios (al final del menú) -->
-            <li>
-              <router-link
-                to="/benefits"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
-                active-class="bg-primary-50 text-primary font-medium"
-              >
-                <i class="pi pi-gift"></i>
-                <span>Beneficios</span>
-              </router-link>
-            </li>
-
             <!-- Volver a Administración (solo si está impersonando) -->
             <li v-if="adminStore.isImpersonating">
               <div class="border-t border-gray-200 my-4"></div>
@@ -1022,18 +1010,6 @@
                 </li>
               </ul>
             </li>
-            <!-- Beneficios (al final del menú) -->
-            <li>
-              <router-link
-                to="/benefits"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg text-secondary-600 hover:bg-primary-50 hover:text-primary transition-colors"
-                active-class="bg-primary-50 text-primary font-medium"
-                @click="sidebarVisible = false"
-              >
-                <i class="pi pi-gift"></i>
-                <span>Beneficios</span>
-              </router-link>
-            </li>
           </ul>
         </nav>
         <BenefitSlot class="mt-4" placement="sidebar" @click="sidebarVisible = false" />
@@ -1262,7 +1238,7 @@ const menuGroupFallbackRoutes: Array<[typeof salesExpandedRef, () => boolean]> =
   [contentExpandedRef, () => route.path.startsWith('/pages') || route.path.startsWith('/blog') || route.path.startsWith('/legal') || (route.path.startsWith('/content') && !route.path.startsWith('/content/template') && !route.path.startsWith('/content/components'))],
   [appearanceExpandedRef, () => route.path.startsWith('/appearance') || route.path.startsWith('/content/template') || route.path.startsWith('/content/components')],
   [shippingExpandedRef, () => route.path.startsWith('/shipping')],
-  [storeExpandedRef, () => route.path.startsWith('/store') || route.path.startsWith('/notifications') || route.path.startsWith('/payment-gateways')],
+  [storeExpandedRef, () => route.path.startsWith('/store') || route.path.startsWith('/notifications') || route.path.startsWith('/payment-gateways') || route.path.startsWith('/benefits')],
   [posExpandedRef, () => route.path.startsWith('/pos')],
 ]
 
@@ -1315,7 +1291,8 @@ const storeMenuItemsSource = [
   { label: 'SEO', icon: 'pi pi-globe', to: '/store/seo' },
   { label: 'Usuarios', icon: 'pi pi-users', to: '/store/users' },
   { label: 'Notificaciones', icon: 'pi pi-bell', to: '/notifications' },
-  { label: 'Formas de Pago', icon: 'pi pi-credit-card', to: '/payment-gateways' }
+  { label: 'Formas de Pago', icon: 'pi pi-credit-card', to: '/payment-gateways' },
+  { label: 'Beneficios', icon: 'pi pi-gift', to: '/benefits' }
 ]
 
 const storeMenuItems = computed(() => visibleItems(storeMenuItemsSource))
@@ -1507,7 +1484,11 @@ const configMenuItemsSource = [
   { label: 'Promociones', icon: 'pi pi-tags', to: '/configuracion/netsuite/promociones' }
 ]
 
-const configMenuItems = computed(() => visibleItems(configMenuItemsSource))
+// Solo tiendas con NetSuite activo (has_netsuite, hoy solo San Jorge). Mientras
+// carga la config queda oculto. La ruta sigue viva para superadmin/soporte.
+const configMenuItems = computed(() =>
+  storeConfigStore.savedConfig.has_netsuite ? visibleItems(configMenuItemsSource) : []
+)
 
 // Items del grupo POS
 interface PosMenuItem {
@@ -1612,7 +1593,7 @@ function openPosApp() {
 
 // Detectar si estamos en alguna ruta de Tu Tienda
 const isStoreActive = computed(() => {
-  return route.path.startsWith('/store') || route.path.startsWith('/notifications') || route.path.startsWith('/payment-gateways')
+  return route.path.startsWith('/store') || route.path.startsWith('/notifications') || route.path.startsWith('/payment-gateways') || route.path.startsWith('/benefits')
 })
 
 // Detectar si estamos en alguna ruta de reparto
