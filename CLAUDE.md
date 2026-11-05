@@ -27,8 +27,10 @@ scripts/release.sh --push      # also pushes to origin, which deploys
 
 [CHANGELOG.md](CHANGELOG.md) is generated from the conventional commits — **never edit it by hand**, `scripts/changelog.sh` overwrites it. The 21 existing `v2.x` tags already render as real release sections.
 
-- **Semver**, and `package.json` is the source of truth: that number feeds the "hay versión nueva" prompt ([useVersionCheck.ts](src/composables/useVersionCheck.ts)) and the `version.json` that Vite writes at build time, so it must not become a date. Config lives in [scripts/release.conf](scripts/release.conf).
-- If `package.json` already holds a version with no matching tag, `release.sh` adopts it instead of bumping past it. That is the current state: `package.json` is at 2.60.1 but the newest tag is `v2.59.0`, so the next release will be `v2.60.1`.
+- **Semver**, and `package.json` is the source of truth. Config lives in [scripts/release.conf](scripts/release.conf).
+- The "hay versión nueva" prompt ([useVersionCheck.ts](src/composables/useVersionCheck.ts)) does **not** depend on the bump: it compares `__BUILD_ID__` (`version+build timestamp`, see [vite.config.ts](vite.config.ts)), so it fires on every deploy. The version number is for traceability (tags, CHANGELOG), which is exactly why skipping the bump fails silently.
+- If `package.json` already holds a version with no matching tag, `release.sh` adopts it instead of bumping past it. Don't bump `package.json` by hand inside a feature commit — run the script.
+- **Deploy through the release, not a bare push.** After committing a `feat`/`fix`/`perf`/`refactor`, deploy with `scripts/release.sh --push` (patch by default; `minor` for a user-visible feature) instead of `git push origin main`. A bare push still deploys but leaves the work untagged: between 2026-10-16 and 2026-11-05 nobody ran it and 31 commits piled up into a single `v2.94.0`. It refuses to run with a dirty tree (another session's WIP blocks it — wait, don't stash their work), and `--push` sends every local commit: check `git log origin/main..HEAD` first.
 - Only `feat`, `fix`, `perf`, `refactor`, `revert` and breaking changes (`!` or `BREAKING CHANGE`) reach the changelog; `chore`/`docs`/`test`/`debug` are dropped unless you pass `--all`.
 
 ## Architecture
@@ -110,4 +112,4 @@ Dev proxy in `vite.config.ts` forwards `/api/v1` and `/auth` to `https://api2.mi
 
 ## Deployment
 
-Frontend deploys to Netlify automatically on `git push origin main`.
+Every push to `main` deploys via GitHub Actions → Cloudflare Pages (not Netlify). Deploy with `scripts/release.sh --push` (see Releases and changelog above).
