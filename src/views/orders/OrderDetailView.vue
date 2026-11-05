@@ -98,6 +98,16 @@ const canConfirmPayment = computed(() => {
   return canEdit.value && PAYABLE_STATUSES.includes(order.value?.status ?? '')
 })
 
+// "Motivo del rechazo" solo en ventas que no se cobraron. Los campos de error de
+// la pasarela quedan con texto aunque después se pague (nota de la confirmación,
+// un intento fallido previo), y en una venta pagada se leía como rechazo.
+const UNPAID_STATUSES = ['created', 'pending', 'cancelled', 'expired']
+const showRejectionReason = computed(() => {
+  const o = order.value
+  if (!o || !UNPAID_STATUSES.includes(o.status ?? '')) return false
+  return Boolean(o.gateway_error_user || o.gateway_error_store || o.status === 'cancelled')
+})
+
 const canCheckGateway = computed(() => {
   return PAYABLE_STATUSES.includes(order.value?.status ?? '')
 })
@@ -2094,7 +2104,7 @@ const handleDebugPayments = async () => {
 
                 <!-- Motivo de rechazo -->
                 <div
-                  v-else-if="order.gateway_error_user || order.gateway_error_store || order.status === 'cancelled'"
+                  v-else-if="showRejectionReason"
                   class="mt-3 p-3 rounded-lg border"
                   :class="order.status === 'cancelled' ? 'bg-red-50 border-red-200' : 'bg-yellow-50 border-yellow-200'"
                 >
