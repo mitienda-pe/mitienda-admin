@@ -352,7 +352,11 @@ const productIds = computed<number[]>(() =>
   props.effect.config?.product_ids || []
 )
 
-const hasMoreResults = computed(() => searchResults.value.length >= SEARCH_LIMIT)
+// Cuántos pidió la última búsqueda: SEARCH_LIMIT + los ya vinculados, porque
+// esos se descartan en el cliente. Con un tope fijo de 50, un efecto con 50
+// productos recientes vinculados dejaba el panel vacío (cupón 1740).
+const lastRequestedLimit = ref(SEARCH_LIMIT)
+const hasMoreResults = computed(() => searchResults.value.length >= lastRequestedLimit.value)
 
 // Productos rebajados que no activan la promo. La vitrina rebaja todo producto
 // del efecto, pero el checkout exige además cada condición "El carrito contiene
@@ -493,14 +497,17 @@ async function searchAvailableProducts() {
   const token = ++searchToken
   const term = searchUnlinked.value.trim()
 
+  const limit = SEARCH_LIMIT + productIds.value.length
+
   isSearching.value = true
   try {
     const response = await productsApi.getProducts({
       search: term || undefined,
-      limit: SEARCH_LIMIT,
+      limit,
       page: 1,
     })
     if (token !== searchToken) return
+    lastRequestedLimit.value = limit
     searchResults.value = (response.data || []).map(toProductItem)
   } catch {
     if (token !== searchToken) return
