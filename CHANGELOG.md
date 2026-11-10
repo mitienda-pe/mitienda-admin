@@ -3,6 +3,13 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.94.1] - 2026-11-10
+
+### Correcciones
+
+- **promociones:** panel de productos disponibles vacío con 50+ vinculados ([`4856b83`](https://github.com/mitienda-pe/mitienda-admin/commit/4856b83db709bd5bb309a1ec5d0d5f37b3e811c1))
+- **pedidos:** no mostrar "Motivo del rechazo" en ventas pagadas ([`d103e19`](https://github.com/mitienda-pe/mitienda-admin/commit/d103e190974826d04025725c1611f03d3d6ff6bc))
+
 ## [v2.94.0] - 2026-11-05
 
 ### Novedades
