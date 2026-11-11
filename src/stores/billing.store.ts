@@ -458,6 +458,26 @@ export const useBillingStore = defineStore('billing', () => {
     }
   }
 
+  async function verifySunatSol(data: {
+    ruc_emisor?: string
+    sol_user?: string
+    sol_pass?: string
+    environment?: string
+  }) {
+    try {
+      error.value = null
+      const response = await billingApi.verifySunatSol(data)
+      if (response.success && response.data) {
+        return { success: true, data: response.data }
+      }
+      error.value = response.message || 'No se pudo verificar la clave SOL'
+      return { success: false, error: error.value }
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'No se pudo verificar la clave SOL'
+      return { success: false, error: error.value }
+    }
+  }
+
   // Actions para KeyFácil (Perú)
   async function fetchKeyfacilConfig() {
     try {
@@ -572,6 +592,7 @@ export const useBillingStore = defineStore('billing', () => {
     deleteSunatConfig,
     testSunatConnection,
     inspectSunatCertificate,
+    verifySunatSol,
     fetchKeyfacilConfig,
     saveKeyfacilCredentials,
     deleteKeyfacilCredentials,

@@ -133,6 +133,25 @@
               </div>
             </div>
 
+            <div class="flex flex-wrap items-center gap-3">
+              <Button
+                label="Verificar clave SOL"
+                icon="pi pi-shield"
+                outlined
+                :disabled="verifyingSol || !form.sol_user || (!form.sol_pass && !isConfigured)"
+                :loading="verifyingSol"
+                @click="verificarSol"
+              />
+              <span v-if="solCheck" class="text-sm" :class="solCheckClass">
+                <i :class="solCheck.estado === 'ok' ? 'pi pi-check-circle' : 'pi pi-exclamation-triangle'"></i>
+                {{ solCheckTexto }}
+              </span>
+            </div>
+            <small class="text-gray-500 block -mt-2">
+              Se consulta a SUNAT sin emitir ningún comprobante ni gastar números de la serie.
+              {{ isConfigured && !form.sol_pass ? 'Sin clave escrita, se prueba la que está guardada.' : '' }}
+            </small>
+
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Certificado (.pfx o .p12){{ isConfigured ? '' : ' *' }}</label>
               <small v-if="isConfigured && credentials?.cert_expires_at" class="block text-gray-500 mb-1">
@@ -426,6 +445,51 @@ function onCertificateSelected(event: Event) {
     billingStore.error = 'No se pudo leer el archivo del certificado'
   }
   reader.readAsDataURL(file)
+}
+
+const verifyingSol = ref(false)
+const solCheck = ref<{ estado: string; code?: string; mensaje: string } | null>(null)
+
+const solCheckTexto = computed(() => {
+  const r = solCheck.value
+  if (!r) return ''
+  switch (r.estado) {
+    case 'ok':
+      return 'La clave SOL funciona y tiene permiso para enviar comprobantes.'
+    case 'credenciales_invalidas':
+      return `SUNAT no reconoce el usuario o la clave SOL. Revísalos. (${r.code})`
+    case 'sin_perfil':
+      return 'La clave es correcta, pero SUNAT no permite enviar comprobantes con ella (0111). ' +
+        'Revisa los permisos del usuario secundario, la afiliación al SEE – Del Contribuyente y que no tengas un OSE vigente.'
+    case 'sin_respuesta':
+      return 'SUNAT no respondió. Intenta de nuevo en unos minutos.'
+    default:
+      return `SUNAT respondió algo inesperado: ${r.mensaje}`
+  }
+})
+
+const solCheckClass = computed(() => {
+  switch (solCheck.value?.estado) {
+    case 'ok': return 'text-green-700'
+    case 'sin_respuesta':
+    case 'indeterminado': return 'text-amber-700'
+    default: return 'text-red-700'
+  }
+})
+
+async function verificarSol() {
+  verifyingSol.value = true
+  solCheck.value = null
+  const result = await billingStore.verifySunatSol({
+    ruc_emisor: form.ruc_emisor,
+    sol_user: form.sol_user,
+    sol_pass: form.sol_pass || undefined,
+    environment: form.environment,
+  })
+  verifyingSol.value = false
+  if (result.success) {
+    solCheck.value = result.data
+  }
 }
 
 async function inspectCertificate() {

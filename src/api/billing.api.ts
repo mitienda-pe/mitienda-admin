@@ -197,6 +197,20 @@ export const billingApi = {
     return response.data
   },
 
+  /**
+   * Prueba la clave SOL contra SUNAT sin emitir ni gastar un número de serie.
+   * Con la empresa registrada y sin clave nueva, prueba la guardada.
+   */
+  async verifySunatSol(data: {
+    ruc_emisor?: string
+    sol_user?: string
+    sol_pass?: string
+    environment?: string
+  }): Promise<ApiResponse<any>> {
+    const response = await apiClient.post('/billing/sunat/sol/verify', data)
+    return response.data
+  },
+
   // ========== KeyFácil (Perú) ==========
 
   /** Configuración actual. Nunca devuelve el token: solo `has_token`. */
