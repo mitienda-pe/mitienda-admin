@@ -312,12 +312,25 @@
           <Divider />
           <div class="flex flex-col gap-2">
             <Button
-              label="Probar conexión"
+              label="Probar configuración"
               icon="pi pi-bolt"
               outlined
-              :loading="billingStore.isTesting"
-              @click="testConnection"
+              :loading="probando"
+              @click="probarConfiguracion"
             />
+            <!-- Dos pruebas distintas: "Servicio" no sale de MiTienda; "Clave SOL"
+                 pregunta a SUNAT. Un "conexión correcta" solo no garantiza que
+                 se pueda emitir (Dental Bach: servicio OK y SUNAT con 0111). -->
+            <ul v-if="prueba" class="text-sm space-y-2 mt-1">
+              <li class="flex gap-2" :class="prueba.servicio.ok ? 'text-green-700' : 'text-red-700'">
+                <i :class="prueba.servicio.ok ? 'pi pi-check-circle' : 'pi pi-times-circle'" class="mt-0.5"></i>
+                <span><strong>Servicio de facturación:</strong> {{ prueba.servicio.texto }}</span>
+              </li>
+              <li class="flex gap-2" :class="prueba.sol.clase">
+                <i :class="prueba.sol.ok ? 'pi pi-check-circle' : 'pi pi-times-circle'" class="mt-0.5"></i>
+                <span><strong>Clave SOL ante SUNAT:</strong> {{ prueba.sol.texto }}</span>
+              </li>
+            </ul>
             <Button label="Eliminar configuración" icon="pi pi-trash" severity="danger" text @click="confirmDelete" />
           </div>
         </template>
@@ -588,12 +601,46 @@ async function save() {
   }
 }
 
-async function testConnection() {
-  const result = await billingStore.testSunatConnection()
-  if (result.success) {
-    const amb = result.data?.environment === 'produccion' ? 'producción' : 'pruebas'
-    billingStore.successMessage = `Conexión correcta. ${result.data?.razon_social || ''} en ${amb}.`
+const probando = ref(false)
+const prueba = ref<{
+  servicio: { ok: boolean; texto: string }
+  sol: { ok: boolean; texto: string; clase: string }
+} | null>(null)
+
+/**
+ * Corre las dos pruebas y muestra cada resultado por separado:
+ *  1. Servicio de facturación: MiTienda llega al servicio y el token sirve.
+ *     No consulta a SUNAT.
+ *  2. Clave SOL ante SUNAT: con la clave guardada, sin emitir ni gastar
+ *     números de la serie.
+ */
+async function probarConfiguracion() {
+  probando.value = true
+  prueba.value = null
+  billingStore.clearMessages()
+
+  const servicio = await billingStore.testSunatConnection()
+  const resServicio = servicio.success
+    ? {
+        ok: true,
+        texto: `funciona. ${servicio.data?.razon_social || ''} en ${servicio.data?.environment === 'produccion' ? 'producción' : 'pruebas'}.`,
+      }
+    : { ok: false, texto: servicio.error || 'no responde.' }
+
+  // Sin clave escrita, la API prueba la que está guardada.
+  const sol = await billingStore.verifySunatSol({ environment: credentials.value?.environment })
+  let resSol: { ok: boolean; texto: string; clase: string }
+  if (sol.success) {
+    solCheck.value = sol.data
+    resSol = { ok: sol.data.estado === 'ok', texto: solCheckTexto.value, clase: solCheckClass.value }
+  } else {
+    resSol = { ok: false, texto: sol.error || 'no se pudo verificar.', clase: 'text-red-700' }
   }
+
+  // Los resultados van en la tarjeta; no duplicarlos en el aviso general.
+  billingStore.clearMessages()
+  prueba.value = { servicio: resServicio, sol: resSol }
+  probando.value = false
 }
 
 function confirmDelete() {
