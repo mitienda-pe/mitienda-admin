@@ -388,7 +388,9 @@ export const useBillingStore = defineStore('billing', () => {
         ? await billingApi.updateSunatCompany(data)
         : await billingApi.saveSunatCompany(data)
       if (response.success) {
-        successMessage.value = 'Facturación MiTienda configurada correctamente'
+        successMessage.value = isUpdate
+          ? 'Cambios guardados'
+          : 'Facturación MiTienda configurada correctamente'
         await fetchSunatConfig()
         return { success: true }
       }

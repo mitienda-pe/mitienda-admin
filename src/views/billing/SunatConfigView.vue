@@ -92,6 +92,15 @@
                 <InputText v-model="form.distrito" class="w-full" placeholder="MIRAFLORES" />
               </div>
             </div>
+            <div v-if="isConfigured" class="flex justify-end">
+              <Button
+                label="Guardar datos de la empresa"
+                icon="pi pi-save"
+                outlined
+                :loading="billingStore.isSaving"
+                @click="guardarPaso(1)"
+              />
+            </div>
           </div>
         </template>
       </Card>
@@ -118,13 +127,17 @@
                 <InputText v-model="form.sol_user" class="w-full" placeholder="MODDATOS" />
               </div>
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Clave SOL *</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Clave SOL{{ isConfigured ? '' : ' *' }}</label>
                 <Password v-model="form.sol_pass" class="w-full" :feedback="false" toggleMask />
+                <small v-if="isConfigured" class="text-gray-500">Déjala vacía para mantener la clave actual.</small>
               </div>
             </div>
 
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Certificado (.pfx o .p12) *</label>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Certificado (.pfx o .p12){{ isConfigured ? '' : ' *' }}</label>
+              <small v-if="isConfigured && credentials?.cert_expires_at" class="block text-gray-500 mb-1">
+                Certificado actual vigente hasta {{ formatDate(credentials.cert_expires_at) }}. Carga uno solo si lo vas a reemplazar.
+              </small>
               <input
                 type="file"
                 accept=".pfx,.p12"
@@ -157,6 +170,16 @@
               Verificarlo acá evita descubrir que está vencido o que la contraseña
               no es la correcta recién al emitir tu primera venta.
             </small>
+            <div v-if="isConfigured" class="flex justify-end">
+              <Button
+                label="Guardar clave SOL y certificado"
+                icon="pi pi-save"
+                outlined
+                :disabled="!form.sol_pass && !form.certificado"
+                :loading="billingStore.isSaving"
+                @click="guardarPaso(2)"
+              />
+            </div>
           </div>
         </template>
       </Card>
@@ -426,8 +449,13 @@ function siguiente() {
       return
     }
   }
+  if (paso.value === 1 && !/^\d{6}$/.test(form.ubigeo.trim())) {
+    billingStore.error = 'El ubigeo debe tener 6 dígitos'
+    return
+  }
   if (paso.value === 2) {
-    if (!form.sol_user || !form.sol_pass) {
+    // Con la empresa registrada, la clave SOL vacía conserva la actual.
+    if (!form.sol_user || (!form.sol_pass && !isConfigured.value)) {
       billingStore.error = 'El usuario y la clave SOL son obligatorios'
       return
     }
@@ -438,6 +466,55 @@ function siguiente() {
   }
   billingStore.clearMessages()
   paso.value++
+}
+
+/**
+ * Guarda solo un paso, con la empresa ya registrada. La API manda al servicio
+ * de facturación únicamente lo que llega: corregir el domicilio no exige
+ * volver a cargar la clave SOL ni el certificado.
+ */
+async function guardarPaso(n: 1 | 2) {
+  let datos: Record<string, string>
+  if (n === 1) {
+    if (!form.razon_social.trim()) {
+      billingStore.error = 'La razón social es obligatoria'
+      return
+    }
+    if (!/^\d{6}$/.test(form.ubigeo.trim())) {
+      billingStore.error = 'El ubigeo debe tener 6 dígitos'
+      return
+    }
+    datos = {
+      razon_social: form.razon_social,
+      nombre_comercial: form.nombre_comercial,
+      direccion: form.direccion,
+      ubigeo: form.ubigeo.trim(),
+      departamento: form.departamento,
+      provincia: form.provincia,
+      distrito: form.distrito,
+    }
+  } else {
+    if (form.sol_pass && !form.sol_user) {
+      billingStore.error = 'Falta el usuario SOL'
+      return
+    }
+    datos = {
+      sol_user: form.sol_user,
+      sol_pass: form.sol_pass,
+      certificado: form.certificado,
+      cert_password: form.cert_password,
+    }
+  }
+
+  const result = await billingStore.saveSunatCompany(datos, true)
+  if (result.success && n === 2) {
+    // Los secretos no se guardan en el navegador una vez enviados.
+    form.sol_pass = ''
+    form.certificado = ''
+    form.cert_password = ''
+    certFileName.value = ''
+    certInfo.value = null
+  }
 }
 
 async function save() {
