@@ -43,13 +43,6 @@
           <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
             {{ store.plan.name }}
           </span>
-          <span
-            v-if="store.ssl_enabled"
-            class="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full flex items-center gap-1"
-          >
-            <i class="pi pi-lock"></i>
-            SSL
-          </span>
         </div>
 
         <!-- Dates -->

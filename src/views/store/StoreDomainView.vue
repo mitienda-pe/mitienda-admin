@@ -453,17 +453,12 @@ onMounted(() => {
           <div class="border-t border-gray-100 pt-4">
             <div class="flex items-center gap-2 mb-1">
               <span class="text-sm font-medium text-secondary-700">Certificado SSL</span>
+              <!-- Caddy emite el certificado solo apenas el DNS apunta: no hay paso manual (tienda_ssl ya no se usa). -->
               <AppBadge
-                v-if="store.savedSettings.tienda_ssl === 1"
+                v-if="store.savedSettings.tienda_dominio_verificado === 1"
                 variant="success"
               >
                 SSL Activo
-              </AppBadge>
-              <AppBadge
-                v-else-if="store.savedSettings.tienda_dominio_verificado === 1"
-                variant="warning"
-              >
-                SSL Pendiente
               </AppBadge>
               <AppBadge v-else variant="neutral">
                 SSL No disponible
