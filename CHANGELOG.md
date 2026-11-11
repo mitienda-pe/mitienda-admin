@@ -3,6 +3,19 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.95.0] - 2026-11-11
+
+### Novedades
+
+- **facturación:** "Probar configuración" separa servicio y clave SOL ([`d50d03d`](https://github.com/mitienda-pe/mitienda-admin/commit/d50d03d34f6aa27e80372ed1109fe704692a1af1))
+- **facturación:** botón "Verificar clave SOL" en el asistente ([`70681a1`](https://github.com/mitienda-pe/mitienda-admin/commit/70681a14df9d419fe13f8249dfbd4a49b7c6c26f))
+- **facturación:** el asistente de Facturación MiTienda guarda por pasos ([`b32b318`](https://github.com/mitienda-pe/mitienda-admin/commit/b32b318b5b7af4858716cb59bf58f97b418b8885))
+
+### Correcciones
+
+- **facturación:** el asistente de Facturación MiTienda carga los datos registrados de la empresa ([`7328ae7`](https://github.com/mitienda-pe/mitienda-admin/commit/7328ae75c88f6354491015b6092ccb5f4b68b5e0))
+- **domain:** el SSL figura activo apenas se verifica el dominio ([`e842840`](https://github.com/mitienda-pe/mitienda-admin/commit/e84284074b9894aac399a6f72e3dbc6e4dd82779))
+
 ## [v2.94.1] - 2026-11-10
 
 ### Correcciones
