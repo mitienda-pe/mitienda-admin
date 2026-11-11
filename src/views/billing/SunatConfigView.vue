@@ -368,6 +368,22 @@ onMounted(async () => {
     form.environment = creds.environment || 'beta'
     form.blocked = billingStore.sunatConfig?.blocked ?? true
   }
+
+  // Razón social, domicilio y usuario SOL viven solo en el microservicio; la
+  // API los trae de allá. Sin esto el formulario se abría vacío y guardar
+  // pisaba los datos registrados. La clave SOL y el certificado nunca vuelven.
+  const company = billingStore.sunatConfig?.company
+  if (company) {
+    form.ruc_emisor = company.ruc || form.ruc_emisor
+    form.razon_social = company.razon_social || ''
+    form.nombre_comercial = company.nombre_comercial || ''
+    form.direccion = company.direccion || ''
+    form.ubigeo = company.ubigeo || form.ubigeo
+    form.departamento = company.departamento || ''
+    form.provincia = company.provincia || ''
+    form.distrito = company.distrito || ''
+    form.sol_user = company.sol_user || ''
+  }
 })
 
 function onCertificateSelected(event: Event) {
