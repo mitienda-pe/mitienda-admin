@@ -27,11 +27,18 @@ export interface ComboProduct {
   producto_precio?: number
   producto_imagen?: string
   producto_sku?: string
+  producto_sw_preciofijo?: number | string
+  /** Variante fija del producto en el combo; null = producto simple. */
+  productoatributo_id?: number | null
+  variante_nombre?: string | null
+  variante_sku?: string | null
 }
 
 export interface ComboProductInput {
   producto_id: number
   cantidad?: number
+  /** Obligatoria si el producto tiene variantes: el combo es un paquete cerrado. */
+  productoatributo_id?: number | null
 }
 
 export interface ComboCreateRequest {

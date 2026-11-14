@@ -100,8 +100,8 @@
           <div v-if="comboProducts.length > 0" class="border rounded-lg divide-y">
             <div
               v-for="(product, index) in comboProducts"
-              :key="product.producto_id"
-              class="flex items-center justify-between p-3"
+              :key="product.uid"
+              class="flex items-center justify-between gap-3 p-3"
             >
               <div class="flex items-center gap-3 flex-1">
                 <span class="text-secondary-400 w-6">{{ index + 1 }}.</span>
@@ -113,9 +113,34 @@
                 <div v-else class="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
                   <i class="pi pi-image text-gray-400"></i>
                 </div>
-                <div class="flex-1">
+                <div class="flex-1 min-w-0">
                   <div class="font-medium">{{ product.producto_nombre }}</div>
-                  <div class="text-xs text-gray-500">{{ formatCurrency(product.producto_precio) }} c/u</div>
+                  <div class="text-xs text-gray-500">{{ formatCurrency(linePrice(product)) }} c/u</div>
+
+                  <span v-if="product.cargandoVariantes" class="text-xs text-secondary-400">
+                    Buscando variantes…
+                  </span>
+                  <!-- Producto con variantes: el combo es un paquete cerrado, así
+                       que la variante la fija el comerciante. Sin ella el pedido
+                       sale sin SKU y no se puede despachar. -->
+                  <template v-else-if="product.has_variants">
+                    <Select
+                      v-model="product.productoatributo_id"
+                      :options="product.variantes"
+                      optionLabel="names"
+                      optionValue="id"
+                      placeholder="Elige la variante"
+                      class="mt-1 w-full"
+                      :class="{ 'p-invalid': showVariantErrors && !product.productoatributo_id }"
+                      @change="recalculateRegularPrice"
+                    />
+                    <small
+                      v-if="showVariantErrors && !product.productoatributo_id"
+                      class="text-red-500"
+                    >
+                      Elige qué variante incluye el combo
+                    </small>
+                  </template>
                 </div>
               </div>
 
@@ -135,7 +160,7 @@
                 </div>
                 <div class="text-right w-20">
                   <div class="text-sm font-medium">
-                    {{ formatCurrency(product.producto_precio * product.cantidad) }}
+                    {{ formatCurrency(linePrice(product) * product.cantidad) }}
                   </div>
                 </div>
                 <Button
@@ -144,7 +169,7 @@
                   rounded
                   size="small"
                   severity="danger"
-                  @click="removeProduct(product.producto_id)"
+                  @click="removeProduct(product.uid)"
                 />
               </div>
             </div>
@@ -304,15 +329,30 @@ import InputNumber from 'primevue/inputnumber'
 import InputSwitch from 'primevue/inputswitch'
 import Textarea from 'primevue/textarea'
 import AutoComplete from 'primevue/autocomplete'
+import Select from 'primevue/dropdown'
 import ProgressSpinner from 'primevue/progressspinner'
 
+interface VariantOption {
+  id: number
+  names: string
+  price: number
+}
+
 interface ComboProductItem {
+  /** Clave de la fila: el mismo producto puede ir dos veces con variantes distintas. */
+  uid: number
   producto_id: number
   producto_nombre: string
   producto_precio: number
   producto_imagen?: string
   cantidad: number
+  has_variants: boolean
+  variantes: VariantOption[]
+  productoatributo_id: number | null
+  cargandoVariantes: boolean
 }
+
+let nextUid = 1
 
 const router = useRouter()
 const route = useRoute()
@@ -345,10 +385,17 @@ const imageFile = ref<File | null>(null)
 // Search
 const productSearchQuery = ref('')
 const productSearchResults = ref<ComboProductItem[]>([])
+const showVariantErrors = ref(false)
+
+// Con variante elegida, la línea vale lo que la variante (es lo que se cobra).
+const linePrice = (p: ComboProductItem): number => {
+  const v = p.variantes.find(x => x.id === p.productoatributo_id)
+  return v && Number(v.price) > 0 ? Number(v.price) : p.producto_precio
+}
 
 // Computed
 const calculatedRegularPrice = computed(() => {
-  return comboProducts.value.reduce((sum, p) => sum + (p.producto_precio * p.cantidad), 0)
+  return comboProducts.value.reduce((sum, p) => sum + (linePrice(p) * p.cantidad), 0)
 })
 
 const savingsPercent = computed(() => {
@@ -422,14 +469,21 @@ const searchProducts = async (event: { query: string }) => {
 
   try {
     const response = await productsApi.getProducts({ search: event.query, limit: 10 })
+    // Un producto simple va una sola vez; uno con variantes puede repetirse
+    // (p. ej. guantes XS y M), cada fila con su variante.
     productSearchResults.value = response.data
-      .filter((p: Product) => !p.has_variation_attributes && !comboProducts.value.some(cp => cp.producto_id === p.id))
+      .filter((p: Product) => !!p.has_variation_attributes || !comboProducts.value.some(cp => cp.producto_id === p.id))
       .map((p: Product) => ({
+        uid: 0,
         producto_id: p.id,
         producto_nombre: p.name,
         producto_precio: p.price,
         producto_imagen: p.images?.[0]?.url,
-        cantidad: 1
+        cantidad: 1,
+        has_variants: !!p.has_variation_attributes,
+        variantes: [],
+        productoatributo_id: null,
+        cargandoVariantes: false
       }))
   } catch {
     productSearchResults.value = []
@@ -437,16 +491,49 @@ const searchProducts = async (event: { query: string }) => {
 }
 
 // Add/remove products
-const addProduct = (event: { value: ComboProductItem }) => {
-  if (!comboProducts.value.some(p => p.producto_id === event.value.producto_id)) {
-    comboProducts.value.push({ ...event.value, cantidad: 1 })
-    recalculateRegularPrice()
+// Carga las variantes activas de la fila. Con una sola no hay nada que elegir.
+// Si la guardada ya no está activa, queda sin elegir para que se corrija.
+const loadVariants = async (item: ComboProductItem) => {
+  item.cargandoVariantes = true
+  try {
+    const res = await productsApi.getVariants(item.producto_id)
+    item.variantes = (res.data?.variants ?? [])
+      .filter((v): v is typeof v & { id: number } => typeof v.id === 'number')
+      .map(v => ({ id: v.id, names: v.names || `Variante ${v.id}`, price: Number(v.price) || 0 }))
+  } catch {
+    item.variantes = []
+  } finally {
+    item.cargandoVariantes = false
   }
-  productSearchQuery.value = ''
+
+  if (item.variantes.length === 0) {
+    // Sin variantes activas se comporta como producto simple.
+    item.has_variants = false
+    item.productoatributo_id = null
+  } else if (item.productoatributo_id && !item.variantes.some(v => v.id === item.productoatributo_id)) {
+    item.productoatributo_id = null
+  } else if (!item.productoatributo_id && item.variantes.length === 1) {
+    item.productoatributo_id = item.variantes[0]!.id
+  }
 }
 
-const removeProduct = (productoId: number) => {
-  comboProducts.value = comboProducts.value.filter(p => p.producto_id !== productoId)
+const addProduct = async (event: { value: ComboProductItem }) => {
+  const isDuplicateSimple = !event.value.has_variants
+    && comboProducts.value.some(p => p.producto_id === event.value.producto_id)
+  productSearchQuery.value = ''
+  if (isDuplicateSimple) return
+
+  comboProducts.value.push({ ...event.value, uid: nextUid++, cantidad: 1, variantes: [], productoatributo_id: null })
+  // Leer la fila desde el array reactivo para que la carga se refleje en pantalla.
+  const item = comboProducts.value[comboProducts.value.length - 1]!
+  if (item.has_variants) {
+    await loadVariants(item)
+  }
+  recalculateRegularPrice()
+}
+
+const removeProduct = (uid: number) => {
+  comboProducts.value = comboProducts.value.filter(p => p.uid !== uid)
   recalculateRegularPrice()
 }
 
@@ -469,6 +556,33 @@ const validateForm = (): boolean => {
 
   if (!formData.value.tiendacombo_precio || formData.value.tiendacombo_precio <= 0) {
     formErrors.value.precio = 'El precio es requerido y debe ser mayor a 0'
+  }
+
+  const sinVariante = comboProducts.value.filter(p => p.has_variants && !p.productoatributo_id)
+  if (sinVariante.length > 0) {
+    showVariantErrors.value = true
+    toast.add({
+      severity: 'warn',
+      summary: 'Atención',
+      detail: `Elige la variante de: ${sinVariante.map(p => p.producto_nombre).join(', ')}`,
+      life: 5000
+    })
+    return false
+  }
+
+  const vistos = new Set<string>()
+  for (const p of comboProducts.value) {
+    const key = `${p.producto_id}:${p.productoatributo_id ?? 0}`
+    if (vistos.has(key)) {
+      toast.add({
+        severity: 'warn',
+        summary: 'Atención',
+        detail: `"${p.producto_nombre}" está repetido con la misma variante`,
+        life: 5000
+      })
+      return false
+    }
+    vistos.add(key)
   }
 
   if (comboProducts.value.length === 0) {
@@ -500,7 +614,8 @@ const saveCombo = async () => {
       tiendacombo_activo: formActive.value ? 1 : 0,
       products: comboProducts.value.map(p => ({
         producto_id: p.producto_id,
-        cantidad: p.cantidad
+        cantidad: p.cantidad,
+        productoatributo_id: p.has_variants ? p.productoatributo_id : null
       }))
     }
 
@@ -558,12 +673,21 @@ onMounted(async () => {
       // Load products
       if (combo.products) {
         comboProducts.value = combo.products.map(p => ({
+          uid: nextUid++,
           producto_id: p.producto_id,
           producto_nombre: p.producto_nombre || '',
-          producto_precio: p.producto_precio || 0,
+          producto_precio: Number(p.producto_precio) || 0,
           producto_imagen: p.producto_imagen,
-          cantidad: p.tiendacomboproducto_cantidad
+          cantidad: p.tiendacomboproducto_cantidad,
+          has_variants: Number(p.producto_sw_preciofijo) === 0,
+          variantes: [],
+          productoatributo_id: p.productoatributo_id ? Number(p.productoatributo_id) : null,
+          cargandoVariantes: false
         }))
+        await Promise.all(comboProducts.value.filter(p => p.has_variants).map(loadVariants))
+        // Combos armados antes de poder fijar la variante: marcar de entrada
+        // las filas que faltan, para que el comerciante vea qué completar.
+        showVariantErrors.value = comboProducts.value.some(p => p.has_variants && !p.productoatributo_id)
       }
     }
     isLoading.value = false
