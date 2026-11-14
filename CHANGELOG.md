@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.95.1] - 2026-11-14
+
+### Novedades
+
+- **combos:** elegir la variante de cada producto con variantes del combo ([`ff06d45`](https://github.com/mitienda-pe/mitienda-admin/commit/ff06d452c3ad30ac619b93f67244119285feddae))
+
 ## [v2.95.0] - 2026-11-11
 
 ### Novedades
