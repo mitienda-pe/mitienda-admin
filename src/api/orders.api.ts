@@ -30,8 +30,11 @@ export interface OrdersFilters {
   page?: number
   limit?: number
   search?: string
-  /** 'with_balance': pendientes con abonos, no es un estado de pago. */
-  status?: OrderStatus | 'all' | 'with_balance'
+  /**
+   * 'with_balance': pendientes con abonos. 'service_pending': pedidos de solo
+   * servicios pagados y sin atender. Ninguno es un estado de pago.
+   */
+  status?: OrderStatus | 'all' | 'with_balance' | 'service_pending'
   date_from?: string
   date_to?: string
   billed?: '1' | '0' | 'all'
@@ -148,6 +151,8 @@ export const ordersApi = {
     if (filters.search) params.append('search', filters.search)
     if (filters.status === 'with_balance') {
       params.append('with_balance', '1')
+    } else if (filters.status === 'service_pending') {
+      params.append('service_pending', '1')
     } else if (filters.status && filters.status !== 'all') {
       // Convertir el status del frontend al código de pago del backend
       params.append('status', statusToPaymentCode(filters.status))
@@ -207,6 +212,7 @@ export const ordersApi = {
               updated_at: order.date_created || '',
               notes: shipping.receiver_address?.comment || undefined,
               dispatch_state: order.dispatch_state || null,
+              service_only: order.service_only === true,
               partial_payment: order.partial_payment || null,
               // Estado de sincronización con el ERP/WMS. Solo viene si la tienda
               // tiene una integración que escriba estado.
@@ -398,6 +404,8 @@ export const ordersApi = {
           delivery_time: shipping.delivery_time ?? null,
           promised_delivery: shipping.promised_delivery ?? null,
         },
+        dispatch_state: rawData.dispatch_state || null,
+        service_only: rawData.service_only === true,
         shipping_history: Array.isArray(rawData.shipping_history)
           ? rawData.shipping_history.map((ev: any) => ({
               tiendaestado_id: Number(ev.tiendaestado_id) || 0,

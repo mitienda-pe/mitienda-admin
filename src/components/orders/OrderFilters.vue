@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import Dropdown from 'primevue/dropdown'
 import Calendar from 'primevue/calendar'
 import Button from 'primevue/button'
@@ -8,7 +8,7 @@ import type { OrderStatus } from '@/types/order.types'
 export type BilledFilter = 'all' | '1' | '0'
 
 export interface OrderFiltersData {
-  status: OrderStatus | 'all' | 'with_balance'
+  status: OrderStatus | 'all' | 'with_balance' | 'service_pending'
   dateFrom: Date | null
   dateTo: Date | null
   billed: BilledFilter
@@ -25,6 +25,12 @@ const emit = defineEmits<{
 
 const localFilters = ref<OrderFiltersData>({ ...props.modelValue })
 
+// El padre también cambia filtros (p. ej. el atajo "Ver solo los servicios por
+// atender"); sin esto el desplegable seguiría mostrando el valor anterior.
+watch(() => props.modelValue, (value) => {
+  localFilters.value = { ...value }
+})
+
 // Solo estados de PAGO (no estados de envío).
 // "Todos los estados" trae todo menos el 9 = Creado, que es el carrito
 // abandonado en la pasarela y no una venta.
@@ -33,6 +39,8 @@ const statusOptions = [
   { label: 'Pendiente', value: 'pending' },       // 2
   // Pendientes con abonos registrados: lo que todavía le deben a la tienda.
   { label: 'Con saldo por cobrar', value: 'with_balance' },
+  // Pagados que son solo de servicios y nadie marcó como atendidos.
+  { label: 'Servicios por atender', value: 'service_pending' },
   // 9: pagos asíncronos (PagoEfectivo, agentes) que se cobran después del
   // checkout. El listado los esconde por defecto; este filtro es la única
   // forma de revisarlos sin buscarlos uno por uno.

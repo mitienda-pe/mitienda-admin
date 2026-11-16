@@ -1,16 +1,20 @@
 <script setup lang="ts">
 import BenefitSlot from '@/components/benefits/BenefitSlot.vue'
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useOrdersStore } from '@/stores/orders.store'
 import { usePlanStore } from '@/stores/plan.store'
 import SearchBar from '@/components/common/SearchBar.vue'
 import OrderFilters from '@/components/orders/OrderFilters.vue'
 import { useFormatters } from '@/composables/useFormatters'
+import { isAttendableService, useServiceAttended } from '@/composables/useServiceAttended'
 import DataTable, { type DataTableSortEvent, type DataTablePageEvent, type DataTableRowClickEvent } from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
+import Checkbox from 'primevue/checkbox'
+import Dialog from 'primevue/dialog'
+import { useToast } from 'primevue/usetoast'
 import type { Order, OrderStatus } from '@/types/order.types'
 import type { OrderFiltersData } from '@/components/orders/OrderFilters.vue'
 import type { OrderSortField } from '@/api/orders.api'
@@ -83,9 +87,76 @@ const sortOrderComputed = computed(() => (ordersStore.sort.dir === 'asc' ? 1 : -
 const firstRow = computed(() => (ordersStore.pagination.page - 1) * ordersStore.pagination.limit)
 const totalOrders = computed(() => ordersStore.pagination.total)
 
-// La columna solo aplica a tiendas con el panel de Despacho habilitado; en el
-// resto los estados 30-39 nunca se registran y saldría siempre vacía.
-const showDispatchColumn = computed(() => planStore.isModuleEnabled('mod_panel_despacho'))
+// La columna aplica a tiendas con el panel de Despacho habilitado; en el resto
+// los estados 30-39 nunca se registran y saldría siempre vacía. La excepción son
+// los pedidos de servicios, que se cierran desde acá aunque no haya panel.
+const hasServiceOrders = computed(() => ordersStore.orders.some(o => o.service_only === true))
+const showDispatchColumn = computed(() =>
+  planStore.isModuleEnabled('mod_panel_despacho') || hasServiceOrders.value
+)
+
+// ─── Servicios por atender ───────────────────────────────────────────────
+// Un servicio no se despacha. Se cierra con "Marcar como atendido", de a uno
+// o en lote sobre los pedidos de la página.
+const toast = useToast()
+const { isSaving: isAttending, markAttended } = useServiceAttended()
+
+const attendableOrders = computed(() => ordersStore.orders.filter(isAttendableService))
+const selectedIds = ref<Set<number>>(new Set())
+const showAttendDialog = ref(false)
+const notifyCustomers = ref(false)
+
+// La selección vale solo para la página visible
+watch(() => ordersStore.orders, () => { selectedIds.value = new Set() })
+
+const allAttendableSelected = computed(() =>
+  attendableOrders.value.length > 0
+  && attendableOrders.value.every(o => selectedIds.value.has(o.id))
+)
+
+const toggleSelected = (id: number) => {
+  const next = new Set(selectedIds.value)
+  if (next.has(id)) next.delete(id)
+  else next.add(id)
+  selectedIds.value = next
+}
+
+const toggleAllAttendable = () => {
+  selectedIds.value = allAttendableSelected.value
+    ? new Set()
+    : new Set(attendableOrders.value.map(o => o.id))
+}
+
+const showOnlyPendingServices = () => {
+  filters.value = { ...filters.value, status: 'service_pending' }
+  handleFiltersChange(filters.value)
+}
+
+const confirmAttend = async () => {
+  const ids = [...selectedIds.value]
+  if (ids.length === 0) return
+
+  try {
+    const { success, errors } = await markAttended(ids, notifyCustomers.value)
+    toast.add({
+      severity: errors > 0 ? 'warn' : 'success',
+      summary: success === 1 ? 'Pedido atendido' : 'Pedidos atendidos',
+      detail: errors > 0
+        ? `${success} marcados como atendidos, ${errors} no se pudieron cambiar`
+        : `${success} ${success === 1 ? 'pedido marcado' : 'pedidos marcados'} como atendidos`,
+      life: 4000
+    })
+    showAttendDialog.value = false
+    ordersStore.fetchOrders()
+  } catch (err: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: err?.response?.data?.messages?.error || 'No se pudieron marcar los pedidos como atendidos',
+      life: 4000
+    })
+  }
+}
 
 // Sincronización con el ERP/WMS. El backend solo manda `sync` en las órdenes de
 // tiendas con una integración que escriba estado; sin eso la columna sobra.
@@ -197,6 +268,50 @@ const billingType = (order: Order) => {
       @clear="handleClearFilters"
     />
 
+    <!-- Servicios por atender: un servicio no se despacha, se marca atendido -->
+    <div
+      v-if="!ordersStore.error && attendableOrders.length > 0"
+      class="flex flex-col gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <div class="flex items-start gap-3">
+        <i class="pi pi-briefcase mt-0.5 text-primary"></i>
+        <div>
+          <p class="font-medium text-gray-900">
+            {{ attendableOrders.length }}
+            {{ attendableOrders.length === 1 ? 'pedido de servicios por atender' : 'pedidos de servicios por atender' }}
+            en esta página
+          </p>
+          <p class="text-sm text-gray-600">
+            Selecciónalos y márcalos como atendidos cuando el servicio se haya realizado.
+            <button
+              v-if="filters.status !== 'service_pending'"
+              type="button"
+              class="font-medium text-primary hover:underline"
+              @click="showOnlyPendingServices"
+            >
+              Ver solo los servicios por atender
+            </button>
+          </p>
+        </div>
+      </div>
+      <div class="flex shrink-0 gap-2">
+        <Button
+          :label="allAttendableSelected ? 'Quitar selección' : 'Seleccionar todos'"
+          severity="secondary"
+          outlined
+          size="small"
+          @click="toggleAllAttendable"
+        />
+        <Button
+          :label="`Marcar como atendidos${selectedIds.size ? ` (${selectedIds.size})` : ''}`"
+          icon="pi pi-check"
+          size="small"
+          :disabled="selectedIds.size === 0"
+          @click="showAttendDialog = true"
+        />
+      </div>
+    </div>
+
     <!-- Error -->
     <div
       v-if="ordersStore.error"
@@ -258,6 +373,20 @@ const billingType = (order: Order) => {
             />
           </div>
         </template>
+
+        <!-- Selección: solo para pedidos de servicios por atender -->
+        <Column v-if="attendableOrders.length > 0" header="" style="width: 3rem">
+          <template #body="{ data }">
+            <div v-if="isAttendableService(data)" @click.stop>
+              <Checkbox
+                :model-value="selectedIds.has(data.id)"
+                binary
+                :aria-label="`Seleccionar pedido ${data.order_number}`"
+                @update:model-value="toggleSelected(data.id)"
+              />
+            </div>
+          </template>
+        </Column>
 
         <Column field="code" header="Pedido" :sortable="true">
           <template #body="{ data }">
@@ -356,6 +485,30 @@ const billingType = (order: Order) => {
         </Column>
       </DataTable>
     </div>
+
+    <Dialog
+      v-model:visible="showAttendDialog"
+      modal
+      header="Marcar como atendidos"
+      :style="{ width: '28rem' }"
+      :breakpoints="{ '640px': '92vw' }"
+    >
+      <div class="space-y-4">
+        <p class="text-gray-700">
+          {{ selectedIds.size === 1
+            ? 'El pedido seleccionado quedará como "Servicio atendido".'
+            : `Los ${selectedIds.size} pedidos seleccionados quedarán como "Servicio atendido".` }}
+        </p>
+        <label class="flex items-start gap-2 text-sm text-gray-700">
+          <Checkbox v-model="notifyCustomers" binary input-id="notify-attended" />
+          <span>Avisar por correo a cada cliente que su servicio fue atendido</span>
+        </label>
+      </div>
+      <template #footer>
+        <Button label="Cancelar" severity="secondary" text @click="showAttendDialog = false" />
+        <Button label="Marcar como atendidos" icon="pi pi-check" :loading="isAttending" @click="confirmAttend" />
+      </template>
+    </Dialog>
 
     <BenefitSlot class="mt-6" placement="orders" />
   </div>

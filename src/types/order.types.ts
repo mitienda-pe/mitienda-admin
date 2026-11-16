@@ -35,8 +35,14 @@ export interface Order {
    * pone en negrita las que no, como una bandeja de entrada.
    */
   viewed?: boolean
-  /** Estado de despacho vigente. Solo viene en el listado de pedidos. */
+  /** Estado de despacho vigente (listado y detalle de pedidos). */
   dispatch_state?: { id: number; name: string | null } | null
+  /**
+   * Pedido de solo servicios: no tiene paquete que despachar. Se cierra con
+   * "Marcar como atendido" (estado 34, que en estos pedidos se llama
+   * "Servicio atendido").
+   */
+  service_only?: boolean
   /**
    * Código crudo de `tiendaventa_estado_notif_erp`. Ojo: NO significa lo mismo
    * según qué integración lo escribió (para NetSuite 0 = éxito, para Contanet y

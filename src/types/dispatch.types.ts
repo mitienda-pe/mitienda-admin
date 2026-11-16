@@ -28,6 +28,8 @@ export interface DispatchOrder {
   payment_date: string | null
   delivery_date: string | null
   dispatch_state: DispatchState
+  /** Pedido de solo servicios: el 34 viene rotulado "Servicio atendido". */
+  service_only?: boolean
   tracking_code: string | null
   tracking_url: string | null
   delivery_proof_url: string | null
@@ -62,6 +64,8 @@ export interface DispatchOrderDetail {
   }
   delivery_proof_url: string | null
   dispatch_state: DispatchState
+  /** Pedido de solo servicios: el 34 viene rotulado "Servicio atendido". */
+  service_only?: boolean
   available_transitions: number[]
   order_date: string
   payment_date: string | null

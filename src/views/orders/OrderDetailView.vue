@@ -6,6 +6,7 @@ import { useStoreInfoStore } from '@/stores/store-info.store'
 import { useBadgeCountsStore } from '@/stores/badge-counts.store'
 import { useFormatters } from '@/composables/useFormatters'
 import { useOrderDownloads, printableFromOrder, type PrintableOrder } from '@/composables/useOrderDownloads'
+import { isAttendableService, useServiceAttended } from '@/composables/useServiceAttended'
 import ShippingLabelDialog from '@/components/orders/ShippingLabelDialog.vue'
 import { useToast } from 'primevue/usetoast'
 import { useReadOnly } from '@/composables/useReadOnly'
@@ -18,6 +19,7 @@ import Timeline from 'primevue/timeline'
 import Menu from 'primevue/menu'
 import Dialog from 'primevue/dialog'
 import Textarea from 'primevue/textarea'
+import Checkbox from 'primevue/checkbox'
 import AppInput from '@/components/ui/AppInput.vue'
 import AppBadge from '@/components/ui/AppBadge.vue'
 import EmitDocumentDialog from '@/components/billing/EmitDocumentDialog.vue'
@@ -129,6 +131,32 @@ const voidError = ref<string | null>(null)
 const isVoiding = ref(false)
 
 const canVoidOrder = computed(() => canEdit.value && order.value?.status === 'paid')
+
+// Pedido de solo servicios pagado y sin cerrar: no hay nada que despachar, se
+// cierra como "Servicio atendido" (estado 34 del despacho).
+const canMarkAttended = computed(() => canEdit.value && !!order.value && isAttendableService(order.value))
+const { isSaving: isMarkingAttended, markAttended } = useServiceAttended()
+const showAttendDialog = ref(false)
+const notifyAttended = ref(false)
+
+async function handleMarkAttended() {
+  if (!order.value) return
+  const orderId = order.value.id
+  try {
+    const { success } = await markAttended([orderId], notifyAttended.value)
+    if (success === 0) throw new Error('El pedido no cambió de estado')
+    toast.add({ severity: 'success', summary: 'Servicio atendido', detail: 'El pedido quedó como atendido', life: 3000 })
+    showAttendDialog.value = false
+    await ordersStore.fetchOrder(orderId)
+  } catch (err: any) {
+    toast.add({
+      severity: 'error',
+      summary: 'Error',
+      detail: err?.response?.data?.messages?.error || 'No se pudo marcar el pedido como atendido. Recarga la página por si otro usuario ya lo cerró.',
+      life: 5000
+    })
+  }
+}
 
 const canSubmitVoid = computed(() =>
   voidMotivo.value.trim().length >= 3 && voidPassword.value.length > 0
@@ -1669,6 +1697,13 @@ const handleDebugPayments = async () => {
           outlined
           :loading="isUpdatingPayment"
           @click="handleRejectPayment"
+        />
+        <Button
+          v-if="canMarkAttended"
+          label="Marcar como atendido"
+          icon="pi pi-check-circle"
+          v-tooltip.left="'El servicio ya se realizó: cierra el pedido como Servicio atendido'"
+          @click="notifyAttended = false; showAttendDialog = true"
         />
         <Button
           v-if="canVoidOrder"
@@ -3296,6 +3331,29 @@ const handleDebugPayments = async () => {
           <pre class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs overflow-x-auto whitespace-pre-wrap break-words">{{ prettyJson(integrationDetail.payload) }}</pre>
         </div>
       </div>
+    </Dialog>
+
+    <!-- Cierre de un pedido de servicios -->
+    <Dialog
+      v-model:visible="showAttendDialog"
+      modal
+      header="Marcar como atendido"
+      :style="{ width: '28rem' }"
+      :breakpoints="{ '640px': '92vw' }"
+    >
+      <div class="space-y-4">
+        <p class="text-gray-700">
+          El pedido quedará como "Servicio atendido". Hazlo cuando el servicio ya se haya realizado.
+        </p>
+        <label class="flex items-start gap-2 text-sm text-gray-700">
+          <Checkbox v-model="notifyAttended" binary input-id="notify-attended-detail" />
+          <span>Avisar al cliente por correo que su servicio fue atendido</span>
+        </label>
+      </div>
+      <template #footer>
+        <Button label="Cancelar" severity="secondary" text @click="showAttendDialog = false" />
+        <Button label="Marcar como atendido" icon="pi pi-check" :loading="isMarkingAttended" @click="handleMarkAttended" />
+      </template>
     </Dialog>
 
     <!-- Anulación de la venta -->
