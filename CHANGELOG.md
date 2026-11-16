@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.96.0] - 2026-11-16
+
+### Novedades
+
+- **pedidos:** marcar como atendidos los pedidos de servicios ([`42bcf4f`](https://github.com/mitienda-pe/mitienda-admin/commit/42bcf4f17390038f1a042527737a214980975a3e))
+
 ## [v2.95.1] - 2026-11-14
 
 ### Novedades
