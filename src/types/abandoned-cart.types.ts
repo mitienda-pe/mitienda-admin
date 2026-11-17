@@ -4,7 +4,7 @@ export interface AbandonedCart {
   customer_name: string
   customer_type: 'registered' | 'guest'
   amount: string
-  currency: 'PEN' | 'USD'
+  currency: string
   qty_items: number
   status: 0 | 1 | 2  // 0 = abandonado, 1 = recuperado, 2 = pendiente
   status_label: string
@@ -30,7 +30,7 @@ export interface AbandonedCartDetail {
   created_at: string
   updated_at: string
   qty_items: number
-  currency: 'PEN' | 'USD'
+  currency: string
   status: 0 | 1 | 2
   status_label: string
   recovery_channel: number | null

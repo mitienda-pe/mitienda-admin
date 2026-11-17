@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useToast } from 'primevue/usetoast'
 import { useAbandonedCartsStore } from '@/stores/abandoned-carts.store'
+import { useFormatters } from '@/composables/useFormatters'
 import type { AbandonedCart } from '@/types/abandoned-cart.types'
 import SearchBar from '@/components/common/SearchBar.vue'
 import Button from 'primevue/button'
@@ -149,10 +150,12 @@ const formatDate = (dateString: string) => {
   }
 }
 
-const formatCurrency = (amount: string, currency: string) => {
-  const symbol = currency === 'PEN' ? 'S/' : '$'
-  return `${symbol} ${amount}`
-}
+// Un carrito siempre está en la moneda de la tienda. Su `moneda_id` no sirve:
+// el storefront nunca lo mandó y quedó en 1 (PEN) en todas las tiendas, así que
+// leerlo pintaba S/ en tiendas de Colombia o en dólares.
+const { formatCurrency: formatStoreCurrency } = useFormatters()
+const formatCurrency = (amount: string | number, _currency?: string) =>
+  formatStoreCurrency(Number(amount) || 0)
 
 const getStatusSeverity = (status: number): 'warning' | 'success' | 'info' => {
   if (status === 0) return 'warning'
