@@ -23,6 +23,9 @@ const pluginComponents: Record<string, Record<string, LazyComponent>> = {
   'care-routines': {
     'backoffice-settings': () => import('./care-routines/CareRoutinesSettings.vue'),
   },
+  'lab-screen': {
+    'backoffice-settings': () => import('./lab-screen/LabScreenSettings.vue'),
+  },
 }
 
 interface Props {
