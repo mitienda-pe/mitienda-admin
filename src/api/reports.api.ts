@@ -166,8 +166,10 @@ export const reportsApi = {
     params.append('format', format)
     params.append('view', view)
 
+    // Un año de una tienda grande supera los 30 s del cliente por defecto.
     const response = await apiClient.get(`/reports/product-sales/export?${params.toString()}`, {
-      responseType: 'blob'
+      responseType: 'blob',
+      timeout: 180000
     })
 
     return response.data
