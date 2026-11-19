@@ -22,12 +22,38 @@
         @change="handleViewChange"
       />
       <span class="text-sm text-secondary-600">
-        {{
-          view === 'summary'
-            ? 'Ranking de productos: una fila por producto, con lo vendido acumulado.'
-            : 'Detalle: una fila por cada línea de pedido.'
-        }}
+        {{ viewDescription }}
       </span>
+    </div>
+
+    <!-- Producto (opcional) -->
+    <div class="mb-4 max-w-xl">
+      <label for="filtro-producto" class="block text-sm font-medium text-secondary-700 mb-1">
+        Producto
+      </label>
+      <AutoComplete
+        v-model="selectedProduct"
+        inputId="filtro-producto"
+        :suggestions="productSuggestions"
+        optionLabel="label"
+        placeholder="Todos los productos (escribe para buscar uno)"
+        class="w-full"
+        inputClass="w-full"
+        :delay="300"
+        @complete="searchProducts"
+        @item-select="handleProductChange"
+        @clear="handleProductChange"
+      >
+        <template #option="{ option }">
+          <div>
+            <div class="font-medium">{{ option.name }}</div>
+            <div v-if="option.sku" class="text-xs text-secondary-500">SKU {{ option.sku }}</div>
+          </div>
+        </template>
+      </AutoComplete>
+      <p class="text-xs text-secondary-500 mt-1">
+        Incluye todas las variantes del producto. Déjalo vacío para ver todos.
+      </p>
     </div>
 
     <!-- Filters Card -->
@@ -58,9 +84,45 @@
       </template>
       <template #content>
         <div class="overflow-x-auto">
+          <!-- Por ubicación: producto × departamento × provincia -->
+          <DataTable
+            v-if="view === 'location'"
+            :value="locationRows"
+            stripedRows
+            responsiveLayout="scroll"
+            :loading="loadingPreview"
+            class="text-sm"
+          >
+            <Column field="shipping_department" header="Departamento" style="min-width: 140px"></Column>
+            <Column field="shipping_province" header="Provincia" style="min-width: 140px"></Column>
+            <Column field="sku" header="SKU" style="min-width: 130px">
+              <template #body="{ data }">
+                <span v-if="data.sku">{{ data.sku }}</span>
+                <span v-else class="text-secondary-400">-</span>
+              </template>
+            </Column>
+            <Column field="product_name" header="Producto" style="min-width: 240px"></Column>
+            <Column field="product_quantity" header="Cantidad Vendida" style="min-width: 130px">
+              <template #body="{ data }">
+                <span class="font-medium">{{ formatNumber(data.product_quantity) }}</span>
+              </template>
+            </Column>
+            <Column field="order_count" header="Pedidos" style="min-width: 90px"></Column>
+            <Column field="product_discount" header="Descuento" style="min-width: 110px">
+              <template #body="{ data }">
+                {{ data.currency }} {{ formatNumber(data.product_discount) }}
+              </template>
+            </Column>
+            <Column field="product_total" header="Monto Total" style="min-width: 130px">
+              <template #body="{ data }">
+                <span class="font-bold">{{ data.currency }} {{ formatNumber(data.product_total) }}</span>
+              </template>
+            </Column>
+          </DataTable>
+
           <!-- Ranking agregado por producto -->
           <DataTable
-            v-if="view === 'summary'"
+            v-else-if="view === 'summary'"
             :value="summaryRows"
             stripedRows
             responsiveLayout="scroll"
@@ -235,14 +297,17 @@ import Card from 'primevue/card'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import SelectButton from 'primevue/selectbutton'
+import AutoComplete from 'primevue/autocomplete'
 import { AppBadge, AppEmptyState } from '@/components/ui'
 import ReportFiltersCard from '@/components/reports/ReportFiltersCard.vue'
 import ExportButton from '@/components/reports/ExportButton.vue'
 import { reportsApi } from '@/api/reports.api'
+import { productsApi } from '@/api/products.api'
 import type {
   ReportFilters,
   ProductSalesReportRow,
   ProductSalesSummaryRow,
+  ProductSalesLocationRow,
   ProductSalesView,
   PaymentGateway,
   ExportFormat
@@ -255,11 +320,43 @@ const filters = ref<ReportFilters>({})
 const view = ref<ProductSalesView>('detail')
 const viewOptions = [
   { label: 'Detalle por línea', value: 'detail' as const },
-  { label: 'Ranking por producto', value: 'summary' as const }
+  { label: 'Ranking por producto', value: 'summary' as const },
+  { label: 'Por ubicación', value: 'location' as const }
 ]
-const previewData = ref<ProductSalesReportRow[] | ProductSalesSummaryRow[]>([])
+const viewDescription = computed(() => {
+  if (view.value === 'summary') {
+    return 'Ranking de productos: una fila por producto, con lo vendido acumulado.'
+  }
+  if (view.value === 'location') {
+    return 'Una fila por producto y provincia de envío. Las ventas sin envío (POS, recojo) salen como "Sin dirección de envío".'
+  }
+  return 'Detalle: una fila por cada línea de pedido.'
+})
+const previewData = ref<ProductSalesReportRow[] | ProductSalesSummaryRow[] | ProductSalesLocationRow[]>([])
 const detailRows = computed(() => previewData.value as ProductSalesReportRow[])
 const summaryRows = computed(() => previewData.value as ProductSalesSummaryRow[])
+const locationRows = computed(() => previewData.value as ProductSalesLocationRow[])
+
+// Filtro por producto. Mientras se escribe, el v-model es un string; sólo una
+// opción elegida (objeto) cuenta como filtro.
+interface ProductOption {
+  id: number
+  name: string
+  sku: string
+  label: string
+}
+const selectedProduct = ref<ProductOption | string | null>(null)
+const productSuggestions = ref<ProductOption[]>([])
+const selectedProductId = computed(() =>
+  selectedProduct.value && typeof selectedProduct.value === 'object'
+    ? selectedProduct.value.id
+    : undefined
+)
+// Filtros que se mandan a la API: los de la tarjeta más el producto.
+const requestFilters = computed<ReportFilters>(() => ({
+  ...filters.value,
+  producto_id: selectedProductId.value
+}))
 const totalCount = ref(0)
 const hasMore = ref(false)
 const filtersApplied = ref(false)
@@ -290,6 +387,33 @@ const loadPaymentGateways = async () => {
   }
 }
 
+const searchProducts = async (event: { query: string }) => {
+  if (event.query.trim().length < 2) {
+    productSuggestions.value = []
+    return
+  }
+
+  try {
+    const response = await productsApi.getProducts({ search: event.query.trim(), limit: 15 })
+    productSuggestions.value = response.data.map((p) => ({
+      id: p.id,
+      name: p.name,
+      sku: p.sku,
+      label: p.sku ? `${p.name} (${p.sku})` : p.name
+    }))
+  } catch (error) {
+    console.error('Error searching products:', error)
+    productSuggestions.value = []
+  }
+}
+
+// Elegir o quitar el producto recarga la vista previa si ya había una.
+const handleProductChange = async () => {
+  if (filtersApplied.value) {
+    await handleApplyFilters()
+  }
+}
+
 const handleUpdateFilters = (newFilters: ReportFilters) => {
   filters.value = newFilters
 }
@@ -309,7 +433,7 @@ const handleApplyFilters = async () => {
     loadingPreview.value = true
     filtersApplied.value = true
 
-    const response = await reportsApi.getProductSalesReportPreview(filters.value, view.value)
+    const response = await reportsApi.getProductSalesReportPreview(requestFilters.value, view.value)
 
     previewData.value = response.data
     totalCount.value = response.total_count
@@ -345,13 +469,18 @@ const handleExport = async (format: ExportFormat) => {
       life: 3000
     })
 
-    const blob = await reportsApi.exportProductSalesReport(filters.value, format, view.value)
+    const blob = await reportsApi.exportProductSalesReport(requestFilters.value, format, view.value)
 
     // Generate filename
     const dateFrom = filters.value.date_from?.replace(/-/g, '') || ''
     const dateTo = filters.value.date_to?.replace(/-/g, '') || ''
     const extension = format === 'csv' ? 'csv' : 'xlsx'
-    const slug = view.value === 'summary' ? 'productos_vendidos' : 'ventas_productos'
+    const slug =
+      view.value === 'summary'
+        ? 'productos_vendidos'
+        : view.value === 'location'
+          ? 'ventas_por_ubicacion'
+          : 'ventas_productos'
     const filename = `reporte_${slug}_${dateFrom}_${dateTo}.${extension}`
 
     reportsApi.downloadFile(blob, filename)

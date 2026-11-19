@@ -7,6 +7,7 @@ import {
   type PaymentGateway,
   type ProductSalesReportRow,
   type ProductSalesSummaryRow,
+  type ProductSalesLocationRow,
   type ProductSalesPreviewResponse,
   type ProductSalesView,
   type ProductCatalogFilters,
@@ -118,12 +119,13 @@ export const reportsApi = {
     if (filters.payment_gateway_id !== undefined) {
       params.append('payment_gateway_id', filters.payment_gateway_id.toString())
     }
+    if (filters.producto_id) params.append('producto_id', filters.producto_id.toString())
     params.append('view', view)
 
     const response = await apiClient.get<{
       success: boolean
       view: ProductSalesView
-      data: ProductSalesReportRow[] | ProductSalesSummaryRow[]
+      data: ProductSalesReportRow[] | ProductSalesSummaryRow[] | ProductSalesLocationRow[]
       total_count: number
       has_more: boolean
       filters_applied: ReportFilters
@@ -160,6 +162,7 @@ export const reportsApi = {
     if (filters.payment_gateway_id !== undefined) {
       params.append('payment_gateway_id', filters.payment_gateway_id.toString())
     }
+    if (filters.producto_id) params.append('producto_id', filters.producto_id.toString())
     params.append('format', format)
     params.append('view', view)
 

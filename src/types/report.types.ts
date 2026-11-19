@@ -24,6 +24,8 @@ export interface ReportFilters {
   date_to?: string
   payment_status?: PaymentStatus
   payment_gateway_id?: number // 0 = All
+  /** Sólo el reporte de ventas por producto: limita a un producto (con sus variantes). */
+  producto_id?: number
 }
 
 export interface OrderReportRow {
@@ -57,7 +59,7 @@ export interface PaymentGateway {
  * Modo del reporte: `detail` es una fila por línea de pedido; `summary` es el
  * ranking agregado por producto que traía el panel legacy.
  */
-export type ProductSalesView = 'detail' | 'summary'
+export type ProductSalesView = 'detail' | 'summary' | 'location'
 
 export interface ProductSalesReportRow {
   order_id: number
@@ -126,9 +128,15 @@ export interface ProductSalesSummaryRow {
   currency: string
 }
 
+/** Fila por producto, departamento y provincia de envío (`view=location`). */
+export interface ProductSalesLocationRow extends ProductSalesSummaryRow {
+  shipping_department: string
+  shipping_province: string
+}
+
 export interface ProductSalesPreviewResponse {
   view: ProductSalesView
-  data: ProductSalesReportRow[] | ProductSalesSummaryRow[]
+  data: ProductSalesReportRow[] | ProductSalesSummaryRow[] | ProductSalesLocationRow[]
   total_count: number
   has_more: boolean
   filters_applied: ReportFilters
