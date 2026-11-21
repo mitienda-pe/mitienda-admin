@@ -3,6 +3,19 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.96.1] - 2026-11-21
+
+### Novedades
+
+- **pagos:** configuración de ProntoPaga (Perú) ([`fb93fb2`](https://github.com/mitienda-pe/mitienda-admin/commit/fb93fb2a5eb2cb211ffd7b928b23b4c837f24c76))
+- **reportes:** filtro por producto y vista por ubicación en ventas por producto ([`b6b5b74`](https://github.com/mitienda-pe/mitienda-admin/commit/b6b5b74dfb5fa2e71c1c1ea470fad7962e5637a8))
+- **plugins:** vista de la pantalla de laboratorio ([`5139df7`](https://github.com/mitienda-pe/mitienda-admin/commit/5139df784fbbd29e19627d39a66afc631881b3bc))
+
+### Correcciones
+
+- **reportes:** el export de ventas por producto espera hasta 3 minutos ([`69a2545`](https://github.com/mitienda-pe/mitienda-admin/commit/69a254501b38f2a1dbcece1c07275fbafe2c8310))
+- **carritos-abandonados:** montos en la moneda de la tienda, no S/ fijo ([`52fd836`](https://github.com/mitienda-pe/mitienda-admin/commit/52fd836812aeb6a868485b749fb80740263f066e))
+
 ## [v2.96.0] - 2026-11-16
 
 ### Novedades
