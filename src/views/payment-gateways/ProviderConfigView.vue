@@ -80,7 +80,8 @@ const gatewayNames: Record<string, string> = {
   'dlocal': 'dLocal',
   'kasnet-qr': 'Kasnet QR',
   'ligo-qr': 'Ligo QR',
-  'tilopay': 'Tilopay'
+  'tilopay': 'Tilopay',
+  'prontopaga': 'ProntoPaga'
 }
 
 const gatewayName = computed(() => gatewayNames[gatewayCode.value] || 'Pasarela Desconocida')
@@ -107,7 +108,8 @@ const configComponents: Record<string, Component> = {
   'dlocal': defineAsyncComponent(() => import('./DLocalConfigView.vue')),
   'kasnet-qr': defineAsyncComponent(() => import('./KasnetQrConfigView.vue')),
   'ligo-qr': defineAsyncComponent(() => import('./LigoQrConfigView.vue')),
-  'tilopay': defineAsyncComponent(() => import('./TilopayConfigView.vue'))
+  'tilopay': defineAsyncComponent(() => import('./TilopayConfigView.vue')),
+  'prontopaga': defineAsyncComponent(() => import('./ProntoPagaConfigView.vue'))
 }
 
 const configComponent = computed(() => {
