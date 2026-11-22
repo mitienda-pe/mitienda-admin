@@ -5,6 +5,8 @@ export interface CartRecoveryCupon {
   activo: boolean
   tipo: 'porcentaje' | 'monto'
   valor: number
+  /** Horas de validez desde el envío del correo (12 a 168). */
+  vigencia_h: number
 }
 
 export interface CartRecoveryConfig {

@@ -4,6 +4,7 @@ import InputSwitch from 'primevue/inputswitch'
 import InputNumber from 'primevue/inputnumber'
 import Button from 'primevue/button'
 import Message from 'primevue/message'
+import SelectButton from 'primevue/selectbutton'
 import { useToast } from 'primevue/usetoast'
 import {
   cartRecoveryApi,
@@ -20,8 +21,15 @@ const config = ref<CartRecoveryConfig>({
   enabled: false,
   toques: 1,
   delays_h: [1, 24, 72],
-  cupon: { activo: false, tipo: 'porcentaje', valor: 10 }
+  cupon: { activo: false, tipo: 'porcentaje', valor: 10, vigencia_h: 48 }
 })
+
+const couponTypes = [
+  { label: 'Porcentaje', value: 'porcentaje' },
+  { label: 'Monto fijo', value: 'monto' }
+]
+
+const lastToqueLabel = computed(() => toqueLabels[config.value.toques - 1]?.toLowerCase() ?? 'último recordatorio')
 const espConflicts = ref<EspConflict[]>([])
 
 const toqueLabels = ['Primer recordatorio', 'Segundo recordatorio', 'Último recordatorio']
@@ -55,7 +63,8 @@ async function saveConfig() {
     const response = await cartRecoveryApi.saveConfig({
       enabled: config.value.enabled,
       toques: config.value.toques,
-      delays_h: config.value.delays_h
+      delays_h: config.value.delays_h,
+      cupon: config.value.cupon
     })
     if (response.success && response.data) {
       config.value = response.data.config
@@ -158,10 +167,63 @@ onMounted(fetchConfig)
           </div>
         </div>
 
-        <p class="text-xs text-secondary-400 mt-4">
-          <i class="pi pi-info-circle mr-1"></i>
-          Próximamente: cupón de descuento opcional en el último recordatorio.
-        </p>
+      </div>
+
+      <!-- Cupón del último recordatorio -->
+      <div v-if="config.enabled" class="bg-white rounded-lg border border-secondary-200 p-6 mb-4">
+        <div class="flex items-center justify-between">
+          <div class="pr-6">
+            <h2 class="font-semibold text-secondary-900">Cupón en el último recordatorio</h2>
+            <p class="text-sm text-secondary-500 mt-1">
+              Cada cliente recibe un código propio, de un solo uso, en el {{ lastToqueLabel }}.
+              El enlace del correo lo deja aplicado en el checkout.
+            </p>
+          </div>
+          <InputSwitch v-model="config.cupon.activo" />
+        </div>
+
+        <div v-if="config.cupon.activo" class="mt-5 space-y-4">
+          <div class="flex flex-wrap items-center gap-4">
+            <SelectButton
+              v-model="config.cupon.tipo"
+              :options="couponTypes"
+              option-label="label"
+              option-value="value"
+              :allow-empty="false"
+            />
+            <div class="flex items-center gap-2">
+              <InputNumber
+                v-model="config.cupon.valor"
+                :min="1"
+                :max="config.cupon.tipo === 'porcentaje' ? 100 : 100000"
+                :max-fraction-digits="2"
+                input-class="w-24 text-center"
+              />
+              <span class="text-sm text-secondary-500">
+                {{ config.cupon.tipo === 'porcentaje' ? '% de descuento' : 'de descuento' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-secondary-700">Válido por</span>
+            <InputNumber
+              v-model="config.cupon.vigencia_h"
+              :min="12"
+              :max="168"
+              show-buttons
+              input-class="w-20 text-center"
+            />
+            <span class="text-sm text-secondary-500">horas desde el envío</span>
+          </div>
+
+          <p class="text-xs text-secondary-400">
+            <i class="pi pi-info-circle mr-1"></i>
+            Los códigos cuelgan de la promoción «[Automático] Recuperación de carrito», que se crea
+            sola en Promociones. Si la pausas, se desactivan los códigos que aún no se usaron.
+            El cupón no se suma a otras promociones del carrito: se aplica el mayor descuento.
+          </p>
+        </div>
       </div>
 
       <div class="flex justify-end">
