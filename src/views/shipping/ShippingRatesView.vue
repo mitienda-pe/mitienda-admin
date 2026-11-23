@@ -185,7 +185,7 @@
             <h3 class="font-semibold text-secondary-700 mb-2">Cómo funciona</h3>
             <ul class="text-sm text-primary space-y-1">
               <li>* Las tarifas en niveles superiores (ej. departamento) aplican a todas las ubicaciones hijas sin tarifa propia</li>
-              <li>* Puedes configurar tarifas a nivel de departamento, provincia o distrito</li>
+              <li>* Puedes configurar tarifas a nivel de {{ level1Label.toLowerCase() }}, {{ level2Label.toLowerCase() }} o {{ level3Label.toLowerCase() }}</li>
               <li>* El tiempo de entrega puede especificarse en días u horas</li>
             </ul>
           </div>
@@ -307,13 +307,13 @@
         <div v-if="addForm.level2 && level3Options.length > 0" class="flex items-center gap-2">
           <Checkbox v-model="provinceMode" inputId="provinceMode" :binary="true" @change="onProvinceModeChange" />
           <label for="provinceMode" class="text-sm text-gray-700 cursor-pointer">
-            Atender solo algunos distritos de la {{ (currentCountry?.levels[1] || 'Provincia').toLowerCase() }}
+            Elegir uno por uno qué {{ level3Plural }} de {{ selectedLevel2Name }} atender
           </label>
         </div>
 
         <div v-if="addForm.level2 && level3Options.length > 0 && !provinceMode">
           <label class="block text-sm font-medium text-gray-700 mb-2">
-            {{ currentCountry?.levels[2] || 'Distrito' }} (opcional)
+            {{ level3Label }} (opcional)
           </label>
           <Dropdown
             v-if="unratedLevel3Options.length > 0"
@@ -327,8 +327,7 @@
             :loading="store.isLoadingLocations"
           />
           <p v-else class="text-sm text-gray-500">
-            Todos los {{ (currentCountry?.levels[2] || 'Distrito').toLowerCase() }}s de esta
-            {{ (currentCountry?.levels[1] || 'Provincia').toLowerCase() }} ya tienen tarifa.
+            Cada {{ level3Label.toLowerCase() }} de {{ selectedLevel2Name }} ya tiene tarifa.
           </p>
         </div>
 
@@ -340,7 +339,7 @@
         <div v-if="provinceMode && addForm.level2 && level3Options.length > 0" class="border border-gray-200 rounded-lg">
           <div class="flex items-center justify-between px-3 py-2 border-b border-gray-200 bg-gray-50 rounded-t-lg">
             <span class="text-sm font-medium text-gray-700">
-              Distritos a atender ({{ checkedDistrictIds.length }}/{{ level3Options.length }})
+              {{ capitalize(level3Plural) }} a atender ({{ checkedDistrictIds.length }}/{{ level3Options.length }})
             </span>
             <div class="flex gap-3">
               <button type="button" class="text-xs text-primary hover:underline" @click="selectAllDistricts">Todos</button>
@@ -360,15 +359,15 @@
         </div>
 
         <Message v-if="provinceMode && addForm.level2" severity="info" :closable="false" class="text-sm">
-          Se creará una tarifa por cada distrito marcado (con el mismo precio y tiempo).
-          Los distritos <strong>desmarcados</strong> quedarán sin cobertura.
+          Se creará una tarifa por cada {{ level3Label.toLowerCase() }} que marques (con el mismo precio y tiempo).
+          Lo que dejes <strong>sin marcar</strong> quedará sin cobertura.
         </Message>
 
         <!-- Ayuda: cobertura por nivel -->
         <Message v-if="addForm.level1 && !provinceMode" severity="info" :closable="false" class="text-sm">
           Deja <strong>{{ currentCountry?.levels[1] || 'Provincia' }}</strong>
-          <template v-if="addForm.level2"> y <strong>{{ currentCountry?.levels[2] || 'Distrito' }}</strong></template>
-          <template v-else> (y {{ currentCountry?.levels[2] || 'Distrito' }})</template>
+          <template v-if="addForm.level2"> y <strong>{{ level3Label }}</strong></template>
+          <template v-else> (y {{ level3Label }})</template>
           sin seleccionar para que la tarifa aplique a
           <strong>
             <template v-if="!addForm.level2">todo el {{ (currentCountry?.levels[0] || 'Departamento').toLowerCase() }}</template>
@@ -608,6 +607,24 @@ const storeCurrencySymbol = computed(() => useStoreConfigStore().currentCurrency
 
 const countries = computed(() => store.enabledCountries)
 const currentCountry = computed(() => countries.value[activeTabIndex.value])
+
+// Nombres de los niveles del país de la tienda: Distrito en Perú, Localidad en
+// Colombia, Parroquia en Ecuador. Nada de "distrito" fijo en los textos.
+const level1Label = computed(() => currentCountry.value?.levels[0] || 'Departamento')
+const level2Label = computed(() => currentCountry.value?.levels[1] || 'Provincia')
+const level3Label = computed(() => currentCountry.value?.levels[2] || 'Distrito')
+const level3Plural = computed(() => pluralize(level3Label.value.toLowerCase()))
+const selectedLevel2Name = computed(() => level2Options.value.find(o => o.code === addForm.value.level2)?.name ?? '')
+
+function pluralize(word: string): string {
+  if (/[aeiouáéíóú]$/.test(word)) return `${word}s`
+  if (word.endsWith('ón')) return `${word.slice(0, -2)}ones`
+  return `${word}es`
+}
+
+function capitalize(word: string): string {
+  return word.charAt(0).toUpperCase() + word.slice(1)
+}
 
 const filteredRates = computed(() => {
   const rates = store.currentRates

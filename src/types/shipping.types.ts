@@ -146,7 +146,7 @@ export const SUPPORTED_COUNTRIES: Country[] = [
     flag: '🇨🇴',
     currency: 'COP',
     currencySymbol: '$',
-    levels: ['Departamento', 'Municipio', '']
+    levels: ['Departamento', 'Municipio', 'Localidad']
   },
   {
     code: 'CR',

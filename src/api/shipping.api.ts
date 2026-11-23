@@ -687,6 +687,17 @@ export const shippingApi = {
     const iso2 = storeConfig.countryConfig?.iso2 as CountryCode | undefined
     const country = (iso2 && SUPPORTED_COUNTRIES.find(c => c.code === iso2)) || SUPPORTED_COUNTRIES[0]
 
+    // Los nombres de los niveles salen de `paises`, igual que en el checkout:
+    // así el comerciante y su comprador leen lo mismo. La lista fija queda de
+    // respaldo mientras la config no llega.
+    const labels = storeConfig.countryConfig?.iso2 === country.code ? storeConfig.countryConfig?.labels : null
+    if (labels) {
+      return {
+        success: true,
+        data: [{ ...country, levels: [labels.dpto || country.levels[0], labels.prov || country.levels[1], labels.dist || country.levels[2]] }]
+      }
+    }
+
     return { success: true, data: [country] }
   },
 
