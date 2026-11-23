@@ -9,10 +9,71 @@ import { useToast } from 'primevue/usetoast'
 import {
   cartRecoveryApi,
   type CartRecoveryConfig,
+  type CartRecoveryStats,
+  type CartRecoverySequenceStats,
   type EspConflict
 } from '@/api/cart-recovery.api'
+import { useFormatters } from '@/composables/useFormatters'
 
 const toast = useToast()
+const { formatCurrency, formatNumber } = useFormatters()
+
+// ─── Resultados ─────────────────────────────────────────
+// Se cargan aparte de la configuración: si la consulta falla o tarda, la
+// configuración se puede editar igual.
+const stats = ref<CartRecoveryStats | null>(null)
+const statsLoading = ref(false)
+const statsDias = ref<7 | 30 | 90>(30)
+const periodOptions = [
+  { label: '7 días', value: 7 },
+  { label: '30 días', value: 30 },
+  { label: '90 días', value: 90 }
+]
+
+async function fetchStats() {
+  statsLoading.value = true
+  try {
+    const response = await cartRecoveryApi.getStats(statsDias.value)
+    stats.value = response.success && response.data ? response.data : null
+  } catch {
+    stats.value = null
+  } finally {
+    statsLoading.value = false
+  }
+}
+
+function pct(part: number, total: number): string {
+  if (!total) return '0 %'
+  return `${((part / total) * 100).toLocaleString('es-PE', { maximumFractionDigits: 1 })} %`
+}
+
+/** Tarjetas de una secuencia, en el orden en que se leen: alcance → resultado → directo → pendiente. */
+function tiles(s: CartRecoverySequenceStats) {
+  return [
+    {
+      label: 'Carritos contactados',
+      value: formatNumber(s.carritos),
+      hint: `${formatNumber(s.con_clic)} abrieron el enlace (${pct(s.con_clic, s.carritos)})`
+    },
+    {
+      label: 'Compraron después del correo',
+      value: formatNumber(s.compras),
+      hint: `${pct(s.compras, s.carritos)} · ${formatCurrency(s.monto)}`
+    },
+    {
+      label: 'Compraron desde el enlace',
+      value: formatNumber(s.compras_con_clic),
+      hint: formatCurrency(s.monto_con_clic)
+    },
+    {
+      label: 'Todavía pueden comprar',
+      value: formatNumber(s.en_curso),
+      hint: 'Recibieron el correo hace poco'
+    }
+  ]
+}
+
+const hasPagoStats = computed(() => (stats.value?.pago.carritos ?? 0) > 0)
 
 const isLoading = ref(true)
 const isSaving = ref(false)
@@ -90,7 +151,10 @@ async function saveConfig() {
   }
 }
 
-onMounted(fetchConfig)
+onMounted(() => {
+  fetchConfig()
+  fetchStats()
+})
 </script>
 
 <template>
@@ -108,6 +172,72 @@ onMounted(fetchConfig)
     </div>
 
     <template v-else>
+      <!-- Resultados -->
+      <div
+        v-if="stats && (config.enabled || stats.carrito.carritos > 0 || stats.pago.carritos > 0)"
+        class="bg-white rounded-lg border border-secondary-200 p-6 mb-4"
+      >
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <h2 class="font-semibold text-secondary-900">Resultados</h2>
+          <SelectButton
+            v-model="statsDias"
+            :options="periodOptions"
+            option-label="label"
+            option-value="value"
+            :allow-empty="false"
+            @change="fetchStats"
+          />
+        </div>
+
+        <div v-if="statsLoading" class="flex justify-center py-6">
+          <i class="pi pi-spin pi-spinner text-xl text-primary"></i>
+        </div>
+
+        <template v-else>
+          <p v-if="stats.carrito.carritos === 0" class="text-sm text-secondary-500">
+            Todavía no se envió ningún recordatorio en este período. Aparecen acá en cuanto un
+            cliente deja un carrito con su correo.
+          </p>
+
+          <div v-else class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div
+              v-for="tile in tiles(stats.carrito)"
+              :key="tile.label"
+              class="rounded-lg border border-secondary-100 p-3"
+            >
+              <p class="text-xs text-secondary-500">{{ tile.label }}</p>
+              <p class="text-2xl font-semibold text-secondary-900 mt-1">{{ tile.value }}</p>
+              <p class="text-xs text-secondary-400 mt-1">{{ tile.hint }}</p>
+            </div>
+          </div>
+
+          <template v-if="hasPagoStats">
+            <h3 class="text-sm font-medium text-secondary-700 mt-5 mb-2">
+              Recordatorio de pago pendiente
+            </h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div
+                v-for="tile in tiles(stats.pago)"
+                :key="tile.label"
+                class="rounded-lg border border-secondary-100 p-3"
+              >
+                <p class="text-xs text-secondary-500">{{ tile.label }}</p>
+                <p class="text-2xl font-semibold text-secondary-900 mt-1">{{ tile.value }}</p>
+                <p class="text-xs text-secondary-400 mt-1">{{ tile.hint }}</p>
+              </div>
+            </div>
+          </template>
+
+          <p class="text-xs text-secondary-400 mt-4">
+            <i class="pi pi-info-circle mr-1"></i>
+            Una compra cuenta si el cliente paga un pedido con el mismo correo hasta
+            {{ stats.ventana_atribucion_d }} días después del último recordatorio. Algunas de esas
+            compras habrían ocurrido igual; las que entraron por el enlace del correo son las que el
+            recordatorio trajo de forma directa.
+          </p>
+        </template>
+      </div>
+
       <!-- Activación -->
       <div class="bg-white rounded-lg border border-secondary-200 p-6 mb-4">
         <div class="flex items-center justify-between">

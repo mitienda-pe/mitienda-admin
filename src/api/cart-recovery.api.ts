@@ -26,6 +26,29 @@ export interface CartRecoveryData {
   esp_conflicts: EspConflict[]
 }
 
+export interface CartRecoverySequenceStats {
+  /** Carritos que recibieron al menos un correo en el período. */
+  carritos: number
+  con_clic: number
+  /** Orden pagada del mismo comprador hasta `ventana_atribucion_d` días después del último correo. */
+  compras: number
+  /** De esas compras, las que pasaron por el enlace del correo. */
+  compras_con_clic: number
+  /** Sin compra todavía, pero aún dentro de la ventana: pueden convertir. */
+  en_curso: number
+  monto: number
+  monto_con_clic: number
+}
+
+export interface CartRecoveryStats {
+  dias: number
+  ventana_atribucion_d: number
+  moneda: string
+  moneda_simbolo: string
+  carrito: CartRecoverySequenceStats
+  pago: CartRecoverySequenceStats
+}
+
 export interface SaveCartRecoveryRequest {
   enabled: boolean
   toques: number
@@ -36,6 +59,11 @@ export interface SaveCartRecoveryRequest {
 export const cartRecoveryApi = {
   async getConfig(): Promise<ApiResponse<CartRecoveryData>> {
     const response = await apiClient.get('/marketing/cart-recovery')
+    return response.data
+  },
+
+  async getStats(dias: 7 | 30 | 90 = 30): Promise<ApiResponse<CartRecoveryStats>> {
+    const response = await apiClient.get('/marketing/cart-recovery/stats', { params: { dias } })
     return response.data
   },
 
