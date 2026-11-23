@@ -159,6 +159,11 @@ function onRecommendedSourceChange(value: number) {
   }
 }
 
+const buyNowBool = computed({
+  get: () => props.preferences.pdp_buy_now === 1,
+  set: (val: boolean) => emit('update:field', 'pdp_buy_now', val ? 1 : 0),
+})
+
 const hideOutOfStockBool = computed({
   get: () => props.preferences.hide_out_of_stock === 1,
   set: (val: boolean) => emit('update:field', 'hide_out_of_stock', val ? 1 : 0),
@@ -750,6 +755,33 @@ const hideOutOfStockBool = computed({
       >
         {{ recentlyViewedNote }}
       </p>
+    </div>
+
+    <!-- Divider -->
+    <hr class="border-gray-100" />
+
+    <!-- Botón "Comprar ahora" en la ficha -->
+    <div>
+      <div class="flex items-center justify-between">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">
+            Botón «Comprar ahora» en la ficha
+          </label>
+          <p class="text-xs text-gray-400 mt-0.5">
+            Se suma a «Agregar al carrito»: agrega el producto y lleva directo al
+            pago. Lo que el cliente ya tenía en el carrito se compra junto.
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <span
+            class="text-xs font-medium px-2 py-0.5 rounded-full"
+            :class="buyNowBool ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'"
+          >
+            {{ buyNowBool ? 'Visible' : 'Oculto' }}
+          </span>
+          <InputSwitch v-model="buyNowBool" />
+        </div>
+      </div>
     </div>
 
     <!-- Divider -->

@@ -228,6 +228,7 @@ export interface CatalogPreferences {
   pdp_recommended_source: number // de donde salen: ver PDP_RECOMMENDED_SOURCE
   pdp_recommended_list_id: number | null // solo con source = lista fija
   pdp_recently_viewed_count: number // cuantos productos muestra "Vistos recientemente" (0 = ocultar)
+  pdp_buy_now: number // botón "Comprar ahora" en la ficha: 0 = no (default), 1 = sí
 }
 
 export const DEFAULT_CATALOG_PREFERENCES: CatalogPreferences = {
@@ -247,6 +248,7 @@ export const DEFAULT_CATALOG_PREFERENCES: CatalogPreferences = {
   pdp_recommended_source: 0,
   pdp_recommended_list_id: null,
   pdp_recently_viewed_count: 6,
+  pdp_buy_now: 0,
 }
 
 export interface LayoutWidthOption {
