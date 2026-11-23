@@ -271,6 +271,26 @@ body {
   border-color: #ef4444;
 }
 
+/* PrimeVue InputSwitch
+   - El tema lara-light-blue lo pinta encendido de azul (#3B82F6): turquesa de marca.
+   - flex-shrink: dentro de una fila flex junto a un texto largo el switch se
+     encogía y la bolita (que se desplaza 1.25rem fijos) quedaba cortada. */
+.p-inputswitch {
+  flex-shrink: 0;
+}
+
+.p-inputswitch.p-highlight .p-inputswitch-slider {
+  background: var(--primary-500);
+}
+
+.p-inputswitch:not(.p-disabled):has(.p-inputswitch-input:hover).p-highlight .p-inputswitch-slider {
+  background: var(--primary-600);
+}
+
+.p-inputswitch:not(.p-disabled):has(.p-inputswitch-input:focus-visible) .p-inputswitch-slider {
+  box-shadow: 0 0 0 0.2rem var(--primary-200);
+}
+
 /* PrimeVue Checkbox - mejorar visibilidad y fix conflicto con Tailwind */
 .p-checkbox {
   width: 1.25rem !important;
