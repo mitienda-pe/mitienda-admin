@@ -359,3 +359,57 @@ export default {
   addCoupon,
   deleteCoupon,
 }
+
+// ---------------------------------------------------------------------------
+// Promociones que alcanzan a un producto (ficha del producto)
+// ---------------------------------------------------------------------------
+
+export type ProductPromotionState =
+  | 'applies'
+  | 'conditional'
+  | 'coupon'
+  | 'out_of_hours'
+  | 'scheduled'
+  | 'expired'
+  | 'inactive'
+
+export type ProductPromotionVia = 'product' | 'category' | 'brand' | 'gift' | 'trigger' | 'condition'
+
+export interface ProductPromotionMatch {
+  promotion_id: number
+  name: string
+  status: string
+  priority: number
+  starts_at: string | null
+  ends_at: string | null
+  activation_types: string[]
+  via: ProductPromotionVia
+  effect: {
+    type: string
+    percentage?: number
+    amount?: number
+    new_price?: number
+    max_discount?: number
+    buy_quantity?: number
+    pay_quantity?: number
+    gift_quantity?: number
+  } | null
+  unit_discount: number
+  state: ProductPromotionState
+  wins: boolean
+}
+
+export interface ProductPromotionsResult {
+  promotions: ProductPromotionMatch[]
+  winner_id: number | null
+  /** Cuántas promos vigentes descuentan este producto a la vez (>1 = se pisan). */
+  competing: number
+}
+
+export const productPromotionsApi = {
+  /** GET /api/v1/products/:id/promotions */
+  async getForProduct(productId: number): Promise<{ success: boolean; data?: ProductPromotionsResult }> {
+    const response = await apiClient.get(`/products/${productId}/promotions`)
+    return response.data
+  },
+}

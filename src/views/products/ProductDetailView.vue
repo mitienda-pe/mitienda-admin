@@ -1036,6 +1036,9 @@
         <!-- Etiquetas del producto -->
         <ProductTagAssignment v-if="product" :product-id="product.id" />
 
+        <!-- Promociones avanzadas que alcanzan al producto y cuál gana -->
+        <ProductPromotionsCard v-if="product" :product-id="product.id" />
+
         <!-- Interesados en el aviso de "ya está disponible" -->
         <ProductStockNotifications v-if="product" :product-id="product.id" />
 
@@ -1250,6 +1253,7 @@ import { AiFieldGenerator, UnsavedChangesBar } from '@/components/ui'
 import { AI_BUTTON_IDS } from '@/config/ai-buttons.config'
 import ProductTagAssignment from '@/components/ProductTagAssignment.vue'
 import ProductStockNotifications from '@/components/products/ProductStockNotifications.vue'
+import ProductPromotionsCard from '@/components/products/ProductPromotionsCard.vue'
 import ProductReviewsCard from '@/components/reviews/ProductReviewsCard.vue'
 import type { ProductUpdatePayload, ExternalCategoryOption, SaleUnitOption, DeliveryMode } from '@/types/product.types'
 import { useShippingConfigStore } from '@/stores/shipping-config.store'
