@@ -1,6 +1,6 @@
 import apiClient from './axios'
 import type { ApiResponse } from '@/types/api.types'
-import type { ProductList, ProductListCreateRequest, ProductListUpdateRequest } from '@/types/product-list.types'
+import type { ProductList, ProductListCreateRequest, ProductListUpdateRequest, PromotionListOption } from '@/types/product-list.types'
 
 export const productListApi = {
   // Get all product lists
@@ -37,6 +37,14 @@ export const productListApi = {
   async delete(id: number): Promise<ApiResponse<void>> {
     await apiClient.delete(`/product-lists/${id}`)
     return { success: true }
+  },
+
+  // Promociones que pueden llenar una lista tipo 4
+  async getPromotionOptions(): Promise<ApiResponse<PromotionListOption[]>> {
+    const response = await apiClient.get('/product-lists/promotion-options')
+    const raw = response.data
+    const data = Array.isArray(raw) ? raw : Array.isArray(raw?.data) ? raw.data : []
+    return { success: true, data }
   },
 
   // Get products linked/unlinked to a product list

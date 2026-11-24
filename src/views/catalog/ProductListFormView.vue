@@ -102,7 +102,7 @@
           <label class="block text-sm font-medium text-secondary-700 mb-2">
             Tipo de lista <span class="text-red-500">*</span>
           </label>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div
               v-for="tipo in listTypes"
               :key="tipo.value"
@@ -130,8 +130,46 @@
           <small v-if="errors.productolista_tipo" class="text-red-500">{{ errors.productolista_tipo }}</small>
         </div>
 
+        <!-- Promoción (lista tipo 4) -->
+        <div v-if="isPromotionList">
+          <label class="block text-sm font-medium text-secondary-700 mb-2">
+            Promoción <span class="text-red-500">*</span>
+          </label>
+          <Dropdown
+            v-model="formData.promotion_id"
+            :options="promotionOptions"
+            option-label="name"
+            option-value="id"
+            :loading="isLoadingPromotions"
+            placeholder="Elige la promoción"
+            filter
+            class="w-full"
+            :class="{ 'p-invalid': errors.promotion_id }"
+            empty-message="No hay promociones que rebajen productos"
+          >
+            <template #option="{ option }">
+              <div class="flex items-center justify-between gap-3 w-full">
+                <span>{{ option.name }}</span>
+                <span class="text-xs text-secondary-500 whitespace-nowrap">
+                  {{ statusLabel(option.status) }} · {{ option.product_count }} productos
+                </span>
+              </div>
+            </template>
+          </Dropdown>
+          <small v-if="errors.promotion_id" class="text-red-500 block">{{ errors.promotion_id }}</small>
+          <small v-else class="text-secondary-500 block mt-1">
+            La lista muestra los productos que la promoción rebaja (por producto, categoría, marca o gama) y se
+            actualiza sola cuando cambias la promoción. Las promociones que descuentan el carrito o el envío no
+            aparecen: no tienen productos que listar.
+          </small>
+          <div v-if="selectedPromotion && selectedPromotion.status !== 'active'" class="mt-2 text-xs text-amber-700 bg-amber-50 rounded p-2">
+            La promoción está {{ statusLabel(selectedPromotion.status).toLowerCase() }}: la lista mostrará sus
+            productos, pero sin el descuento hasta que la promoción esté activa.
+          </div>
+        </div>
+
         <!-- Cantidad de items (solo para listas smart) -->
-        <div v-if="formData.productolista_tipo !== 1">
+        <div v-if="formData.productolista_tipo !== 1 && !isPromotionList">
           <label class="block text-sm font-medium text-secondary-700 mb-2">
             Cantidad de productos
           </label>
@@ -314,6 +352,7 @@ import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import InputSwitch from 'primevue/inputswitch'
+import Dropdown from 'primevue/dropdown'
 import Textarea from 'primevue/textarea'
 import Divider from 'primevue/divider'
 import ProgressSpinner from 'primevue/progressspinner'
@@ -323,7 +362,8 @@ import type { CatalogImageType } from '@/components/catalog/CatalogImageUploader
 import { useAuthStore } from '@/stores/auth.store'
 import { slugify } from '@/utils/slugify'
 import { productListApi } from '@/api/product-list.api'
-import type { ProductList, ProductListFormData } from '@/types/product-list.types'
+import { PROMOTION_LIST_TYPE } from '@/types/product-list.types'
+import type { ProductList, ProductListFormData, PromotionListOption } from '@/types/product-list.types'
 
 const route = useRoute()
 const router = useRouter()
@@ -339,6 +379,7 @@ const formData = ref<ProductListFormData>({
   productolista_nombre: '',
   productolista_slug: '',
   productolista_tipo: 1,
+  promotion_id: null,
   productolista_estado: 1,
   productolista_cantidaditems: null,
   productolista_descripcion: '',
@@ -468,8 +509,52 @@ const listTypes = [
     icon: 'pi pi-star',
     description: 'Se genera automáticamente con los productos más recientes.',
     disabled: true
+  },
+  {
+    value: PROMOTION_LIST_TYPE,
+    label: 'De una promoción',
+    icon: 'pi pi-percentage',
+    description: 'Muestra los productos de una promoción y se actualiza sola cuando la cambias.',
+    disabled: false
   }
 ]
+
+// Lista tipo 4: selector de promoción, cargado la primera vez que se elige el tipo.
+const isPromotionList = computed(() => Number(formData.value.productolista_tipo) === PROMOTION_LIST_TYPE)
+const promotionOptions = ref<PromotionListOption[]>([])
+const isLoadingPromotions = ref(false)
+let promotionsLoaded = false
+
+const selectedPromotion = computed(() =>
+  promotionOptions.value.find(p => p.id === formData.value.promotion_id) ?? null
+)
+
+const STATUS_LABELS: Record<string, string> = {
+  draft: 'Borrador',
+  scheduled: 'Programada',
+  active: 'Activa',
+  paused: 'Pausada',
+  expired: 'Expirada'
+}
+const statusLabel = (status: string) => STATUS_LABELS[status] ?? status
+
+const loadPromotionOptions = async () => {
+  if (promotionsLoaded) return
+  try {
+    isLoadingPromotions.value = true
+    const response = await productListApi.getPromotionOptions()
+    promotionOptions.value = response.data ?? []
+    promotionsLoaded = true
+  } catch {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'No se pudieron cargar las promociones', life: 4000 })
+  } finally {
+    isLoadingPromotions.value = false
+  }
+}
+
+watch(isPromotionList, (value) => {
+  if (value) loadPromotionOptions()
+}, { immediate: true })
 
 // Sync isActive with formData
 watch(isActive, (value) => {
@@ -490,6 +575,10 @@ const validateForm = (): boolean => {
 
   if (!formData.value.productolista_tipo) {
     errors.value.productolista_tipo = 'El tipo de lista es requerido'
+  }
+
+  if (isPromotionList.value && !formData.value.promotion_id) {
+    errors.value.promotion_id = 'Elige la promoción cuyos productos va a mostrar la lista'
   }
 
   return Object.keys(errors.value).length === 0
@@ -514,9 +603,10 @@ const saveList = async () => {
       productolista_slug: formData.value.productolista_slug,
       productolista_tipo: formData.value.productolista_tipo,
       productolista_estado: formData.value.productolista_estado,
-      productolista_cantidaditems: formData.value.productolista_tipo !== 1
+      productolista_cantidaditems: formData.value.productolista_tipo !== 1 && !isPromotionList.value
         ? formData.value.productolista_cantidaditems
         : null,
+      promotion_id: isPromotionList.value ? formData.value.promotion_id : null,
       productolista_descripcion: formData.value.productolista_descripcion || null,
       productolista_meta_tittle: formData.value.productolista_meta_tittle || null,
       productolista_meta_description: formData.value.productolista_meta_description || null
@@ -548,10 +638,13 @@ const saveList = async () => {
     if (messages.productolista_slug) {
       errors.value.productolista_slug = messages.productolista_slug
     }
+    if (messages.promotion_id) {
+      errors.value.promotion_id = messages.promotion_id
+    }
     toast.add({
       severity: 'error',
       summary: 'Error',
-      detail: messages.productolista_slug || messages.productolista_nombre || messages.error || error.response?.data?.message || 'Error al guardar la lista',
+      detail: messages.productolista_slug || messages.promotion_id || messages.productolista_nombre || messages.error || error.response?.data?.message || 'Error al guardar la lista',
       life: 5000
     })
   } finally {
@@ -572,7 +665,9 @@ const loadList = async () => {
         // El panel legacy crea listas sin slug (hoy se sirven por código): se
         // propone uno desde el nombre para que guardar no exija escribirlo.
         productolista_slug: list.productolista_slug || slugify(list.productolista_nombre),
-        productolista_tipo: list.productolista_tipo,
+        // La API devuelve el tipo como texto: sin Number() ninguna tarjeta queda marcada.
+        productolista_tipo: Number(list.productolista_tipo),
+        promotion_id: list.promotion_id ? Number(list.promotion_id) : null,
         productolista_estado: list.productolista_estado,
         productolista_cantidaditems: list.productolista_cantidaditems,
         productolista_descripcion: list.productolista_descripcion || '',

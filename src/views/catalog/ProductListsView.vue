@@ -224,7 +224,8 @@ const typeOptions = computed(() => {
     { id: null, name: 'Todos los tipos' },
     { id: 1, name: 'Manual' },
     { id: 2, name: 'Más Vendidos' },
-    { id: 3, name: 'Nuevos Productos' }
+    { id: 3, name: 'Nuevos Productos' },
+    { id: 4, name: 'De una promoción' }
   ]
 })
 
@@ -254,10 +255,12 @@ const getTypeName = (tipo: number): string => {
 }
 
 const getTypeSeverity = (tipo: number): string => {
-  switch (tipo) {
+  // La API devuelve el tipo como texto ('1'); el switch compara estricto.
+  switch (Number(tipo)) {
     case 1: return 'info'
     case 2: return 'warning'
     case 3: return 'success'
+    case 4: return 'secondary'
     default: return 'secondary'
   }
 }
