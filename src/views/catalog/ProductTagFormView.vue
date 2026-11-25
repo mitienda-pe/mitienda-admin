@@ -114,6 +114,17 @@
                   </div>
                 </div>
 
+                <!-- Tamaño (solo imagen) -->
+                <div v-if="formData.tipo === 'imagen'">
+                  <label class="block text-sm font-medium text-secondary-700 mb-2">Tamaño</label>
+                  <SelectButton v-model="formData.tamano" :options="tamanoOptions" optionLabel="label" optionValue="value"
+                    :allowEmpty="false" class="w-full" />
+                  <small class="text-secondary-500">
+                    Proporcional al ancho de la foto del producto. Si la imagen se ve chica aun en Grande,
+                    súbela recortada: el margen transparente también cuenta.
+                  </small>
+                </div>
+
                 <!-- Posición -->
                 <div>
                   <label class="block text-sm font-medium text-secondary-700 mb-3">
@@ -282,16 +293,17 @@
               <span class="text-lg">Vista Previa</span>
             </template>
             <template #content>
-              <div class="aspect-square relative bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+              <div class="preview-photo aspect-square relative bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
                 <img src="https://picsum.photos/400" alt="Producto de ejemplo"
                   class="w-full h-full object-cover" />
 
                 <!-- Ribbon preview -->
-                <div v-if="showPreview" :class="['ribbon-preview', ribbonPositionClass]"
+                <div v-if="showPreview"
+                  :class="['ribbon-preview', ribbonPositionClass, { 'ribbon-preview--image': formData.tipo === 'imagen' }]"
                   :style="ribbonStyles">
                   <span v-if="formData.tipo === 'texto'">{{ formData.texto || 'TEXTO' }}</span>
                   <img v-else-if="formData.imagen_url" :src="formData.imagen_url" alt="Preview"
-                    class="max-h-16 max-w-full" @error="imageError = true" />
+                    :class="['preview-tag-img', `preview-tag-img--${formData.tamano}`]" @error="imageError = true" />
                   <span v-else class="text-xs text-gray-400">Sin imagen</span>
                 </div>
               </div>
@@ -307,7 +319,7 @@
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductTagsStore } from '@/stores/product-tags.store'
-import type { ProductTag, ProductTagFormData, ProductTagLinks, TagLinkType, TagType, TagPosition } from '@/types/product-tag.types'
+import type { ProductTag, ProductTagFormData, ProductTagLinks, TagLinkType, TagType, TagPosition, TagSize } from '@/types/product-tag.types'
 import { emptyTagLinks } from '@/types/product-tag.types'
 import type { Category } from '@/types/product.types'
 import Button from 'primevue/button'
@@ -345,6 +357,7 @@ const defaultFormData: ProductTagFormData = {
   texto: '',
   imagen_url: '',
   posicion: 'top-right',
+  tamano: 'mediano',
   color_fondo: '#ff0000',
   color_texto: '#ffffff',
   activo: true,
@@ -416,6 +429,12 @@ function applyLinks(links?: ProductTagLinks) {
 const tipoOptions = [
   { label: 'Texto', value: 'texto' as TagType },
   { label: 'Imagen', value: 'imagen' as TagType }
+]
+
+const tamanoOptions: { label: string; value: TagSize }[] = [
+  { label: 'Pequeño', value: 'pequeno' },
+  { label: 'Mediano', value: 'mediano' },
+  { label: 'Grande', value: 'grande' }
 ]
 
 // Eliminado posicionOptions - no se usa en el componente
@@ -618,6 +637,7 @@ onMounted(async () => {
       formData.texto = editingTag.value.texto || ''
       formData.imagen_url = editingTag.value.imagen_url || ''
       formData.posicion = editingTag.value.posicion as TagPosition
+      formData.tamano = editingTag.value.tamano || 'mediano'
       formData.color_fondo = editingTag.value.color_fondo
       formData.color_texto = editingTag.value.color_texto
       formData.activo = editingTag.value.activo
@@ -641,6 +661,36 @@ onMounted(async () => {
   z-index: 10;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
+
+/* La etiqueta de imagen va suelta sobre la foto, como en el storefront:
+   sin la caja (relleno, sombra) que solo tiene sentido para la de texto. */
+.ribbon-preview--image {
+  padding: 0;
+  box-shadow: none;
+  border-radius: 0;
+  max-width: 60%;
+  line-height: 0;
+}
+
+/* Misma regla que la viñeta del storefront (ProductCard.vue, &__tag-img):
+   el tamaño es proporción del ancho de la foto, así la vista previa muestra
+   lo que se verá aunque este cuadro sea más grande que una tarjeta real. */
+.preview-photo {
+  container-type: inline-size;
+}
+
+.preview-tag-img {
+  --tag-size: 22cqw;
+  width: auto;
+  height: var(--tag-size);
+  max-width: min(calc(var(--tag-size) * 2.2), 100%);
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.preview-tag-img--pequeno { --tag-size: 15cqw; }
+.preview-tag-img--mediano { --tag-size: 22cqw; }
+.preview-tag-img--grande { --tag-size: 32cqw; }
 
 .ribbon-top-left {
   top: 10px;

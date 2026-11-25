@@ -9,6 +9,10 @@ export type TagPosition =
   | 'bottom-center'
   | 'bottom-right'
 
+/** Escala de la etiqueta de imagen. El storefront la traduce a una proporción
+ *  del ancho de la foto (15 / 22 / 32 %), así se ve igual en cualquier grilla. */
+export type TagSize = 'pequeno' | 'mediano' | 'grande'
+
 export const MAX_TAGS_PER_PRODUCT = 8
 
 export type TagLinkType = 'categoria' | 'marca' | 'gama' | 'lista' | 'promocion'
@@ -29,6 +33,7 @@ export interface ProductTag {
   texto?: string | null
   imagen_url?: string | null
   posicion: TagPosition
+  tamano?: TagSize
   color_fondo: string
   color_texto: string
   activo: boolean
@@ -56,6 +61,7 @@ export interface ProductTagFormData {
   texto?: string
   imagen_url?: string
   posicion: TagPosition
+  tamano: TagSize
   color_fondo: string
   color_texto: string
   activo: boolean
