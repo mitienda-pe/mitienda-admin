@@ -44,25 +44,29 @@
               <div class="space-y-4">
                 <div>
                   <label for="store_token" class="block text-sm font-medium text-secondary-700 mb-2">
-                    Store Token <span class="text-red-500">*</span>
+                    Token <span class="text-red-500">*</span>
                   </label>
-                  <Password id="store_token" v-model="formData.store_token" placeholder="Tu Store Token (Bearer)"
+                  <Password id="store_token" v-model="formData.store_token" placeholder="Pega el Token de la pestaña Credenciales"
                     class="w-full" :class="{ 'p-invalid': errors.store_token }" :feedback="false" toggleMask />
                   <small v-if="errors.store_token" class="text-red-500">{{ errors.store_token }}</small>
+                  <small v-else class="block text-secondary-500 mt-1">
+                    Está en la pestaña <strong>Credenciales</strong> de tu aplicación en PayPhone Developer. Es un texto largo;
+                    no es la "Contraseña de codificación".
+                  </small>
                 </div>
                 <div>
                   <label for="app_id" class="block text-sm font-medium text-secondary-700 mb-2">
-                    App ID <span class="text-red-500">*</span>
+                    Identificador <span class="text-red-500">*</span>
                   </label>
-                  <Password id="app_id" v-model="formData.app_id" placeholder="Tu App ID"
+                  <Password id="app_id" v-model="formData.app_id" placeholder="Identificador de la aplicación"
                     class="w-full" :class="{ 'p-invalid': errors.app_id }" :feedback="false" toggleMask />
                   <small v-if="errors.app_id" class="text-red-500">{{ errors.app_id }}</small>
                 </div>
                 <div>
                   <label for="app_secret" class="block text-sm font-medium text-secondary-700 mb-2">
-                    App Secret <span class="text-red-500">*</span>
+                    Clave secreta <span class="text-red-500">*</span>
                   </label>
-                  <Password id="app_secret" v-model="formData.app_secret" placeholder="Tu App Secret"
+                  <Password id="app_secret" v-model="formData.app_secret" placeholder="Clave secreta de la aplicación"
                     class="w-full" :class="{ 'p-invalid': errors.app_secret }" :feedback="false" toggleMask />
                   <small v-if="errors.app_secret" class="text-red-500">{{ errors.app_secret }}</small>
                 </div>
@@ -127,8 +131,9 @@
               <h4 class="font-semibold text-secondary-800 mb-2">¿Cómo obtener mis credenciales?</h4>
               <ol class="list-decimal list-inside space-y-2 text-secondary-600">
                 <li>Regístrate en PayPhone Business</li>
-                <li>Accede al panel de desarrolladores</li>
-                <li>Obtén tu Store Token, App ID y App Secret</li>
+                <li>Entra a PayPhone Developer y abre tu aplicación</li>
+                <li>En <strong>Detalles</strong> copia el Identificador y la Clave secreta</li>
+                <li>En <strong>Credenciales</strong> copia el Token (el texto largo)</li>
               </ol>
             </div>
             <Divider />
@@ -217,6 +222,10 @@ function validateForm(): boolean {
   Object.keys(errors).forEach(k => (errors as Record<string, string>)[k] = '')
   let valid = true
   if (!formData.store_token?.trim()) { errors.store_token = 'Requerido'; valid = false }
+  else if (/^[0-9a-f]{32}$/i.test(formData.store_token.trim())) {
+    errors.store_token = 'Esa es la Contraseña de codificación. Pega el Token de la pestaña Credenciales.'
+    valid = false
+  }
   if (!formData.app_id?.trim()) { errors.app_id = 'Requerido'; valid = false }
   if (!formData.app_secret?.trim()) { errors.app_secret = 'Requerido'; valid = false }
   return valid
