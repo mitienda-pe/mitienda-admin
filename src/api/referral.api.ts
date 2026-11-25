@@ -7,7 +7,8 @@ import type {
   ReferralCodeResponse,
   GenerateCodeResponse,
   ReferralImportPreviewResponse,
-  ReferralImportResultResponse
+  ReferralImportResultResponse,
+  ReferralSalesSummary
 } from '@/types/referral.types'
 
 interface ListParams {
@@ -102,5 +103,13 @@ export const referralApi = {
   async exportCsv(): Promise<Blob> {
     const response = await axios.get('/referral-codes/export', { responseType: 'blob' })
     return response.data
+  },
+
+  /**
+   * Ventas pagadas por código en el período (fechas Y-m-d; por defecto 30 días).
+   */
+  async getSalesSummary(params: { from?: string; to?: string } = {}): Promise<ReferralSalesSummary> {
+    const response = await axios.get('/referral-codes/sales-summary', { params })
+    return response.data.data
   }
 }

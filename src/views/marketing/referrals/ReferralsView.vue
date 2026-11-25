@@ -42,6 +42,8 @@
 
     <ReferralImportDialog v-model:visible="showImportDialog" @imported="onImported" />
 
+    <ReferralSalesSummary v-if="referralStore.pagination.total > 0" />
+
     <!-- Search -->
     <div class="bg-white rounded-lg shadow p-4 mb-6">
       <div class="flex flex-col md:flex-row gap-4">
@@ -280,6 +282,7 @@ import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import Tag from 'primevue/tag'
 import ReferralImportDialog from '@/components/marketing/ReferralImportDialog.vue'
+import ReferralSalesSummary from '@/components/marketing/ReferralSalesSummary.vue'
 import { referralApi } from '@/api/referral.api'
 import { downloadBlob } from '@/utils/csv-helpers'
 import type { ReferralCode } from '@/types/referral.types'

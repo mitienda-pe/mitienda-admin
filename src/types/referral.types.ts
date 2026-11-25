@@ -84,3 +84,30 @@ export interface ReferralImportResultResponse {
   message?: string
   data: ReferralImportResult
 }
+
+// ── Ventas por código ──
+
+export interface ReferralSalesRow {
+  id: number
+  code: string
+  name: string
+  active: boolean
+  orders: number
+  total: number
+  average: number
+  last_sale: string | null
+}
+
+export interface ReferralSalesSummary {
+  from: string
+  to: string
+  rows: ReferralSalesRow[]
+  totals: {
+    orders: number
+    total: number
+    codes_with_sales: number
+    codes: number
+  }
+  /** Ventas con un código que ya no existe en la tienda. */
+  unmatched: { orders: number; total: number }
+}
