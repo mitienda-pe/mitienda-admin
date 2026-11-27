@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.97.2] - 2026-11-27
+
+### Correcciones
+
+- **pedidos:** mostrar 'No informado' cuando la pasarela no da el monto ([`589b424`](https://github.com/mitienda-pe/mitienda-admin/commit/589b4247fcc4cbb43cbacaa856d7353da01265b0))
+
 ## [v2.97.1] - 2026-11-27
 
 ### Correcciones
