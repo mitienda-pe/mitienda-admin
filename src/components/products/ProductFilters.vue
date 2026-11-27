@@ -35,14 +35,22 @@
         <label class="block text-sm font-medium text-secondary-700 mb-2">Categoría</label>
         <Dropdown
           v-model="localFilters.categoryId"
-          :options="catalogStore.categories"
-          option-label="name"
+          :options="categoryOptions"
+          option-label="path"
           option-value="id"
           placeholder="Todas"
           class="w-full"
+          filter
+          filter-placeholder="Buscar categoría"
           show-clear
           @change="applyFilters"
-        />
+        >
+          <template #option="{ option }">
+            <span :style="{ paddingLeft: `${option.depth * 1.25}rem` }" :class="option.depth === 0 ? 'font-medium' : ''">
+              <i v-if="option.depth > 0" class="pi pi-angle-right text-xs text-secondary-400 mr-1"></i>{{ option.name }}
+            </span>
+          </template>
+        </Dropdown>
       </div>
 
       <!-- Marca -->
@@ -84,12 +92,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 import Dropdown from 'primevue/dropdown'
 import Button from 'primevue/button'
 import { useCatalogStore } from '@/stores/catalog.store'
 import { useProductTypeStore } from '@/stores/product-type.store'
-import type { ProductFilters } from '@/types/product.types'
+import type { Category, ProductFilters } from '@/types/product.types'
 
 interface Props {
   filters: ProductFilters
@@ -110,6 +118,30 @@ onMounted(() => {
 })
 
 const localFilters = ref<ProductFilters>({ ...props.filters })
+
+// Árbol de categorías aplanado en orden de lectura (padre, luego sus hijas) para
+// poder filtrar también por subcategoría. `path` ("Padre › Hija") es lo que se
+// ve en el campo ya elegido y sobre lo que busca el filtro del dropdown: así una
+// subcategoría con nombre repetido ("Accesorios" en dos padres) no se confunde.
+interface CategoryOption {
+  id: number
+  name: string
+  path: string
+  depth: number
+}
+
+const categoryOptions = computed<CategoryOption[]>(() => {
+  const result: CategoryOption[] = []
+  const walk = (items: Category[], depth: number, parentPath: string) => {
+    for (const item of items) {
+      const path = parentPath ? `${parentPath} › ${item.name}` : item.name
+      result.push({ id: item.id, name: item.name, path, depth })
+      if (item.sub?.length) walk(item.sub, depth + 1, path)
+    }
+  }
+  walk(catalogStore.categories, 0, '')
+  return result
+})
 
 const publishedOptions = [
   { label: 'Todos', value: null },
