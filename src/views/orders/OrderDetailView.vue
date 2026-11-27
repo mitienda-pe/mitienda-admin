@@ -1119,16 +1119,19 @@ const totalPayments = computed(() => {
   return order.value.payments.reduce((sum, payment) => sum + parseFloat(payment.amount || '0'), 0)
 })
 
-// Get promotion for a specific order item
-const getItemPromotion = (itemId: number) => {
-  if (!order.value?.promotions) return null
-  return order.value.promotions.find(promo => promo.order_item_id === itemId)
+// Promociones que tocan una línea. Puede haber varias: una promo V2 con el mismo
+// producto en dos efectos genera dos filas para la misma línea (y el comprador
+// pagó la suma). Tomar solo la primera ocultaba parte del descuento cobrado.
+const getItemPromotions = (itemId: number) => {
+  if (!order.value?.promotions) return []
+  return order.value.promotions.filter(promo => promo.order_item_id === itemId)
 }
 
-// Get discount for a specific order item
+// Descuento total de una línea (suma de todas sus promociones)
 const getItemDiscount = (itemId: number): number => {
-  const promotion = getItemPromotion(itemId)
-  return promotion?.discount_amount || 0
+  const total = getItemPromotions(itemId)
+    .reduce((sum, promo) => sum + (Number(promo.discount_amount) || 0), 0)
+  return Math.round(total * 100) / 100
 }
 
 // Effective discount percentage for an item line.
@@ -1148,15 +1151,15 @@ const getItemDiscountPercent = (itemId: number): number | null => {
 
 // Check if item is bonificado (100% discount - free item from promotion like 2x1)
 const isItemBonificado = (itemId: number): boolean => {
-  const promotion = getItemPromotion(itemId)
-  if (!promotion) return false
+  const discount = getItemDiscount(itemId)
+  if (discount <= 0) return false
 
   // If discount equals the item price, it's bonificado
   const item = order.value?.items.find(i => i.id === itemId)
   if (!item) return false
 
   const itemTotal = item.price * item.quantity
-  return promotion.discount_amount >= itemTotal
+  return discount >= itemTotal
 }
 
 // Get order-level promotions (not linked to specific items)
