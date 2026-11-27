@@ -3,6 +3,28 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.97.0] - 2026-11-27
+
+### Novedades
+
+- **tienda:** pantalla Buscador con sinónimos y búsqueda exacta ([`9770203`](https://github.com/mitienda-pe/mitienda-admin/commit/9770203e479d4ae0755422bdb86d225eb10bdfff))
+- **etiquetas:** selector de tamaño y vista previa fiel para la etiqueta de imagen ([`41dc826`](https://github.com/mitienda-pe/mitienda-admin/commit/41dc8264edc458043fb0123b3b8b25a89d25f30f))
+- **referidos:** panel de ventas por código en Marketing › Referidos ([`5256e43`](https://github.com/mitienda-pe/mitienda-admin/commit/5256e43536f2571b224dbe27ade747e454b67240))
+- **listas:** tipo "De una promoción" con selector de promoción ([`1c3ccac`](https://github.com/mitienda-pe/mitienda-admin/commit/1c3ccac5e06e3b752ad21f218b6d6e1cd0aff2f8))
+- **productos:** tarjeta de promociones en la ficha con la que se aplica hoy ([`7176511`](https://github.com/mitienda-pe/mitienda-admin/commit/7176511e1a8e6e1d4c7cae3415fe91589b1f2de1))
+- **carrito abandonado:** resultados de los recordatorios en Recuperación de carritos ([`bee1e32`](https://github.com/mitienda-pe/mitienda-admin/commit/bee1e32e29ecb5de3df60b6fc5355cd8ca617a64))
+- **apariencia:** interruptor del botón «Comprar ahora» en la ficha de producto ([`67db782`](https://github.com/mitienda-pe/mitienda-admin/commit/67db782b9f9e9d2a088edcb84f41e02a65938bc1))
+- **carrito abandonado:** configurar el cupón del último recordatorio ([`70458a5`](https://github.com/mitienda-pe/mitienda-admin/commit/70458a565a1e54b5106b61d6128c8d235652f28b))
+
+### Correcciones
+
+- **promociones:** mostrar por qué el API rechaza un efecto V2 ([`a7eeff4`](https://github.com/mitienda-pe/mitienda-admin/commit/a7eeff415b021d80805ee06f8ae70bb17a12d3c2))
+- **orders:** la línea suma todos sus descuentos de promoción ([`548a1c5`](https://github.com/mitienda-pe/mitienda-admin/commit/548a1c5e8f9429da7bfb953be28c303148d100ad))
+- **pedidos:** no mostrar "Servicio de Envío" en pedidos de recojo en tienda ([`9c5dce0`](https://github.com/mitienda-pe/mitienda-admin/commit/9c5dce02c1caf13a63f880ea5edc1ce1873e67ee))
+- **pasarelas:** campos de PayPhone con los nombres de PayPhone Developer ([`e5d7c6c`](https://github.com/mitienda-pe/mitienda-admin/commit/e5d7c6c2d520ad3caaf1ab607a8c4960cff6b0b9))
+- **ui:** toggles en turquesa de marca y sin encogerse en filas flex ([`c0abdda`](https://github.com/mitienda-pe/mitienda-admin/commit/c0abddaa52643e3ab1fcbb7a0e854df946e8c8b5))
+- **envíos:** los niveles de las tarifas usan el nombre del país, no «distrito» fijo ([`3f76891`](https://github.com/mitienda-pe/mitienda-admin/commit/3f7689195dd12cdaf5e6fdb7a82ee52ab1ed6363))
+
 ## [v2.96.1] - 2026-11-21
 
 ### Novedades
