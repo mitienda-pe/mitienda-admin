@@ -1768,7 +1768,10 @@ const handleDebugPayments = async () => {
               </div>
               <div class="flex gap-1">
                 <dt class="font-medium">Monto cobrado:</dt>
-                <dd :class="gatewayStatus.lookup.amount_matches === false ? 'text-red-600 font-semibold' : ''">
+                <dd v-if="gatewayStatus.lookup.amount === null" class="italic text-secondary-500">
+                  No informado por la pasarela
+                </dd>
+                <dd v-else :class="gatewayStatus.lookup.amount_matches === false ? 'text-red-600 font-semibold' : ''">
                   {{ formatCurrency(gatewayStatus.lookup.amount) }}
                 </dd>
               </div>

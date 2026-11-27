@@ -75,8 +75,9 @@ export interface GatewayStatusResult {
     transaction_id: string | null
     /** 'order' = PagoEfectivo/agente/billetera; 'charge'/'payment' = tarjeta. */
     kind: string | null
-    amount: number
-    amount_matches?: boolean
+    /** null = la pasarela no informa el monto en la consulta (PowerPay). */
+    amount: number | null
+    amount_matches?: boolean | null
     is_refunded: boolean
     is_chargeback: boolean
     error: string | null
