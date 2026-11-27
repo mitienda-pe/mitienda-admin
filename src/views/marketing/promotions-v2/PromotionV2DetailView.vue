@@ -115,8 +115,8 @@
             :valid-types="EFFECT_TYPES"
             id-field="effect_id"
             rule-category="effects"
-            @add="data => store.addRule(promotion!.promotions_v2_id, 'effects', data)"
-            @update="(id, data) => store.editRule(promotion!.promotions_v2_id, 'effects', id, data)"
+            @add="data => notifyRuleError(store.addRule(promotion!.promotions_v2_id, 'effects', data))"
+            @update="(id, data) => notifyRuleError(store.editRule(promotion!.promotions_v2_id, 'effects', id, data))"
             @delete="id => store.removeRule(promotion!.promotions_v2_id, 'effects', id)"
           />
 
@@ -339,6 +339,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import Dialog from 'primevue/dialog'
+import { useToast } from 'primevue/usetoast'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
@@ -378,6 +379,15 @@ const CONSTRAINT_TYPES = Object.keys(CONSTRAINT_TYPE_LABELS)
 const router = useRouter()
 const route = useRoute()
 const store = usePromotionV2Store()
+const toast = useToast()
+
+// RuleSection emite sin esperar: sin esto, un rechazo del API (p. ej. un
+// producto repetido en dos efectos) se perdía en silencio.
+function notifyRuleError(pending: Promise<unknown>) {
+  pending.catch(() => {
+    toast.add({ severity: 'error', summary: 'No se guardó el efecto', detail: store.error || undefined, life: 8000 })
+  })
+}
 const { formatDate } = useFormatters()
 
 // 'coupon' → ruta /marketing/coupons (mod_cupones, Small+). Define la URL de back

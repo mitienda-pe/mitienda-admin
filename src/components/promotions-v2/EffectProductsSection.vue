@@ -276,6 +276,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import Dialog from 'primevue/dialog'
+import { useToast } from 'primevue/usetoast'
 import { productsApi } from '@/api/products.api'
 import { usePromotionV2Store } from '@/stores/promotion-v2.store'
 import { useFormatters } from '@/composables/useFormatters'
@@ -304,6 +305,7 @@ const props = defineProps<{
   conditions: PromotionV2Condition[]
 }>()
 
+const toast = useToast()
 const store = usePromotionV2Store()
 
 const effectLabel = computed(() => {
@@ -537,6 +539,17 @@ async function updateProductIds(newIds: number[]) {
       props.effect.effect_id,
       { type: props.effect.type, config: updatedConfig }
     )
+    return true
+  } catch {
+    // P. ej. el producto ya está en otro efecto de la promo: el motor sumaría
+    // ambos descuentos, así que el API lo rechaza y aquí se explica por qué.
+    toast.add({
+      severity: 'error',
+      summary: 'No se guardaron los productos',
+      detail: store.error || 'Error al actualizar el efecto',
+      life: 8000,
+    })
+    return false
   } finally {
     isSaving.value = false
   }
@@ -544,14 +557,12 @@ async function updateProductIds(newIds: number[]) {
 
 async function linkSelected() {
   const newIds = [...productIds.value, ...selectedUnlinked.value]
-  await updateProductIds(newIds)
-  selectedUnlinked.value = []
+  if (await updateProductIds(newIds)) selectedUnlinked.value = []
 }
 
 async function unlinkSelected() {
   const newIds = productIds.value.filter(id => !selectedLinked.value.includes(id))
-  await updateProductIds(newIds)
-  selectedLinked.value = []
+  if (await updateProductIds(newIds)) selectedLinked.value = []
 }
 
 // Load products when dialog opens

@@ -1,3 +1,4 @@
+import { apiErrorMessage } from '@/utils/api-error'
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import {
@@ -247,7 +248,7 @@ export const usePromotionV2Store = defineStore('promotion-v2', () => {
       }
     } catch (err: any) {
       captureBlockedByPlan(err)
-      error.value = err.response?.data?.message || 'Error al agregar regla'
+      error.value = apiErrorMessage(err, 'Error al agregar regla')
       throw err
     }
   }
@@ -276,7 +277,7 @@ export const usePromotionV2Store = defineStore('promotion-v2', () => {
       }
     } catch (err: any) {
       captureBlockedByPlan(err)
-      error.value = err.response?.data?.message || 'Error al actualizar regla'
+      error.value = apiErrorMessage(err, 'Error al actualizar regla')
       throw err
     }
   }
