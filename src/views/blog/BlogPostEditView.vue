@@ -173,7 +173,7 @@ import PageContentEditor from '@/components/pages/PageContentEditor.vue'
 import { imageGalleryApi } from '@/api/image-gallery.api'
 import { apiErrorMessage } from '@/utils/api-error'
 import type { BlogPost } from '@/types/blog.types'
-import type { PageEditorType } from '@/types/page.types'
+import type { ContentEditorType } from '@/types/page.types'
 
 const route = useRoute()
 const blogStore = useBlogStore()
@@ -203,15 +203,15 @@ const settingsForm = reactive({
 })
 
 const editorTypeLabel = computed(() => {
-  const labels: Record<PageEditorType, string> = { wysiwyg: 'Editor Visual', code: 'Editor de Código', visual_builder: 'Visual Builder' }
+  const labels: Record<ContentEditorType, string> = { wysiwyg: 'Editor Visual', code: 'Editor de Código', visual_builder: 'Visual Builder' }
   return post.value ? labels[post.value.editor_type] : ''
 })
 const editorTypeIcon = computed(() => {
-  const icons: Record<PageEditorType, string> = { wysiwyg: 'pi pi-align-left', code: 'pi pi-code', visual_builder: 'pi pi-th-large' }
+  const icons: Record<ContentEditorType, string> = { wysiwyg: 'pi pi-align-left', code: 'pi pi-code', visual_builder: 'pi pi-th-large' }
   return post.value ? icons[post.value.editor_type] : 'pi pi-file'
 })
 const editorTypeBadgeClass = computed(() => {
-  const classes: Record<PageEditorType, string> = { wysiwyg: 'bg-primary/10 text-primary', code: 'bg-purple-100 text-purple-800', visual_builder: 'bg-orange-100 text-orange-800' }
+  const classes: Record<ContentEditorType, string> = { wysiwyg: 'bg-primary/10 text-primary', code: 'bg-purple-100 text-purple-800', visual_builder: 'bg-orange-100 text-orange-800' }
   return post.value ? classes[post.value.editor_type] : 'bg-gray-100 text-gray-800'
 })
 

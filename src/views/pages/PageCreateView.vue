@@ -70,7 +70,7 @@
             La página solo podrá ser editada con el editor que elijas ahora.
           </p>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <!-- WYSIWYG -->
             <div
               class="border-2 rounded-lg p-5 cursor-pointer transition-all"
@@ -134,6 +134,28 @@
               </div>
               <p class="text-sm text-secondary-500">
                 Arrastra y suelta bloques para diseñar tu página visualmente.
+              </p>
+            </div>
+
+            <!-- Bloques (mismo builder que la Plantilla) -->
+            <div
+              class="border-2 rounded-lg p-5 cursor-pointer transition-all"
+              :class="selectedEditor === 'blocks'
+                ? 'border-primary bg-primary/5'
+                : 'border-gray-200 hover:border-gray-300'"
+              @click="selectedEditor = 'blocks'"
+            >
+              <div class="flex items-center gap-3 mb-3">
+                <div
+                  class="w-10 h-10 rounded-lg flex items-center justify-center"
+                  :class="selectedEditor === 'blocks' ? 'bg-primary text-white' : 'bg-gray-100 text-secondary-500'"
+                >
+                  <i class="pi pi-objects-column text-lg"></i>
+                </div>
+                <h3 class="font-semibold text-secondary">Bloques de la tienda</h3>
+              </div>
+              <p class="text-sm text-secondary-500">
+                Arma la página con secciones y bloques como en la Plantilla: carrusel, listas de productos, categorías, marcas y componentes HTML.
               </p>
             </div>
 

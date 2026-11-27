@@ -71,6 +71,21 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
     }
   }
 
+  // ── Layouts ajenos a la plantilla ──────────────────────────────────────────
+  // Las páginas de bloques reusan el editor de la plantilla, pero su layout se
+  // lee y guarda con la página (`tiendapagina_contenido`), no en
+  // /template-sections. Se cargan aquí bajo una clave propia (negativa, para no
+  // chocar con las páginas 1-6 de la plantilla) y se leen de vuelta al guardar.
+
+  function setLocalPage(key: number, sections: PageSection[]) {
+    pagesData.value.set(key, sections)
+    loadedPages.value.add(key)
+  }
+
+  function getAllSections(key: number): PageSection[] {
+    return pagesData.value.get(key) ?? []
+  }
+
   function setHomeModo(modo: HomeModo) {
     homeModo.value = modo
   }
@@ -230,6 +245,8 @@ export const useTemplateSectionsStore = defineStore('template-sections', () => {
     homeModo,
     loadedPages,
     setHomeModo,
+    setLocalPage,
+    getAllSections,
     loadPage,
     savePage,
     getSections,

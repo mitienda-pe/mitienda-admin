@@ -1,4 +1,9 @@
-export type PageEditorType = 'wysiwyg' | 'code' | 'visual_builder'
+import type { PageSection } from './template-section.types'
+
+// `blocks`: la página se arma con secciones y bloques, como la plantilla. Su
+// `content` es el JSON {"sections":[...]} (ver PageBlocksLayout).
+export type ContentEditorType = 'wysiwyg' | 'code' | 'visual_builder'
+export type PageEditorType = ContentEditorType | 'blocks'
 
 export interface Page {
   id: number
@@ -22,4 +27,28 @@ export interface PageFormData {
   published?: boolean
   meta_title?: string
   meta_description?: string
+}
+
+/**
+ * Layout de una página `blocks`, tal como se guarda en `content`.
+ * Mismo formato de secciones que la Plantilla.
+ */
+export interface PageBlocksLayout {
+  sections: PageSection[]
+}
+
+/** Secciones de una página de bloques; `null` si el contenido no tiene esa forma. */
+export function parsePageBlocksLayout(content: string): PageSection[] | null {
+  if (!content.trim()) return []
+  try {
+    const parsed = JSON.parse(content) as Partial<PageBlocksLayout>
+    return Array.isArray(parsed?.sections) ? parsed.sections : null
+  } catch {
+    return null
+  }
+}
+
+export function serializePageBlocksLayout(sections: PageSection[]): string {
+  const layout: PageBlocksLayout = { sections }
+  return JSON.stringify(layout)
 }

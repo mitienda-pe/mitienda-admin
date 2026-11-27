@@ -167,6 +167,7 @@ const editorTypeLabel = (type: PageEditorType) => {
     wysiwyg: 'WYSIWYG',
     code: 'Código HTML',
     visual_builder: 'Visual Builder',
+    blocks: 'Bloques',
   }
   return labels[type] || type
 }
@@ -176,6 +177,7 @@ const editorTypeIcon = (type: PageEditorType) => {
     wysiwyg: 'pi pi-align-left',
     code: 'pi pi-code',
     visual_builder: 'pi pi-th-large',
+    blocks: 'pi pi-objects-column',
   }
   return icons[type] || 'pi pi-file'
 }
@@ -185,6 +187,7 @@ const editorTypeBadgeClass = (type: PageEditorType) => {
     wysiwyg: 'bg-primary/10 text-primary',
     code: 'bg-purple-100 text-purple-800',
     visual_builder: 'bg-orange-100 text-orange-800',
+    blocks: 'bg-green-100 text-green-800',
   }
   return classes[type] || 'bg-gray-100 text-gray-800'
 }

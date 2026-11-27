@@ -71,8 +71,29 @@
 
         <!-- Content -->
         <div class="p-8">
+          <!-- Los bloques (productos, carrusel, listas…) los arma la tienda con
+               datos en vivo: aquí no hay HTML que mostrar. -->
+          <div v-if="page.editor_type === 'blocks'" class="text-center py-12">
+            <i class="pi pi-objects-column text-4xl text-secondary-300 mb-3"></i>
+            <p class="text-secondary-600 font-medium">Esta página se arma con bloques de tu tienda.</p>
+            <p class="text-sm text-secondary-500 mt-1">
+              {{ page.published
+                ? 'Ábrela en la tienda para verla con tus productos reales.'
+                : 'Publícala para verla en la tienda con tus productos reales.' }}
+            </p>
+            <a
+              v-if="page.published && storeBaseUrl"
+              :href="fullUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:opacity-90"
+            >
+              <i class="pi pi-external-link text-xs"></i>
+              Ver en la tienda
+            </a>
+          </div>
           <div
-            v-if="renderableContent"
+            v-else-if="renderableContent"
             class="prose prose-sm sm:prose max-w-none"
             v-html="sanitize(renderableContent)"
           ></div>

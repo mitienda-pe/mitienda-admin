@@ -82,8 +82,18 @@
         </div>
       </div>
 
+      <!-- Página de bloques: el mismo editor de la Plantilla, sobre el layout
+           de esta página. -->
+      <TemplateSectionsEditor
+        v-if="isBlocks"
+        :page="blocksKey"
+        :zones="['header']"
+        :empty-message="blocksEmptyMessage"
+        :exclude-blocks="['combos']"
+      />
+
       <!-- Editor Area -->
-      <div class="flex-1 bg-white rounded-lg shadow overflow-hidden" style="min-height: 500px;">
+      <div v-else class="flex-1 bg-white rounded-lg shadow overflow-hidden" style="min-height: 500px;">
         <PageContentEditor
           ref="editorRef"
           v-model="content"
@@ -200,6 +210,9 @@ import Textarea from 'primevue/textarea'
 import Message from 'primevue/message'
 import ProgressSpinner from 'primevue/progressspinner'
 import PageContentEditor from '@/components/pages/PageContentEditor.vue'
+import TemplateSectionsEditor from '@/components/content/TemplateSectionsEditor.vue'
+import { useTemplateSectionsStore } from '@/stores/template-sections.store'
+import { parsePageBlocksLayout, serializePageBlocksLayout } from '@/types/page.types'
 import ShortcodeInsertDialog from '@/components/pages/ShortcodeInsertDialog.vue'
 import AiHtmlBuilderPanel from '@/components/ai/AiHtmlBuilderPanel.vue'
 import { AI_BUTTON_IDS } from '@/config/ai-buttons.config'
@@ -209,6 +222,7 @@ const route = useRoute()
 const router = useRouter()
 const pagesStore = usePagesStore()
 const toast = useToast()
+const sectionsStore = useTemplateSectionsStore()
 
 const page = ref<Page | null>(null)
 const content = ref('')
@@ -234,6 +248,14 @@ const supportsShortcodes = computed(
 
 const supportsAi = computed(() => page.value?.editor_type === 'code')
 
+// Página de bloques: su layout vive en el store de la plantilla bajo una clave
+// negativa propia (ver setLocalPage), para que el editor compartido lo edite.
+const isBlocks = computed(() => page.value?.editor_type === 'blocks')
+const blocksKey = computed(() => -(page.value?.id ?? 0))
+
+const blocksEmptyMessage = () =>
+  'Agrega una sección y arrastra bloques: carrusel, listas de productos, categorías, marcas o tus componentes HTML.'
+
 const openShortcodeDialog = () => {
   showShortcode.value = true
 }
@@ -256,6 +278,7 @@ const editorTypeLabel = computed(() => {
     wysiwyg: 'Editor Visual',
     code: 'Editor de Código',
     visual_builder: 'Visual Builder',
+    blocks: 'Bloques',
   }
   return page.value ? labels[page.value.editor_type] : ''
 })
@@ -265,6 +288,7 @@ const editorTypeIcon = computed(() => {
     wysiwyg: 'pi pi-align-left',
     code: 'pi pi-code',
     visual_builder: 'pi pi-th-large',
+    blocks: 'pi pi-objects-column',
   }
   return page.value ? icons[page.value.editor_type] : 'pi pi-file'
 })
@@ -274,6 +298,7 @@ const editorTypeBadgeClass = computed(() => {
     wysiwyg: 'bg-primary/10 text-primary',
     code: 'bg-purple-100 text-purple-800',
     visual_builder: 'bg-orange-100 text-orange-800',
+    blocks: 'bg-green-100 text-green-800',
   }
   return page.value ? classes[page.value.editor_type] : 'bg-gray-100 text-gray-800'
 })
@@ -288,6 +313,17 @@ const loadPage = async () => {
     const result = await pagesStore.fetchPageById(pageId)
 
     if (result) {
+      if (result.editor_type === 'blocks') {
+        // Un layout ilegible no se abre como lienzo vacío: guardar encima
+        // borraría la página.
+        const sections = parsePageBlocksLayout(result.content)
+        if (sections === null) {
+          loadError.value = 'No pudimos leer los bloques de esta página. Recarga antes de editarla.'
+          return
+        }
+        sectionsStore.setLocalPage(-result.id, sections)
+      }
+
       page.value = result
       content.value = result.content
 
@@ -321,6 +357,10 @@ const handleSave = async () => {
     // Fuerza el volcado de cambios pendientes del editor (el Visual Builder
     // emite con debounce de 300 ms; sin esto se perdía el último cambio).
     await editorRef.value?.flushPendingChanges?.()
+
+    if (isBlocks.value) {
+      content.value = serializePageBlocksLayout(sectionsStore.getAllSections(blocksKey.value))
+    }
 
     const updated = await pagesStore.updatePage(page.value.id, {
       content: content.value,

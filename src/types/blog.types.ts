@@ -1,4 +1,4 @@
-import type { PageEditorType } from './page.types'
+import type { ContentEditorType } from './page.types'
 
 export interface BlogPost {
   id: number
@@ -14,7 +14,7 @@ export interface BlogPost {
   description: string
   excerpt: string
   content: string
-  editor_type: PageEditorType
+  editor_type: ContentEditorType
   active: boolean
   published: boolean
   publication_date: string
@@ -29,7 +29,7 @@ export interface BlogPostFormData {
   description?: string
   excerpt?: string
   content?: string
-  editor_type: PageEditorType
+  editor_type: ContentEditorType
   category_id?: number | null
   author_id?: number | null
   image_url?: string | null

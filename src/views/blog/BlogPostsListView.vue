@@ -249,7 +249,7 @@ import Paginator from 'primevue/paginator'
 import ProgressSpinner from 'primevue/progressspinner'
 import SearchBar from '@/components/common/SearchBar.vue'
 import type { BlogPost } from '@/types/blog.types'
-import type { PageEditorType } from '@/types/page.types'
+import type { ContentEditorType } from '@/types/page.types'
 
 const blogStore = useBlogStore()
 const toast = useToast()
@@ -320,16 +320,16 @@ function onPageChange(event: { page: number }) {
 
 watch(searchQuery, () => { currentPage.value = 0 })
 
-const editorTypeLabel = (type: PageEditorType) => {
-  const labels: Record<PageEditorType, string> = { wysiwyg: 'WYSIWYG', code: 'Código HTML', visual_builder: 'Visual Builder' }
+const editorTypeLabel = (type: ContentEditorType) => {
+  const labels: Record<ContentEditorType, string> = { wysiwyg: 'WYSIWYG', code: 'Código HTML', visual_builder: 'Visual Builder' }
   return labels[type] || type
 }
-const editorTypeIcon = (type: PageEditorType) => {
-  const icons: Record<PageEditorType, string> = { wysiwyg: 'pi pi-align-left', code: 'pi pi-code', visual_builder: 'pi pi-th-large' }
+const editorTypeIcon = (type: ContentEditorType) => {
+  const icons: Record<ContentEditorType, string> = { wysiwyg: 'pi pi-align-left', code: 'pi pi-code', visual_builder: 'pi pi-th-large' }
   return icons[type] || 'pi pi-file'
 }
-const editorTypeBadgeClass = (type: PageEditorType) => {
-  const classes: Record<PageEditorType, string> = { wysiwyg: 'bg-primary/10 text-primary', code: 'bg-purple-100 text-purple-800', visual_builder: 'bg-orange-100 text-orange-800' }
+const editorTypeBadgeClass = (type: ContentEditorType) => {
+  const classes: Record<ContentEditorType, string> = { wysiwyg: 'bg-primary/10 text-primary', code: 'bg-purple-100 text-purple-800', visual_builder: 'bg-orange-100 text-orange-800' }
   return classes[type] || 'bg-gray-100 text-gray-800'
 }
 

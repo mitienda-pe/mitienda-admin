@@ -182,7 +182,7 @@ import Divider from 'primevue/divider'
 import Dropdown from 'primevue/dropdown'
 import { imageGalleryApi } from '@/api/image-gallery.api'
 import { apiErrorMessage } from '@/utils/api-error'
-import type { PageEditorType } from '@/types/page.types'
+import type { ContentEditorType } from '@/types/page.types'
 
 const router = useRouter()
 const blogStore = useBlogStore()
@@ -200,7 +200,7 @@ const form = reactive({
   description: '',
   excerpt: '',
   publication_date: new Date().toISOString().split('T')[0],
-  editor_type: 'wysiwyg' as PageEditorType,
+  editor_type: 'wysiwyg' as ContentEditorType,
 })
 
 const errors = reactive<Record<string, string>>({})
