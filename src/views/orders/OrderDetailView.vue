@@ -297,7 +297,8 @@ async function handleCheckGateway() {
  */
 async function handleApproveFromGateway() {
   const lookup = gatewayStatus.value?.lookup
-  if (!order.value || !lookup?.transaction_id || isUpdatingPayment.value) return
+  // Sin monto informado la API no habilita aprobar; se confirma con "Confirmar pago".
+  if (!order.value || !lookup?.transaction_id || lookup.amount === null || isUpdatingPayment.value) return
 
   const confirmed = window.confirm(
     `Se confirmará el pedido con el pago ${lookup.transaction_id} por ` +
