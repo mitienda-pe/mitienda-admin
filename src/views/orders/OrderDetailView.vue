@@ -110,8 +110,10 @@ const showRejectionReason = computed(() => {
   return Boolean(o.gateway_error_user || o.gateway_error_store || o.status === 'cancelled')
 })
 
+// También en pagadas: una venta confirmada a mano tiene que poder contrastarse
+// con la pasarela. Es solo lectura; el API no habilita aprobar si ya está pagada.
 const canCheckGateway = computed(() => {
-  return PAYABLE_STATUSES.includes(order.value?.status ?? '')
+  return [...PAYABLE_STATUSES, 'paid'].includes(order.value?.status ?? '')
 })
 
 const canRejectPayment = computed(() => {
