@@ -3,6 +3,12 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.97.1] - 2026-11-27
+
+### Correcciones
+
+- **pedidos:** consultar la pasarela también en ventas pagadas ([`c44c4e2`](https://github.com/mitienda-pe/mitienda-admin/commit/c44c4e22fc6ebe44247041d485afd1337f9da89c))
+
 ## [v2.97.0] - 2026-11-27
 
 ### Novedades
