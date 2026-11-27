@@ -3,6 +3,16 @@
 Generado con `scripts/changelog.sh` desde los conventional commits.
 No editar a mano: los cambios se pierden en la siguiente regeneracion.
 
+## [v2.98.0] - 2026-11-27
+
+### Novedades
+
+- **paginas:** crear páginas con secciones y bloques, como en la plantilla ([`6111216`](https://github.com/mitienda-pe/mitienda-admin/commit/6111216468170ed3e0f0d6525c3b20bd087ab59e))
+
+### Correcciones
+
+- **pedidos:** tipar el monto nulo al aprobar desde la pasarela ([`24b5938`](https://github.com/mitienda-pe/mitienda-admin/commit/24b59382fa3a4e3b5afc9bbb3faeaebe9ca129df))
+
 ## [v2.97.2] - 2026-11-27
 
 ### Correcciones
