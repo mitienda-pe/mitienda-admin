@@ -984,6 +984,8 @@ const hasShippingCost = computed(() => {
   const cost = order.value?.shipping_cost
   if (cost === null || cost === undefined) return false
   if (cost > 0) return true
+  // Recojo en tienda: no hubo envío aunque la orden guarde una dirección.
+  if (order.value?.shipping_details?.is_pickup) return false
   return Boolean(order.value?.shipping_details?.address || shippingServiceType.value)
 })
 

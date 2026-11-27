@@ -96,6 +96,7 @@ function hasShipping(order: Order): boolean {
   const cost = order.shipping_cost
   if (cost === null || cost === undefined) return false
   if (cost > 0) return true
+  if (order.shipping_details?.is_pickup) return false
   return Boolean(order.shipping_details?.address || order.shipping_details?.service_type)
 }
 
