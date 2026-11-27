@@ -1046,6 +1046,12 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/store/StoreSeoView.vue')
       },
       {
+        path: 'search',
+        name: 'store-search-settings',
+        meta: { title: 'Buscador' },
+        component: () => import('@/views/store/StoreSearchSettingsView.vue')
+      },
+      {
         path: 'google',
         name: 'store-google',
         meta: { title: 'Google' },

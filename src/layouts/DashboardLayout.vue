@@ -1289,6 +1289,7 @@ const storeMenuItemsSource = [
   { label: 'Configuración', icon: 'pi pi-cog', to: '/store/config' },
   { label: 'Dominio propio', icon: 'pi pi-link', to: '/store/domain' },
   { label: 'SEO', icon: 'pi pi-globe', to: '/store/seo' },
+  { label: 'Buscador', icon: 'pi pi-search', to: '/store/search' },
   { label: 'Usuarios', icon: 'pi pi-users', to: '/store/users' },
   { label: 'Notificaciones', icon: 'pi pi-bell', to: '/notifications' },
   { label: 'Formas de Pago', icon: 'pi pi-credit-card', to: '/payment-gateways' },
